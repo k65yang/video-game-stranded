@@ -1,3 +1,0 @@
-C:/Users/venus/source/repos/Team13-Stranded/A1_A2_stranded_template/template/out/build/x64-Debug/CMakeFiles/salmon.dir
-C:/Users/venus/source/repos/Team13-Stranded/A1_A2_stranded_template/template/out/build/x64-Debug/CMakeFiles/edit_cache.dir
-C:/Users/venus/source/repos/Team13-Stranded/A1_A2_stranded_template/template/out/build/x64-Debug/CMakeFiles/rebuild_cache.dir
