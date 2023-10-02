@@ -24,12 +24,14 @@
 *.lai
 *.la
 *.a
-*.lib
 
 # Executables
 *.exe
 *.out
 *.app
+
+# CMake Preset individually generated files
+*project_path*
 
 # Directories
 /.vs
