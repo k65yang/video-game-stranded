@@ -16,8 +16,12 @@ public:
 	ComponentContainer<Motion> motions;
 	ComponentContainer<Collision> collisions;
 	ComponentContainer<Player> players;
+
+	// Rendering related
 	ComponentContainer<Mesh*> meshPtrs;
 	ComponentContainer<RenderRequest> renderRequests;
+	ComponentContainer<Camera> cameras;
+
 	ComponentContainer<ScreenState> screenStates;
 	ComponentContainer<SoftShell> softShells;
 	ComponentContainer<HardShell> hardShells;
@@ -65,6 +69,17 @@ public:
 		for (ContainerInterface* reg : registry_list)
 			reg->remove(e);
 	}
+
+	Entity get_main_camera() {
+		return main_camera;
+	}
+
+	void set_main_camera(Entity camera) {
+		main_camera = camera;
+	}
+
+private:
+	Entity main_camera;
 };
 
 extern ECSRegistry registry;
