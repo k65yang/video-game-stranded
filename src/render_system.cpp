@@ -5,17 +5,14 @@
 #include "tiny_ecs_registry.hpp"
 
 void RenderSystem::drawTexturedMesh(Entity entity,
-									const mat3 &projection)
+									const mat3& view_matrix,
+									const mat3& projection)
 {
 	Motion &motion = registry.motions.get(entity);
 	// Transformation code, see Rendering and Transformation in the template
 	// specification for more info Incrementally updates transformation matrix,
 	// thus ORDER IS IMPORTANT
-	Transform transform;
-	transform.translate(motion.position);
-	transform.scale(motion.scale);
-	// !!! TODO A1: add rotation to the chain of transformations, mind the order
-	// of transformations
+	mat3 transform = createModelMatrix(entity);	// Model matrix
 
 	assert(registry.renderRequests.has(entity));
 	const RenderRequest &render_request = registry.renderRequests.get(entity);
@@ -117,7 +114,9 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 	glGetIntegerv(GL_CURRENT_PROGRAM, &currProgram);
 	// Setting uniform values to the currently bound program
 	GLuint transform_loc = glGetUniformLocation(currProgram, "transform");
-	glUniformMatrix3fv(transform_loc, 1, GL_FALSE, (float *)&transform.mat);
+	glUniformMatrix3fv(transform_loc, 1, GL_FALSE, (float *)&transform);
+	GLuint view_loc = glGetUniformLocation(currProgram, "view");
+	glUniformMatrix3fv(view_loc, 1, GL_FALSE, (float*)&view_matrix);
 	GLuint projection_loc = glGetUniformLocation(currProgram, "projection");
 	glUniformMatrix3fv(projection_loc, 1, GL_FALSE, (float *)&projection);
 	gl_has_errors();
@@ -207,7 +206,14 @@ void RenderSystem::draw()
 							  // and alpha blending, one would have to sort
 							  // sprites back to front
 	gl_has_errors();
+	
+	Entity main_camera = registry.get_main_camera();
+	// Generate view matrix. This converts world space coordinates into camera-relative coords from its POV.
+	mat3 view_2D = createModelMatrix(main_camera);
+
+	// Generate projection matrix. This maps camera-relative coords to pixel/window coordinates.
 	mat3 projection_2D = createProjectionMatrix();
+
 	// Draw all textured meshes that have a position and size component
 	for (Entity entity : registry.renderRequests.entities)
 	{
@@ -215,7 +221,7 @@ void RenderSystem::draw()
 			continue;
 		// Note, its not very efficient to access elements indirectly via the entity
 		// albeit iterating through all Sprites in sequence. A good point to optimize
-		drawTexturedMesh(entity, projection_2D);
+		drawTexturedMesh(entity, view_2D, projection_2D);
 	}
 
 	// Truely render to the screen
@@ -226,19 +232,43 @@ void RenderSystem::draw()
 	gl_has_errors();
 }
 
+/// <summary>
+/// Generates a TRS matrix from an entity. Entity must have a Motion component.
+/// </summary>
+/// <param name="entity">Entity with a motion component to generate from</param>
+/// <returns>A TRS Matrix that converts from local space to the parent space (usually world).</returns>
+mat3 RenderSystem::createModelMatrix(Entity entity)
+{
+	Motion& motion = registry.motions.get(entity);
+
+	Transform modelMatrix;
+	modelMatrix.translate(motion.position);
+	modelMatrix.rotate(motion.angle);
+	modelMatrix.scale(motion.scale);
+
+	// Parent space -> local/model space? Inverse this TRS matrix!
+	return modelMatrix.mat;
+}
+
+/// <summary>
+/// Generates an orthogonal projection matrix. 
+/// </summary>
+/// <returns>An orthogonal projection matrix relative to the window size</returns>
 mat3 RenderSystem::createProjectionMatrix()
 {
-	// Fake projection matrix, scales with respect to window coordinates
-	float left = 0.f;
-	float top = 0.f;
+	// Othogonal projection matrix.
+	// Same code as the template since it scales with aspect ratio.
+	float left = -window_width_px / 2.f; // Modified these values so the middle of the screen is now 0,0
+	float top = -window_height_px / 2.f;
 
 	gl_has_errors();
-	float right = (float) window_width_px;
-	float bottom = (float) window_height_px;
+	float right = window_width_px / 2.f;
+	float bottom = window_height_px /2.f;
 
-	float sx = 2.f / (right - left);
-	float sy = 2.f / (top - bottom);
-	float tx = -(right + left) / (right - left);
-	float ty = -(top + bottom) / (top - bottom);
+	float sx = 2.f / (right - left) * tile_size_px;	// We finally scale the world space -> screen space tile size mappings
+	float sy = 2.f / (top - bottom) * tile_size_px;
+	float tx = -(right + left) / (right - left) * tile_size_px;
+	float ty = -(top + bottom) / (top - bottom) * tile_size_px;
+
 	return {{sx, 0.f, 0.f}, {0.f, sy, 0.f}, {tx, ty, 1.f}};
 }

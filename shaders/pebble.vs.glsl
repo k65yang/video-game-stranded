@@ -8,6 +8,7 @@ out vec3 vcolor;
 
 // Application data
 uniform mat3 transform;
+uniform mat3 view;
 uniform mat3 projection;
 
 void main()
