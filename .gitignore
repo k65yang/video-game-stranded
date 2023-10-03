@@ -13,7 +13,6 @@
 # Compiled Dynamic libraries
 *.so
 *.dylib
-*.dll
 
 # Fortran module files
 *.mod
@@ -35,3 +34,4 @@
 # Directories
 /.vs
 /out
+/ext/project_path.hpp
