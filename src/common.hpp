@@ -32,10 +32,15 @@ inline std::string mesh_path(const std::string& name) {return data_path() + "/me
 
 const int window_width_px = 1200;
 const int window_height_px = 800;
+const int tile_size_px = 50;		// Represents how many pixels a tile occupies in a row or column
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846f
 #endif
+
+#ifndef TWO_PI
+#define TWO_PI 2 * M_PI
+#endif	TWO_PI
 
 // The 'Transform' component handles transformations passed to the Vertex shader
 // (similar to the gl Immediate mode equivalent, e.g., glTranslate()...)
@@ -43,6 +48,8 @@ const int window_height_px = 800;
 struct Transform {
 	mat3 mat = { { 1.f, 0.f, 0.f }, { 0.f, 1.f, 0.f}, { 0.f, 0.f, 1.f} }; // start with the identity
 	void scale(vec2 scale);
+	void scale(int scale);
+	void scale(float scale);
 	void rotate(float radians);
 	void translate(vec2 offset);
 };

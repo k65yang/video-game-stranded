@@ -27,7 +27,7 @@ struct Motion {
 	vec2 position = { 0.f, 0.f };
 	float angle = 0.f;
 	vec2 velocity = { 0.f, 0.f };
-	vec2 scale = { 10.f, 10.f };
+	vec2 scale = { 1.f, 1.f };
 };
 
 // Stucture to store collision information
@@ -84,6 +84,12 @@ struct Mesh
 	vec2 original_size = {1,1};
 	std::vector<ColoredVertex> vertices;
 	std::vector<uint16_t> vertex_indices;
+};
+
+// Contains information for use in the camera rendering pipeline
+struct Camera
+{
+	bool mode_follow;
 };
 
 /**

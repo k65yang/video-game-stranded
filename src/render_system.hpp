@@ -72,11 +72,12 @@ public:
 	// Draw all entities
 	void draw();
 
+	mat3 createModelMatrix(Entity entity);
 	mat3 createProjectionMatrix();
 
 private:
 	// Internal drawing functions for each entity type
-	void drawTexturedMesh(Entity entity, const mat3& projection);
+	void drawTexturedMesh(Entity entity, const mat3& view_matrix, const mat3& projection);
 	void drawToScreen();
 
 	// Window handle

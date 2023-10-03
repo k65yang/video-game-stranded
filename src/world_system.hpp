@@ -40,7 +40,13 @@ public:
 private:
 	// Input callback functions
 	void on_key(int key, int, int action, int mod);
+	void camera_controls(int action, int key);
 	void on_mouse_move(vec2 pos);
+
+	// TODO: improve input checking
+	// This helps prevent button-up actions from happening if game is reset in-between
+	// button-down and button-up states
+	int key_downs = 0;
 
 	// restart level
 	void restart_game();
@@ -57,6 +63,7 @@ private:
 	float next_turtle_spawn;
 	float next_fish_spawn;
 	Entity player_salmon;
+	Entity main_camera;
 
 	// music references
 	Mix_Music* background_music;

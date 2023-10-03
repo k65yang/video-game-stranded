@@ -142,6 +142,8 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	// Remove entities that leave the screen on the left side
 	// Iterate backwards to be able to remove without unterfering with the next object to visit
 	// (the containers exchange the last element with the current)
+
+	/*
 	for (int i = (int)motion_container.components.size()-1; i>=0; --i) {
 	    Motion& motion = motion_container.components[i];
 		if (motion.position.x + abs(motion.scale.x) < 0.f) {
@@ -149,6 +151,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 				registry.remove_all_components_of(motion_container.entities[i]);
 		}
 	}
+	*/
 
 	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 	// TODO A2: HANDLE PEBBLE SPAWN HERE
@@ -179,8 +182,6 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	// reduce window brightness if any of the present salmons is dying
 	screen.screen_darken_factor = 1 - min_timer_ms / 3000;
 
-	// !!! TODO A1: update LightUp timers and remove if time drops below zero, similar to the death timer
-
 	return true;
 }
 
@@ -202,22 +203,13 @@ void WorldSystem::restart_game() {
 	registry.list_all_components();
 
 	// Create a new salmon
-	player_salmon = createSalmon(renderer, { window_width_px / 2, window_height_px / 2 });
+	player_salmon = createSalmon(renderer, { 0, 0 });
 	registry.colors.insert(player_salmon, {1, 0.8f, 0.8f});
 
-	// !! TODO A2: Enable static pebbles on the ground, for reference
-	// Create pebbles on the floor, use this for reference
-	/*
-	for (uint i = 0; i < 20; i++) {
-		int w, h;
-		glfwGetWindowSize(window, &w, &h);
-		float radius = 30 * (uniform_dist(rng) + 0.3f); // range 0.3 .. 1.3
-		Entity pebble = createPebble({ uniform_dist(rng) * w, h - uniform_dist(rng) * 20 }, 
-			         { radius, radius });
-		float brightness = uniform_dist(rng) * 0.5 + 0.5;
-		registry.colors.insert(pebble, { brightness, brightness, brightness});
-	}
-	*/
+	// Create the main camera
+	main_camera = createCamera({ 0,0 });
+
+	key_downs = 0;
 }
 
 // Compute collisions between entities
@@ -276,21 +268,26 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 	Motion& player_motion = registry.motions.get(player_salmon);
-	if (action == GLFW_PRESS && key == GLFW_KEY_S) {
-		player_motion.position.y += 50;
-	}
-	if (action == GLFW_PRESS && key == GLFW_KEY_W) {
-		player_motion.position.y -= 50;
+	if (action == GLFW_PRESS || action == GLFW_REPEAT) {
+		if (key == GLFW_KEY_S) {
+			player_motion.position.y += 1;
+		}
+		if (key == GLFW_KEY_W) {
+			player_motion.position.y -= 1;
+		}
+
+		if (key == GLFW_KEY_A) {
+			player_motion.position.x -= 1;
+
+		}
+		if (key == GLFW_KEY_D) {
+			player_motion.position.x += 1;
+		}
 	}
 
-	if (action == GLFW_PRESS && key == GLFW_KEY_A) {
-		player_motion.position.x -= 50;
+	// Camera controls
+	camera_controls(action, key);
 
-	}
-	if (action == GLFW_PRESS && key == GLFW_KEY_D) {
-		player_motion.position.x += 50;
-
-	}
 	// Resetting game
 	if (action == GLFW_RELEASE && key == GLFW_KEY_R) {
 		int w, h;
@@ -321,6 +318,52 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		printf("Current speed = %f\n", current_speed);
 	}
 	current_speed = fmax(0.f, current_speed);
+}
+
+/// <summary>
+/// This are the camera controls.
+/// </summary>
+/// <param name="action">from on_key</param>
+/// <param name="key">from on_key</param>
+void WorldSystem::camera_controls(int action, int key)
+{
+	vec2 camera_velocity(0);
+	if (action == GLFW_PRESS) {
+
+		if (key == GLFW_KEY_UP) {
+			key_downs++;
+			camera_velocity.y += 1;
+		}
+		if (key == GLFW_KEY_DOWN) {
+			key_downs++;
+			camera_velocity.y += -1;
+		}
+		if (key == GLFW_KEY_LEFT) {
+			key_downs++;
+			camera_velocity.x += 1;
+		}
+		if (key == GLFW_KEY_RIGHT) {
+			key_downs++;
+			camera_velocity.x += -1;
+		}
+	}
+
+	if (action == GLFW_RELEASE && key_downs) {
+		key_downs--;
+		if (key == GLFW_KEY_UP)
+			camera_velocity.y += -1;
+		if (key == GLFW_KEY_DOWN)
+			camera_velocity.y += 1;
+		if (key == GLFW_KEY_LEFT)
+			camera_velocity.x += -1;
+		if (key == GLFW_KEY_RIGHT)
+			camera_velocity.x += 1;
+	}
+
+	if (length(camera_velocity) > 0) {
+		Motion& camera_motion = registry.motions.get(main_camera);
+		camera_motion.velocity += camera_velocity * current_speed;
+	}
 }
 
 void WorldSystem::on_mouse_move(vec2 mouse_position) {

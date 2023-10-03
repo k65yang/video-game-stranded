@@ -7,6 +7,9 @@ void Transform::scale(vec2 scale)
 	mat = mat * S;
 }
 
+void Transform::scale(int scale) { Transform::scale({ scale, scale }); }
+void Transform::scale(float scale) { Transform::scale({ scale, scale }); }
+
 void Transform::rotate(float radians)
 {
 	float c = cosf(radians);

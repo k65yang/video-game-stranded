@@ -14,7 +14,6 @@ Entity createSalmon(RenderSystem* renderer, vec2 pos)
 	motion.position = pos;
 	motion.angle = 0.f;
 	motion.velocity = { 0.f, 0.f };
-	motion.scale = mesh.original_size * 50.f;
 	motion.scale.x *= -1; // point front to the right
 
 	// Create and (empty) Salmon component to be able to refer to all turtles
@@ -128,3 +127,21 @@ Entity createPebble(vec2 pos, vec2 size)
 
 	return entity;
 }
+
+/// <summary>
+/// Creates a camera centred on a position
+/// </summary>
+/// <param name="pos">World space position where the camera is facing</param>
+/// <returns>The camera entity</returns>
+Entity createCamera(vec2 pos)
+{
+	auto entity = Entity();
+	registry.set_main_camera(entity);
+
+	Motion& motion = registry.motions.emplace(entity);
+	Camera& camera = registry.cameras.emplace(entity);
+
+	motion.position = pos;
+	return entity;
+}
+

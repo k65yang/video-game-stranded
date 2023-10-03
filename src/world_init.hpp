@@ -21,4 +21,9 @@ Entity createLine(vec2 position, vec2 size);
 // a pebble
 Entity createPebble(vec2 pos, vec2 size);
 
-
+/// <summary>
+/// Creates a camera pointed at the given spot.
+/// </summary>
+/// <param name="pos">Position of the camera in world space</param>
+/// <returns>The camera entity</returns>
+Entity createCamera(vec2 pos);
