@@ -22,7 +22,8 @@ Entity createSalmon(RenderSystem* renderer, vec2 pos)
 		entity,
 		{ TEXTURE_ASSET_ID::FISH,
 			EFFECT_ASSET_ID::TEXTURED,
-			GEOMETRY_BUFFER_ID::SPRITE });
+			GEOMETRY_BUFFER_ID::SPRITE,
+			RENDER_LAYER_ID::LAYER_1});
 
 	return entity;
 }
@@ -51,7 +52,8 @@ Entity createFish(RenderSystem* renderer, vec2 position)
 		entity,
 		{ TEXTURE_ASSET_ID::FISH,
 			EFFECT_ASSET_ID::TEXTURED,
-			GEOMETRY_BUFFER_ID::SPRITE });
+			GEOMETRY_BUFFER_ID::SPRITE,
+			RENDER_LAYER_ID::LAYER_1 });
 
 	return entity;
 }
@@ -67,11 +69,11 @@ Entity createTurtle(RenderSystem* renderer, vec2 position)
 	// Initialize the motion
 	auto& motion = registry.motions.emplace(entity);
 	motion.angle = 0.f;
-	motion.velocity = { -100.f, 0.f };
+	motion.velocity = { -10.f, 0.f };
 	motion.position = position;
 
 	// Setting initial values, scale is negative to make it face the opposite way
-	motion.scale = vec2({ -TURTLE_BB_WIDTH, TURTLE_BB_HEIGHT });
+	motion.scale = vec2({ 1, 1});
 
 	// Create and (empty) Turtle component to be able to refer to all turtles
 	registry.hardShells.emplace(entity);
@@ -79,7 +81,8 @@ Entity createTurtle(RenderSystem* renderer, vec2 position)
 		entity,
 		{ TEXTURE_ASSET_ID::TURTLE,
 		 EFFECT_ASSET_ID::TEXTURED,
-		 GEOMETRY_BUFFER_ID::SPRITE });
+		 GEOMETRY_BUFFER_ID::SPRITE,
+			RENDER_LAYER_ID::LAYER_1 });
 
 	return entity;
 }
@@ -142,6 +145,32 @@ Entity createCamera(vec2 pos)
 	Camera& camera = registry.cameras.emplace(entity);
 
 	motion.position = pos;
+	return entity;
+}
+
+// Creates FOW entity on given position
+Entity createFOW(RenderSystem* renderer, vec2 position)
+{
+	// Reserve en entity
+	auto entity = Entity();
+
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Initialize the position, scale, and physics components
+	auto& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.velocity = { 0.f, 0.f };
+	motion.position = position;
+	motion.scale = vec2({50.f, 50.f});
+
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::FOW,
+			EFFECT_ASSET_ID::TEXTURED,
+			GEOMETRY_BUFFER_ID::SPRITE,
+			RENDER_LAYER_ID::LAYER_2 });
+
 	return entity;
 }
 

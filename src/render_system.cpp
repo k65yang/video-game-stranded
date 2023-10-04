@@ -214,6 +214,10 @@ void RenderSystem::draw()
 	// Generate projection matrix. This maps camera-relative coords to pixel/window coordinates.
 	mat3 projection_2D = createProjectionMatrix();
 
+	std::vector<Entity> layer_1_entities;
+	std::vector<Entity> layer_2_entities;
+
+
 	// Draw all textured meshes that have a position and size component
 	for (Entity entity : registry.renderRequests.entities)
 	{
@@ -221,11 +225,30 @@ void RenderSystem::draw()
 			continue;
 		// Note, its not very efficient to access elements indirectly via the entity
 		// albeit iterating through all Sprites in sequence. A good point to optimize
+		
+		//resort them in different queue of render request based on layer they belong to
+		if (registry.renderRequests.get(entity).layer_id == RENDER_LAYER_ID::LAYER_1) {
+			layer_1_entities.push_back(entity);
+
+		} else {
+			layer_2_entities.push_back(entity);
+		}
+	}
+
+	// Render each layer. Could be optimize later 
+	for (Entity entity : layer_1_entities) {
 		drawTexturedMesh(entity, view_2D, projection_2D);
 	}
 
+	for (Entity entity : layer_2_entities) {
+		drawTexturedMesh(entity, view_2D, projection_2D);
+	}
+
+
+
 	// Truely render to the screen
 	drawToScreen();
+
 
 	// flicker-free display with a double buffer
 	glfwSwapBuffers(window);
@@ -272,3 +295,4 @@ mat3 RenderSystem::createProjectionMatrix()
 
 	return {{sx, 0.f, 0.f}, {0.f, sy, 0.f}, {tx, ty, 1.f}};
 }
+
