@@ -324,14 +324,12 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 			debugging.in_debug_mode = true;
 	}*/
 
-	// FOW Press B to turn off, press N to turn on
+	// Press B to toggle debug mode
 	if (key == GLFW_KEY_B && action == GLFW_PRESS) {
-		debugging.in_debug_mode = true;	
+		debugging.in_debug_mode = !debugging.in_debug_mode;
 	}
 
-	if (key == GLFW_KEY_N && action == GLFW_PRESS) {
-		debugging.in_debug_mode = false;
-	}
+	
 
 	// Control the current speed with `<` `>`
 	if (action == GLFW_RELEASE && (mod & GLFW_MOD_SHIFT) && key == GLFW_KEY_COMMA) {
