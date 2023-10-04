@@ -241,7 +241,12 @@ void RenderSystem::draw()
 	}
 
 	for (Entity entity : layer_2_entities) {
-		drawTexturedMesh(entity, view_2D, projection_2D);
+
+		// added guard to turn off while in debug mode 
+		if (debugging.in_debug_mode == false) {
+			drawTexturedMesh(entity, view_2D, projection_2D);
+		}
+		
 	}
 
 

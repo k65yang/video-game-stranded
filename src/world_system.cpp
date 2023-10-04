@@ -299,6 +299,8 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		}
 	}
 
+	
+
 	// Camera controls
 	camera_controls(action, key);
 
@@ -315,11 +317,20 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	}
 
 	// Debugging
-	if (key == GLFW_KEY_D) {
+	/*if (key == GLFW_KEY_D) {
 		if (action == GLFW_RELEASE)
 			debugging.in_debug_mode = false;
 		else
 			debugging.in_debug_mode = true;
+	}*/
+
+	// FOW Press B to turn off, press N to turn on
+	if (key == GLFW_KEY_B && action == GLFW_PRESS) {
+		debugging.in_debug_mode = true;	
+	}
+
+	if (key == GLFW_KEY_N && action == GLFW_PRESS) {
+		debugging.in_debug_mode = false;
 	}
 
 	// Control the current speed with `<` `>`
@@ -332,6 +343,8 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		printf("Current speed = %f\n", current_speed);
 	}
 	current_speed = fmax(0.f, current_speed);
+
+	
 }
 
 /// <summary>
