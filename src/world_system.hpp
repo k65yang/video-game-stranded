@@ -64,6 +64,7 @@ private:
 	float next_fish_spawn;
 	Entity player_salmon;
 	Entity main_camera;
+	Entity fow;
 
 	// music references
 	Mix_Music* background_music;

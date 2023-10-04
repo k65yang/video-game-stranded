@@ -74,7 +74,7 @@ GLFWwindow* WorldSystem::create_window() {
 	// TODO: don't create a window (call a diff fn)
 
 	// Create the main window (for rendering, keyboard, and mouse input)
-	window = glfwCreateWindow(window_width_px, window_height_px, "Stranded", glfwGetPrimaryMonitor(), nullptr);
+	window = glfwCreateWindow(window_width_px, window_height_px, "Stranded", nullptr, nullptr);
 	if (window == nullptr) {
 		fprintf(stderr, "Failed to glfwCreateWindow");
 		return nullptr;
@@ -143,15 +143,15 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	// Iterate backwards to be able to remove without unterfering with the next object to visit
 	// (the containers exchange the last element with the current)
 
-	/*
-	for (int i = (int)motion_container.components.size()-1; i>=0; --i) {
-	    Motion& motion = motion_container.components[i];
-		if (motion.position.x + abs(motion.scale.x) < 0.f) {
-			if(!registry.players.has(motion_container.entities[i])) // don't remove the player
-				registry.remove_all_components_of(motion_container.entities[i]);
-		}
-	}
-	*/
+	
+	//for (int i = (int)motion_container.components.size()-1; i>=0; --i) {
+	//    Motion& motion = motion_container.components[i];
+	//	if (motion.position.x + abs(motion.scale.x) < 0.f) {
+	//		if(!registry.players.has(motion_container.entities[i])) // don't remove the player
+	//			registry.remove_all_components_of(motion_container.entities[i]);
+	//	}
+	//}
+	
 
 	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 	// TODO A2: HANDLE PEBBLE SPAWN HERE
@@ -182,6 +182,10 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	// reduce window brightness if any of the present salmons is dying
 	screen.screen_darken_factor = 1 - min_timer_ms / 3000;
 
+	Motion& m = registry.motions.get(player_salmon);
+	Motion& f = registry.motions.get(fow);
+	f.position = m.position;
+
 	return true;
 }
 
@@ -207,9 +211,19 @@ void WorldSystem::restart_game() {
 	registry.colors.insert(player_salmon, {1, 0.8f, 0.8f});
 
 	// Create the main camera
-	main_camera = createCamera({ 0,0 });
-
+	main_camera = createCamera({0,0});
 	key_downs = 0;
+
+	// Create fow
+	fow = createFOW(renderer, {0,0});
+
+	// test for fow demo, REMOVE LATER
+	for (int i = 0; i < 4; i++) {
+		Entity e = createTurtle(renderer, { i+1,i-1 });
+		registry.motions.get(e).velocity = { 0.f,0.f };
+	}
+	
+	
 }
 
 // Compute collisions between entities
@@ -285,6 +299,8 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		}
 	}
 
+	
+
 	// Camera controls
 	camera_controls(action, key);
 
@@ -301,12 +317,19 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	}
 
 	// Debugging
-	if (key == GLFW_KEY_D) {
+	/*if (key == GLFW_KEY_D) {
 		if (action == GLFW_RELEASE)
 			debugging.in_debug_mode = false;
 		else
 			debugging.in_debug_mode = true;
+	}*/
+
+	// Press B to toggle debug mode
+	if (key == GLFW_KEY_B && action == GLFW_PRESS) {
+		debugging.in_debug_mode = !debugging.in_debug_mode;
 	}
+
+	
 
 	// Control the current speed with `<` `>`
 	if (action == GLFW_RELEASE && (mod & GLFW_MOD_SHIFT) && key == GLFW_KEY_COMMA) {
@@ -318,6 +341,8 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		printf("Current speed = %f\n", current_speed);
 	}
 	current_speed = fmax(0.f, current_speed);
+
+	
 }
 
 /// <summary>

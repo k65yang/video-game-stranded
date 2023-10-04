@@ -21,6 +21,9 @@ Entity createLine(vec2 position, vec2 size);
 // a pebble
 Entity createPebble(vec2 pos, vec2 size);
 
+// fow
+Entity createFOW(RenderSystem* renderer, vec2 pos);
+
 /// <summary>
 /// Creates a camera pointed at the given spot.
 /// </summary>
