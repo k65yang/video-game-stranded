@@ -28,6 +28,12 @@ public:
 	ComponentContainer<DebugComponent> debugComponents;
 	ComponentContainer<vec3> colors;
 
+	// Terrain-related
+	ComponentContainer<TerrainCell> terrainCells;
+
+	// TODO: Make a separate batched draw call just for the terrain for optimization
+	ComponentContainer<RenderRequest> terrainRenderRequests;	// used in a SIMD batch process
+
 	// constructor that adds all containers for looping over them
 	// IMPORTANT: Don't forget to add any newly added containers!
 	ECSRegistry()
@@ -44,6 +50,11 @@ public:
 		registry_list.push_back(&hardShells);
 		registry_list.push_back(&debugComponents);
 		registry_list.push_back(&colors);
+
+		registry_list.push_back(&cameras);
+
+		registry_list.push_back(&terrainCells);
+		registry_list.push_back(&terrainRenderRequests);
 	}
 
 	void clear_all_components() {

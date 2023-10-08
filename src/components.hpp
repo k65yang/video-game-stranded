@@ -92,6 +92,20 @@ struct Camera
 	bool mode_follow;
 };
 
+
+enum class TERRAIN_TYPE {
+	AIR = 0,
+	GRASS = AIR + 1,
+	ROCK = GRASS + 1
+};
+
+// Data structure that supports 
+struct TerrainCell 
+{
+	TERRAIN_TYPE terrain_type = TERRAIN_TYPE::AIR;
+	//bool collide;
+};
+
 /**
  * The following enumerators represent global identifiers refering to graphic
  * assets. For example TEXTURE_ASSET_ID are the identifiers of each texture
@@ -120,7 +134,10 @@ enum class TEXTURE_ASSET_ID {
 	FISH = 0,
 	TURTLE = FISH + 1,
 	FOW = TURTLE + 1,
-	TEXTURE_COUNT = FOW + 1
+	TERRAIN_AIR = FOW + 1,
+	TERRAIN_GRASS = TERRAIN_AIR + 1,
+	TERRAIN_STONE = TERRAIN_GRASS + 1,
+	TEXTURE_COUNT = TERRAIN_STONE + 1
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 

@@ -115,8 +115,9 @@ GLFWwindow* WorldSystem::create_window() {
 	return window;
 }
 
-void WorldSystem::init(RenderSystem* renderer_arg) {
+void WorldSystem::init(RenderSystem* renderer_arg, TerrainSystem* terrain_arg) {
 	this->renderer = renderer_arg;
+	this->terrain = terrain_arg;
 	// Playing background music indefinitely
 	Mix_PlayMusic(background_music, -1);
 	fprintf(stderr, "Loaded music\n");
@@ -205,6 +206,9 @@ void WorldSystem::restart_game() {
 
 	// Debugging for memory/component leaks
 	registry.list_all_components();
+
+	// Re-initialize the terrain
+	terrain->init(world_size_x, world_size_y, renderer);
 
 	// Create a new salmon
 	player_salmon = createSalmon(renderer, { 0, 0 });
