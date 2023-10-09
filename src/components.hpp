@@ -10,15 +10,11 @@ struct Player
 
 };
 
-// Turtles have a hard shell
-struct HardShell
-{
+struct Mob {
 
 };
 
-// Fish and Salmon have a soft shell
-struct SoftShell
-{
+struct Item {
 
 };
 
@@ -120,7 +116,8 @@ enum class TEXTURE_ASSET_ID {
 	FISH = 0,
 	TURTLE = FISH + 1,
 	FOW = TURTLE + 1,
-	TEXTURE_COUNT = FOW + 1
+	ITEM = FOW + 1,
+	TEXTURE_COUNT = ITEM + 1
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 

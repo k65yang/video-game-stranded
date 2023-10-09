@@ -139,26 +139,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	// Removing out of screen entities
 	auto& motion_container = registry.motions;
 
-	// Remove entities that leave the screen on the left side
-	// Iterate backwards to be able to remove without unterfering with the next object to visit
-	// (the containers exchange the last element with the current)
-
-	
-	//for (int i = (int)motion_container.components.size()-1; i>=0; --i) {
-	//    Motion& motion = motion_container.components[i];
-	//	if (motion.position.x + abs(motion.scale.x) < 0.f) {
-	//		if(!registry.players.has(motion_container.entities[i])) // don't remove the player
-	//			registry.remove_all_components_of(motion_container.entities[i]);
-	//	}
-	//}
-	
-
-	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-	// TODO A2: HANDLE PEBBLE SPAWN HERE
-	// DON'T WORRY ABOUT THIS UNTIL ASSIGNMENT 2
-	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-	// Processing the salmon state
+	// Processing the player state
 	assert(registry.screenStates.components.size() <= 1);
     ScreenState &screen = registry.screenStates.components[0];
 
@@ -179,7 +160,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			return true;
 		}
 	}
-	// reduce window brightness if any of the present salmons is dying
+	// reduce window brightness if any of the present players is dying
 	screen.screen_darken_factor = 1 - min_timer_ms / 3000;
 
 	Motion& m = registry.motions.get(player_salmon);
@@ -207,7 +188,7 @@ void WorldSystem::restart_game() {
 	registry.list_all_components();
 
 	// Create a new salmon
-	player_salmon = createSalmon(renderer, { 0, 0 });
+	player_salmon = createPlayer(renderer, { 0, 0 });
 	registry.colors.insert(player_salmon, {1, 0.8f, 0.8f});
 
 	// Create the main camera
@@ -219,11 +200,12 @@ void WorldSystem::restart_game() {
 
 	// test for fow demo, REMOVE LATER
 	for (int i = 0; i < 4; i++) {
-		Entity e = createTurtle(renderer, { i+1,i-1 });
+		Entity e = createMob(renderer, { i+1,i-1 });
 		registry.motions.get(e).velocity = { 0.f,0.f };
 	}
-	
-	
+
+	// FOR TESTING	
+	createItem(renderer, { 1, 2 });
 }
 
 // Compute collisions between entities
@@ -235,32 +217,25 @@ void WorldSystem::handle_collisions() {
 		Entity entity = collisionsRegistry.entities[i];
 		Entity entity_other = collisionsRegistry.components[i].other_entity;
 
-		// For now, we are only interested in collisions that involve the salmon
+		// Collisions involving the player
 		if (registry.players.has(entity)) {
-			//Player& player = registry.players.get(entity);
 
-			// Checking Player - HardShell collisions
-			if (registry.hardShells.has(entity_other)) {
-				// initiate death unless already dying
+			// Checking Player - Mobs
+			if (registry.mobs.has(entity_other)) {
 				if (!registry.deathTimers.has(entity)) {
-					// Scream, reset timer, and make the salmon sink
 					registry.deathTimers.emplace(entity);
-					Mix_PlayChannel(-1, salmon_dead_sound, 0);
-
-					// !!! TODO A1: change the salmon orientation and color on death
 				}
 			}
-			// Checking Player - SoftShell collisions
-			else if (registry.softShells.has(entity_other)) {
-				if (!registry.deathTimers.has(entity)) {
-					// chew, count points, and set the LightUp timer
-					registry.remove_all_components_of(entity_other);
-					Mix_PlayChannel(-1, salmon_eat_sound, 0);
-					++points;
 
-					// !!! TODO A1: create a new struct called LightUp in components.hpp and add an instance to the salmon entity by modifying the ECS registry
-				}
+			// Checking Player - Items
+			if (registry.items.has(entity_other)) {
+				// HANDLE ITEM SOMEHOW? e.g maybe struct needs some information
+				// maybe have a default to show stuff in m1 (like change color or something)
+
+				// remove item from map, and apply effect
+				registry.remove_all_components_of(entity_other);
 			}
+
 		}
 	}
 
