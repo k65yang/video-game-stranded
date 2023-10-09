@@ -169,7 +169,7 @@ Entity createFOW(RenderSystem* renderer, vec2 position)
 		{ TEXTURE_ASSET_ID::FOW,
 			EFFECT_ASSET_ID::TEXTURED,
 			GEOMETRY_BUFFER_ID::SPRITE,
-			RENDER_LAYER_ID::LAYER_2 });
+			RENDER_LAYER_ID::LAYER_3 });
 
 	return entity;
 }
