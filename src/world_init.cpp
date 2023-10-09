@@ -20,7 +20,7 @@ Entity createPlayer(RenderSystem* renderer, vec2 pos)
 	registry.players.emplace(entity);
 	registry.renderRequests.insert(
 		entity,
-		{ TEXTURE_ASSET_ID::FISH,
+		{ TEXTURE_ASSET_ID::PLAYER,
 			EFFECT_ASSET_ID::TEXTURED,
 			GEOMETRY_BUFFER_ID::SPRITE,
 			RENDER_LAYER_ID::LAYER_1});
@@ -28,7 +28,6 @@ Entity createPlayer(RenderSystem* renderer, vec2 pos)
 	return entity;
 }
 
-// TODO: not fully generalised
 Entity createItem(RenderSystem* renderer, vec2 position, ITEM_TYPE type)
 {
 	// Reserve en entity
@@ -48,10 +47,22 @@ Entity createItem(RenderSystem* renderer, vec2 position, ITEM_TYPE type)
 	auto& item = registry.items.emplace(entity);
 	item.data = type;
 
-	// TODO: i think this still needs to be generalised, like above (for diff item textures)
+	TEXTURE_ASSET_ID texture = TEXTURE_ASSET_ID::PLAYER;
+	switch (type) {
+		case ITEM_TYPE::QUEST:
+			texture = TEXTURE_ASSET_ID::ITEM;
+			break;
+		case ITEM_TYPE::FOOD:
+			texture = TEXTURE_ASSET_ID::FOOD;
+			break;
+		case ITEM_TYPE::WEAPON:
+			texture = TEXTURE_ASSET_ID::WEAPON;
+			break;
+	}
+
 	registry.renderRequests.insert(
 		entity,
-		{ TEXTURE_ASSET_ID::ITEM,
+		{ texture,
 			EFFECT_ASSET_ID::TEXTURED,
 			GEOMETRY_BUFFER_ID::SPRITE,
 			RENDER_LAYER_ID::LAYER_1 });
@@ -81,7 +92,7 @@ Entity createMob(RenderSystem* renderer, vec2 position)
 	registry.mobs.emplace(entity);
 	registry.renderRequests.insert(
 		entity,
-		{ TEXTURE_ASSET_ID::TURTLE,
+		{ TEXTURE_ASSET_ID::MOB,
 		 EFFECT_ASSET_ID::TEXTURED,
 		 GEOMETRY_BUFFER_ID::SPRITE,
 			RENDER_LAYER_ID::LAYER_1 });

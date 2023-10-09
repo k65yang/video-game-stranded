@@ -119,11 +119,13 @@ struct Camera
  */
 
 enum class TEXTURE_ASSET_ID {
-	FISH = 0,
-	TURTLE = FISH + 1,
-	FOW = TURTLE + 1,
+	PLAYER = 0,
+	MOB = PLAYER + 1,
+	FOW = MOB + 1,
 	ITEM = FOW + 1,
-	TEXTURE_COUNT = ITEM + 1
+	FOOD = ITEM + 1,
+	WEAPON = FOOD + 1,
+	TEXTURE_COUNT = WEAPON + 1
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 

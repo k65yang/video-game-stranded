@@ -204,8 +204,10 @@ void WorldSystem::restart_game() {
 		registry.motions.get(e).velocity = { 0.f,0.f };
 	}
 
-	// FOR TESTING	
+	// FOR DEMO - to show different types of items being created.	
 	createItem(renderer, { 1, 2 }, ITEM_TYPE::FOOD);
+	createItem(renderer, { 0, 2 }, ITEM_TYPE::WEAPON);
+	createItem(renderer, { -1, 2 }, ITEM_TYPE::QUEST);
 }
 
 // Compute collisions between entities
@@ -245,7 +247,7 @@ void WorldSystem::handle_collisions() {
 						break;
 				}
 
-				// remove item from map, and apply effect
+				// remove item from map
 				registry.remove_all_components_of(entity_other);
 			}
 		}
