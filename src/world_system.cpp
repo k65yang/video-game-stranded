@@ -229,11 +229,12 @@ void WorldSystem::handle_collisions() {
 				if (!registry.deathTimers.has(entity)) {
 					registry.deathTimers.emplace(entity);
 				}
+			}
         
 			// Checking Player - Terrain
 			if (registry.terrainColliders.has(entity_other)) {
-          // set velocity to 0 when collide with a terrain collider
-				  registry.motions.get(player_salmon).velocity = { 0.f,0.f };
+				// set velocity to 0 when collide with a terrain collider
+				registry.motions.get(player_salmon).velocity = { 0.f,0.f };
 			}
 
 			// Checking Player - Items
