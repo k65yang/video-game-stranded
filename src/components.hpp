@@ -14,8 +14,14 @@ struct Mob {
 
 };
 
-struct Item {
+enum class ITEM_TYPE {
+	QUEST = 0,
+	FOOD = 1,
+	WEAPON = 2,
+};
 
+struct Item {
+	ITEM_TYPE data;
 };
 
 // All data relevant to the shape and motion of entities

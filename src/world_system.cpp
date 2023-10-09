@@ -205,7 +205,7 @@ void WorldSystem::restart_game() {
 	}
 
 	// FOR TESTING	
-	createItem(renderer, { 1, 2 });
+	createItem(renderer, { 1, 2 }, ITEM_TYPE::FOOD);
 }
 
 // Compute collisions between entities
@@ -222,6 +222,7 @@ void WorldSystem::handle_collisions() {
 
 			// Checking Player - Mobs
 			if (registry.mobs.has(entity_other)) {
+				// TODO: game over screen
 				if (!registry.deathTimers.has(entity)) {
 					registry.deathTimers.emplace(entity);
 				}
@@ -229,13 +230,24 @@ void WorldSystem::handle_collisions() {
 
 			// Checking Player - Items
 			if (registry.items.has(entity_other)) {
-				// HANDLE ITEM SOMEHOW? e.g maybe struct needs some information
-				// maybe have a default to show stuff in m1 (like change color or something)
+				Item& item = registry.items.get(entity_other);
+
+				// Handle the item based on its function
+				switch (item.data) {
+					case ITEM_TYPE::QUEST:
+						// Display a quest item as having been fetched, and update this on the screen?
+						break;
+					case ITEM_TYPE::FOOD:
+						// Add to food bar
+						break;
+					case ITEM_TYPE::WEAPON:
+						// Swap with current weapon
+						break;
+				}
 
 				// remove item from map, and apply effect
 				registry.remove_all_components_of(entity_other);
 			}
-
 		}
 	}
 
@@ -250,11 +262,10 @@ bool WorldSystem::is_over() const {
 
 // On key callback
 void WorldSystem::on_key(int key, int, int action, int mod) {
-	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-	// TODO A1: HANDLE SALMON MOVEMENT HERE
-	// key is of 'type' GLFW_KEY_
-	// action can be GLFW_PRESS GLFW_RELEASE GLFW_REPEAT
-	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+	// Stop the player from moving after death.
+	if (registry.deathTimers.has(player_salmon)) {
+		return;
+	}
 
 	Motion& player_motion = registry.motions.get(player_salmon);
 	if (action == GLFW_PRESS || action == GLFW_REPEAT) {
@@ -273,8 +284,6 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 			player_motion.position.x += 1;
 		}
 	}
-
-	
 
 	// Camera controls
 	camera_controls(action, key);

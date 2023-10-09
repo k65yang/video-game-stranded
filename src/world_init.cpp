@@ -16,7 +16,7 @@ Entity createPlayer(RenderSystem* renderer, vec2 pos)
 	motion.velocity = { 0.f, 0.f };
 	motion.scale.x *= -1; // point front to the right
 
-	// Create and (empty) Salmon component to be able to refer to all turtles
+	// Add the player to the players registry
 	registry.players.emplace(entity);
 	registry.renderRequests.insert(
 		entity,
@@ -28,8 +28,8 @@ Entity createPlayer(RenderSystem* renderer, vec2 pos)
 	return entity;
 }
 
-// GENERAL ITEM CREATION FUNCTION STILL NEEDS TO BE MADE - ONLY ONE ITEM AT THIS TIME.
-Entity createItem(RenderSystem* renderer, vec2 position)
+// TODO: not fully generalised
+Entity createItem(RenderSystem* renderer, vec2 position, ITEM_TYPE type)
 {
 	// Reserve en entity
 	auto entity = Entity();
@@ -44,10 +44,11 @@ Entity createItem(RenderSystem* renderer, vec2 position)
 	motion.velocity = { 0.f, 0.f };
 	motion.position = position;
 
-	// Setting initial values, scale is negative to make it face the opposite way
-	//motion.scale = vec2({ -FISH_BB_WIDTH, FISH_BB_HEIGHT });
+	// Initialise the item data field
+	auto& item = registry.items.emplace(entity);
+	item.data = type;
 
-	registry.items.emplace(entity);
+	// TODO: i think this still needs to be generalised, like above (for diff item textures)
 	registry.renderRequests.insert(
 		entity,
 		{ TEXTURE_ASSET_ID::ITEM,
