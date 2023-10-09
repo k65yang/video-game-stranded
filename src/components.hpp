@@ -10,16 +10,19 @@ struct Player
 
 };
 
-// Turtles have a hard shell
-struct HardShell
-{
+struct Mob {
 
 };
 
-// Fish and Salmon have a soft shell
-struct SoftShell
-{
+enum class ITEM_TYPE {
+	QUEST = 0,
+	FOOD = 1,
+	WEAPON = 2,
+	UPGRADE = 3,
+};
 
+struct Item {
+	ITEM_TYPE data;
 };
 
 // All data relevant to the shape and motion of entities
@@ -129,11 +132,14 @@ struct TerrainCollider
  */
 
 enum class TEXTURE_ASSET_ID {
-	FISH = 0,
-	TURTLE = FISH + 1,
-	FOW = TURTLE + 1,
-	REDBLOCK = FOW + 1,
-	TEXTURE_COUNT = REDBLOCK + 1
+	PLAYER = 0,
+	MOB = PLAYER + 1,
+  REDBLOCK = MOB + 1,
+	FOW = REDBLOCK + 1,
+	ITEM = FOW + 1,
+	FOOD = ITEM + 1,
+	WEAPON = FOOD + 1,
+	TEXTURE_COUNT = WEAPON + 1
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 
