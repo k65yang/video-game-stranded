@@ -92,6 +92,18 @@ struct Camera
 	bool mode_follow;
 };
 
+struct TerrainCollider
+{
+	// collider component for non-passable terrain cells, will be used to stop player movement during handle_collision
+
+	// since current version of collision check requires entity with motion component
+	// will later on load all non-passable terrain cells location in world
+	// 
+	// for each cells
+	// either take the terrain cell position, with a scale of 50,50 pixel and create terrain collider with respected motion component here 
+	// or directly associate motion component with terrain cell component if possible
+};
+
 /**
  * The following enumerators represent global identifiers refering to graphic
  * assets. For example TEXTURE_ASSET_ID are the identifiers of each texture
@@ -120,7 +132,8 @@ enum class TEXTURE_ASSET_ID {
 	FISH = 0,
 	TURTLE = FISH + 1,
 	FOW = TURTLE + 1,
-	TEXTURE_COUNT = FOW + 1
+	REDBLOCK = FOW + 1,
+	TEXTURE_COUNT = REDBLOCK + 1
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 

@@ -219,7 +219,7 @@ void WorldSystem::restart_game() {
 
 	// test for fow demo, REMOVE LATER
 	for (int i = 0; i < 4; i++) {
-		Entity e = createTurtle(renderer, { i+1,i-1 });
+		Entity e = createTestDummy(renderer, { i+1,i-1 });
 		registry.motions.get(e).velocity = { 0.f,0.f };
 	}
 	
@@ -239,16 +239,11 @@ void WorldSystem::handle_collisions() {
 		if (registry.players.has(entity)) {
 			//Player& player = registry.players.get(entity);
 
-			// Checking Player - HardShell collisions
-			if (registry.hardShells.has(entity_other)) {
-				// initiate death unless already dying
-				if (!registry.deathTimers.has(entity)) {
-					// Scream, reset timer, and make the salmon sink
-					registry.deathTimers.emplace(entity);
-					Mix_PlayChannel(-1, salmon_dead_sound, 0);
+			// testing terrainCollider
+			// set velocity to 0 when collide with a terrain collider
+			if (registry.terrainColliders.has(entity_other)) {
 
-					// !!! TODO A1: change the salmon orientation and color on death
-				}
+				registry.motions.get(player_salmon).velocity = { 0.f,0.f };
 			}
 			// Checking Player - SoftShell collisions
 			else if (registry.softShells.has(entity_other)) {
@@ -282,6 +277,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 	Motion& player_motion = registry.motions.get(player_salmon);
+	
 	if (action == GLFW_PRESS || action == GLFW_REPEAT) {
 		if (key == GLFW_KEY_S) {
 			player_motion.position.y += 1;
@@ -298,6 +294,38 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 			player_motion.position.x += 1;
 		}
 	}
+
+	/*if (action == GLFW_PRESS) {
+
+		if (key == GLFW_KEY_W) {
+			key_downs++;
+			player_motion.velocity.y += -1;
+		}
+		if (key == GLFW_KEY_S) {
+			key_downs++;
+			player_motion.velocity.y += 1;
+		}
+		if (key == GLFW_KEY_A) {
+			key_downs++;
+			player_motion.velocity.x += -1;
+		}
+		if (key == GLFW_KEY_D) {
+			key_downs++;
+			player_motion.velocity.x += 1;
+		}
+	}
+
+	if (action == GLFW_RELEASE && key_downs) {
+		key_downs--;
+		if (key == GLFW_KEY_W)
+			player_motion.velocity.y += 1;
+		if (key == GLFW_KEY_S)
+			player_motion.velocity.y += -1;
+		if (key == GLFW_KEY_A)
+			player_motion.velocity.x += 1;
+		if (key == GLFW_KEY_D)
+			player_motion.velocity.x += -1;
+	}*/
 
 	
 
