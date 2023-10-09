@@ -77,6 +77,10 @@ Entity createTurtle(RenderSystem* renderer, vec2 position)
 
 	// Create and (empty) Turtle component to be able to refer to all turtles
 	registry.hardShells.emplace(entity);
+
+	// add terrain collider to turtle for testing REMOVE LATER
+	registry.terrainColliders.emplace(entity);
+
 	registry.renderRequests.insert(
 		entity,
 		{ TEXTURE_ASSET_ID::TURTLE,
