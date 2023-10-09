@@ -52,6 +52,9 @@ Entity createItem(RenderSystem* renderer, vec2 position, ITEM_TYPE type)
 		case ITEM_TYPE::QUEST:
 			texture = TEXTURE_ASSET_ID::ITEM;
 			break;
+		case ITEM_TYPE::UPGRADE:
+			texture = TEXTURE_ASSET_ID::ITEM;
+			break;
 		case ITEM_TYPE::FOOD:
 			texture = TEXTURE_ASSET_ID::FOOD;
 			break;

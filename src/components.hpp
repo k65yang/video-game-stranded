@@ -18,6 +18,7 @@ enum class ITEM_TYPE {
 	QUEST = 0,
 	FOOD = 1,
 	WEAPON = 2,
+	UPGRADE = 3,
 };
 
 struct Item {

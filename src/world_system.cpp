@@ -245,6 +245,9 @@ void WorldSystem::handle_collisions() {
 					case ITEM_TYPE::WEAPON:
 						// Swap with current weapon
 						break;
+					case ITEM_TYPE::UPGRADE:
+						// Just add to inventory
+						break;
 				}
 
 				// remove item from map
