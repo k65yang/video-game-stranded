@@ -21,6 +21,8 @@ Entity createLine(vec2 position, vec2 size);
 
 // fow
 Entity createFOW(RenderSystem* renderer, vec2 pos);
+Entity createTestDummy(RenderSystem* renderer, vec2 position);
+
 
 /// <summary>
 /// Creates a camera pointed at the given spot.

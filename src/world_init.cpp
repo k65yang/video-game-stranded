@@ -85,7 +85,7 @@ Entity createMob(RenderSystem* renderer, vec2 position)
 	// Initialize the motion
 	auto& motion = registry.motions.emplace(entity);
 	motion.angle = 0.f;
-	motion.velocity = { -10.f, 0.f };
+	motion.velocity = { 0.f, 0.f };
 	motion.position = position;
 
 	// Setting initial values, scale is negative to make it face the opposite way
@@ -93,6 +93,7 @@ Entity createMob(RenderSystem* renderer, vec2 position)
 
 	// Classify this entity as a mob.
 	registry.mobs.emplace(entity);
+
 	registry.renderRequests.insert(
 		entity,
 		{ TEXTURE_ASSET_ID::MOB,
@@ -163,8 +164,37 @@ Entity createFOW(RenderSystem* renderer, vec2 position)
 		{ TEXTURE_ASSET_ID::FOW,
 			EFFECT_ASSET_ID::TEXTURED,
 			GEOMETRY_BUFFER_ID::SPRITE,
-			RENDER_LAYER_ID::LAYER_2 });
+			RENDER_LAYER_ID::LAYER_3 });
 
 	return entity;
 }
 
+Entity createTestDummy(RenderSystem* renderer, vec2 position)
+{
+	auto entity = Entity();
+
+	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Initialize the motion
+	auto& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.velocity = { 0.f, 0.f };
+	motion.position = position;
+
+	// Setting initial values, scale is negative to make it face the opposite way
+	motion.scale = vec2({ 1, 1 });
+
+	// Create and (empty) Turtle component to be able to refer to all turtles
+	registry.terrainColliders.emplace(entity);
+
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::REDBLOCK,
+		 EFFECT_ASSET_ID::TEXTURED,
+		 GEOMETRY_BUFFER_ID::SPRITE,
+			RENDER_LAYER_ID::LAYER_1 });
+
+	return entity;
+}

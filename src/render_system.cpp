@@ -216,9 +216,10 @@ void RenderSystem::draw()
 
 	std::vector<Entity> layer_1_entities;
 	std::vector<Entity> layer_2_entities;
+	std::vector<Entity> layer_3_entities;
 
 
-	// Draw all textured meshes that have a position and size component
+
 	for (Entity entity : registry.renderRequests.entities)
 	{
 		if (!registry.motions.has(entity))
@@ -226,27 +227,37 @@ void RenderSystem::draw()
 		// Note, its not very efficient to access elements indirectly via the entity
 		// albeit iterating through all Sprites in sequence. A good point to optimize
 		
-		//resort them in different queue of render request based on layer they belong to
+		// resort them in different queue of render request based on layer they belong to
 		if (registry.renderRequests.get(entity).layer_id == RENDER_LAYER_ID::LAYER_1) {
 			layer_1_entities.push_back(entity);
-
-		} else {
+		}
+		else if (registry.renderRequests.get(entity).layer_id == RENDER_LAYER_ID::LAYER_2) {
 			layer_2_entities.push_back(entity);
+		}
+		else if (registry.renderRequests.get(entity).layer_id == RENDER_LAYER_ID::LAYER_3) {
+			layer_3_entities.push_back(entity);
+		}
+		else {
+			assert(registry.renderRequests.get(entity).layer_id != RENDER_LAYER_ID::LAYER_COUNT && "entity render request with incorrect layer ID (LAYER_COUNT)");
 		}
 	}
 
-	// Render each layer. Could be optimize later 
+
+	// 	// Draw all textured meshes that have a position and size component in corresponded order to achieve layering. Could be optimize later
+
 	for (Entity entity : layer_1_entities) {
 		drawTexturedMesh(entity, view_2D, projection_2D);
 	}
 
 	for (Entity entity : layer_2_entities) {
+		drawTexturedMesh(entity, view_2D, projection_2D);
+	}
 
+	for (Entity entity : layer_3_entities) {
 		// added guard to turn off while in debug mode 
 		if (debugging.in_debug_mode == false) {
 			drawTexturedMesh(entity, view_2D, projection_2D);
 		}
-		
 	}
 
 

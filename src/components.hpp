@@ -95,6 +95,18 @@ struct Camera
 	bool mode_follow;
 };
 
+struct TerrainCollider
+{
+	// collider component for non-passable terrain cells, will be used to stop player movement during handle_collision
+
+	// since current version of collision check requires entity with motion component
+	// will later on load all non-passable terrain cells location in world
+	// 
+	// for each cells
+	// either take the terrain cell position, with a scale of 50,50 pixel and create terrain collider with respected motion component here 
+	// or directly associate motion component with terrain cell component if possible
+};
+
 /**
  * The following enumerators represent global identifiers refering to graphic
  * assets. For example TEXTURE_ASSET_ID are the identifiers of each texture
@@ -122,7 +134,8 @@ struct Camera
 enum class TEXTURE_ASSET_ID {
 	PLAYER = 0,
 	MOB = PLAYER + 1,
-	FOW = MOB + 1,
+  REDBLOCK = MOB + 1,
+	FOW = REDBLOCK + 1,
 	ITEM = FOW + 1,
 	FOOD = ITEM + 1,
 	WEAPON = FOOD + 1,

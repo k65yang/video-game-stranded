@@ -200,7 +200,7 @@ void WorldSystem::restart_game() {
 
 	// test for fow demo, REMOVE LATER
 	for (int i = 0; i < 4; i++) {
-		Entity e = createMob(renderer, { i+1,i-1 });
+		Entity e = createTestDummy(renderer, { i+1,i-1 });
 		registry.motions.get(e).velocity = { 0.f,0.f };
 	}
 
@@ -208,6 +208,7 @@ void WorldSystem::restart_game() {
 	createItem(renderer, { 1, 2 }, ITEM_TYPE::FOOD);
 	createItem(renderer, { 0, 2 }, ITEM_TYPE::WEAPON);
 	createItem(renderer, { -1, 2 }, ITEM_TYPE::QUEST);
+  createMob(renderer, { -3, 2 });
 }
 
 // Compute collisions between entities
@@ -228,6 +229,11 @@ void WorldSystem::handle_collisions() {
 				if (!registry.deathTimers.has(entity)) {
 					registry.deathTimers.emplace(entity);
 				}
+        
+			// Checking Player - Terrain
+			if (registry.terrainColliders.has(entity_other)) {
+          // set velocity to 0 when collide with a terrain collider
+				  registry.motions.get(player_salmon).velocity = { 0.f,0.f };
 			}
 
 			// Checking Player - Items
@@ -273,6 +279,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	}
 
 	Motion& player_motion = registry.motions.get(player_salmon);
+	
 	if (action == GLFW_PRESS || action == GLFW_REPEAT) {
 		if (key == GLFW_KEY_S) {
 			player_motion.position.y += 1;
@@ -290,6 +297,39 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		}
 	}
 
+	/*if (action == GLFW_PRESS) {
+
+		if (key == GLFW_KEY_W) {
+			key_downs++;
+			player_motion.velocity.y += -1;
+		}
+		if (key == GLFW_KEY_S) {
+			key_downs++;
+			player_motion.velocity.y += 1;
+		}
+		if (key == GLFW_KEY_A) {
+			key_downs++;
+			player_motion.velocity.x += -1;
+		}
+		if (key == GLFW_KEY_D) {
+			key_downs++;
+			player_motion.velocity.x += 1;
+		}
+	}
+
+	if (action == GLFW_RELEASE && key_downs) {
+		key_downs--;
+		if (key == GLFW_KEY_W)
+			player_motion.velocity.y += 1;
+		if (key == GLFW_KEY_S)
+			player_motion.velocity.y += -1;
+		if (key == GLFW_KEY_A)
+			player_motion.velocity.x += 1;
+		if (key == GLFW_KEY_D)
+			player_motion.velocity.x += -1;
+	}*/
+
+	
 	// Camera controls
 	camera_controls(action, key);
 
