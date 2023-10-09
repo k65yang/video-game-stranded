@@ -132,7 +132,8 @@ enum class TEXTURE_ASSET_ID {
 	FISH = 0,
 	TURTLE = FISH + 1,
 	FOW = TURTLE + 1,
-	TEXTURE_COUNT = FOW + 1
+	REDBLOCK = FOW + 1,
+	TEXTURE_COUNT = REDBLOCK + 1
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 
