@@ -95,6 +95,20 @@ struct Camera
 	bool mode_follow;
 };
 
+
+enum class TERRAIN_TYPE {
+	AIR = 0,
+	GRASS = AIR + 1,
+	ROCK = GRASS + 1
+};
+
+// Data structure that supports 
+struct TerrainCell 
+{
+	TERRAIN_TYPE terrain_type = TERRAIN_TYPE::AIR;
+	//bool collide;
+};
+
 struct TerrainCollider
 {
 	// collider component for non-passable terrain cells, will be used to stop player movement during handle_collision
@@ -134,12 +148,16 @@ struct TerrainCollider
 enum class TEXTURE_ASSET_ID {
 	PLAYER = 0,
 	MOB = PLAYER + 1,
-  REDBLOCK = MOB + 1,
+	REDBLOCK = MOB + 1,
 	FOW = REDBLOCK + 1,
 	ITEM = FOW + 1,
 	FOOD = ITEM + 1,
 	WEAPON = FOOD + 1,
-	SPACESHIP = WEAPON + 1, 
+	TERRAIN_AIR = WEAPON + 1,
+	TERRAIN_GRASS = TERRAIN_AIR + 1,
+	TERRAIN_STONE = TERRAIN_GRASS + 1,
+	//TEXTURE_COUNT = TERRAIN_STONE + 1
+	SPACESHIP = TERRAIN_STONE + 1,
 	TEXTURE_COUNT = SPACESHIP + 1
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;

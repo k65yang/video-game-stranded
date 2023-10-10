@@ -8,7 +8,6 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 									const mat3& view_matrix,
 									const mat3& projection)
 {
-	Motion &motion = registry.motions.get(entity);
 	// Transformation code, see Rendering and Transformation in the template
 	// specification for more info Incrementally updates transformation matrix,
 	// thus ORDER IS IMPORTANT
