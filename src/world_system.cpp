@@ -187,6 +187,9 @@ void WorldSystem::restart_game() {
 	// Debugging for memory/component leaks
 	registry.list_all_components();
 
+	// Create a Spaceship 
+	createSpaceship(renderer, { 0,-3 });
+
 	// Create a new salmon
 	player_salmon = createPlayer(renderer, { 0, 0 });
 	registry.colors.insert(player_salmon, {1, 0.8f, 0.8f});

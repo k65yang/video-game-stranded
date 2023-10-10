@@ -139,7 +139,8 @@ enum class TEXTURE_ASSET_ID {
 	ITEM = FOW + 1,
 	FOOD = ITEM + 1,
 	WEAPON = FOOD + 1,
-	TEXTURE_COUNT = WEAPON + 1
+	SPACESHIP = WEAPON + 1, 
+	TEXTURE_COUNT = SPACESHIP + 1
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 
