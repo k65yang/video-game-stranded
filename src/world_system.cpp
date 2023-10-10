@@ -115,8 +115,9 @@ GLFWwindow* WorldSystem::create_window() {
 	return window;
 }
 
-void WorldSystem::init(RenderSystem* renderer_arg) {
+void WorldSystem::init(RenderSystem* renderer_arg, TerrainSystem* terrain_arg) {
 	this->renderer = renderer_arg;
+	this->terrain = terrain_arg;
 	// Playing background music indefinitely
 	Mix_PlayMusic(background_music, -1);
 	fprintf(stderr, "Loaded music\n");
@@ -186,6 +187,9 @@ void WorldSystem::restart_game() {
 
 	// Debugging for memory/component leaks
 	registry.list_all_components();
+
+	// Re-initialize the terrain
+	terrain->init(world_size_x, world_size_y, renderer);
 
 	// Create a new salmon
 	player_salmon = createPlayer(renderer, { 0, 0 });
@@ -333,6 +337,29 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	
 	// Camera controls
 	camera_controls(action, key);
+
+	if (action == GLFW_PRESS && key == GLFW_KEY_G) {
+		Motion& player = registry.motions.get(player_salmon);
+		Entity tile = terrain->get_cell(player.position);
+		TerrainCell& cell = registry.terrainCells.get(tile);
+		cell.terrain_type = TERRAIN_TYPE::ROCK;
+		RenderRequest& req = registry.renderRequests.get(tile);
+		req.used_texture = TEXTURE_ASSET_ID::TERRAIN_STONE;
+	}
+
+	if (action == GLFW_PRESS && key == GLFW_KEY_V) {
+		Motion& player = registry.motions.get(player_salmon);
+		Entity tile = terrain->get_cell(player.position);
+
+		std::vector<Entity> entities;
+		terrain->get_accessible_neighbours(tile, entities);
+		for (Entity e : entities) {
+			RenderRequest& req = registry.renderRequests.get(e);
+			TerrainCell& cell = registry.terrainCells.get(tile);
+			cell.terrain_type = TERRAIN_TYPE::ROCK;
+			req.used_texture = TEXTURE_ASSET_ID::TERRAIN_STONE;
+		}
+	}
 
 	// Resetting game
 	if (action == GLFW_RELEASE && key == GLFW_KEY_R) {
