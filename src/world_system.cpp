@@ -338,6 +338,15 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	// Camera controls
 	camera_controls(action, key);
 
+	if (action == GLFW_PRESS && key == GLFW_KEY_E) {
+		Motion& player = registry.motions.get(player_salmon);
+		Entity tile = terrain->get_cell(player.position);
+		TerrainCell& cell = registry.terrainCells.get(tile);
+		cell.terrain_type = TERRAIN_TYPE::ROCK;
+		RenderRequest& req = registry.renderRequests.get(tile);
+		req.used_texture = TEXTURE_ASSET_ID::TERRAIN_STONE;
+	}
+
 	// Resetting game
 	if (action == GLFW_RELEASE && key == GLFW_KEY_R) {
 		int w, h;

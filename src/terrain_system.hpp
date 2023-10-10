@@ -6,7 +6,7 @@
 #include "tiny_ecs_registry.hpp"
 #include "render_system.hpp"
 
-// A simple physics system that moves rigid bodies and checks for collision
+// The underlying terrain grid square
 class TerrainSystem
 {
 public:
@@ -15,6 +15,28 @@ public:
 	~TerrainSystem() {
 		delete[] grid;
 	}
+
+	/// <summary>
+	/// Represents one cell in the grid, internal uses for now. Exposed to public
+	/// in case you have some use for it.
+	/// </summary>
+	class Cell {
+	public:
+		Entity entity;
+
+		// STRUCTURE:
+		// [bits 31-2 are reserved, disable pathfind, collidable]
+		//							    1st bit		    0th bit
+		// 
+		// We're using unsigned int flags because it is the largest data structure that
+		// remains aligned with Entity
+		unsigned int flags;
+	};
+
+	enum TERRAIN_FLAGS {
+		COLLIDABLE	= 0b1,
+		DISABLE_PATHFIND = 0b10,
+	};
 
 	/// <summary>
 	/// Initializes the world grid with the given size. Each axis should preferably be odd.
@@ -46,6 +68,13 @@ public:
 	Entity get_cell(int x, int y);
 
 	/// <summary>
+	/// Return true if the tile should have a collider
+	/// </summary>
+	bool isImpassable(Entity tile) { return grid[tile - entityStart].flags & (unsigned)TERRAIN_FLAGS::COLLIDABLE; }
+	bool isImpassable(vec2 position) { isImpassable((int)position.x, (int)position.y); };
+	bool isImpassable(int x, int y) { return grid[to_array_index(x, y)].flags & (unsigned)TERRAIN_FLAGS::COLLIDABLE; }
+
+	/// <summary>
 	/// Returns valid, non-collidable neighbours.
 	/// </summary>
 	/// <param name="cell">The origin cell.</param>
@@ -54,7 +83,7 @@ public:
 	char get_accessible_neighbours(Entity cell, Entity* buffer);
 
 private:
-	Entity* grid;	// PLEASE DO NOT EXPOSE THIS UNLESS YOU KNOW WHAT YOU ARE DOING
+	Cell* grid;	// PLEASE DO NOT EXPOSE THIS UNLESS YOU KNOW WHAT YOU ARE DOING
 
 	// The id of the first entity made in this iteration
 	// IMPORTANT: this assumes no other entities can be made

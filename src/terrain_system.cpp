@@ -12,25 +12,48 @@ Entity TerrainSystem::get_cell(vec2 position)
 Entity TerrainSystem::get_cell(int x, int y)
 {
 	assert(grid != nullptr);
-	assert(x < size_x);
-	assert(y < size_y);
-	return grid[to_array_index(x, y)];
+	assert(abs(x) <= size_x / 2);
+	assert(abs(y) <= size_y / 2);
+	return grid[to_array_index(x, y)].entity;
 }
 
 char TerrainSystem::get_accessible_neighbours(Entity cell, Entity* buffer)
 {
 	// TODO: Return all accessible, non-collidable neighbours
+	assert(grid != nullptr);
 	assert(buffer != nullptr);
 	assert(registry.terrainCells.has(cell));
 	int cell_index = entityStart - cell;
-	return 0;
+	char buffer_i = 0;
+
+	int indices[4] = { 
+		cell_index - 1,			// Left cell
+		cell_index + 1,			// Right cell
+		cell_index + size_x,	// Bottom cell
+		cell_index - size_x		// Top cell
+	};
+
+	for (int i : indices) {
+		// check bounds
+		if (i > 0 && i < size_x * size_y) {
+			Cell& cell = grid[i];
+			if (!cell.flags & (TERRAIN_FLAGS::COLLIDABLE | TERRAIN_FLAGS::DISABLE_PATHFIND)) {
+				// If a cell is not collidable and pathfinding is not disabled, add to buffer
+				buffer[buffer_i] = cell.entity;
+				buffer_i++;
+			}
+		}
+	}
+
+	return buffer_i;
 }
 
 unsigned int TerrainSystem::to_array_index(int x, int y)
 {
+	// Honestly have no idea why it's inverted...
 	x = size_x / 2 + x;
 	y = size_y / 2 + y;
-	return (y * size_x + x);
+	return (x * size_y + y);
 }
 
 vec2 TerrainSystem::to_world_coordinates(const int index)
@@ -58,12 +81,12 @@ void TerrainSystem::init(const unsigned int x, const unsigned int y, const Rende
 
 	size_x = x;
 	size_y = y;
-	grid = new Entity[x * y]();	// 1D 2-dimensional array so we can guarantee that
+	grid = new Cell[x * y]();	// 1D 2-dimensional array so we can guarantee that
 								// the entire world is in the same memory block.
-	entityStart = grid[0];
+	entityStart = grid[0].entity;
 
 	for (int i = 0; i < x * y; i++) {
-		Entity& entity = grid[i];
+		Entity& entity = grid[i].entity;
 		registry.terrainCells.emplace(entity);
 		registry.motions.emplace(entity);
 		Motion& motion = registry.motions.get(entity);
