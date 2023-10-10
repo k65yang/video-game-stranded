@@ -5,21 +5,31 @@
 #include "../ext/stb_image/stb_image.h"
 
 // Player component
+
+const int PLAYER_MAX_FOOD = 100;
+const int PLAYER_MAX_HEALTH = 100;
+
+// TODO: cool idea for later is to have a customizable difficulty that adjusts food and health.
 struct Player
 {
-
+	int health = PLAYER_MAX_HEALTH;
+	float iframes_timer = 0;
+	int food = PLAYER_MAX_FOOD;
 };
 
-// Turtles have a hard shell
-struct HardShell
-{
-
+struct Mob {
+	int damage;
 };
 
-// Fish and Salmon have a soft shell
-struct SoftShell
-{
+enum class ITEM_TYPE {
+	QUEST = 0,
+	FOOD = 1,
+	WEAPON = 2,
+	UPGRADE = 3,
+};
 
+struct Item {
+	ITEM_TYPE data;
 };
 
 // All data relevant to the shape and motion of entities
@@ -81,7 +91,7 @@ struct TexturedVertex
 struct Mesh
 {
 	static bool loadFromOBJFile(std::string obj_path, std::vector<ColoredVertex>& out_vertices, std::vector<uint16_t>& out_vertex_indices, vec2& out_size);
-	vec2 original_size = {1,1};
+	vec2 original_size = { 1,1 };
 	std::vector<ColoredVertex> vertices;
 	std::vector<uint16_t> vertex_indices;
 };
@@ -90,6 +100,18 @@ struct Mesh
 struct Camera
 {
 	bool mode_follow;
+};
+
+struct TerrainCollider
+{
+	// collider component for non-passable terrain cells, will be used to stop player movement during handle_collision
+
+	// since current version of collision check requires entity with motion component
+	// will later on load all non-passable terrain cells location in world
+	// 
+	// for each cells
+	// either take the terrain cell position, with a scale of 50,50 pixel and create terrain collider with respected motion component here 
+	// or directly associate motion component with terrain cell component if possible
 };
 
 /**
@@ -117,10 +139,14 @@ struct Camera
  */
 
 enum class TEXTURE_ASSET_ID {
-	FISH = 0,
-	TURTLE = FISH + 1,
-	FOW = TURTLE + 1,
-	TEXTURE_COUNT = FOW + 1
+	PLAYER = 0,
+	MOB = PLAYER + 1,
+	REDBLOCK = MOB + 1,
+	FOW = REDBLOCK + 1,
+	ITEM = FOW + 1,
+	FOOD = ITEM + 1,
+	WEAPON = FOOD + 1,
+	TEXTURE_COUNT = WEAPON + 1
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 

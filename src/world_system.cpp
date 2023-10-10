@@ -13,6 +13,8 @@ const size_t MAX_TURTLES = 15;
 const size_t MAX_FISH = 5;
 const size_t TURTLE_DELAY_MS = 2000 * 3;
 const size_t FISH_DELAY_MS = 5000 * 3;
+const float IFRAMES = 1000;
+const int FOOD_PICKUP_AMOUNT = 20;
 
 // Create the fish world
 WorldSystem::WorldSystem()
@@ -42,7 +44,7 @@ WorldSystem::~WorldSystem() {
 
 // Debugging
 namespace {
-	void glfw_err_cb(int error, const char *desc) {
+	void glfw_err_cb(int error, const char* desc) {
 		fprintf(stderr, "%d: %s", error, desc);
 	}
 }
@@ -122,7 +124,7 @@ void WorldSystem::init(RenderSystem* renderer_arg) {
 	fprintf(stderr, "Loaded music\n");
 
 	// Set all states to default
-    restart_game();
+	restart_game();
 }
 
 // Update our game world
@@ -134,40 +136,21 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 	// Remove debug info from the last step
 	while (registry.debugComponents.entities.size() > 0)
-	    registry.remove_all_components_of(registry.debugComponents.entities.back());
+		registry.remove_all_components_of(registry.debugComponents.entities.back());
 
 	// Removing out of screen entities
 	auto& motion_container = registry.motions;
 
-	// Remove entities that leave the screen on the left side
-	// Iterate backwards to be able to remove without unterfering with the next object to visit
-	// (the containers exchange the last element with the current)
-
-	
-	//for (int i = (int)motion_container.components.size()-1; i>=0; --i) {
-	//    Motion& motion = motion_container.components[i];
-	//	if (motion.position.x + abs(motion.scale.x) < 0.f) {
-	//		if(!registry.players.has(motion_container.entities[i])) // don't remove the player
-	//			registry.remove_all_components_of(motion_container.entities[i]);
-	//	}
-	//}
-	
-
-	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-	// TODO A2: HANDLE PEBBLE SPAWN HERE
-	// DON'T WORRY ABOUT THIS UNTIL ASSIGNMENT 2
-	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-	// Processing the salmon state
+	// Processing the player state
 	assert(registry.screenStates.components.size() <= 1);
-    ScreenState &screen = registry.screenStates.components[0];
+	ScreenState& screen = registry.screenStates.components[0];
 
-    float min_timer_ms = 3000.f;
+	float min_timer_ms = 3000.f;
 	for (Entity entity : registry.deathTimers.entities) {
 		// progress timer
 		DeathTimer& timer = registry.deathTimers.get(entity);
 		timer.timer_ms -= elapsed_ms_since_last_update;
-		if(timer.timer_ms < min_timer_ms){
+		if (timer.timer_ms < min_timer_ms) {
 			min_timer_ms = timer.timer_ms;
 		}
 
@@ -175,11 +158,24 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		if (timer.timer_ms < 0) {
 			registry.deathTimers.remove(entity);
 			screen.screen_darken_factor = 0;
-            restart_game();
+			restart_game();
 			return true;
 		}
 	}
-	// reduce window brightness if any of the present salmons is dying
+
+	// Tick down iframes timer
+	for (Entity entity : registry.players.entities) {
+		Player& player = registry.players.get(entity);
+		player.iframes_timer -= elapsed_ms_since_last_update;
+
+		if (player.iframes_timer < 0) {
+			player.iframes_timer = 0;
+		}
+	}
+
+	// TODO: tick down player food
+
+	// reduce window brightness if any of the present players is dying
 	screen.screen_darken_factor = 1 - min_timer_ms / 3000;
 
 	Motion& m = registry.motions.get(player_salmon);
@@ -201,29 +197,33 @@ void WorldSystem::restart_game() {
 	// Remove all entities that we created
 	// All that have a motion, we could also iterate over all fish, turtles, ... but that would be more cumbersome
 	while (registry.motions.entities.size() > 0)
-	    registry.remove_all_components_of(registry.motions.entities.back());
+		registry.remove_all_components_of(registry.motions.entities.back());
 
 	// Debugging for memory/component leaks
 	registry.list_all_components();
 
 	// Create a new salmon
-	player_salmon = createSalmon(renderer, { 0, 0 });
-	registry.colors.insert(player_salmon, {1, 0.8f, 0.8f});
+	player_salmon = createPlayer(renderer, { 0, 0 });
+	registry.colors.insert(player_salmon, { 1, 0.8f, 0.8f });
 
 	// Create the main camera
-	main_camera = createCamera({0,0});
+	main_camera = createCamera({ 0,0 });
 	key_downs = 0;
 
 	// Create fow
-	fow = createFOW(renderer, {0,0});
+	fow = createFOW(renderer, { 0,0 });
 
 	// test for fow demo, REMOVE LATER
 	for (int i = 0; i < 4; i++) {
-		Entity e = createTurtle(renderer, { i+1,i-1 });
+		Entity e = createTestDummy(renderer, { i + 1,i - 1 });
 		registry.motions.get(e).velocity = { 0.f,0.f };
 	}
-	
-	
+
+	// FOR DEMO - to show different types of items being created.	
+	createItem(renderer, { 1, 2 }, ITEM_TYPE::FOOD);
+	createItem(renderer, { 0, 2 }, ITEM_TYPE::WEAPON);
+	createItem(renderer, { -1, 2 }, ITEM_TYPE::QUEST);
+	createBasicMob(renderer, { -3, 2 });
 }
 
 // Compute collisions between entities
@@ -235,31 +235,66 @@ void WorldSystem::handle_collisions() {
 		Entity entity = collisionsRegistry.entities[i];
 		Entity entity_other = collisionsRegistry.components[i].other_entity;
 
-		// For now, we are only interested in collisions that involve the salmon
+		// Collisions involving the player
 		if (registry.players.has(entity)) {
-			//Player& player = registry.players.get(entity);
+			Player& player = registry.players.get(entity);
 
-			// Checking Player - HardShell collisions
-			if (registry.hardShells.has(entity_other)) {
-				// initiate death unless already dying
-				if (!registry.deathTimers.has(entity)) {
-					// Scream, reset timer, and make the salmon sink
-					registry.deathTimers.emplace(entity);
-					Mix_PlayChannel(-1, salmon_dead_sound, 0);
+			// Checking Player - Mobs
+			if (registry.mobs.has(entity_other)) {
 
-					// !!! TODO A1: change the salmon orientation and color on death
+				if (player.iframes_timer > 0) {
+					// Don't damage and discard all other collisions for a bit
+					collisionsRegistry.clear();
+					return;
+				}
+
+				Mob& mob = registry.mobs.get(entity_other);
+				player.health -= mob.damage;
+
+				// Give the player some frames of invincibility so that they cannot die instantly when running into a mob
+				player.iframes_timer = IFRAMES;
+
+				if (player.health <= 0) {
+					if (!registry.deathTimers.has(entity)) {
+						// TODO: game over screen
+						registry.deathTimers.emplace(entity);
+					}
 				}
 			}
-			// Checking Player - SoftShell collisions
-			else if (registry.softShells.has(entity_other)) {
-				if (!registry.deathTimers.has(entity)) {
-					// chew, count points, and set the LightUp timer
-					registry.remove_all_components_of(entity_other);
-					Mix_PlayChannel(-1, salmon_eat_sound, 0);
-					++points;
 
-					// !!! TODO A1: create a new struct called LightUp in components.hpp and add an instance to the salmon entity by modifying the ECS registry
+			// Checking Player - Terrain
+			if (registry.terrainColliders.has(entity_other)) {
+				// set velocity to 0 when collide with a terrain collider
+				registry.motions.get(player_salmon).velocity = { 0.f,0.f };
+			}
+
+			// Checking Player - Items
+			if (registry.items.has(entity_other)) {
+				Item& item = registry.items.get(entity_other);
+
+				// Handle the item based on its function
+				switch (item.data) {
+				case ITEM_TYPE::QUEST:
+					// Display a quest item as having been fetched, and update this on the screen?
+					break;
+				case ITEM_TYPE::FOOD:
+					// Add to food bar
+					// TODO: do we want a set amount for food pickups?
+					player.food += FOOD_PICKUP_AMOUNT;
+					if (player.food > PLAYER_MAX_FOOD) {
+						player.food = PLAYER_MAX_FOOD;
+					}
+					break;
+				case ITEM_TYPE::WEAPON:
+					// Swap with current weapon
+					break;
+				case ITEM_TYPE::UPGRADE:
+					// Just add to inventory
+					break;
 				}
+
+				// remove item from map
+				registry.remove_all_components_of(entity_other);
 			}
 		}
 	}
@@ -275,13 +310,13 @@ bool WorldSystem::is_over() const {
 
 // On key callback
 void WorldSystem::on_key(int key, int, int action, int mod) {
-	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-	// TODO A1: HANDLE SALMON MOVEMENT HERE
-	// key is of 'type' GLFW_KEY_
-	// action can be GLFW_PRESS GLFW_RELEASE GLFW_REPEAT
-	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+	// Stop the player from moving after death.
+	if (registry.deathTimers.has(player_salmon)) {
+		return;
+	}
 
 	Motion& player_motion = registry.motions.get(player_salmon);
+
 	if (action == GLFW_PRESS || action == GLFW_REPEAT) {
 		if (key == GLFW_KEY_S) {
 			player_motion.position.y += 1;
@@ -299,7 +334,38 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		}
 	}
 
-	
+	/*if (action == GLFW_PRESS) {
+
+		if (key == GLFW_KEY_W) {
+			key_downs++;
+			player_motion.velocity.y += -1;
+		}
+		if (key == GLFW_KEY_S) {
+			key_downs++;
+			player_motion.velocity.y += 1;
+		}
+		if (key == GLFW_KEY_A) {
+			key_downs++;
+			player_motion.velocity.x += -1;
+		}
+		if (key == GLFW_KEY_D) {
+			key_downs++;
+			player_motion.velocity.x += 1;
+		}
+	}
+
+	if (action == GLFW_RELEASE && key_downs) {
+		key_downs--;
+		if (key == GLFW_KEY_W)
+			player_motion.velocity.y += 1;
+		if (key == GLFW_KEY_S)
+			player_motion.velocity.y += -1;
+		if (key == GLFW_KEY_A)
+			player_motion.velocity.x += 1;
+		if (key == GLFW_KEY_D)
+			player_motion.velocity.x += -1;
+	}*/
+
 
 	// Camera controls
 	camera_controls(action, key);
@@ -309,7 +375,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		int w, h;
 		glfwGetWindowSize(window, &w, &h);
 
-        restart_game();
+		restart_game();
 	}
 
 	if (action == GLFW_PRESS && key == GLFW_KEY_ESCAPE) {
@@ -329,7 +395,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		debugging.in_debug_mode = !debugging.in_debug_mode;
 	}
 
-	
+
 
 	// Control the current speed with `<` `>`
 	if (action == GLFW_RELEASE && (mod & GLFW_MOD_SHIFT) && key == GLFW_KEY_COMMA) {
@@ -342,7 +408,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	}
 	current_speed = fmax(0.f, current_speed);
 
-	
+
 }
 
 /// <summary>
