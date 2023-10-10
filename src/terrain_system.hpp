@@ -78,9 +78,8 @@ public:
 	/// Returns valid, non-collidable neighbours.
 	/// </summary>
 	/// <param name="cell">The origin cell.</param>
-	/// <param name="buffer">An array buffer with at least 4 writeable elements</param>
-	/// <returns>The number of entities written to the buffer</returns>
-	char get_accessible_neighbours(Entity cell, std::vector<Entity> buffer);
+	/// <param name="buffer">A vector buffer</param>
+	void get_accessible_neighbours(Entity cell, std::vector<Entity>& buffer, bool checkPathfind = false);
 
 private:
 	Cell* grid;	// PLEASE DO NOT EXPOSE THIS UNLESS YOU KNOW WHAT YOU ARE DOING

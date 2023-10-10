@@ -338,13 +338,27 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	// Camera controls
 	camera_controls(action, key);
 
-	if (action == GLFW_PRESS && key == GLFW_KEY_E) {
+	if (action == GLFW_PRESS && key == GLFW_KEY_G) {
 		Motion& player = registry.motions.get(player_salmon);
 		Entity tile = terrain->get_cell(player.position);
 		TerrainCell& cell = registry.terrainCells.get(tile);
 		cell.terrain_type = TERRAIN_TYPE::ROCK;
 		RenderRequest& req = registry.renderRequests.get(tile);
 		req.used_texture = TEXTURE_ASSET_ID::TERRAIN_STONE;
+	}
+
+	if (action == GLFW_PRESS && key == GLFW_KEY_V) {
+		Motion& player = registry.motions.get(player_salmon);
+		Entity tile = terrain->get_cell(player.position);
+
+		std::vector<Entity> entities;
+		terrain->get_accessible_neighbours(tile, entities);
+		for (Entity e : entities) {
+			RenderRequest& req = registry.renderRequests.get(e);
+			TerrainCell& cell = registry.terrainCells.get(tile);
+			cell.terrain_type = TERRAIN_TYPE::ROCK;
+			req.used_texture = TEXTURE_ASSET_ID::TERRAIN_STONE;
+		}
 	}
 
 	// Resetting game

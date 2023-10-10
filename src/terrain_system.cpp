@@ -17,13 +17,15 @@ Entity TerrainSystem::get_cell(int x, int y)
 	return grid[to_array_index(x, y)].entity;
 }
 
-char TerrainSystem::get_accessible_neighbours(Entity cell, std::vector<Entity> buffer)
+void TerrainSystem::get_accessible_neighbours(Entity cell, std::vector<Entity>& buffer, bool checkPathfind)
 {
-	// TODO: Return all accessible, non-collidable neighbours
 	assert(grid != nullptr);
 	assert(registry.terrainCells.has(cell));
-	int cell_index = entityStart - cell;
-	char buffer_i = 0;
+	int cell_index = cell - entityStart;
+	unsigned int filter = TERRAIN_FLAGS::COLLIDABLE;
+
+	if (checkPathfind)
+		filter |= TERRAIN_FLAGS::DISABLE_PATHFIND;
 
 	int indices[4] = { 
 		cell_index - 1,			// Left cell
@@ -36,15 +38,12 @@ char TerrainSystem::get_accessible_neighbours(Entity cell, std::vector<Entity> b
 		// check bounds
 		if (i > 0 && i < size_x * size_y) {
 			Cell& cell = grid[i];
-			if (!cell.flags & (TERRAIN_FLAGS::COLLIDABLE | TERRAIN_FLAGS::DISABLE_PATHFIND)) {
+			if (!cell.flags & filter) {	// YES WE WANT BITWISE shut up shut up shut up
 				// If a cell is not collidable and pathfinding is not disabled, add to buffer
-				buffer[buffer_i] = cell.entity;
-				buffer_i++;
+				buffer.push_back(cell.entity);
 			}
 		}
 	}
-
-	return buffer_i;
 }
 
 unsigned int TerrainSystem::to_array_index(int x, int y)
