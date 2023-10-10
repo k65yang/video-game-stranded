@@ -5,7 +5,7 @@
 // stlib
 #include <cassert>
 #include <sstream>
-
+#include <iostream>
 #include "physics_system.hpp"
 
 // Game configuration
@@ -168,6 +168,45 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	Motion& f = registry.motions.get(fow);
 	f.position = m.position;
 
+	// Movement code, build the velocity resulting from player moment
+	// We'll consider moveVelocity existing in player space
+	vec2 moveVelocity = m.velocity = { 0, 0 };
+	// Allow movment if player is not dead 
+	if (!registry.deathTimers.has(player_salmon)) {
+		if (keyDown[MovementKeyIndex::UP])
+			moveVelocity.y += -1;    // If UP is pressed then obviously add an up component
+		if (keyDown[MovementKeyIndex::DOWN])
+			moveVelocity.y += 1;    // If DOWN is pressed then obviously add a down component
+		if (keyDown[MovementKeyIndex::LEFT])
+			moveVelocity.x += -1;    // If Left is pressed then obviously add a left component
+		if (keyDown[MovementKeyIndex::RIGHT])
+			moveVelocity.x += 1;    // If Left is pressed then obviously add a right component
+
+		// Only run if there are any movement
+
+		if (length(moveVelocity) > 0) {
+			// prevent player from going slightly faster if moving diagonally
+			moveVelocity = normalize(moveVelocity);
+
+			// Recall that we're in salmon space. We want to turn our movement into "world" space AKA pixel coordinates.
+			// Let's make a mini transform matrix:
+			float c = cosf(m.angle);
+			float s = sinf(m.angle);
+			mat2 rotate = { {c, s}, {-s, c} }; // Not affine because velocity is ALWAYS a vector
+
+			// Rotate the vector into "world" space. The model/entity matrix turns local/entity coordinates into
+			// "world" coordinates.
+			moveVelocity = (rotate * moveVelocity);
+
+			m.velocity = moveVelocity * current_speed;
+			}
+		}
+	else {
+		// Player is dead, do not allow movement
+		m.velocity = { 0, 0 };
+		}
+
+
 	return true;
 }
 
@@ -213,6 +252,13 @@ void WorldSystem::restart_game() {
 	createItem(renderer, { 0, 2 }, ITEM_TYPE::WEAPON);
 	createItem(renderer, { -1, 2 }, ITEM_TYPE::QUEST);
   createMob(renderer, { -3, 2 });
+
+	// for movement velocity 
+	  keyDown[MovementKeyIndex::LEFT] = false;
+	  keyDown[MovementKeyIndex::RIGHT] = false;
+	  keyDown[MovementKeyIndex::UP] = false;
+	  keyDown[MovementKeyIndex::DOWN] = false;
+
 }
 
 // Compute collisions between entities
@@ -276,63 +322,38 @@ bool WorldSystem::is_over() const {
 	return bool(glfwWindowShouldClose(window));
 }
 
+
+int WorldSystem::key_to_index(int key) {
+	switch (key) {
+			case GLFW_KEY_W:
+				return MovementKeyIndex::UP;
+			case GLFW_KEY_S:
+				return MovementKeyIndex::DOWN;
+			case GLFW_KEY_A:
+				return MovementKeyIndex::LEFT;
+			case GLFW_KEY_D:
+				return MovementKeyIndex::RIGHT;
+		}
+	return -1;    // key is not tracked so we don't really care
+	}
+
+void WorldSystem::player_movement(int key, int action) {
+	int i = key_to_index(key);
+	if (i >= 0) {
+		if (action == GLFW_PRESS)
+			keyDown[i] = true;
+
+		if (action == GLFW_RELEASE)
+			keyDown[i] = false;
+		}
+	}
+
 // On key callback
 void WorldSystem::on_key(int key, int, int action, int mod) {
-	// Stop the player from moving after death.
-	if (registry.deathTimers.has(player_salmon)) {
-		return;
-	}
-
 	Motion& player_motion = registry.motions.get(player_salmon);
-	
-	if (action == GLFW_PRESS || action == GLFW_REPEAT) {
-		if (key == GLFW_KEY_S) {
-			player_motion.position.y += 1;
-		}
-		if (key == GLFW_KEY_W) {
-			player_motion.position.y -= 1;
-		}
 
-		if (key == GLFW_KEY_A) {
-			player_motion.position.x -= 1;
-
-		}
-		if (key == GLFW_KEY_D) {
-			player_motion.position.x += 1;
-		}
-	}
-
-	/*if (action == GLFW_PRESS) {
-
-		if (key == GLFW_KEY_W) {
-			key_downs++;
-			player_motion.velocity.y += -1;
-		}
-		if (key == GLFW_KEY_S) {
-			key_downs++;
-			player_motion.velocity.y += 1;
-		}
-		if (key == GLFW_KEY_A) {
-			key_downs++;
-			player_motion.velocity.x += -1;
-		}
-		if (key == GLFW_KEY_D) {
-			key_downs++;
-			player_motion.velocity.x += 1;
-		}
-	}
-
-	if (action == GLFW_RELEASE && key_downs) {
-		key_downs--;
-		if (key == GLFW_KEY_W)
-			player_motion.velocity.y += 1;
-		if (key == GLFW_KEY_S)
-			player_motion.velocity.y += -1;
-		if (key == GLFW_KEY_A)
-			player_motion.velocity.x += 1;
-		if (key == GLFW_KEY_D)
-			player_motion.velocity.x += -1;
-	}*/
+	// Movement with velocity handled in step function  
+	player_movement(key, action);
 
 	
 	// Camera controls

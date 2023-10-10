@@ -76,4 +76,17 @@ private:
 	// C++ random number generator
 	std::default_random_engine rng;
 	std::uniform_real_distribution<float> uniform_dist; // number between 0..1
+
+	// Movement with velocity 
+	enum MovementKeyIndex {
+		LEFT = 0,
+		RIGHT = LEFT + 1,
+		UP = RIGHT + 1,
+		DOWN = UP + 1
+		};
+
+	int key_to_index(int key);
+	void player_movement(int key, int action);    // player movement helper
+	void reset_key(int key);
+	bool keyDown[4];    // see MovementKeyIndex for context
 };
