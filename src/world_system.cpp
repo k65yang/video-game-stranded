@@ -191,6 +191,9 @@ void WorldSystem::restart_game() {
 	// Re-initialize the terrain
 	terrain->init(world_size_x, world_size_y, renderer);
 
+	// Create a Spaceship 
+	createSpaceship(renderer, { 0,-3 });
+
 	// Create a new salmon
 	player_salmon = createPlayer(renderer, { 0, 0 });
 	registry.colors.insert(player_salmon, {1, 0.8f, 0.8f});

@@ -42,7 +42,9 @@ class RenderSystem {
 			//textures_path("fow mask.png"),
 			terrain_texture_path("0.png"),
 			terrain_texture_path("1.png"),
-			terrain_texture_path("2.png") };
+			terrain_texture_path("2.png"),
+			textures_path("spaceship.png")
+	};
 
 	std::array<GLuint, effect_count> effects;
 	// Make sure these paths remain in sync with the associated enumerators.

@@ -104,6 +104,35 @@ Entity createMob(RenderSystem* renderer, vec2 position)
 	return entity;
 }
 
+
+// GENERAL MOB CREATION FUNCTION STILL NEEDS TO BE MADE - ONLY ONE MOB AT THIS TIME.
+Entity createSpaceship(RenderSystem* renderer, vec2 position) {
+	auto entity = Entity();
+
+	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Initialize the motion
+	auto& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.velocity = { 0.f, 0.f };
+	motion.position = position;
+
+	// Setting initial values, scale is negative to make it face the opposite way
+	motion.scale = vec2({ 3, 4 });
+	//motion.scale = vec2({ 50.f, 50.f });
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::SPACESHIP,
+		 EFFECT_ASSET_ID::TEXTURED,
+		 GEOMETRY_BUFFER_ID::SPRITE,
+			RENDER_LAYER_ID::LAYER_1 });
+
+	return entity;
+	}
+
+
 Entity createLine(vec2 position, vec2 scale)
 {
 	Entity entity = Entity();
