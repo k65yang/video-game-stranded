@@ -120,7 +120,7 @@ Entity createSpaceship(RenderSystem* renderer, vec2 position) {
 	motion.position = position;
 
 	// Setting initial values, scale is negative to make it face the opposite way
-	motion.scale = vec2({ 5, 5 });
+	motion.scale = vec2({ 3, 4 });
 	//motion.scale = vec2({ 50.f, 50.f });
 	registry.renderRequests.insert(
 		entity,
