@@ -6,7 +6,7 @@ void TerrainSystem::step(float delta_time)
 
 Entity TerrainSystem::get_cell(vec2 position)
 {
-	return get_cell((int)position.y, (int)position.x);
+	return get_cell((int)position.x, (int)position.y);
 }
 
 Entity TerrainSystem::get_cell(int x, int y)
@@ -22,10 +22,10 @@ void TerrainSystem::get_accessible_neighbours(Entity cell, std::vector<Entity>& 
 	assert(grid != nullptr);
 	assert(registry.terrainCells.has(cell));
 	int cell_index = cell - entityStart;
-	unsigned int filter = TERRAIN_FLAGS::COLLIDABLE;
+	unsigned int filter = TERRAIN_FLAGS::COLLIDABLE;	// check if tile is collidable
 
 	if (checkPathfind)
-		filter |= TERRAIN_FLAGS::DISABLE_PATHFIND;
+		filter |= TERRAIN_FLAGS::DISABLE_PATHFIND;	// check if tile has pathfinding disabled
 
 	int indices[4] = { 
 		cell_index - 1,			// Left cell
@@ -34,10 +34,18 @@ void TerrainSystem::get_accessible_neighbours(Entity cell, std::vector<Entity>& 
 		cell_index - size_x		// Top cell
 	};
 
-	for (int i : indices) {
+	for (int i = 0; i < 4; i++) {
 		// check bounds
-		if (i > 0 && i < size_x * size_y) {
-			Cell& cell = grid[i];
+		int index = indices[i];
+
+		// Check if the tile we're accessing wraps around the map
+		// Remember that we have a one dimensional 2D array.
+		if (i < 2
+			&& (index / size_x != cell_index / size_x))
+			continue;
+
+		if (index >= 0 && index < size_x * size_y) {
+			Cell& cell = grid[index];
 			if (!cell.flags & filter) {	// YES WE WANT BITWISE shut up shut up shut up
 				// If a cell is not collidable and pathfinding is not disabled, add to buffer
 				buffer.push_back(cell.entity);
@@ -51,7 +59,8 @@ unsigned int TerrainSystem::to_array_index(int x, int y)
 	// Honestly have no idea why it's inverted...
 	x = size_x / 2 + x;
 	y = size_y / 2 + y;
-	return (x * size_y + y);
+	unsigned int g = (y * size_x + x);
+	return g;
 }
 
 vec2 TerrainSystem::to_world_coordinates(const int index)
