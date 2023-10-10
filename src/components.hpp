@@ -10,16 +10,19 @@ struct Player
 
 };
 
-// Turtles have a hard shell
-struct HardShell
-{
+struct Mob {
 
 };
 
-// Fish and Salmon have a soft shell
-struct SoftShell
-{
+enum class ITEM_TYPE {
+	QUEST = 0,
+	FOOD = 1,
+	WEAPON = 2,
+	UPGRADE = 3,
+};
 
+struct Item {
+	ITEM_TYPE data;
 };
 
 // All data relevant to the shape and motion of entities
@@ -106,6 +109,18 @@ struct TerrainCell
 	//bool collide;
 };
 
+struct TerrainCollider
+{
+	// collider component for non-passable terrain cells, will be used to stop player movement during handle_collision
+
+	// since current version of collision check requires entity with motion component
+	// will later on load all non-passable terrain cells location in world
+	// 
+	// for each cells
+	// either take the terrain cell position, with a scale of 50,50 pixel and create terrain collider with respected motion component here 
+	// or directly associate motion component with terrain cell component if possible
+};
+
 /**
  * The following enumerators represent global identifiers refering to graphic
  * assets. For example TEXTURE_ASSET_ID are the identifiers of each texture
@@ -131,13 +146,14 @@ struct TerrainCell
  */
 
 enum class TEXTURE_ASSET_ID {
-	FISH = 0,
-	TURTLE = FISH + 1,
-	FOW = TURTLE + 1,
-	TERRAIN_AIR = FOW + 1,
-	TERRAIN_GRASS = TERRAIN_AIR + 1,
-	TERRAIN_STONE = TERRAIN_GRASS + 1,
-	TEXTURE_COUNT = TERRAIN_STONE + 1
+	PLAYER = 0,
+	MOB = PLAYER + 1,
+  REDBLOCK = MOB + 1,
+	FOW = REDBLOCK + 1,
+	ITEM = FOW + 1,
+	FOOD = ITEM + 1,
+	WEAPON = FOOD + 1,
+	TEXTURE_COUNT = WEAPON + 1
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 

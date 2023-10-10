@@ -1,7 +1,7 @@
 #include "world_init.hpp"
 #include "tiny_ecs_registry.hpp"
 
-Entity createSalmon(RenderSystem* renderer, vec2 pos)
+Entity createPlayer(RenderSystem* renderer, vec2 pos)
 {
 	auto entity = Entity();
 
@@ -16,11 +16,11 @@ Entity createSalmon(RenderSystem* renderer, vec2 pos)
 	motion.velocity = { 0.f, 0.f };
 	motion.scale.x *= -1; // point front to the right
 
-	// Create and (empty) Salmon component to be able to refer to all turtles
+	// Add the player to the players registry
 	registry.players.emplace(entity);
 	registry.renderRequests.insert(
 		entity,
-		{ TEXTURE_ASSET_ID::FISH,
+		{ TEXTURE_ASSET_ID::PLAYER,
 			EFFECT_ASSET_ID::TEXTURED,
 			GEOMETRY_BUFFER_ID::SPRITE,
 			RENDER_LAYER_ID::LAYER_1});
@@ -28,7 +28,7 @@ Entity createSalmon(RenderSystem* renderer, vec2 pos)
 	return entity;
 }
 
-Entity createFish(RenderSystem* renderer, vec2 position)
+Entity createItem(RenderSystem* renderer, vec2 position, ITEM_TYPE type)
 {
 	// Reserve en entity
 	auto entity = Entity();
@@ -40,17 +40,32 @@ Entity createFish(RenderSystem* renderer, vec2 position)
 	// Initialize the position, scale, and physics components
 	auto& motion = registry.motions.emplace(entity);
 	motion.angle = 0.f;
-	motion.velocity = { -50.f, 0.f };
+	motion.velocity = { 0.f, 0.f };
 	motion.position = position;
 
-	// Setting initial values, scale is negative to make it face the opposite way
-	motion.scale = vec2({ -FISH_BB_WIDTH, FISH_BB_HEIGHT });
+	// Initialise the item data field
+	auto& item = registry.items.emplace(entity);
+	item.data = type;
 
-	// Create an (empty) Fish component to be able to refer to all fish
-	registry.softShells.emplace(entity);
+	TEXTURE_ASSET_ID texture = TEXTURE_ASSET_ID::PLAYER;
+	switch (type) {
+		case ITEM_TYPE::QUEST:
+			texture = TEXTURE_ASSET_ID::ITEM;
+			break;
+		case ITEM_TYPE::UPGRADE:
+			texture = TEXTURE_ASSET_ID::ITEM;
+			break;
+		case ITEM_TYPE::FOOD:
+			texture = TEXTURE_ASSET_ID::FOOD;
+			break;
+		case ITEM_TYPE::WEAPON:
+			texture = TEXTURE_ASSET_ID::WEAPON;
+			break;
+	}
+
 	registry.renderRequests.insert(
 		entity,
-		{ TEXTURE_ASSET_ID::FISH,
+		{ texture,
 			EFFECT_ASSET_ID::TEXTURED,
 			GEOMETRY_BUFFER_ID::SPRITE,
 			RENDER_LAYER_ID::LAYER_1 });
@@ -58,7 +73,8 @@ Entity createFish(RenderSystem* renderer, vec2 position)
 	return entity;
 }
 
-Entity createTurtle(RenderSystem* renderer, vec2 position)
+// GENERAL MOB CREATION FUNCTION STILL NEEDS TO BE MADE - ONLY ONE MOB AT THIS TIME.
+Entity createMob(RenderSystem* renderer, vec2 position)
 {
 	auto entity = Entity();
 
@@ -69,17 +85,18 @@ Entity createTurtle(RenderSystem* renderer, vec2 position)
 	// Initialize the motion
 	auto& motion = registry.motions.emplace(entity);
 	motion.angle = 0.f;
-	motion.velocity = { -10.f, 0.f };
+	motion.velocity = { 0.f, 0.f };
 	motion.position = position;
 
 	// Setting initial values, scale is negative to make it face the opposite way
 	motion.scale = vec2({ 1, 1});
 
-	// Create and (empty) Turtle component to be able to refer to all turtles
-	registry.hardShells.emplace(entity);
+	// Classify this entity as a mob.
+	registry.mobs.emplace(entity);
+
 	registry.renderRequests.insert(
 		entity,
-		{ TEXTURE_ASSET_ID::TURTLE,
+		{ TEXTURE_ASSET_ID::MOB,
 		 EFFECT_ASSET_ID::TEXTURED,
 		 GEOMETRY_BUFFER_ID::SPRITE,
 			RENDER_LAYER_ID::LAYER_1 });
@@ -106,28 +123,6 @@ Entity createLine(vec2 position, vec2 scale)
 	motion.scale = scale;
 
 	registry.debugComponents.emplace(entity);
-	return entity;
-}
-
-Entity createPebble(vec2 pos, vec2 size)
-{
-	auto entity = Entity();
-
-	// Setting initial motion values
-	Motion& motion = registry.motions.emplace(entity);
-	motion.position = pos;
-	motion.angle = 0.f;
-	motion.velocity = { 0.f, 0.f };
-	motion.scale = size;
-
-	// Create and (empty) Salmon component to be able to refer to all turtles
-	registry.hardShells.emplace(entity);
-	registry.renderRequests.insert(
-		entity,
-		{ TEXTURE_ASSET_ID::TEXTURE_COUNT, // TEXTURE_COUNT indicates that no txture is needed
-			EFFECT_ASSET_ID::PEBBLE,
-			GEOMETRY_BUFFER_ID::PEBBLE });
-
 	return entity;
 }
 
@@ -169,8 +164,37 @@ Entity createFOW(RenderSystem* renderer, vec2 position)
 		{ TEXTURE_ASSET_ID::FOW,
 			EFFECT_ASSET_ID::TEXTURED,
 			GEOMETRY_BUFFER_ID::SPRITE,
-			RENDER_LAYER_ID::LAYER_2 });
+			RENDER_LAYER_ID::LAYER_3 });
 
 	return entity;
 }
 
+Entity createTestDummy(RenderSystem* renderer, vec2 position)
+{
+	auto entity = Entity();
+
+	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Initialize the motion
+	auto& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.velocity = { 0.f, 0.f };
+	motion.position = position;
+
+	// Setting initial values, scale is negative to make it face the opposite way
+	motion.scale = vec2({ 1, 1 });
+
+	// Create and (empty) Turtle component to be able to refer to all turtles
+	registry.terrainColliders.emplace(entity);
+
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::REDBLOCK,
+		 EFFECT_ASSET_ID::TEXTURED,
+		 GEOMETRY_BUFFER_ID::SPRITE,
+			RENDER_LAYER_ID::LAYER_1 });
+
+	return entity;
+}

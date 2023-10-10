@@ -140,26 +140,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	// Removing out of screen entities
 	auto& motion_container = registry.motions;
 
-	// Remove entities that leave the screen on the left side
-	// Iterate backwards to be able to remove without unterfering with the next object to visit
-	// (the containers exchange the last element with the current)
-
-	
-	//for (int i = (int)motion_container.components.size()-1; i>=0; --i) {
-	//    Motion& motion = motion_container.components[i];
-	//	if (motion.position.x + abs(motion.scale.x) < 0.f) {
-	//		if(!registry.players.has(motion_container.entities[i])) // don't remove the player
-	//			registry.remove_all_components_of(motion_container.entities[i]);
-	//	}
-	//}
-	
-
-	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-	// TODO A2: HANDLE PEBBLE SPAWN HERE
-	// DON'T WORRY ABOUT THIS UNTIL ASSIGNMENT 2
-	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-	// Processing the salmon state
+	// Processing the player state
 	assert(registry.screenStates.components.size() <= 1);
     ScreenState &screen = registry.screenStates.components[0];
 
@@ -180,7 +161,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			return true;
 		}
 	}
-	// reduce window brightness if any of the present salmons is dying
+	// reduce window brightness if any of the present players is dying
 	screen.screen_darken_factor = 1 - min_timer_ms / 3000;
 
 	Motion& m = registry.motions.get(player_salmon);
@@ -211,7 +192,7 @@ void WorldSystem::restart_game() {
 	terrain->init(world_size_x, world_size_y, renderer);
 
 	// Create a new salmon
-	player_salmon = createSalmon(renderer, { 0, 0 });
+	player_salmon = createPlayer(renderer, { 0, 0 });
 	registry.colors.insert(player_salmon, {1, 0.8f, 0.8f});
 
 	// Create the main camera
@@ -223,11 +204,15 @@ void WorldSystem::restart_game() {
 
 	// test for fow demo, REMOVE LATER
 	for (int i = 0; i < 4; i++) {
-		Entity e = createTurtle(renderer, { i+1,i-1 });
+		Entity e = createTestDummy(renderer, { i+1,i-1 });
 		registry.motions.get(e).velocity = { 0.f,0.f };
 	}
-	
-	
+
+	// FOR DEMO - to show different types of items being created.	
+	createItem(renderer, { 1, 2 }, ITEM_TYPE::FOOD);
+	createItem(renderer, { 0, 2 }, ITEM_TYPE::WEAPON);
+	createItem(renderer, { -1, 2 }, ITEM_TYPE::QUEST);
+  createMob(renderer, { -3, 2 });
 }
 
 // Compute collisions between entities
@@ -239,31 +224,45 @@ void WorldSystem::handle_collisions() {
 		Entity entity = collisionsRegistry.entities[i];
 		Entity entity_other = collisionsRegistry.components[i].other_entity;
 
-		// For now, we are only interested in collisions that involve the salmon
+		// Collisions involving the player
 		if (registry.players.has(entity)) {
-			//Player& player = registry.players.get(entity);
 
-			// Checking Player - HardShell collisions
-			if (registry.hardShells.has(entity_other)) {
-				// initiate death unless already dying
+			// Checking Player - Mobs
+			if (registry.mobs.has(entity_other)) {
+				// TODO: game over screen
 				if (!registry.deathTimers.has(entity)) {
-					// Scream, reset timer, and make the salmon sink
 					registry.deathTimers.emplace(entity);
-					Mix_PlayChannel(-1, salmon_dead_sound, 0);
-
-					// !!! TODO A1: change the salmon orientation and color on death
 				}
 			}
-			// Checking Player - SoftShell collisions
-			else if (registry.softShells.has(entity_other)) {
-				if (!registry.deathTimers.has(entity)) {
-					// chew, count points, and set the LightUp timer
-					registry.remove_all_components_of(entity_other);
-					Mix_PlayChannel(-1, salmon_eat_sound, 0);
-					++points;
+        
+			// Checking Player - Terrain
+			if (registry.terrainColliders.has(entity_other)) {
+				// set velocity to 0 when collide with a terrain collider
+				registry.motions.get(player_salmon).velocity = { 0.f,0.f };
+			}
 
-					// !!! TODO A1: create a new struct called LightUp in components.hpp and add an instance to the salmon entity by modifying the ECS registry
+			// Checking Player - Items
+			if (registry.items.has(entity_other)) {
+				Item& item = registry.items.get(entity_other);
+
+				// Handle the item based on its function
+				switch (item.data) {
+					case ITEM_TYPE::QUEST:
+						// Display a quest item as having been fetched, and update this on the screen?
+						break;
+					case ITEM_TYPE::FOOD:
+						// Add to food bar
+						break;
+					case ITEM_TYPE::WEAPON:
+						// Swap with current weapon
+						break;
+					case ITEM_TYPE::UPGRADE:
+						// Just add to inventory
+						break;
 				}
+
+				// remove item from map
+				registry.remove_all_components_of(entity_other);
 			}
 		}
 	}
@@ -279,13 +278,13 @@ bool WorldSystem::is_over() const {
 
 // On key callback
 void WorldSystem::on_key(int key, int, int action, int mod) {
-	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-	// TODO A1: HANDLE SALMON MOVEMENT HERE
-	// key is of 'type' GLFW_KEY_
-	// action can be GLFW_PRESS GLFW_RELEASE GLFW_REPEAT
-	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+	// Stop the player from moving after death.
+	if (registry.deathTimers.has(player_salmon)) {
+		return;
+	}
 
 	Motion& player_motion = registry.motions.get(player_salmon);
+	
 	if (action == GLFW_PRESS || action == GLFW_REPEAT) {
 		if (key == GLFW_KEY_S) {
 			player_motion.position.y += 1;
@@ -303,8 +302,39 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		}
 	}
 
-	
+	/*if (action == GLFW_PRESS) {
 
+		if (key == GLFW_KEY_W) {
+			key_downs++;
+			player_motion.velocity.y += -1;
+		}
+		if (key == GLFW_KEY_S) {
+			key_downs++;
+			player_motion.velocity.y += 1;
+		}
+		if (key == GLFW_KEY_A) {
+			key_downs++;
+			player_motion.velocity.x += -1;
+		}
+		if (key == GLFW_KEY_D) {
+			key_downs++;
+			player_motion.velocity.x += 1;
+		}
+	}
+
+	if (action == GLFW_RELEASE && key_downs) {
+		key_downs--;
+		if (key == GLFW_KEY_W)
+			player_motion.velocity.y += 1;
+		if (key == GLFW_KEY_S)
+			player_motion.velocity.y += -1;
+		if (key == GLFW_KEY_A)
+			player_motion.velocity.x += 1;
+		if (key == GLFW_KEY_D)
+			player_motion.velocity.x += -1;
+	}*/
+
+	
 	// Camera controls
 	camera_controls(action, key);
 
