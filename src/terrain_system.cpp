@@ -56,11 +56,9 @@ void TerrainSystem::get_accessible_neighbours(Entity cell, std::vector<Entity>& 
 
 unsigned int TerrainSystem::to_array_index(int x, int y)
 {
-	// Honestly have no idea why it's inverted...
 	x = size_x / 2 + x;
 	y = size_y / 2 + y;
-	unsigned int g = (y * size_x + x);
-	return g;
+	return (y * size_x + x);
 }
 
 vec2 TerrainSystem::to_world_coordinates(const int index)
