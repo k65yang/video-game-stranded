@@ -12,6 +12,7 @@
 #include <SDL_mixer.h>
 
 #include "render_system.hpp"
+#include "terrain_system.hpp"
 
 // Container for all our entities and game logic. Individual rendering / update is
 // deferred to the relative update() methods
@@ -24,7 +25,7 @@ public:
 	GLFWwindow* create_window();
 
 	// starts the game
-	void init(RenderSystem* renderer);
+	void init(RenderSystem* renderer, TerrainSystem* terrain_arg);
 
 	// Releases all associated resources
 	~WorldSystem();
@@ -59,6 +60,7 @@ private:
 
 	// Game state
 	RenderSystem* renderer;
+	TerrainSystem* terrain;
 	float current_speed;
 	float next_turtle_spawn;
 	float next_fish_spawn;
@@ -74,4 +76,17 @@ private:
 	// C++ random number generator
 	std::default_random_engine rng;
 	std::uniform_real_distribution<float> uniform_dist; // number between 0..1
+
+	// Movement with velocity 
+	enum MovementKeyIndex {
+		LEFT = 0,
+		RIGHT = LEFT + 1,
+		UP = RIGHT + 1,
+		DOWN = UP + 1
+		};
+
+	int key_to_index(int key);
+	void player_movement(int key, int action);    // player movement helper
+	void reset_key(int key);
+	bool keyDown[4];    // see MovementKeyIndex for context
 };
