@@ -47,7 +47,7 @@ public:
 	void init(const unsigned int x, const unsigned int y, const RenderSystem* renderer);
 
 	/// <summary>
-	/// Used for cells that may have ticking logic. <futureproofing>
+	/// Used for cells that may have ticking logic. futureproofing.
 	/// </summary>
 	/// <param name="delta_time">The time since the last frame in milliseconds</param>
 	void step(float delta_time);
@@ -80,7 +80,7 @@ public:
 	/// <param name="cell">The origin cell.</param>
 	/// <param name="buffer">An array buffer with at least 4 writeable elements</param>
 	/// <returns>The number of entities written to the buffer</returns>
-	char get_accessible_neighbours(Entity cell, Entity* buffer);
+	char get_accessible_neighbours(Entity cell, std::vector<Entity> buffer);
 
 private:
 	Cell* grid;	// PLEASE DO NOT EXPOSE THIS UNLESS YOU KNOW WHAT YOU ARE DOING

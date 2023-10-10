@@ -17,11 +17,10 @@ Entity TerrainSystem::get_cell(int x, int y)
 	return grid[to_array_index(x, y)].entity;
 }
 
-char TerrainSystem::get_accessible_neighbours(Entity cell, Entity* buffer)
+char TerrainSystem::get_accessible_neighbours(Entity cell, std::vector<Entity> buffer)
 {
 	// TODO: Return all accessible, non-collidable neighbours
 	assert(grid != nullptr);
-	assert(buffer != nullptr);
 	assert(registry.terrainCells.has(cell));
 	int cell_index = entityStart - cell;
 	char buffer_i = 0;
