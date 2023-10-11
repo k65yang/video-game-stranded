@@ -48,11 +48,34 @@ void PathfindingSystem::step(float elapsed_ms)
 
 std::stack<Entity> PathfindingSystem::find_shortest_path(Entity player, Entity mob)
 {
-    return std::stack<Entity>();
+    // Get the cells the player and mob are in
+    Motion& player_motion = registry.motions.get(player);
+    Motion& mob_motion = registry.motions.get(mob);
+    Entity player_cell = terrain->get_cell(player_motion.position);
+    Entity mob_cell = terrain->get_cell(mob_motion.position);
+
+    // Initialize predecessor array for BFS
+    std::vector<Entity> predecessor;
+
+    // Execute BFS
+    if (!BFS(player_cell, mob_cell, predecessor)) {
+        printf("Path from mob in cell %d to player in cell %d could not be found", mob_cell, player_cell);
+        assert(false);
+    }
+
+    // Get shortest path by backtracking through predecessors
+    std::stack<Entity> path;
+    int crawl = terrain->get_cell_index(player_cell);
+    while (predecessor.at(crawl) != -1) {
+        path.push(predecessor.at(crawl));
+        crawl = terrain->get_cell_index(predecessor.at(crawl));
+    }
+
+    return path;
 };
 
 
-void PathfindingSystem::BFS(Entity player_cell, Entity mob_cell, Entity predecessor[])
+bool PathfindingSystem::BFS(Entity player_cell, Entity mob_cell, std::vector<Entity> predecessor)
 {
     
 };

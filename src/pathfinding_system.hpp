@@ -51,7 +51,7 @@ private:
     /// An array of Entities which correspond to cells in the world grid. predecessor[i] represents the immediate 
     /// predecessor of the cell at index i in the world grid found during the BFS
     /// </param>
-    void BFS(Entity player_cell, Entity mob_cell, Entity predecessor[]);
+    bool BFS(Entity player_cell, Entity mob_cell, std::vector<Entity> predecessor);
 
     /// <summary>
 	/// Checks if the player and a mob are in the same cell
