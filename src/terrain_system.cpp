@@ -17,6 +17,14 @@ Entity TerrainSystem::get_cell(int x, int y)
 	return grid[to_array_index(x, y)].entity;
 }
 
+int TerrainSystem::get_cell_index(Entity cell) 
+{
+	int cell_index = cell - entityStart;
+	assert(cell_index >= 0);
+	assert(cell_index < size_x * size_y);
+	return cell_index;
+}
+
 void TerrainSystem::get_accessible_neighbours(Entity cell, std::vector<Entity>& buffer, bool checkPathfind)
 {
 	assert(grid != nullptr);
