@@ -16,12 +16,20 @@ Entity createPlayer(RenderSystem* renderer, vec2 pos);
 Entity createItem(RenderSystem* renderer, vec2 position, ITEM_TYPE type);
 // the enemy
 Entity createMob(RenderSystem* renderer, vec2 position);
+// the spaceship 
+Entity createSpaceship(RenderSystem* renderer, vec2 position);
 // a red line for debugging purposes
 Entity createLine(vec2 position, vec2 size);
 
 // fow
 Entity createFOW(RenderSystem* renderer, vec2 pos);
+
+// test only
 Entity createTestDummy(RenderSystem* renderer, vec2 position);
+
+// terrain collider
+Entity createTerrainCollider(RenderSystem* renderer, vec2 position);
+
 
 
 /// <summary>
@@ -30,3 +38,12 @@ Entity createTestDummy(RenderSystem* renderer, vec2 position);
 /// <param name="pos">Position of the camera in world space</param>
 /// <returns>The camera entity</returns>
 Entity createCamera(vec2 pos);
+
+
+/// <summary>
+/// Creates a box boundary with given size and center point
+/// </summary>
+/// <param name="size">size of box in vec2</param>
+/// <param name="center">center point of box boundary in world space</param>
+/// <returns>void</returns>
+void createBoxBoundary(RenderSystem* renderer, vec2 size, vec2 center);
