@@ -192,7 +192,7 @@ void WorldSystem::restart_game() {
 	terrain->init(world_size_x, world_size_y, renderer);
 
 	// Create a Spaceship 
-	createSpaceship(renderer, { 0,-3 });
+	createSpaceship(renderer, { 0,0 });
 
 	// Create a new salmon
 	player_salmon = createPlayer(renderer, { 0, 0 });
@@ -205,8 +205,8 @@ void WorldSystem::restart_game() {
 	// Create fow
 	fow = createFOW(renderer, {0,0});
 
-	// Create box boundaries centered at spaceship
-	createBoxBoundary(renderer, zone1_boundary_size, { 0, -3 });
+	// Create box boundaries centered at {0,0}
+	createBoxBoundary(renderer, zone1_boundary_size, { 0, 0});
 
 	
 
