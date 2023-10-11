@@ -2,16 +2,22 @@
 #include "common.hpp"
 #include <vector>
 #include <unordered_map>
+#include <stack>
 #include "../ext/stb_image/stb_image.h"
 
 // Player component
-struct Player
-{
+struct Player {
 
 };
 
+// Mob component
 struct Mob {
+	bool is_tracking_player = false;
+};
 
+// Structure to store the path for a mob
+struct Path {
+	std::stack<Entity> path;
 };
 
 enum class ITEM_TYPE {
