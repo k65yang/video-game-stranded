@@ -2,7 +2,30 @@
     
 void PathfindingSystem::step(float elapsed_ms) 
 {
+    // TODO: better way to get player?
+    Entity player = registry.players.entities[0]; 
 
+    // printf("Player: %d\n", player);
+
+    for (Entity entity : registry.mobs.entities) {
+        Mob& mob = registry.mobs.get(entity);
+
+        // printf("Mob: %d\n", entity);
+        // printf("is_tracking_player: %d\n", mob.is_tracking_player);
+
+        // Find new path from mob to player if mob is not tracking the player yet
+        if (!mob.is_tracking_player) {
+            mob.is_tracking_player = true;
+            std::stack<Entity> new_path = find_shortest_path(player, entity);
+            Path& mob_path = registry.paths.get(entity);
+            mob_path.path = new_path;
+        }
+
+        // Update velocity of mob if they are tracking the player and reached the next cell in their path
+        if (mob.is_tracking_player && reachedNextCell(entity)) {
+            updateVelocityToNextCell(entity, elapsed_ms);
+        }
+    }
 };
 
 
