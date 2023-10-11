@@ -10,6 +10,7 @@
 #include "render_system.hpp"
 #include "world_system.hpp"
 #include "terrain_system.hpp"
+#include "pathfinding_system.hpp"
 #include "common.hpp"
 
 using Clock = std::chrono::high_resolution_clock;
@@ -22,6 +23,7 @@ int main()
 	RenderSystem render_system;
 	PhysicsSystem physics_system;
 	TerrainSystem terrain_system;
+	PathfindingSystem pathfinding_system;
 
 	// Initializing window
 	GLFWwindow* window = world_system.create_window();
@@ -51,7 +53,8 @@ int main()
 		world_system.step(elapsed_ms);
 		physics_system.step(elapsed_ms);
 		terrain_system.step(elapsed_ms);
-
+		pathfinding_system.step(elapsed_ms);
+		
 		world_system.handle_collisions();
 
 		render_system.draw();
