@@ -1,6 +1,8 @@
 #pragma once
+#include <queue>
+#include <vector>
+#include <stack>
 
-#include "common.hpp"
 #include "tiny_ecs.hpp"
 #include "components.hpp"
 #include "tiny_ecs_registry.hpp"
@@ -48,10 +50,10 @@ private:
 	/// <param name="player_cell">The cell the player is in</param>
 	/// <param name="mob_cell">The cell the mob is in</param>
 	/// <param name="predecessor">
-    /// An array of Entities which correspond to cells in the world grid. predecessor[i] represents the immediate 
+    /// An array of ints which correspond to indices of cells in the world grid. predecessor[i] represents the immediate 
     /// predecessor of the cell at index i in the world grid found during the BFS
     /// </param>
-    bool BFS(Entity player_cell, Entity mob_cell, std::vector<Entity> predecessor);
+    bool BFS(Entity player_cell, Entity mob_cell, std::vector<int>& predecessor);
 
     /// <summary>
 	/// Checks if the player and a mob are in the same cell

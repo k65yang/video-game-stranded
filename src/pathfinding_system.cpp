@@ -55,29 +55,32 @@ std::stack<Entity> PathfindingSystem::find_shortest_path(Entity player, Entity m
     Entity mob_cell = terrain->get_cell(mob_motion.position);
 
     // Initialize predecessor array for BFS
-    std::vector<Entity> predecessor;
+    // predecessor is an array of ints which correspond to indices of cells in the world grid. predecessor[i] 
+    // represents the immediate predecessor of the cell at index i in the world grid found during the BFS
+    std::vector<int> predecessor;
 
     // Execute BFS
     if (!BFS(player_cell, mob_cell, predecessor)) {
-        printf("Path from mob in cell %d to player in cell %d could not be found", mob_cell, player_cell);
+        printf("Path from mob in cell %d to player in cell %d could not be found\n", mob_cell, player_cell);
         assert(false);
     }
 
     // Get shortest path by backtracking through predecessors
     std::stack<Entity> path;
+    path.push(player_cell);
     int crawl = terrain->get_cell_index(player_cell);
     while (predecessor.at(crawl) != -1) {
-        path.push(predecessor.at(crawl));
-        crawl = terrain->get_cell_index(predecessor.at(crawl));
+        path.push(terrain->get_cell(predecessor.at(crawl)));
+        crawl = predecessor.at(crawl);
     }
 
     return path;
 };
 
 
-bool PathfindingSystem::BFS(Entity player_cell, Entity mob_cell, std::vector<Entity> predecessor)
+bool PathfindingSystem::BFS(Entity player_cell, Entity mob_cell, std::vector<int>& predecessor)
 {
-    
+    return false;
 };
 
 bool PathfindingSystem::same_cell(Entity player, Entity mob)
