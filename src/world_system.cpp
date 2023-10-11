@@ -15,6 +15,10 @@ const size_t TURTLE_DELAY_MS = 2000 * 3;
 const size_t FISH_DELAY_MS = 5000 * 3;
 const float IFRAMES = 1000;
 const int FOOD_PICKUP_AMOUNT = 20;
+float PLAYER_TOTAL_DISTANCE = 0;
+const float foodDecreaseThreshold = 5.0f; // Adjust this value as needed
+
+
 
 // Create the fish world
 WorldSystem::WorldSystem()
@@ -130,9 +134,10 @@ void WorldSystem::init(RenderSystem* renderer_arg, TerrainSystem* terrain_arg) {
 
 // Update our game world
 bool WorldSystem::step(float elapsed_ms_since_last_update) {
+	Player& player = registry.players.get(player_salmon);
 	// Updating window title with points
 	std::stringstream title_ss;
-	title_ss << "Points: " << points;
+	title_ss << " Food: " << player.food << "  HP: " << player.health<< "  Distance: " << PLAYER_TOTAL_DISTANCE;
 	glfwSetWindowTitle(window, title_ss.str().c_str());
 
 	// Remove debug info from the last step
@@ -175,7 +180,21 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	}
 
 	// TODO: tick down player food
-
+	// Calculate food adjustment based on player's total traveled distance 
+	// Apply food decreasing the more you travel. 
+	if (player.food > 0) {
+		if (PLAYER_TOTAL_DISTANCE >= foodDecreaseThreshold) {
+			// Decrease player's food by 1
+			player.food -= 1;
+			// Reset the total movement distance
+			PLAYER_TOTAL_DISTANCE = 0;
+			}
+		}
+	// else the food is below 0, player dies
+	else if (!registry.deathTimers.has(player_salmon)) {
+		// TODO: game over screen
+		registry.deathTimers.emplace(player_salmon);
+		}
 	// reduce window brightness if any of the present players is dying
 	screen.screen_darken_factor = 1 - min_timer_ms / 3000;
 
@@ -183,19 +202,28 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	Motion& f = registry.motions.get(fow);
 	f.position = m.position;
 
+
 	// Movement code, build the velocity resulting from player moment
 	// We'll consider moveVelocity existing in player space
 	vec2 moveVelocity = m.velocity = { 0, 0 };
-	// Allow movment if player is not dead 
+	// Allow movement if player is not dead 
 	if (!registry.deathTimers.has(player_salmon)) {
-		if (keyDown[MovementKeyIndex::UP])
+		if (keyDown[MovementKeyIndex::UP]) {
 			moveVelocity.y += -1;    // If UP is pressed then obviously add an up component
-		if (keyDown[MovementKeyIndex::DOWN])
+			PLAYER_TOTAL_DISTANCE += 0.01;
+			}
+		if (keyDown[MovementKeyIndex::DOWN]) {
 			moveVelocity.y += 1;    // If DOWN is pressed then obviously add a down component
-		if (keyDown[MovementKeyIndex::LEFT])
+			PLAYER_TOTAL_DISTANCE += 0.01;
+			}
+		if (keyDown[MovementKeyIndex::LEFT]) {
 			moveVelocity.x += -1;    // If Left is pressed then obviously add a left component
-		if (keyDown[MovementKeyIndex::RIGHT])
+			PLAYER_TOTAL_DISTANCE += 0.01;
+			}
+		if (keyDown[MovementKeyIndex::RIGHT]) {
 			moveVelocity.x += 1;    // If Left is pressed then obviously add a right component
+			PLAYER_TOTAL_DISTANCE += 0.01;
+			}
 
 		// Only run if there are any movement
 
@@ -220,8 +248,6 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		// Player is dead, do not allow movement
 		m.velocity = { 0, 0 };
 		}
-
-
 	return true;
 }
 
@@ -269,7 +295,7 @@ void WorldSystem::restart_game() {
 	createItem(renderer, { 1, 2 }, ITEM_TYPE::FOOD);
 	createItem(renderer, { 0, 2 }, ITEM_TYPE::WEAPON);
 	createItem(renderer, { -1, 2 }, ITEM_TYPE::QUEST);
-  createMob(renderer, { -3, 2 });
+	createBasicMob(renderer, { -3, 2 });
 
 	// for movement velocity 
 	  keyDown[MovementKeyIndex::LEFT] = false;
@@ -295,7 +321,7 @@ void WorldSystem::handle_collisions() {
 			// Checking Player - Mobs
 			if (registry.mobs.has(entity_other)) {
 
-				if (player.iframes_timer > 0) {
+				if (player.iframes_timer > 0 || registry.deathTimers.has(entity)) {
 					// Don't damage and discard all other collisions for a bit
 					collisionsRegistry.clear();
 					return;
@@ -379,9 +405,9 @@ int WorldSystem::key_to_index(int key) {
 void WorldSystem::player_movement(int key, int action) {
 	int i = key_to_index(key);
 	if (i >= 0) {
-		if (action == GLFW_PRESS)
+		if (action == GLFW_PRESS) 
 			keyDown[i] = true;
-
+			
 		if (action == GLFW_RELEASE)
 			keyDown[i] = false;
 		}
