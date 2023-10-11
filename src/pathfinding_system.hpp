@@ -54,6 +54,14 @@ private:
     void BFS(Entity player_cell, Entity mob_cell, Entity predecessor[]);
 
     /// <summary>
+	/// Checks if the player and a mob are in the same cell
+	/// </summary>
+	/// <param name="player">The player entity</param>
+	/// <param name="mob">The mob entity</param>
+    /// <returns>Returns true if the player and mob are in the same cell, false otherwise</returns>
+    bool same_cell(Entity player, Entity mob);
+
+    /// <summary>
 	/// Checks if the mob has reached the next cell in its path
 	/// </summary>
 	/// <param name="mob">The mob entity to check</param>

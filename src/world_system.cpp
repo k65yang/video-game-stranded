@@ -212,7 +212,7 @@ void WorldSystem::restart_game() {
 	createItem(renderer, { 1, 2 }, ITEM_TYPE::FOOD);
 	createItem(renderer, { 0, 2 }, ITEM_TYPE::WEAPON);
 	createItem(renderer, { -1, 2 }, ITEM_TYPE::QUEST);
-  createMob(renderer, { -3, 2 });
+	createMob(renderer, { -2, 2 });
 }
 
 // Compute collisions between entities
