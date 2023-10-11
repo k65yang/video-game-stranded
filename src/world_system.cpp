@@ -247,6 +247,9 @@ void WorldSystem::handle_collisions() {
 			if (registry.terrainColliders.has(entity_other)) {
 
 				Motion& motion = registry.motions.get(player_salmon);
+
+				// TODO: this is a quick and dirty way of resetting button presses
+				key_downs = 0;
 				
 				// set velocity to 0 when collide with a terrain collider unless it is already 0
 				if (motion.velocity.x != 0.f) {
@@ -340,15 +343,22 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	}
 
 	if (action == GLFW_RELEASE && key_downs) {
-		key_downs--;
-		if (key == GLFW_KEY_W)
+		if (key == GLFW_KEY_W) {
+			key_downs--;
 			player_motion.velocity.y += 1;
-		if (key == GLFW_KEY_S)
+		}
+		if (key == GLFW_KEY_S) {
+			key_downs--;
 			player_motion.velocity.y += -1;
-		if (key == GLFW_KEY_A)
+		}
+		if (key == GLFW_KEY_A) {
+			key_downs--;
 			player_motion.velocity.x += 1;
-		if (key == GLFW_KEY_D)
+		}
+		if (key == GLFW_KEY_D) {
+			key_downs--;
 			player_motion.velocity.x += -1;
+		}
 	}
 
 	
@@ -448,15 +458,22 @@ void WorldSystem::camera_controls(int action, int key)
 	}
 
 	if (action == GLFW_RELEASE && key_downs) {
-		key_downs--;
-		if (key == GLFW_KEY_UP)
+		if (key == GLFW_KEY_UP) {
+			key_downs--;
 			camera_velocity.y += -1;
-		if (key == GLFW_KEY_DOWN)
+		}
+		if (key == GLFW_KEY_DOWN) {
+			key_downs--;
 			camera_velocity.y += 1;
-		if (key == GLFW_KEY_LEFT)
+		}
+		if (key == GLFW_KEY_LEFT) {
+			key_downs--;
 			camera_velocity.x += -1;
-		if (key == GLFW_KEY_RIGHT)
+		}
+		if (key == GLFW_KEY_RIGHT) {
+			key_downs--;
 			camera_velocity.x += 1;
+		}
 	}
 
 	if (length(camera_velocity) > 0) {

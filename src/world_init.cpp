@@ -267,21 +267,23 @@ Entity createTerrainCollider(RenderSystem* renderer, vec2 position)
 /// <param name="center">center point of box boundary in world space</param>
 /// <returns>void</returns>
 void createBoxBoundary(RenderSystem* renderer , vec2 size, vec2 center) {
-	vec2 topleftpos = { center.x - size.x / 2, center.y - size.y / 2 };
+	vec2 topleftpos = {center.x - (int)size.x / 2, center.y - (int)size.y / 2};
 	// start from top left
 
 	// draw top and bottom of the box
-	for (int i = 0; i < size.x + 1; i++) {
+	for (int i = 0; i < size.x; i++) {
 		
 		createTerrainCollider(renderer, {topleftpos.x + i, topleftpos.y});
-		createTerrainCollider(renderer, {topleftpos.x + i, topleftpos.y + size.y });
+
+		// We're subtracting the y position by 1 because we're off by 1
+		createTerrainCollider(renderer, {topleftpos.x + i, topleftpos.y + size.y - 1});
 	}
 
 	//draw left and right of the box
-	for (int i = 1; i < size.y; i++) {
+	for (int i = 1; i < size.y - 1; i++) {
 		// start from top left
 		createTerrainCollider(renderer, { topleftpos.x, topleftpos.y + i});
-		createTerrainCollider(renderer, { topleftpos.x + size.x, topleftpos.y + i});
+		createTerrainCollider(renderer, { topleftpos.x + size.x - 1, topleftpos.y + i});
 	}
 
 }
