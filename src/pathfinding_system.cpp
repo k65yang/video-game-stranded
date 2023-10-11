@@ -59,7 +59,9 @@ void PathfindingSystem::BFS(Entity player_cell, Entity mob_cell, Entity predeces
 
 bool PathfindingSystem::same_cell(Entity player, Entity mob)
 {
-    return true;
+    Motion& player_motion = registry.motions.get(player);
+    Motion& mob_motion = registry.motions.get(mob);
+    return terrain->get_cell(player_motion.position) == terrain->get_cell(mob_motion.position);
 };
 
 
