@@ -58,6 +58,8 @@ private:
 	// Number of fish eaten by the salmon, displayed in the window title
 	unsigned int points;
 
+	vec2 zone1_boundary_size = {15,15};
+
 	// Game state
 	RenderSystem* renderer;
 	TerrainSystem* terrain;
