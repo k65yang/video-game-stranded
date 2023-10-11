@@ -71,6 +71,13 @@ public:
 	Entity get_cell(int x, int y);
 
 	/// <summary>
+	/// Returns the entity associated with the cell at the given index
+	/// </summary>
+	/// <param name="index">The index of the cell in the world grid</param>
+	/// <returns>The terrain cell's entity</returns>
+	Entity get_cell(int index);
+
+	/// <summary>
 	/// Returns the index in the grid for the given cell
 	/// </summary>
 	/// <param name="cell">The cell</param>

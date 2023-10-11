@@ -17,6 +17,14 @@ Entity TerrainSystem::get_cell(int x, int y)
 	return grid[to_array_index(x, y)].entity;
 }
 
+Entity TerrainSystem::get_cell(int index)
+{
+	assert(grid != nullptr);
+	assert(index >= 0);
+	assert(index < size_x * size_y);
+	return grid[index].entity;
+}
+
 int TerrainSystem::get_cell_index(Entity cell) 
 {
 	int cell_index = cell - entityStart;
