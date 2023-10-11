@@ -27,8 +27,8 @@ void PathfindingSystem::step(float elapsed_ms)
         }
 
         // Update velocity of mob if they are tracking the player and reached the next cell in their path
-        if (mob.is_tracking_player && reachedNextCell(entity)) {
-            updateVelocityToNextCell(entity, elapsed_ms);
+        if (mob.is_tracking_player && reached_next_cell(entity)) {
+            update_velocity_to_next_cell(entity, elapsed_ms);
         }
     }
 };
@@ -46,13 +46,13 @@ void PathfindingSystem::BFS(Entity player_cell, Entity mob_cell, Entity predeces
 };
 
 
-bool PathfindingSystem::reachedNextCell(Entity mob)
+bool PathfindingSystem::reached_next_cell(Entity mob)
 {
     return true;
 };
 
 
-void PathfindingSystem::updateVelocityToNextCell(Entity mob, float elapsed_ms)
+void PathfindingSystem::update_velocity_to_next_cell(Entity mob, float elapsed_ms)
 {
     
 };

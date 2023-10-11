@@ -58,12 +58,12 @@ private:
 	/// </summary>
 	/// <param name="mob">The mob entity to check</param>
     /// <returns>Returns true if the mob has reached its next cell, false otherwise</returns>
-    bool reachedNextCell(Entity mob);
+    bool reached_next_cell(Entity mob);
 
     /// <summary>
 	/// Updates a mob’s velocity to move to the next cell in its path
 	/// </summary>
 	/// <param name="mob">The mob entity to whose velocity should be updated</param>
 	/// <param name="elapsed_ms">The time (in milliseconds) since the last frame</param>
-    void updateVelocityToNextCell(Entity mob, float elapsed_ms);
+    void update_velocity_to_next_cell(Entity mob, float elapsed_ms);
 };
