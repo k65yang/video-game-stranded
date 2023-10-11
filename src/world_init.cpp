@@ -221,9 +221,69 @@ Entity createTestDummy(RenderSystem* renderer, vec2 position)
 	registry.renderRequests.insert(
 		entity,
 		{ TEXTURE_ASSET_ID::REDBLOCK,
-		 EFFECT_ASSET_ID::TEXTURED,
-		 GEOMETRY_BUFFER_ID::SPRITE,
-			RENDER_LAYER_ID::LAYER_1 });
+		EFFECT_ASSET_ID::TEXTURED,
+		GEOMETRY_BUFFER_ID::SPRITE,
+		RENDER_LAYER_ID::LAYER_1 });
 
 	return entity;
+}
+
+
+Entity createTerrainCollider(RenderSystem* renderer, vec2 position)
+{
+	auto entity = Entity();
+
+	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Initialize the motion
+	auto& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.velocity = { 0.f, 0.f };
+	motion.position = position;
+
+	// Setting initial values, scale is negative to make it face the opposite way
+	motion.scale = vec2({ 1, 1 });
+
+	// Create and (empty) Turtle component to be able to refer to all turtles
+	registry.terrainColliders.emplace(entity);
+
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::REDBLOCK,
+		EFFECT_ASSET_ID::TEXTURED,
+		GEOMETRY_BUFFER_ID::SPRITE,
+		RENDER_LAYER_ID::LAYER_1 });
+
+	return entity;
+}
+
+
+/// <summary>
+/// Creates a box boundary with given size and center point
+/// </summary>
+/// <param name="size">size of box in vec2</param>
+/// <param name="center">center point of box boundary in world space</param>
+/// <returns>void</returns>
+void createBoxBoundary(RenderSystem* renderer , vec2 size, vec2 center) {
+	vec2 topleftpos = {center.x - (int)size.x / 2, center.y - (int)size.y / 2};
+	// start from top left
+
+	// draw top and bottom of the box
+	for (int i = 0; i < size.x; i++) {
+		
+		createTerrainCollider(renderer, {topleftpos.x + i, topleftpos.y});
+
+		// We're subtracting the y position by 1 because we're off by 1
+		createTerrainCollider(renderer, {topleftpos.x + i, topleftpos.y + size.y - 1});
+	}
+
+	//draw left and right of the box
+	for (int i = 1; i < size.y - 1; i++) {
+		// start from top left
+		createTerrainCollider(renderer, { topleftpos.x, topleftpos.y + i});
+		createTerrainCollider(renderer, { topleftpos.x + size.x - 1, topleftpos.y + i});
+	}
+
 }
