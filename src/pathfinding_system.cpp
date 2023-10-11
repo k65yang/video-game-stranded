@@ -33,6 +33,13 @@ void PathfindingSystem::step(float elapsed_ms)
             mob_path.path = new_path;
         }
 
+        Path& mob_path = registry.paths.get(mob);
+        std::stack<Entity> path_copy = mob_path.path;
+        while (!path_copy.empty()) {
+            printf("Path (as cell indices): %d\n", terrain->get_cell_index(path_copy.top()));
+            path_copy.pop();
+        }
+
         // Update velocity of mob if they are tracking the player and reached the next cell in their path
         if (mob_mob.is_tracking_player && reached_next_cell(mob)) {
             update_velocity_to_next_cell(mob, elapsed_ms);
@@ -80,6 +87,62 @@ std::stack<Entity> PathfindingSystem::find_shortest_path(Entity player, Entity m
 
 bool PathfindingSystem::BFS(Entity player_cell, Entity mob_cell, std::vector<int>& predecessor)
 {
+    // Initialize queue for BFS
+    std::queue<Entity> bfs_queue;
+
+    // Initialize visited array for BFS
+    // visited is an array of booleans where visited[i] indicates whether the cell at index i in the world grid
+    // has been visited during the BFS
+    std::vector<bool> visited;
+
+    // Initialize values in visited false as all cells start out unvisited
+    // Initialize values in predecessor to -1 as predecessors for cells start out unknown
+    for (int i = 0; i < terrain->size_x * terrain->size_y; i++) {
+        visited.push_back(false);
+        predecessor.push_back(-1);
+    }  
+
+    // Start BFS from mob cell so mark it as visited and add to BFS queue
+    visited[terrain->get_cell_index(mob_cell)] = true;
+    bfs_queue.push(mob_cell);
+
+    // BFS algorithm
+    while (!bfs_queue.empty()) {
+        // Get and remove first cell from queue
+        Entity curr = bfs_queue.front();
+        int curr_cell_index = terrain->get_cell_index(curr);
+        bfs_queue.pop();
+
+        printf("Current cell index: %d\n", curr_cell_index);
+
+        // Get neighbors of cell
+        std::vector<Entity> neighbors;
+        terrain->get_accessible_neighbours(curr, neighbors);
+
+        for (Entity neighbor : neighbors) {
+            int neighbor_cell_index = terrain->get_cell_index(neighbor);
+
+            printf("Neighbor cell index: %d\n", neighbor_cell_index);
+            printf("Neighbor is visited before: %d\n", visited.at(neighbor_cell_index));
+            printf("Neighbor predecessor before: %d\n", predecessor.at(neighbor_cell_index));
+
+            // Set cell as visited, save its predecessor, and add it to the BFS queue if cell has not been visited yet
+            if (!visited[neighbor_cell_index]) {
+                visited.at(neighbor_cell_index) = true;
+                predecessor.at(neighbor_cell_index) = curr_cell_index;
+                bfs_queue.push(neighbor);
+
+                // Stop BFS if the cell is the one the player is in
+                if (player_cell == neighbor) {
+                    return true;
+                }
+            }
+
+            printf("Neighbor is visited after: %d\n", visited.at(neighbor_cell_index));
+            printf("Neighbor predecessor after: %d\n", predecessor.at(neighbor_cell_index));
+        }
+    }
+
     return false;
 };
 
