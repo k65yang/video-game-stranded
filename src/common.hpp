@@ -35,8 +35,8 @@ const int window_width_px = 1200;
 const int window_height_px = 800;
 const int tile_size_px = 50;		// Represents how many pixels a tile occupies in a row or column
 
-const unsigned short world_size_x = 5;
-const unsigned short world_size_y = 5;
+const unsigned short world_size_x = 13;
+const unsigned short world_size_y = 13;
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846f

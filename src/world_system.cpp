@@ -272,7 +272,7 @@ void WorldSystem::restart_game() {
 	terrain->init(world_size_x, world_size_y, renderer);
 
 	// Create a Spaceship 
-	createSpaceship(renderer, { 0,-3 });
+	createSpaceship(renderer, { 0,0 });
 
 	// Create a new salmon
 	player_salmon = createPlayer(renderer, { 0, 0 });
@@ -287,9 +287,17 @@ void WorldSystem::restart_game() {
 
 	// test for fow demo, REMOVE LATER
 	for (int i = 0; i < 4; i++) {
-		Entity e = createTestDummy(renderer, { i + 1,i - 1 });
+		Entity e = createTestDummy(renderer, { i+1,i-1 });
 		registry.motions.get(e).velocity = { 0.f,0.f };
 	}
+
+	
+
+	//// test for fow demo, REMOVE LATER
+	//for (int i = 0; i < 4; i++) {
+	//	Entity e = createTestDummy(renderer, { i+1,i-1 });
+	//	registry.motions.get(e).velocity = { 0.f,0.f };
+	//}
 
 	// FOR DEMO - to show different types of items being created.	
 	createItem(renderer, { 1, 2 }, ITEM_TYPE::FOOD);
@@ -302,7 +310,6 @@ void WorldSystem::restart_game() {
 	  keyDown[MovementKeyIndex::RIGHT] = false;
 	  keyDown[MovementKeyIndex::UP] = false;
 	  keyDown[MovementKeyIndex::DOWN] = false;
-
 }
 
 // Compute collisions between entities
@@ -343,8 +350,20 @@ void WorldSystem::handle_collisions() {
 
 			// Checking Player - Terrain
 			if (registry.terrainColliders.has(entity_other)) {
-				// set velocity to 0 when collide with a terrain collider
-				registry.motions.get(player_salmon).velocity = { 0.f,0.f };
+
+				Motion& motion = registry.motions.get(player_salmon);
+
+				// TODO: this is a quick and dirty way of resetting button presses
+				key_downs = 0;
+				
+				// set velocity to 0 when collide with a terrain collider unless it is already 0
+				if (motion.velocity.x != 0.f) {
+					motion.velocity.x = 0.f;
+				}
+
+				if (motion.velocity.y != 0.f) {
+					motion.velocity.y = 0.f;
+				}
 			}
 
 			// Checking Player - Items
@@ -407,7 +426,7 @@ void WorldSystem::player_movement(int key, int action) {
 	if (i >= 0) {
 		if (action == GLFW_PRESS) 
 			keyDown[i] = true;
-			
+
 		if (action == GLFW_RELEASE)
 			keyDown[i] = false;
 		}
@@ -420,7 +439,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	// Movement with velocity handled in step function  
 	player_movement(key, action);
 
-
+	
 	// Camera controls
 	camera_controls(action, key);
 
@@ -517,15 +536,22 @@ void WorldSystem::camera_controls(int action, int key)
 	}
 
 	if (action == GLFW_RELEASE && key_downs) {
-		key_downs--;
-		if (key == GLFW_KEY_UP)
+		if (key == GLFW_KEY_UP) {
+			key_downs--;
 			camera_velocity.y += -1;
-		if (key == GLFW_KEY_DOWN)
+		}
+		if (key == GLFW_KEY_DOWN) {
+			key_downs--;
 			camera_velocity.y += 1;
-		if (key == GLFW_KEY_LEFT)
+		}
+		if (key == GLFW_KEY_LEFT) {
+			key_downs--;
 			camera_velocity.x += -1;
-		if (key == GLFW_KEY_RIGHT)
+		}
+		if (key == GLFW_KEY_RIGHT) {
+			key_downs--;
 			camera_velocity.x += 1;
+		}
 	}
 
 	if (length(camera_velocity) > 0) {
