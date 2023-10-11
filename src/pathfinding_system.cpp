@@ -1,4 +1,9 @@
 #include "pathfinding_system.hpp"
+
+void PathfindingSystem::init(TerrainSystem* terrain_arg)
+{
+    this->terrain = terrain_arg;
+};
     
 void PathfindingSystem::step(float elapsed_ms) 
 {

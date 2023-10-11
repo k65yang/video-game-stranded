@@ -37,6 +37,7 @@ int main()
 	// initialize the main systems
 	render_system.init(window);
 	world_system.init(&render_system, &terrain_system);
+	pathfinding_system.init(&terrain_system);
 
 	// variable timestep loop
 	auto t = Clock::now();
@@ -54,7 +55,7 @@ int main()
 		physics_system.step(elapsed_ms);
 		terrain_system.step(elapsed_ms);
 		pathfinding_system.step(elapsed_ms);
-		
+
 		world_system.handle_collisions();
 
 		render_system.draw();

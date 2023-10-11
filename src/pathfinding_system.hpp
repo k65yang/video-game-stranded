@@ -10,7 +10,13 @@
 class PathfindingSystem
 {
 public:
-	PathfindingSystem() {}
+	PathfindingSystem() {};
+
+	/// <summary>
+	/// Initializes path finding system
+	/// </summary>
+	/// <param name="terrain_arg">Pointer to the terrain system</param>
+	void init(TerrainSystem* terrain_arg);
 
 	/// <summary>
 	/// Steps pathfinding ahead by elapsed_ms milliseconds
@@ -19,6 +25,9 @@ public:
 	void step(float elapsed_ms);
 
 private:
+	/// Terrain system pointer
+	TerrainSystem* terrain;
+
     /// <summary>
 	/// Finds the shortest path between a mob and the player
     /// Reference: https://www.geeksforgeeks.org/shortest-path-unweighted-graph/
