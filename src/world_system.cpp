@@ -506,3 +506,30 @@ void WorldSystem::on_mouse_move(vec2 mouse_position) {
 
 	(vec2)mouse_position; // dummy to avoid compiler warning
 }
+
+void WorldSystem::spawn_items() {
+	const int NUM_ITEM_TYPES = 4;
+
+	for (int i = 0; i < ITEM_LIMIT; i++) {
+		// Get random spawn location
+		vec2 spawn_location = get_random_spawn_location();
+
+		// Randomly choose item type
+		int item_type = rng() % NUM_ITEM_TYPES;
+
+		switch (item_type) {
+			case 0:
+				createItem(renderer, spawn_location, ITEM_TYPE::QUEST);
+				break;
+			case 1:
+				createItem(renderer, spawn_location, ITEM_TYPE::FOOD);
+				break;
+			case 2:
+				createItem(renderer, spawn_location, ITEM_TYPE::WEAPON);
+				break;
+			case 3:
+				createItem(renderer, spawn_location, ITEM_TYPE::UPGRADE);
+				break;
+		}
+	}
+};
