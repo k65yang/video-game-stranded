@@ -133,7 +133,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	Player& player = registry.players.get(player_salmon);
 	// Updating window title with points
 	std::stringstream title_ss;
-	title_ss << " Food: " << player.food << "  HP: " << player.health << " Distance: "<< PLAYER_TOTAL_DISTANCE;
+	title_ss << " Food: " << player.food << "  HP: " << player.health;
 	glfwSetWindowTitle(window, title_ss.str().c_str());
 
 	// Remove debug info from the last step
