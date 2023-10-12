@@ -1,4 +1,5 @@
 #pragma once
+#include <cmath>
 
 #include "common.hpp"
 #include "tiny_ecs.hpp"
@@ -10,6 +11,9 @@
 class TerrainSystem
 {
 public:
+	// size of each respective axes (absolute)
+	int size_x, size_y;
+	
 	TerrainSystem() { grid = nullptr; }
 
 	~TerrainSystem() {
@@ -53,19 +57,33 @@ public:
 	void step(float delta_time);
 
 	/// <summary>
-	/// Returns the entity associates with the cell at the given position
+	/// Returns the entity associated with the cell at the given position
 	/// </summary>
 	/// <param name="position">The position of the cell</param>
 	/// <returns>The terrain cell's entity</returns>
 	Entity get_cell(vec2 position);
 
 	/// <summary>
-	/// Returns the entity associates with the cell at the given position
+	/// Returns the entity associated with the cell at the given position
 	/// </summary>
 	/// <param name="x">The x position of the cell</param>
 	/// <param name="y">The y position of the cell</param>
 	/// <returns>The terrain cell's entity</returns>
 	Entity get_cell(int x, int y);
+
+	/// <summary>
+	/// Returns the entity associated with the cell at the given index
+	/// </summary>
+	/// <param name="index">The index of the cell in the world grid</param>
+	/// <returns>The terrain cell's entity</returns>
+	Entity get_cell(int index);
+
+	/// <summary>
+	/// Returns the index in the grid for the given cell
+	/// </summary>
+	/// <param name="cell">The cell</param>
+	/// <returns>The index of the cell in the grid</returns>
+	int get_cell_index(Entity cell);
 
 	/// <summary>
 	/// Return true if the tile should have a collider
@@ -88,9 +106,6 @@ private:
 	// IMPORTANT: this assumes no other entities can be made
 	// between the call to init() and when init() goes out of scope!!
 	unsigned int entityStart;
-
-	// size of each respective axes (absolute)
-	int size_x, size_y;
 
 	/// <summary>
 	/// Returns the index used for 'grid' with the given x and y world coordinates

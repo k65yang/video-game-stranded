@@ -9,20 +9,29 @@ const float FISH_BB_WIDTH = 0.4f * 296.f;
 const float FISH_BB_HEIGHT = 0.4f * 165.f;
 const float TURTLE_BB_WIDTH = 0.4f * 300.f;
 const float TURTLE_BB_HEIGHT = 0.4f * 202.f;
+const vec2 HEALTH_BAR_SCALE = vec2(5.f, 0.5);
+const vec2 FOOD_BAR_SCALE = vec2(5.5, 0.7);
+
 
 // the player
 Entity createPlayer(RenderSystem* renderer, vec2 pos);
 // the prey
 Entity createItem(RenderSystem* renderer, vec2 position, ITEM_TYPE type);
 // the enemy
-Entity createMob(RenderSystem* renderer, vec2 position);
+Entity createBasicMob(RenderSystem* renderer, vec2 position);
+
 // the spaceship 
 Entity createSpaceship(RenderSystem* renderer, vec2 position);
+
 // a red line for debugging purposes
 Entity createLine(vec2 position, vec2 size);
 
 // fow
 Entity createFOW(RenderSystem* renderer, vec2 pos);
+
+// health and food bars
+Entity createHealthAndFoodBars(RenderSystem* renderer, vec2 position);
+Entity createFoodBars(RenderSystem* renderer, vec2 position);
 
 // test only
 Entity createTestDummy(RenderSystem* renderer, vec2 position);
