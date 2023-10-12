@@ -528,16 +528,19 @@ vec2 WorldSystem::get_random_spawn_location() {
 
 	// Get unused spawn location within [-terrain->size_x/2, terrain->size_x/2] for x and 
 	// [-terrain->size_y/2, terrain->size_y/2] for y
-	do {
+	while (true) {
 		position.x = abs((int) rng()) % terrain->size_x + (-(terrain->size_x / 2));
 		position.y = abs((int) rng()) % terrain->size_y + (-(terrain->size_y / 2));
 
 		// Skip locations that are covered by spaceship
-		if (position.x <= 1 && position.x >= -1 && position.y <= 2 && position.y >= 2) {
+		if (position.x <= 1 && position.x >= -1 && position.y <= 2 && position.y >= -2) {
 			continue;
 		}
+
+		if (!is_spawn_location_used(position)) {
+			break;
+		}
 	} 
-	while(is_spawn_location_used(position));
 
 	// Add spawn location to used spawn locations
 	used_spawn_locations.push_back(position);
