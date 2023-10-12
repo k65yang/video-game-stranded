@@ -88,6 +88,7 @@ bool collidesV2(const Motion& motion1, const Motion& motion2)
 		edge_count = 0;
 
 	}
+
 	
 	return isIn;
 }

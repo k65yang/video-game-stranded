@@ -21,6 +21,7 @@ WorldSystem::WorldSystem()
 	, next_fish_spawn(0.f) {
 	// Seeding rng with random device
 	rng = std::default_random_engine(std::random_device()());
+
 }
 
 WorldSystem::~WorldSystem() {
@@ -289,6 +290,7 @@ void WorldSystem::handle_collisions() {
 
 			// Checking Player - Mobs
 			if (registry.mobs.has(entity_other)) {
+
 				// TODO: game over screen
 				if (!registry.deathTimers.has(entity)) {
 					registry.deathTimers.emplace(entity);
@@ -299,10 +301,6 @@ void WorldSystem::handle_collisions() {
 			if (registry.terrainColliders.has(entity_other)) {
 
 				Motion& motion = registry.motions.get(player_salmon);
-
-				printf("w %d | a %d | s %d | d %d |\n", keyDown[UP], keyDown[LEFT], keyDown[DOWN], keyDown[RIGHT]);
-				//printf("player position beffore correction %f, %f \n", motion.position.x, motion.position.y);
-
 
 				// resetting key press and respected velocity
 				
@@ -331,11 +329,12 @@ void WorldSystem::handle_collisions() {
 				motion.position.y = positionCorrection(motion.position.y);
 
 				// remove handled collision, not needed apparently
-				//collisionsRegistry.remove(entity_other);
+				// collisionsRegistry.remove(entity_other);
 			}
 
 			// Checking Player - Items
 			if (registry.items.has(entity_other)) {
+
 				Item& item = registry.items.get(entity_other);
 
 				// Handle the item based on its function
