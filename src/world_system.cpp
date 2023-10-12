@@ -259,6 +259,8 @@ void WorldSystem::handle_collisions() {
 				if (motion.velocity.y != 0.f) {
 					motion.velocity.y = 0.f;
 				}
+
+				//collisionsRegistry.remove(entity_other);
 			}
 
 			// Checking Player - Items
