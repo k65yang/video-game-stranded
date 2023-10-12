@@ -558,6 +558,11 @@ vec2 WorldSystem::get_random_spawn_location() {
 	do {
 		position.x = abs((int) rng()) % terrain->size_x + (-(terrain->size_x / 2));
 		position.y = abs((int) rng()) % terrain->size_y + (-(terrain->size_y / 2));
+
+		// Skip locations that are covered by spaceship
+		if (position.x <= 1 && position.x >= -1 && position.y <= 2 && position.y >= 2) {
+			continue;
+		}
 	} 
 	while(is_spawn_location_used(position));
 
