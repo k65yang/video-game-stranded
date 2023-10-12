@@ -13,7 +13,7 @@ const size_t MAX_TURTLES = 15;
 const size_t MAX_FISH = 5;
 const size_t TURTLE_DELAY_MS = 2000 * 3;
 const size_t FISH_DELAY_MS = 5000 * 3;
-const float IFRAMES = 1000;
+const float IFRAMES = 1500;
 const int FOOD_PICKUP_AMOUNT = 20;
 float PLAYER_TOTAL_DISTANCE = 0;
 const float foodDecreaseThreshold = 5.0f; // Adjust this value as needed
@@ -169,7 +169,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		}
 	}
 
-	// Tick down iframes timer
+	// Tick down iframes timer and health decrease timer
 	for (Entity entity : registry.players.entities) {
 		Player& player = registry.players.get(entity);
 		player.iframes_timer -= elapsed_ms_since_last_update;
@@ -177,9 +177,21 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		if (player.iframes_timer < 0) {
 			player.iframes_timer = 0;
 		}
+
+		if (player.health_decrease_time > 0) {
+			player.health_decrease_time -= elapsed_ms_since_last_update;
+
+			if (player.health_decrease_time < 0) {
+				player.health_decrease_time = 0;
+			}
+			else {
+				Motion& health = registry.motions.get(health_bar);
+				vec2 new_health_scale = vec2(((float)player.health / (float)PLAYER_MAX_HEALTH) * HEALTH_BAR_SCALE[0], HEALTH_BAR_SCALE[1]);
+				health.scale = interpolate(health.scale, new_health_scale, 1 - (player.health_decrease_time / IFRAMES));
+			}
+		}
 	}
 
-	// TODO: tick down player food
 	// Calculate food adjustment based on player's total traveled distance 
 	// Apply food decreasing the more you travel. 
 	if (player.food > 0) {
@@ -285,6 +297,9 @@ void WorldSystem::restart_game() {
 	// Create fow
 	fow = createFOW(renderer, { 0,0 });
 
+	// Create health and food bars
+	health_bar = createHealthAndFoodBars(renderer);
+
 	// test for fow demo, REMOVE LATER
 	for (int i = 0; i < 4; i++) {
 		Entity e = createTestDummy(renderer, { i+1,i-1 });
@@ -336,6 +351,10 @@ void WorldSystem::handle_collisions() {
 
 				Mob& mob = registry.mobs.get(entity_other);
 				player.health -= mob.damage;
+
+				// Shrink the health bar
+				player.health_decrease_time = IFRAMES; // player's health decays over this period of time, using interpolation
+				// use the same amount as iframes so health is never "out of date"
 
 				// Give the player some frames of invincibility so that they cannot die instantly when running into a mob
 				player.iframes_timer = IFRAMES;
@@ -399,6 +418,13 @@ void WorldSystem::handle_collisions() {
 
 	// Remove all collisions from this simulation step
 	registry.collisions.clear();
+}
+
+// PARAM IS TIME IN OUR EXAMPLE, BETWEEN 0 AND 1
+vec2 WorldSystem::interpolate(vec2 p1, vec2 p2, float param) {
+	float new_x = p1[0] + ((p2[0] - p1[0]) * param);
+	float new_y = p1[1] + ((p2[1] - p1[1]) * param);
+	return vec2(new_x, new_y);
 }
 
 // Should the game be over ?

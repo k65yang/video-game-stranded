@@ -13,7 +13,9 @@ const int PLAYER_MAX_HEALTH = 100;
 struct Player
 {
 	int health = PLAYER_MAX_HEALTH;
-	float iframes_timer = 0;
+	float health_decrease_time = 0; // in 
+	int decrease_health_to = PLAYER_MAX_HEALTH;
+	float iframes_timer = 0; // in ms
 	int food = PLAYER_MAX_FOOD;
 };
 

@@ -105,7 +105,6 @@ Entity createBasicMob(RenderSystem* renderer, vec2 position)
 }
 
 
-// GENERAL MOB CREATION FUNCTION STILL NEEDS TO BE MADE - ONLY ONE MOB AT THIS TIME.
 Entity createSpaceship(RenderSystem* renderer, vec2 position) {
 	auto entity = Entity();
 
@@ -152,6 +151,32 @@ Entity createLine(vec2 position, vec2 scale)
 	motion.scale = scale;
 
 	registry.debugComponents.emplace(entity);
+	return entity;
+}
+
+// These will shrink and enlarge according to hp/food
+
+// TODO: food
+Entity createHealthAndFoodBars(RenderSystem* renderer) {
+	auto entity = Entity();
+
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Initialize the position, scale, and physics components
+	auto& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.velocity = { 0.f, 0.f };
+	motion.position = { -8.f, 7.f };
+	motion.scale = vec2({ 5.f, 0.5 });
+
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::REDBLOCK,
+			EFFECT_ASSET_ID::TEXTURED,
+			GEOMETRY_BUFFER_ID::SPRITE,
+			RENDER_LAYER_ID::LAYER_3 });
+
 	return entity;
 }
 

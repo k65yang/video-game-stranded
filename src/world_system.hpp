@@ -43,6 +43,7 @@ private:
 	void on_key(int key, int, int action, int mod);
 	void camera_controls(int action, int key);
 	void on_mouse_move(vec2 pos);
+	vec2 interpolate(vec2 p1, vec2 p2, float param);
 
 	// TODO: improve input checking
 	// This helps prevent button-up actions from happening if game is reset in-between
@@ -69,6 +70,8 @@ private:
 	Entity player_salmon;
 	Entity main_camera;
 	Entity fow;
+	Entity health_bar;
+	Entity food_bar;
 
 	// music references
 	Mix_Music* background_music;
