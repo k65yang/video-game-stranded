@@ -53,7 +53,8 @@ class RenderSystem {
 		shader_path("pebble"),
 		shader_path("salmon"),
 		shader_path("textured"),
-		shader_path("water") };
+		shader_path("water"),
+		shader_path("terrain"),};
 
 	std::array<GLuint, geometry_count> vertex_buffers;
 	std::array<GLuint, geometry_count> index_buffers;
@@ -89,9 +90,18 @@ public:
 	mat3 createProjectionMatrix();
 
 private:
+	// Internal vertex data structure
+	struct vertex {
+		vec3 position;
+		vec2 texCoords;
+		//float tex;
+	};
+
 	// Internal drawing functions for each entity type
 	void drawTexturedMesh(Entity entity, const mat3& view_matrix, const mat3& projection);
 	void drawToScreen();
+	void make_quad(mat3 modelMatrix, std::vector<vertex>& vertices, std::vector<uint16_t>& indicies);
+	void drawTerrain(const TEXTURE_ASSET_ID texture, const mat3& view_2D, const mat3& projection_2D);
 	// void drawFOW();
 
 	// Window handle

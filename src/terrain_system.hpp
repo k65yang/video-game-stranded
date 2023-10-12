@@ -70,9 +70,12 @@ public:
 	/// <summary>
 	/// Return true if the tile should have a collider
 	/// </summary>
-	bool isImpassable(Entity tile) { return grid[tile - entityStart].flags & (unsigned)TERRAIN_FLAGS::COLLIDABLE; }
+	bool isImpassable(Entity tile) {
+		assert(registry.terrainCells.has(tile));
+		return grid[tile - entityStart].flags & TERRAIN_FLAGS::COLLIDABLE; 
+	}
 	bool isImpassable(vec2 position) { isImpassable((int)position.x, (int)position.y); };
-	bool isImpassable(int x, int y) { return grid[to_array_index(x, y)].flags & (unsigned)TERRAIN_FLAGS::COLLIDABLE; }
+	bool isImpassable(int x, int y) { return grid[to_array_index(x, y)].flags & TERRAIN_FLAGS::COLLIDABLE; }
 
 	/// <summary>
 	/// Returns valid, non-collidable neighbours.

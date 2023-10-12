@@ -46,7 +46,7 @@ void TerrainSystem::get_accessible_neighbours(Entity cell, std::vector<Entity>& 
 
 		if (index >= 0 && index < size_x * size_y) {
 			Cell& cell = grid[index];
-			if (!cell.flags & filter) {	// YES WE WANT BITWISE shut up shut up shut up
+			if (!(cell.flags & filter)) {	// YES WE WANT BITWISE shut up shut up shut up
 				// If a cell is not collidable and pathfinding is not disabled, add to buffer
 				buffer.push_back(cell.entity);
 			}
@@ -56,6 +56,8 @@ void TerrainSystem::get_accessible_neighbours(Entity cell, std::vector<Entity>& 
 
 unsigned int TerrainSystem::to_array_index(int x, int y)
 {
+	assert(abs(x) <= size_x / 2);
+	assert(abs(y) <= size_y / 2);
 	x = size_x / 2 + x;
 	y = size_y / 2 + y;
 	return (y * size_x + x);
@@ -63,6 +65,7 @@ unsigned int TerrainSystem::to_array_index(int x, int y)
 
 vec2 TerrainSystem::to_world_coordinates(const int index)
 {
+	assert(index >= 0 && index < size_x * size_y);
 	return {(index % size_x) - size_x / 2,
 			index / size_x - size_y / 2 };
 }
@@ -75,7 +78,6 @@ RenderRequest TerrainSystem::make_render_request(TerrainCell& cell) {
 		RENDER_LAYER_ID::LAYER_1,
 	};
 }
-
 
 void TerrainSystem::init(const unsigned int x, const unsigned int y, const RenderSystem* renderer)
 {
@@ -103,5 +105,6 @@ void TerrainSystem::init(const unsigned int x, const unsigned int y, const Rende
 		// TODO: Insert to 'terrainRenderRequests' to make rendering much more optimized
 		// by only rendering the entire terrain in 1 draw call.
 		registry.renderRequests.insert(entity, make_render_request(cell));
+		registry.terrainRenderRequests.insert(entity, make_render_request(cell));
 	}
 }
