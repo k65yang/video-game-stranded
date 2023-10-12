@@ -171,6 +171,8 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	// Movement code, build the velocity resulting from player moment
 	// We'll consider moveVelocity existing in player space
 	// Allow movment if player is not dead 
+
+	
 	if (!registry.deathTimers.has(player_salmon)) {
 		m.velocity = { 0, 0 };
 		handle_movement(m, LEFT);
@@ -261,13 +263,6 @@ void WorldSystem::restart_game() {
 	// Create box boundaries centered at {0,0}
 	createBoxBoundary(renderer, zone1_boundary_size, { 0, 0});
 
-	
-
-	//// test for fow demo, REMOVE LATER
-	//for (int i = 0; i < 4; i++) {
-	//	Entity e = createTestDummy(renderer, { i+1,i-1 });
-	//	registry.motions.get(e).velocity = { 0.f,0.f };
-	//}
 
 	// FOR DEMO - to show different types of items being created.	
 	createItem(renderer, { 1, 2 }, ITEM_TYPE::FOOD);
@@ -304,14 +299,21 @@ void WorldSystem::handle_collisions() {
 			if (registry.terrainColliders.has(entity_other)) {
 
 				Motion& motion = registry.motions.get(player_salmon);
-				
+				printf("player collided with terrain\n");
+
+				printf("w %b | a %b | s %b | d %b |\n", keyDown[0], keyDown[1], keyDown[2], keyDown[3]);
 				// set velocity to 0 when collide with a terrain collider unless it is already 0
 				if (motion.velocity.x != 0.f) {
 					motion.velocity.x = 0.f;
+					printf("change x vel to 0\n");
+
+
 				}
 
 				if (motion.velocity.y != 0.f) {
 					motion.velocity.y = 0.f;
+					printf("change y vel to 0\n");
+
 				}
 
 				//collisionsRegistry.remove(entity_other);
