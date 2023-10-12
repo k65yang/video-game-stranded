@@ -256,16 +256,14 @@ void WorldSystem::restart_game() {
 	//}
 
 	// FOR DEMO - to show different types of items being created.	
-	createItem(renderer, { 1, 2 }, ITEM_TYPE::FOOD);
-	createItem(renderer, { 0, 2 }, ITEM_TYPE::WEAPON);
-	createItem(renderer, { -1, 2 }, ITEM_TYPE::QUEST);
-  createMob(renderer, { -3, 2 });
+	spawn_items();
+	spawn_mobs();
 
 	// for movement velocity 
-	  keyDown[MovementKeyIndex::LEFT] = false;
-	  keyDown[MovementKeyIndex::RIGHT] = false;
-	  keyDown[MovementKeyIndex::UP] = false;
-	  keyDown[MovementKeyIndex::DOWN] = false;
+	keyDown[MovementKeyIndex::LEFT] = false;
+	keyDown[MovementKeyIndex::RIGHT] = false;
+	keyDown[MovementKeyIndex::UP] = false;
+	keyDown[MovementKeyIndex::DOWN] = false;
 }
 
 // Compute collisions between entities
@@ -510,6 +508,7 @@ void WorldSystem::on_mouse_move(vec2 mouse_position) {
 void WorldSystem::spawn_items() {
 	const int NUM_ITEM_TYPES = 4;
 
+	printf("+++++++++++++++ITEMS+++++++++++++++\n");
 	for (int i = 0; i < ITEM_LIMIT; i++) {
 		// Get random spawn location
 		vec2 spawn_location = get_random_spawn_location();
@@ -531,25 +530,34 @@ void WorldSystem::spawn_items() {
 				createItem(renderer, spawn_location, ITEM_TYPE::UPGRADE);
 				break;
 		}
+
+		printf("Item spawned at (%f, %f)\n", spawn_location.x, spawn_location.y);
 	}
+
+	printf("\n");
 };
 
 void WorldSystem::spawn_mobs() {
+	printf("+++++++++++++++MOBS+++++++++++++++\n");
 	for (int i = 0; i < MOB_LIMIT; i++) {
 		// Get random spawn location
 		vec2 spawn_location = get_random_spawn_location();
 		
 		createMob(renderer, spawn_location);
+
+		printf("Mob spawned at (%f, %f)\n", spawn_location.x, spawn_location.y);
 	}
+	printf("\n");
 };
 
 vec2 WorldSystem::get_random_spawn_location() {
 	vec2 position;
 
-	// Get unused spawn location
+	// Get unused spawn location within [-terrain->size_x/2, terrain->size_x/2] for x and 
+	// [-terrain->size_y/2, terrain->size_y/2] for y
 	do {
-		position.x = rng() % terrain->size_x;
-		position.y = rng() % terrain->size_y;
+		position.x = abs((int) rng()) % terrain->size_x + (-(terrain->size_x / 2));
+		position.y = abs((int) rng()) % terrain->size_y + (-(terrain->size_y / 2));
 	} 
 	while(is_spawn_location_used(position));
 
