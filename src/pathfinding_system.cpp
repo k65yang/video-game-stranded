@@ -175,7 +175,14 @@ bool PathfindingSystem::reached_next_cell(Entity mob)
 
 bool PathfindingSystem::has_player_moved(Entity player, Entity mob) 
 {
-    return true;
+    // Get the cell the player is in and the cell the mob believes the player is in
+    Motion& player_motion = registry.motions.get(player);
+    Entity curr_cell_of_player = terrain->get_cell(player_motion.position);
+    Path& mob_path = registry.paths.get(mob);
+    Entity expected_cell_of_player = mob_path.path.back();
+
+    // Check if the cell the player is in and cell the mob believes the player is in are the same
+    return curr_cell_of_player == expected_cell_of_player;
 }
 
 void PathfindingSystem::update_velocity_to_next_cell(Entity mob, float elapsed_ms)
