@@ -89,6 +89,9 @@ Entity createBasicMob(RenderSystem* renderer, vec2 position)
 	// Setting initial values, scale is negative to make it face the opposite way
 	motion.scale = vec2({ 1, 1 });
 
+	// Initialize path
+	registry.paths.emplace(entity);
+
 	// Classify this entity as a mob.
 	auto& mob_info = registry.mobs.emplace(entity);
 	mob_info.damage = 50;

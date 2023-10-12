@@ -35,3 +35,4 @@
 /.vs
 /out
 /ext/project_path.hpp
+/build
