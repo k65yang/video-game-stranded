@@ -162,7 +162,7 @@ bool PathfindingSystem::reached_next_cell(Entity mob)
 
     // Calculate the distance between the mob and the center of the next cell
     Motion& next_cell_motion = registry.motions.get(next_cell);
-    float dist = sqrt(pow(mob_motion.position.x - next_cell_motion.position.x, 2) + pow(mob_motion.position.y - next_cell_motion.position.y, 2) * 1.0);
+    float dist = distance(mob_motion.position, next_cell_motion.position);
 
     // printf("Next cell index: %d\n", terrain->get_cell_index(next_cell));
     // printf("Next cell position (x): %f\n", next_cell_motion.position.x);
