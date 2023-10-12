@@ -299,23 +299,38 @@ void WorldSystem::handle_collisions() {
 			if (registry.terrainColliders.has(entity_other)) {
 
 				Motion& motion = registry.motions.get(player_salmon);
-				printf("player collided with terrain\n");
 
-				printf("w %b | a %b | s %b | d %b |\n", keyDown[0], keyDown[1], keyDown[2], keyDown[3]);
-				// set velocity to 0 when collide with a terrain collider unless it is already 0
-				if (motion.velocity.x != 0.f) {
-					motion.velocity.x = 0.f;
-					printf("change x vel to 0\n");
+				printf("w %d | a %d | s %d | d %d |\n", keyDown[UP], keyDown[LEFT], keyDown[DOWN], keyDown[RIGHT]);
+				//printf("player position beffore correction %f, %f \n", motion.position.x, motion.position.y);
 
 
+				// resetting key press and respected velocity
+				
+				if (keyDown[UP] == true) {
+					keyDown[UP] = false;
+					motion.velocity.y = 0;
 				}
 
-				if (motion.velocity.y != 0.f) {
-					motion.velocity.y = 0.f;
-					printf("change y vel to 0\n");
-
+				if (keyDown[DOWN] == true) {
+					keyDown[DOWN] = false;
+					motion.velocity.y = 0;
 				}
 
+				if (keyDown[LEFT] == true) {
+					keyDown[LEFT] = false;
+					motion.velocity.x = 0;
+				}
+
+				if (keyDown[RIGHT] == true) {
+					keyDown[RIGHT] = false;
+					motion.velocity.x = 0;
+				}
+
+				// correct player position
+				motion.position.x = positionCorrection(motion.position.x);
+				motion.position.y = positionCorrection(motion.position.y);
+
+				// remove handled collision, not needed apparently
 				//collisionsRegistry.remove(entity_other);
 			}
 
@@ -492,3 +507,39 @@ void WorldSystem::on_mouse_move(vec2 mouse_position) {
 
 	(vec2)mouse_position; // dummy to avoid compiler warning
 }
+
+	/// <summary>
+	/// helper function for terrain collision response, calculates the corrected player position
+	/// </summary>
+	/// <param name="position"> pass in either player.position.x or y</param>
+float WorldSystem::positionCorrection(float position) {
+	// only correct the position when the difference is between 0.05 to 0.
+	// this is to account for case where left and down are both pressed when player is colliding wall to the left
+	// in this case we would only want to correct the x position
+
+	float whole = 0;
+
+	if (position >= 0) {
+		whole = floor(position);
+		}
+	else {
+		whole = ceil(position);
+		}
+	
+	float fraction = mod(position, whole);
+	float offset = 0.02;
+
+	// determine round up or down, adding offset to prevent continuous triggering
+	if (position >= 0 && fraction <= 0.05) {
+		position = floor(position) - offset;
+		}
+	else if (position < 0 && fraction >= -0.05) {
+		position = ceil(position) + offset;
+		}
+	else {
+		//no correction
+		// 
+		}
+
+	return position;
+	}
