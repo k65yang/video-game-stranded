@@ -21,6 +21,8 @@ void PathfindingSystem::step(float elapsed_ms)
         printf("Mob: %d\n", mob);
         printf("Mob cell index: %d\n", terrain->get_cell_index(terrain->get_cell(registry.motions.get(mob).position)));
         printf("Mob is_tracking_player: %d\n", mob_mob.is_tracking_player);
+        printf("Mob position before (x): %f\n", registry.motions.get(mob).position[0]);
+        printf("Mob position before (y): %f\n", registry.motions.get(mob).position[1]);
         printf("Mob velocity before (dx): %f\n", registry.motions.get(mob).velocity[0]);
         printf("Mob velocity before (dy): %f\n", registry.motions.get(mob).velocity[1]);
 
@@ -37,7 +39,7 @@ void PathfindingSystem::step(float elapsed_ms)
         Path& mob_path = registry.paths.get(mob);
         std::stack<Entity> path_copy = mob_path.path;
         while (!path_copy.empty()) {
-            printf("Path (as cell indices): %d\n", terrain->get_cell_index(path_copy.top()));
+            printf("Path (cell index): %d\n", terrain->get_cell_index(path_copy.top()));
             path_copy.pop();
         }
 
@@ -46,6 +48,8 @@ void PathfindingSystem::step(float elapsed_ms)
             update_velocity_to_next_cell(mob, elapsed_ms);
         }
 
+        printf("Mob position after (x): %f\n", registry.motions.get(mob).position[0]);
+        printf("Mob position after (y): %f\n", registry.motions.get(mob).position[1]);
         printf("Mob velocity after (dx): %f\n", registry.motions.get(mob).velocity[0]);
         printf("Mob velocity after (dy): %f\n", registry.motions.get(mob).velocity[1]);
 
@@ -151,16 +155,26 @@ bool PathfindingSystem::same_cell(Entity player, Entity mob)
 
 bool PathfindingSystem::reached_next_cell(Entity mob)
 {
-    // Get mob motion and path
+    // Get the next cell in the path and the cell the mob is in
     Motion& mob_motion = registry.motions.get(mob);
     Path& mob_path = registry.paths.get(mob);
+    Entity next_cell = mob_path.path.top();
 
-    // Check if mob is in the same cell as the next cell in the path
-    return terrain->get_cell(mob_motion.position) == mob_path.path.top();
+    // Calculate the distance between the mob and the center of the next cell
+    Motion& next_cell_motion = registry.motions.get(next_cell);
+    float dist = sqrt(pow(mob_motion.position.x - next_cell_motion.position.x, 2) + pow(mob_motion.position.y - next_cell_motion.position.y, 2) * 1.0);
+
+    // printf("Next cell index: %d\n", terrain->get_cell_index(next_cell));
+    // printf("Next cell position (x): %f\n", next_cell_motion.position.x);
+    // printf("Next cell position (y): %f\n", next_cell_motion.position.y);
+    // printf("Distance between mob and next cell: %f\n", dist);
+
+    // Check if mob is close to the center of the next cell
+    return dist < 0.01;
 };
 
 
 void PathfindingSystem::update_velocity_to_next_cell(Entity mob, float elapsed_ms)
 {
-    
+
 };

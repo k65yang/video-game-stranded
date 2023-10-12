@@ -64,7 +64,8 @@ private:
     bool same_cell(Entity player, Entity mob);
 
     /// <summary>
-	/// Checks if the mob has reached the next cell in its path
+	/// Checks if the mob has reached the next cell in its path. A mob has reached the next cell in its path if it
+	/// is close to the center of that cell
 	/// </summary>
 	/// <param name="mob">The mob entity to check</param>
     /// <returns>Returns true if the mob has reached its next cell, false otherwise</returns>
