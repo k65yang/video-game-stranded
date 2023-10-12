@@ -508,7 +508,6 @@ void WorldSystem::on_mouse_move(vec2 mouse_position) {
 void WorldSystem::spawn_items() {
 	const int NUM_ITEM_TYPES = 4;
 
-	printf("+++++++++++++++ITEMS+++++++++++++++\n");
 	for (int i = 0; i < ITEM_LIMIT; i++) {
 		// Get random spawn location
 		vec2 spawn_location = get_random_spawn_location();
@@ -530,24 +529,16 @@ void WorldSystem::spawn_items() {
 				createItem(renderer, spawn_location, ITEM_TYPE::UPGRADE);
 				break;
 		}
-
-		printf("Item spawned at (%f, %f)\n", spawn_location.x, spawn_location.y);
 	}
-
-	printf("\n");
 };
 
 void WorldSystem::spawn_mobs() {
-	printf("+++++++++++++++MOBS+++++++++++++++\n");
 	for (int i = 0; i < MOB_LIMIT; i++) {
 		// Get random spawn location
 		vec2 spawn_location = get_random_spawn_location();
 		
 		createMob(renderer, spawn_location);
-
-		printf("Mob spawned at (%f, %f)\n", spawn_location.x, spawn_location.y);
 	}
-	printf("\n");
 };
 
 vec2 WorldSystem::get_random_spawn_location() {
