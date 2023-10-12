@@ -236,12 +236,18 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	f.position = m.position;
 
 
+
 	// Movement code, build the velocity resulting from player moment
 	// We'll consider moveVelocity existing in player space
 	// Allow movment if player is not dead 
 	if (!registry.deathTimers.has(player_salmon)) {
 		m.velocity = { 0, 0 };
 		handle_movement(m, LEFT);
+
+		// If any keys are pressed resulting movement then add to total travel distance. 
+		if (keyDown[LEFT] || keyDown[RIGHT] || keyDown[UP] || keyDown[DOWN]) {
+			PLAYER_TOTAL_DISTANCE += 0.1;
+		}
 	}
 	else {
 		// Player is dead, do not allow movement
@@ -258,6 +264,13 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		handle_movement(camera_motion, CAMERA_LEFT, true);	// why are the positions inverted???
 															// investigate this!!!
 	}
+	// bars movement 
+	Motion& health = registry.motions.get(health_bar);
+	Motion& food = registry.motions.get(food_bar);
+
+	// We're taking away from the camera's position because its positions are reversed, remember?
+	health.position = { -8.f - camera_motion.position.x, 7.f - camera_motion.position.y };
+	food.position = { 8.f - camera_motion.position.x, 7.f - camera_motion.position.y };
 
 	return true;
 }
