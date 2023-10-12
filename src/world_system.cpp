@@ -347,10 +347,8 @@ void WorldSystem::restart_game() {
 	//}
 
 	// FOR DEMO - to show different types of items being created.	
-	createItem(renderer, { 1, 2 }, ITEM_TYPE::FOOD);
-	createItem(renderer, { 0, 2 }, ITEM_TYPE::WEAPON);
-	createItem(renderer, { -1, 2 }, ITEM_TYPE::QUEST);
-	createBasicMob(renderer, { -3, 2 });
+	spawn_items();
+	spawn_mobs();
 
 	// for movement velocity
 	for (int i = 0; i < KEYS; i++)
@@ -598,3 +596,74 @@ void WorldSystem::on_mouse_move(vec2 mouse_position) {
 
 	(vec2)mouse_position; // dummy to avoid compiler warning
 }
+
+void WorldSystem::spawn_items() {
+	const int NUM_ITEM_TYPES = 4;
+
+	for (int i = 0; i < ITEM_LIMIT; i++) {
+		// Get random spawn location
+		vec2 spawn_location = get_random_spawn_location();
+
+		// Randomly choose item type
+		int item_type = rng() % NUM_ITEM_TYPES;
+
+		switch (item_type) {
+			case 0:
+				createItem(renderer, spawn_location, ITEM_TYPE::QUEST);
+				break;
+			case 1:
+				createItem(renderer, spawn_location, ITEM_TYPE::FOOD);
+				break;
+			case 2:
+				createItem(renderer, spawn_location, ITEM_TYPE::WEAPON);
+				break;
+			case 3:
+				createItem(renderer, spawn_location, ITEM_TYPE::UPGRADE);
+				break;
+		}
+	}
+};
+
+void WorldSystem::spawn_mobs() {
+	for (int i = 0; i < MOB_LIMIT; i++) {
+		// Get random spawn location
+		vec2 spawn_location = get_random_spawn_location();
+		
+		createMob(renderer, spawn_location);
+	}
+};
+
+vec2 WorldSystem::get_random_spawn_location() {
+	vec2 position;
+
+	// Get unused spawn location within [-terrain->size_x/2, terrain->size_x/2] for x and 
+	// [-terrain->size_y/2, terrain->size_y/2] for y
+	while (true) {
+		position.x = abs((int) rng()) % terrain->size_x + (-(terrain->size_x / 2));
+		position.y = abs((int) rng()) % terrain->size_y + (-(terrain->size_y / 2));
+
+		// Skip locations that are covered by spaceship
+		if (position.x <= 1 && position.x >= -1 && position.y <= 2 && position.y >= -2) {
+			continue;
+		}
+
+		if (!is_spawn_location_used(position)) {
+			break;
+		}
+	} 
+
+	// Add spawn location to used spawn locations
+	used_spawn_locations.push_back(position);
+
+	return position;
+};
+
+bool WorldSystem::is_spawn_location_used(vec2 position) {
+	for (vec2 p : used_spawn_locations) {
+		if (p.x == position.x && p.y == position.y) {
+			return true;
+		}
+	}
+
+	return false;
+};

@@ -10,6 +10,9 @@
 class TerrainSystem
 {
 public:
+	// size of each respective axes (absolute)
+	int size_x, size_y;
+	
 	TerrainSystem() { grid = nullptr; }
 
 	~TerrainSystem() {
@@ -88,9 +91,6 @@ private:
 	// IMPORTANT: this assumes no other entities can be made
 	// between the call to init() and when init() goes out of scope!!
 	unsigned int entityStart;
-
-	// size of each respective axes (absolute)
-	int size_x, size_y;
 
 	/// <summary>
 	/// Returns the index used for 'grid' with the given x and y world coordinates

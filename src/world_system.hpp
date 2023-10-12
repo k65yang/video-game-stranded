@@ -97,6 +97,37 @@ private:
 	std::default_random_engine rng;
 	std::uniform_real_distribution<float> uniform_dist; // number between 0..1
 
+	// Random item and mob spawning 
+	// Limits on the number of items and mobs
+	const int ITEM_LIMIT = 4;
+	const int MOB_LIMIT = 2;
+
+	// Vector to keep track of locations where an item/mob has been spawned
+	std::vector<vec2> used_spawn_locations;
+
+	/// <summary>
+	/// Spawns ITEM_LIMIT items randomly across the map
+	///	</summary>
+	void spawn_items();
+
+	/// <summary>
+	/// Spawns MOB_LIMIT mobs randomly across the map
+	///	</summary>
+	void spawn_mobs();
+
+	/// <summary>
+	/// Checks if a position has already been used as a spawn location
+	///	</summary>
+	/// <param name="position">The position to check</param>
+	/// <returns>True if the position has been used as a spawn location, false otherwise</returns>
+	bool is_spawn_location_used(vec2 position);
+
+	/// <summary>
+	/// Gets a random position in the map that has not already been used as a spawn location	
+	///	</summary>
+	/// <returns>A position that </returns>
+	vec2 get_random_spawn_location();
+
 	/// <summary>
 	/// Maps the GLFW key into a InputKeyIndex as an int
 	/// </summary>
