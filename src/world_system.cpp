@@ -238,50 +238,59 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 	// Movement code, build the velocity resulting from player moment
 	// We'll consider moveVelocity existing in player space
-	vec2 moveVelocity = m.velocity = { 0, 0 };
-	// Allow movement if player is not dead 
+	// Allow movment if player is not dead 
 	if (!registry.deathTimers.has(player_salmon)) {
-		if (keyDown[MovementKeyIndex::UP]) {
-			moveVelocity.y += -1;    // If UP is pressed then obviously add an up component
-			PLAYER_TOTAL_DISTANCE += 0.1;
-			}
-		if (keyDown[MovementKeyIndex::DOWN]) {
-			moveVelocity.y += 1;    // If DOWN is pressed then obviously add a down component
-			PLAYER_TOTAL_DISTANCE += 0.1;
-			}
-		if (keyDown[MovementKeyIndex::LEFT]) {
-			moveVelocity.x += -1;    // If Left is pressed then obviously add a left component
-			PLAYER_TOTAL_DISTANCE += 0.1;
-			}
-		if (keyDown[MovementKeyIndex::RIGHT]) {
-			moveVelocity.x += 1;    // If Left is pressed then obviously add a right component
-			PLAYER_TOTAL_DISTANCE += 0.1;
-			}
-
-		// Only run if there are any movement
-
-		if (length(moveVelocity) > 0) {
-			// prevent player from going slightly faster if moving diagonally
-			moveVelocity = normalize(moveVelocity);
-
-			// Recall that we're in salmon space. We want to turn our movement into "world" space AKA pixel coordinates.
-			// Let's make a mini transform matrix:
-			float c = cosf(m.angle);
-			float s = sinf(m.angle);
-			mat2 rotate = { {c, s}, {-s, c} }; // Not affine because velocity is ALWAYS a vector
-
-			// Rotate the vector into "world" space. The model/entity matrix turns local/entity coordinates into
-			// "world" coordinates.
-			moveVelocity = (rotate * moveVelocity);
-
-			m.velocity = moveVelocity * current_speed;
-			}
-		}
+		m.velocity = { 0, 0 };
+		handle_movement(m, LEFT);
+	}
 	else {
 		// Player is dead, do not allow movement
 		m.velocity = { 0, 0 };
-		}
+	}
+
+	// Camera movement mode
+	Camera& c = registry.cameras.get(main_camera);
+	Motion& camera_motion = registry.motions.get(main_camera);
+	if (c.mode_follow) {
+		camera_motion.position = -m.position;	// why are the positions inverted???
+	}
+	else {
+		handle_movement(camera_motion, CAMERA_LEFT, true);	// why are the positions inverted???
+															// investigate this!!!
+	}
+
 	return true;
+}
+
+void WorldSystem::handle_movement(Motion& motion, InputKeyIndex index_start, bool invertDirection)
+{
+	float invert = invertDirection ? -1 : 1;	// shorthand that inverts the results if invertDirection.
+	vec2 moveVelocity = { 0, 0 };
+	if (keyDown[index_start])
+		moveVelocity.x += -1;    // If LEFT is pressed then obviously add a left component
+	if (keyDown[index_start + 1])
+		moveVelocity.x += 1;    // If RIGHT is pressed then obviously add a right component
+	if (keyDown[index_start + 2])
+		moveVelocity.y += -1;    // If UP is pressed then obviously add an up component
+	if (keyDown[index_start + 3])
+		moveVelocity.y += 1;    // If DOWN is pressed then obviously add a down component
+
+	if (length(moveVelocity) > 0) {
+		// prevent motion from going slightly faster if moving diagonally
+		moveVelocity = normalize(moveVelocity);
+
+		// Make a quick transformation matrix to rotate the movement according to
+		// entity orientation
+		float c = cosf(motion.angle);
+		float s = sinf(motion.angle);
+		mat2 rotate = { { c, s },{ -s, c } }; // Not affine because velocity is ALWAYS a vector
+
+		// Rotate the vector into "world" space. The model/entity matrix turns local/entity coordinates into
+		// "world" coordinates.
+		moveVelocity = (rotate * moveVelocity);
+
+		motion.velocity = moveVelocity * current_speed * invert;
+	}
 }
 
 // Reset the world state to its initial state
@@ -312,8 +321,7 @@ void WorldSystem::restart_game() {
 	registry.colors.insert(player_salmon, { 1, 0.8f, 0.8f });
 
 	// Create the main camera
-	main_camera = createCamera({ 0,0 });
-	key_downs = 0;
+	main_camera = createCamera({0,0});
 
 	// Create fow
 	fow = createFOW(renderer, { 0,0 });
@@ -342,13 +350,11 @@ void WorldSystem::restart_game() {
 	createItem(renderer, { 1, 2 }, ITEM_TYPE::FOOD);
 	createItem(renderer, { 0, 2 }, ITEM_TYPE::WEAPON);
 	createItem(renderer, { -1, 2 }, ITEM_TYPE::QUEST);
-	createBasicMob(renderer, { -3, 2 });
+	createMob(renderer, { -3, 2 });
 
-	// for movement velocity 
-	  keyDown[MovementKeyIndex::LEFT] = false;
-	  keyDown[MovementKeyIndex::RIGHT] = false;
-	  keyDown[MovementKeyIndex::UP] = false;
-	  keyDown[MovementKeyIndex::DOWN] = false;
+	// for movement velocity
+	for (int i = 0; i < KEYS; i++)
+	  keyDown[i] = false;
 }
 
 // Compute collisions between entities
@@ -395,9 +401,6 @@ void WorldSystem::handle_collisions() {
 			if (registry.terrainColliders.has(entity_other)) {
 
 				Motion& motion = registry.motions.get(player_salmon);
-
-				// TODO: this is a quick and dirty way of resetting button presses
-				key_downs = 0;
 				
 				// set velocity to 0 when collide with a terrain collider unless it is already 0
 				if (motion.velocity.x != 0.f) {
@@ -461,38 +464,66 @@ bool WorldSystem::is_over() const {
 int WorldSystem::key_to_index(int key) {
 	switch (key) {
 			case GLFW_KEY_W:
-				return MovementKeyIndex::UP;
+				return InputKeyIndex::UP;
 			case GLFW_KEY_S:
-				return MovementKeyIndex::DOWN;
+				return InputKeyIndex::DOWN;
 			case GLFW_KEY_A:
-				return MovementKeyIndex::LEFT;
+				return InputKeyIndex::LEFT;
 			case GLFW_KEY_D:
-				return MovementKeyIndex::RIGHT;
+				return InputKeyIndex::RIGHT;
+
+			// camera controls
+			case GLFW_KEY_UP:
+				return InputKeyIndex::CAMERA_UP;
+			case GLFW_KEY_DOWN:
+				return InputKeyIndex::CAMERA_DOWN;
+			case GLFW_KEY_LEFT:
+				return InputKeyIndex::CAMERA_LEFT;
+			case GLFW_KEY_RIGHT:
+				return InputKeyIndex::CAMERA_RIGHT;
+
 		}
 	return -1;    // key is not tracked so we don't really care
 	}
 
-void WorldSystem::player_movement(int key, int action) {
+void WorldSystem::update_key_presses(int key, int action) {
 	int i = key_to_index(key);
 	if (i >= 0) {
-		if (action == GLFW_PRESS) 
+		if (action == GLFW_PRESS) {
 			keyDown[i] = true;
 
-		if (action == GLFW_RELEASE)
+			// If we press down any of the arrow keys, set camera to freemode.
+			if (i >= CAMERA_LEFT && i <= CAMERA_DOWN) {
+				Camera& c = registry.cameras.get(main_camera);
+				c.mode_follow = false;
+			}
+		}
+
+		if (action == GLFW_RELEASE) {
 			keyDown[i] = false;
+
+			if (i >= CAMERA_LEFT && i <= CAMERA_DOWN) {
+				update_camera_follow();
+			}
 		}
 	}
+}
+
+void WorldSystem::update_camera_follow() {
+	for (int i = CAMERA_LEFT; i <= CAMERA_DOWN; i++) {
+		if (keyDown[i])
+			return;	// if any of the camera control buttons are still pressed, do not follow the player just yet
+	}
+	Camera& c = registry.cameras.get(main_camera);
+	c.mode_follow = true;
+}
 
 // On key callback
 void WorldSystem::on_key(int key, int, int action, int mod) {
 	Motion& player_motion = registry.motions.get(player_salmon);
 
 	// Movement with velocity handled in step function  
-	player_movement(key, action);
-
-	
-	// Camera controls
-	camera_controls(action, key);
+	update_key_presses(key, action);
 
 	if (action == GLFW_PRESS && key == GLFW_KEY_G) {
 		Motion& player = registry.motions.get(player_salmon);
@@ -555,60 +586,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	}
 	current_speed = fmax(0.f, current_speed);
 
-
-}
-
-/// <summary>
-/// This are the camera controls.
-/// </summary>
-/// <param name="action">from on_key</param>
-/// <param name="key">from on_key</param>
-void WorldSystem::camera_controls(int action, int key)
-{
-	vec2 camera_velocity(0);
-	if (action == GLFW_PRESS) {
-
-		if (key == GLFW_KEY_UP) {
-			key_downs++;
-			camera_velocity.y += 1;
-		}
-		if (key == GLFW_KEY_DOWN) {
-			key_downs++;
-			camera_velocity.y += -1;
-		}
-		if (key == GLFW_KEY_LEFT) {
-			key_downs++;
-			camera_velocity.x += 1;
-		}
-		if (key == GLFW_KEY_RIGHT) {
-			key_downs++;
-			camera_velocity.x += -1;
-		}
-	}
-
-	if (action == GLFW_RELEASE && key_downs) {
-		if (key == GLFW_KEY_UP) {
-			key_downs--;
-			camera_velocity.y += -1;
-		}
-		if (key == GLFW_KEY_DOWN) {
-			key_downs--;
-			camera_velocity.y += 1;
-		}
-		if (key == GLFW_KEY_LEFT) {
-			key_downs--;
-			camera_velocity.x += -1;
-		}
-		if (key == GLFW_KEY_RIGHT) {
-			key_downs--;
-			camera_velocity.x += 1;
-		}
-	}
-
-	if (length(camera_velocity) > 0) {
-		Motion& camera_motion = registry.motions.get(main_camera);
-		camera_motion.velocity += camera_velocity * current_speed;
-	}
+	
 }
 
 void WorldSystem::on_mouse_move(vec2 mouse_position) {

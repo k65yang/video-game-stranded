@@ -21,6 +21,19 @@ class WorldSystem
 public:
 	WorldSystem();
 
+	// Movement with velocity 
+	enum InputKeyIndex {
+		LEFT = 0,
+		RIGHT = LEFT + 1,
+		UP = RIGHT + 1,
+		DOWN = UP + 1,
+		CAMERA_LEFT = DOWN + 1,
+		CAMERA_RIGHT = CAMERA_LEFT + 1,
+		CAMERA_UP = CAMERA_RIGHT + 1,
+		CAMERA_DOWN = CAMERA_UP + 1,
+		KEYS = CAMERA_DOWN + 1
+	};
+
 	// Creates a window
 	GLFWwindow* create_window();
 
@@ -33,6 +46,14 @@ public:
 	// Steps the game ahead by ms milliseconds
 	bool step(float elapsed_ms);
 
+	/// <summary>
+	/// Generic movement controller function for entities that move via player input
+	/// </summary>
+	/// <param name="motion">The motion component of the entity that will be controlled</param>
+	/// <param name="index_start">The 'InputKeyIndex::XX_LEFT' associated with the left-moving key</param>
+	/// <param name="invertDirection">Should the directions be inverted?</param>
+	void handle_movement(Motion& motion, InputKeyIndex index_start, bool invertDirection = false);
+
 	// Check for collisions
 	void handle_collisions();
 
@@ -41,14 +62,8 @@ public:
 private:
 	// Input callback functions
 	void on_key(int key, int, int action, int mod);
-	void camera_controls(int action, int key);
 	void on_mouse_move(vec2 pos);
 	vec2 interpolate(vec2 p1, vec2 p2, float param);
-
-	// TODO: improve input checking
-	// This helps prevent button-up actions from happening if game is reset in-between
-	// button-down and button-up states
-	int key_downs = 0;
 
 	// restart level
 	void restart_game();
@@ -82,16 +97,23 @@ private:
 	std::default_random_engine rng;
 	std::uniform_real_distribution<float> uniform_dist; // number between 0..1
 
-	// Movement with velocity 
-	enum MovementKeyIndex {
-		LEFT = 0,
-		RIGHT = LEFT + 1,
-		UP = RIGHT + 1,
-		DOWN = UP + 1
-		};
-
+	/// <summary>
+	/// Maps the GLFW key into a InputKeyIndex as an int
+	/// </summary>
+	/// <param name="key">A GLFW-defined key ie. 'GLFW_KEY_...'</param>
+	/// <returns>A InputKeyIndex value as an int</returns>
 	int key_to_index(int key);
-	void player_movement(int key, int action);    // player movement helper
-	void reset_key(int key);
-	bool keyDown[4];    // see MovementKeyIndex for context
+
+	/// <summary>
+	/// Updates the state of the keys in InputKeyIndex and keyDown[KEYS]
+	/// </summary>
+	/// <param name="key">A GLFW-defined key ie. 'GLFW_KEY_...'</param>
+	/// <param name="action">A GLFW-defined key ie. 'GLFW_PRESSED' </param>
+	void update_key_presses(int key, int action);
+
+	/// <summary>
+	/// Sets camera follow mode to true if no camera-control buttons are pressed
+	/// </summary>
+	void update_camera_follow();
+	bool keyDown[KEYS];    // Uses InputKeyIndex values as index
 };
