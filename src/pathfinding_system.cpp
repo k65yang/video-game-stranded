@@ -12,14 +12,14 @@ void PathfindingSystem::step(float elapsed_ms)
 
     printf("++++++++PLAYER++++++++\n");
     printf("Player: %d\n", player);
-    printf("Player cell: %d\n", terrain->get_cell(registry.motions.get(player).position));
+    printf("Player cell index: %d\n", terrain->get_cell_index(terrain->get_cell(registry.motions.get(player).position)));
 
     printf("++++++++MOBS++++++++\n");
     for (Entity mob : registry.mobs.entities) {
         Mob& mob_mob = registry.mobs.get(mob);
 
         printf("Mob: %d\n", mob);
-        printf("Mob cell: %d\n", terrain->get_cell(registry.motions.get(mob).position));
+        printf("Mob cell index: %d\n", terrain->get_cell_index(terrain->get_cell(registry.motions.get(mob).position)));
         printf("Mob is_tracking_player: %d\n", mob_mob.is_tracking_player);
         printf("Mob velocity before (dx): %f\n", registry.motions.get(mob).velocity[0]);
         printf("Mob velocity before (dy): %f\n", registry.motions.get(mob).velocity[1]);
@@ -28,6 +28,7 @@ void PathfindingSystem::step(float elapsed_ms)
         // as the player already
         if (!mob_mob.is_tracking_player && !same_cell(player, mob)) {
             mob_mob.is_tracking_player = true;
+            
             std::stack<Entity> new_path = find_shortest_path(player, mob);
             Path& mob_path = registry.paths.get(mob);
             mob_path.path = new_path;
@@ -113,18 +114,12 @@ bool PathfindingSystem::BFS(Entity player_cell, Entity mob_cell, std::vector<int
         int curr_cell_index = terrain->get_cell_index(curr);
         bfs_queue.pop();
 
-        printf("Current cell index: %d\n", curr_cell_index);
-
         // Get neighbors of cell
         std::vector<Entity> neighbors;
         terrain->get_accessible_neighbours(curr, neighbors);
 
         for (Entity neighbor : neighbors) {
             int neighbor_cell_index = terrain->get_cell_index(neighbor);
-
-            printf("Neighbor cell index: %d\n", neighbor_cell_index);
-            printf("Neighbor is visited before: %d\n", visited.at(neighbor_cell_index));
-            printf("Neighbor predecessor before: %d\n", predecessor.at(neighbor_cell_index));
 
             // Set cell as visited, save its predecessor, and add it to the BFS queue if cell has not been visited yet
             if (!visited[neighbor_cell_index]) {
@@ -137,9 +132,6 @@ bool PathfindingSystem::BFS(Entity player_cell, Entity mob_cell, std::vector<int
                     return true;
                 }
             }
-
-            printf("Neighbor is visited after: %d\n", visited.at(neighbor_cell_index));
-            printf("Neighbor predecessor after: %d\n", predecessor.at(neighbor_cell_index));
         }
     }
 
@@ -148,15 +140,23 @@ bool PathfindingSystem::BFS(Entity player_cell, Entity mob_cell, std::vector<int
 
 bool PathfindingSystem::same_cell(Entity player, Entity mob)
 {
+    // Get player and mob motion
     Motion& player_motion = registry.motions.get(player);
     Motion& mob_motion = registry.motions.get(mob);
+
+    // Check if player is in the same cell as the mob
     return terrain->get_cell(player_motion.position) == terrain->get_cell(mob_motion.position);
 };
 
 
 bool PathfindingSystem::reached_next_cell(Entity mob)
 {
-    return true;
+    // Get mob motion and path
+    Motion& mob_motion = registry.motions.get(mob);
+    Path& mob_path = registry.paths.get(mob);
+
+    // Check if mob is in the same cell as the next cell in the path
+    return terrain->get_cell(mob_motion.position) == mob_path.path.top();
 };
 
 
