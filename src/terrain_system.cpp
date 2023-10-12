@@ -6,7 +6,8 @@ void TerrainSystem::step(float delta_time)
 
 Entity TerrainSystem::get_cell(vec2 position)
 {
-	return get_cell((int)position.x, (int)position.y);
+	// round x and y value before casting for more accurate mapping of position to cell
+	return get_cell((int) std::round(position.x), (int) std::round(position.y)); 
 }
 
 Entity TerrainSystem::get_cell(int x, int y)

@@ -1,4 +1,5 @@
 #pragma once
+#include <cmath>
 
 #include "common.hpp"
 #include "tiny_ecs.hpp"
