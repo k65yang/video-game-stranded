@@ -243,6 +243,11 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	if (!registry.deathTimers.has(player_salmon)) {
 		m.velocity = { 0, 0 };
 		handle_movement(m, LEFT);
+
+		// If any keys are pressed resulting movement then add to total travel distance. 
+		if (keyDown[LEFT] || keyDown[RIGHT] || keyDown[UP] || keyDown[DOWN]) {
+			PLAYER_TOTAL_DISTANCE += 0.1;
+		}
 	}
 	else {
 		// Player is dead, do not allow movement
@@ -262,8 +267,10 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	// bars movement 
 	Motion& health = registry.motions.get(health_bar);
 	Motion& food = registry.motions.get(food_bar);
-	health.position = { -8.f + m.position.x, 7.f + m.position.y };
-	food.position = { 8.f + m.position.x, 7.f + m.position.y };
+
+	// We're taking away from the camera's position because its positions are reversed, remember?
+	health.position = { -8.f - camera_motion.position.x, 7.f - camera_motion.position.y };
+	food.position = { 8.f - camera_motion.position.x, 7.f - camera_motion.position.y };
 
 	return true;
 }
@@ -296,10 +303,6 @@ void WorldSystem::handle_movement(Motion& motion, InputKeyIndex index_start, boo
 		moveVelocity = (rotate * moveVelocity);
 
 		motion.velocity = moveVelocity * current_speed * invert;
-	}
-	// If any keys are pressed resulting movement then add to total travel distance. 
-	if (keyDown[index_start] || keyDown[index_start + 1] || keyDown[index_start + 2] || keyDown[index_start + 3]) {
-		PLAYER_TOTAL_DISTANCE += 0.1;
 	}
 }
 
