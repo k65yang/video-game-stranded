@@ -9,14 +9,10 @@
 #include "physics_system.hpp"
 
 // Game configuration
-const size_t MAX_TURTLES = 15;
-const size_t MAX_FISH = 5;
-const size_t TURTLE_DELAY_MS = 2000 * 3;
-const size_t FISH_DELAY_MS = 5000 * 3;
 const float IFRAMES = 1500;
 const int FOOD_PICKUP_AMOUNT = 20;
 float PLAYER_TOTAL_DISTANCE = 0;
-const float foodDecreaseThreshold = 5.0f; // Adjust this value as needed
+const float FOOD_DECREASE_THRESHOLD  = 5.0f; // Adjust this value as needed
 
 
 
@@ -137,7 +133,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	Player& player = registry.players.get(player_salmon);
 	// Updating window title with points
 	std::stringstream title_ss;
-	title_ss << " Food: " << player.food << "  HP: " << player.health<< "  Distance: " << PLAYER_TOTAL_DISTANCE;
+	title_ss << " Food: " << player.food << "  HP: " << player.health;
 	glfwSetWindowTitle(window, title_ss.str().c_str());
 
 	// Remove debug info from the last step
@@ -192,12 +188,36 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		}
 	}
 
-	// Calculate food adjustment based on player's total traveled distance 
+	// Tick down iframes timer and food decrease timer 
+	for (Entity entity : registry.players.entities) {
+		Player& player = registry.players.get(entity);
+		player.iframes_timer -= elapsed_ms_since_last_update;
+
+		if (player.iframes_timer < 0) {
+			player.iframes_timer = 0;
+			}
+
+		if (player.food_decrease_time > 0) {
+			player.food_decrease_time -= elapsed_ms_since_last_update;
+
+			if (player.food_decrease_time < 0) {
+				player.food_decrease_time = 0;
+				}
+			else {
+				Motion& food = registry.motions.get(food_bar);
+				vec2 new_food_scale = vec2(((float)player.food / (float)PLAYER_MAX_FOOD) * FOOD_BAR_SCALE[0], FOOD_BAR_SCALE[1]);
+				food.scale = interpolate(food.scale, new_food_scale, 1 - (player.food_decrease_time / IFRAMES));
+				}
+			}
+		}
 	// Apply food decreasing the more you travel. 
 	if (player.food > 0) {
-		if (PLAYER_TOTAL_DISTANCE >= foodDecreaseThreshold) {
+		if (PLAYER_TOTAL_DISTANCE >= FOOD_DECREASE_THRESHOLD ) {
 			// Decrease player's food by 1
 			player.food -= 1;
+			// Shrink the food bar
+			player.food_decrease_time = IFRAMES;
+
 			// Reset the total movement distance
 			PLAYER_TOTAL_DISTANCE = 0;
 			}
@@ -207,6 +227,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		// TODO: game over screen
 		registry.deathTimers.emplace(player_salmon);
 		}
+
 	// reduce window brightness if any of the present players is dying
 	screen.screen_darken_factor = 1 - min_timer_ms / 3000;
 
@@ -222,19 +243,19 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	if (!registry.deathTimers.has(player_salmon)) {
 		if (keyDown[MovementKeyIndex::UP]) {
 			moveVelocity.y += -1;    // If UP is pressed then obviously add an up component
-			PLAYER_TOTAL_DISTANCE += 0.01;
+			PLAYER_TOTAL_DISTANCE += 0.1;
 			}
 		if (keyDown[MovementKeyIndex::DOWN]) {
 			moveVelocity.y += 1;    // If DOWN is pressed then obviously add a down component
-			PLAYER_TOTAL_DISTANCE += 0.01;
+			PLAYER_TOTAL_DISTANCE += 0.1;
 			}
 		if (keyDown[MovementKeyIndex::LEFT]) {
 			moveVelocity.x += -1;    // If Left is pressed then obviously add a left component
-			PLAYER_TOTAL_DISTANCE += 0.01;
+			PLAYER_TOTAL_DISTANCE += 0.1;
 			}
 		if (keyDown[MovementKeyIndex::RIGHT]) {
 			moveVelocity.x += 1;    // If Left is pressed then obviously add a right component
-			PLAYER_TOTAL_DISTANCE += 0.01;
+			PLAYER_TOTAL_DISTANCE += 0.1;
 			}
 
 		// Only run if there are any movement
@@ -297,8 +318,11 @@ void WorldSystem::restart_game() {
 	// Create fow
 	fow = createFOW(renderer, { 0,0 });
 
-	// Create health and food bars
-	health_bar = createHealthAndFoodBars(renderer);
+	// Create health bars 
+	health_bar = createHealthAndFoodBars(renderer, {-8.f, 7.f });
+
+	// Create food bars 
+	food_bar = createFoodBars(renderer, { 8.f, 7.f });
 
 	// test for fow demo, REMOVE LATER
 	for (int i = 0; i < 4; i++) {
@@ -396,6 +420,7 @@ void WorldSystem::handle_collisions() {
 					break;
 				case ITEM_TYPE::FOOD:
 					// Add to food bar
+					//player.food_decrease_time = IFRAMES; 
 					// TODO: do we want a set amount for food pickups?
 					player.food += FOOD_PICKUP_AMOUNT;
 					if (player.food > PLAYER_MAX_FOOD) {

@@ -14,7 +14,9 @@ struct Player
 {
 	int health = PLAYER_MAX_HEALTH;
 	float health_decrease_time = 0; // in 
+	float food_decrease_time = 0; 
 	int decrease_health_to = PLAYER_MAX_HEALTH;
+	int decrease_food_to = PLAYER_MAX_FOOD;
 	float iframes_timer = 0; // in ms
 	int food = PLAYER_MAX_FOOD;
 };
@@ -167,7 +169,8 @@ enum class TEXTURE_ASSET_ID {
 	TERRAIN_STONE = TERRAIN_GRASS + 1,
 	//TEXTURE_COUNT = TERRAIN_STONE + 1
 	SPACESHIP = TERRAIN_STONE + 1,
-	TEXTURE_COUNT = SPACESHIP + 1
+	BLUEBLOCK = SPACESHIP + 1,
+	TEXTURE_COUNT = BLUEBLOCK + 1
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 

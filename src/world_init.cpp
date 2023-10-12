@@ -157,7 +157,7 @@ Entity createLine(vec2 position, vec2 scale)
 // These will shrink and enlarge according to hp/food
 
 // TODO: food
-Entity createHealthAndFoodBars(RenderSystem* renderer) {
+Entity createHealthAndFoodBars(RenderSystem* renderer, vec2 position) {
 	auto entity = Entity();
 
 	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
@@ -167,7 +167,7 @@ Entity createHealthAndFoodBars(RenderSystem* renderer) {
 	auto& motion = registry.motions.emplace(entity);
 	motion.angle = 0.f;
 	motion.velocity = { 0.f, 0.f };
-	motion.position = { -8.f, 7.f };
+	motion.position = position; 
 	motion.scale = vec2({ 5.f, 0.5 });
 
 	registry.renderRequests.insert(
@@ -179,6 +179,29 @@ Entity createHealthAndFoodBars(RenderSystem* renderer) {
 
 	return entity;
 }
+Entity createFoodBars(RenderSystem* renderer, vec2 position) {
+	auto entity = Entity();
+
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Initialize the position, scale, and physics components
+	auto& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.velocity = { 0.f, 0.f };
+	motion.position = position;
+	motion.scale = vec2({ 5.5, 0.7 });
+
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::BLUEBLOCK,
+			EFFECT_ASSET_ID::TEXTURED,
+			GEOMETRY_BUFFER_ID::SPRITE,
+			RENDER_LAYER_ID::LAYER_3 });
+
+	return entity;
+	}
+
 
 /// <summary>
 /// Creates a camera centred on a position
