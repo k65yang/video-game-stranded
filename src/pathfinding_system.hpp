@@ -73,7 +73,8 @@ private:
     bool reached_next_cell(Entity mob);
 
     /// <summary>
-	/// Checks if the player has moved from the cell the mob believes the player is in
+	/// Checks if the player has moved from the cell the mob believes the player is in.
+	/// A player has moved if the cell they are in is different from the cell the mob believes the player is in
 	/// </summary>
 	/// <param name="player">The player entity</param>
 	/// <param name="mob">The mob entity</param>
