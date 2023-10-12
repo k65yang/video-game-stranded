@@ -176,5 +176,28 @@ bool PathfindingSystem::reached_next_cell(Entity mob)
 
 void PathfindingSystem::update_velocity_to_next_cell(Entity mob, float elapsed_ms)
 {
+    // Get and remove previous cell in the path
+    Path& mob_path = registry.paths.get(mob);
+    Entity prev_cell = mob_path.path.top();
+    mob_path.path.pop();
 
+    // Set the position of the mob to the previous cell to keep mob in the middle of the path
+    Motion& mob_motion = registry.motions.get(mob);
+    Motion& prev_cell_motion = registry.motions.get(prev_cell);
+    mob_motion.position = prev_cell_motion.position;
+
+    // Stop mob from tracking the player if there are no more cells in its path
+    if (mob_path.path.empty()) {
+        Mob& mob_mob = registry.mobs.get(mob);
+        mob_mob.is_tracking_player = false;
+        mob_motion.velocity = {0.f, 0.f};
+        return;
+    }
+
+    // Get next cell in the path and update the velocity of the mob
+    Entity next_cell = mob_path.path.top();
+    Motion& next_cell_motion = registry.motions.get(next_cell);
+    float angle = atan2(next_cell_motion.position.y - mob_motion.position.y, next_cell_motion.position.x - mob_motion.position.x);
+    mob_motion.velocity[0] = cos(angle) * 0.5;
+    mob_motion.velocity[1] = sin(angle) * 0.5;
 };
