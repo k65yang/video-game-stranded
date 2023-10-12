@@ -350,7 +350,7 @@ void WorldSystem::restart_game() {
 	createItem(renderer, { 1, 2 }, ITEM_TYPE::FOOD);
 	createItem(renderer, { 0, 2 }, ITEM_TYPE::WEAPON);
 	createItem(renderer, { -1, 2 }, ITEM_TYPE::QUEST);
-	createMob(renderer, { -3, 2 });
+	createBasicMob(renderer, { -3, 2 });
 
 	// for movement velocity
 	for (int i = 0; i < KEYS; i++)
