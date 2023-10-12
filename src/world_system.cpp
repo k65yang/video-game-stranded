@@ -533,3 +533,11 @@ void WorldSystem::spawn_items() {
 		}
 	}
 };
+
+void WorldSystem::spawn_mobs() {
+	for (int i = 0; i < MOB_LIMIT; i++) {
+		// Get random spawn location
+		vec2 spawn_location = get_random_spawn_location();
+		createMob(renderer, spawn_location);
+	}
+};
