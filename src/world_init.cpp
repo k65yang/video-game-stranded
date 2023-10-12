@@ -14,7 +14,6 @@ Entity createPlayer(RenderSystem* renderer, vec2 pos)
 	motion.position = pos;
 	motion.angle = 0.f;
 	motion.velocity = { 0.f, 0.f };
-	motion.scale.x *= -1; // point front to the right
 
 	// Add the player to the players registry
 	registry.players.emplace(entity);
@@ -168,7 +167,9 @@ Entity createCamera(vec2 pos)
 	Motion& motion = registry.motions.emplace(entity);
 	Camera& camera = registry.cameras.emplace(entity);
 
+	camera.mode_follow = true;
 	motion.position = pos;
+	motion.scale = { 1 ,1 };
 	return entity;
 }
 
