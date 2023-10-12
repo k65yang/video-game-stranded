@@ -73,6 +73,14 @@ private:
     bool reached_next_cell(Entity mob);
 
     /// <summary>
+	/// Checks if the player has moved from the cell the mob believes the player is in
+	/// </summary>
+	/// <param name="player">The player entity</param>
+	/// <param name="mob">The mob entity</param>
+    /// <returns>Returns true if the player has moved, false otherwise</returns>
+	bool has_player_moved(Entity player, Entity mob);
+
+    /// <summary>
 	/// Updates a mob’s velocity to move to the next cell in its path
 	/// </summary>
 	/// <param name="mob">The mob entity to whose velocity should be updated</param>

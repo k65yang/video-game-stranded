@@ -173,6 +173,10 @@ bool PathfindingSystem::reached_next_cell(Entity mob)
     return dist < 0.01;
 };
 
+bool PathfindingSystem::has_player_moved(Entity player, Entity mob) 
+{
+    return true;
+}
 
 void PathfindingSystem::update_velocity_to_next_cell(Entity mob, float elapsed_ms)
 {
