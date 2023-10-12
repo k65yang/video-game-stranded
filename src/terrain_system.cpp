@@ -43,29 +43,56 @@ void TerrainSystem::get_accessible_neighbours(Entity cell, std::vector<Entity>& 
 	if (checkPathfind)
 		filter |= TERRAIN_FLAGS::DISABLE_PATHFIND;	// check if tile has pathfinding disabled
 
-	int indices[4] = { 
-		cell_index - 1,			// Left cell
-		cell_index + 1,			// Right cell
-		cell_index + size_x,	// Bottom cell
-		cell_index - size_x		// Top cell
+	int indices[8] = { 
+		cell_index - size_x,		// Top cell
+		cell_index + 1,				// Right cell
+		cell_index + size_x,		// Bottom cell
+		cell_index - 1,				// Left cell
+		cell_index - size_x + 1,	// Top-right cell
+		cell_index + size_x + 1,	// Bottom-right cell
+		cell_index + size_x - 1,	// Bottom-left cell
+		cell_index - size_x - 1,	// Top-left cell
 	};
 
-	for (int i = 0; i < 4; i++) {
-		// check bounds
+	// Check bounds
+	// if cell on left edge, skip top-left, left, or bottom-left neighbors
+	if (cell_index % size_x == 0) {
+		indices[7] = -1;
+		indices[3] = -1;
+		indices[6] = -1;
+	}
+	// if cell on right edge, skip top-right, right, or bottom-right neighbors
+	if (cell_index % size_x == size_x - 1) {
+		indices[4] = -1;
+		indices[1] = -1;
+		indices[5] = -1;
+	}
+	// if cell on top edge, skip top-left, top, top-right neighbors
+	if (cell_index < size_x) {
+		indices[7] = -1;
+		indices[0] = -1;
+		indices[4] = -1;
+	}
+	// if cell on bottom edge, skip bottom-left, bottom, bottom-right neighbors
+	if (cell_index >= (size_x - 1) * size_y && cell_index < size_x * size_y) {
+		indices[6] = -1;
+		indices[2] = -1;
+		indices[5] = -1;
+	}
+
+	for (int i = 0; i < 8; i++) {
 		int index = indices[i];
 
-		// Check if the tile we're accessing wraps around the map
-		// Remember that we have a one dimensional 2D array.
-		if (i < 2
-			&& (index / size_x != cell_index / size_x))
+		// Skip cell if index is -1
+		if (index < 0) {
 			continue;
+		}
 
-		if (index >= 0 && index < size_x * size_y) {
-			Cell& cell = grid[index];
-			if (!cell.flags & filter) {	// YES WE WANT BITWISE shut up shut up shut up
-				// If a cell is not collidable and pathfinding is not disabled, add to buffer
-				buffer.push_back(cell.entity);
-			}
+		Cell& cell = grid[index];
+
+		// If a cell is not collidable and pathfinding is not disabled, add to buffer
+		if (!cell.flags & filter) {	
+			buffer.push_back(cell.entity);
 		}
 	}
 }
