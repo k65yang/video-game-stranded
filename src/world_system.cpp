@@ -133,7 +133,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	Player& player = registry.players.get(player_salmon);
 	// Updating window title with points
 	std::stringstream title_ss;
-	title_ss << " Food: " << player.food << "  HP: " << player.health;
+	title_ss << " Food: " << player.food << "  HP: " << player.health << " Distance: "<< PLAYER_TOTAL_DISTANCE;
 	glfwSetWindowTitle(window, title_ss.str().c_str());
 
 	// Remove debug info from the last step
@@ -236,6 +236,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	f.position = m.position;
 
 
+
 	// Movement code, build the velocity resulting from player moment
 	// We'll consider moveVelocity existing in player space
 	// Allow movment if player is not dead 
@@ -258,6 +259,11 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		handle_movement(camera_motion, CAMERA_LEFT, true);	// why are the positions inverted???
 															// investigate this!!!
 	}
+	// bars movement 
+	Motion& health = registry.motions.get(health_bar);
+	Motion& food = registry.motions.get(food_bar);
+	health.position = { -8.f + m.position.x, 7.f + m.position.y };
+	food.position = { 8.f + m.position.x, 7.f + m.position.y };
 
 	return true;
 }
@@ -290,6 +296,10 @@ void WorldSystem::handle_movement(Motion& motion, InputKeyIndex index_start, boo
 		moveVelocity = (rotate * moveVelocity);
 
 		motion.velocity = moveVelocity * current_speed * invert;
+	}
+	// If any keys are pressed resulting movement then add to total travel distance. 
+	if (keyDown[index_start] || keyDown[index_start + 1] || keyDown[index_start + 2] || keyDown[index_start + 3]) {
+		PLAYER_TOTAL_DISTANCE += 0.1;
 	}
 }
 
