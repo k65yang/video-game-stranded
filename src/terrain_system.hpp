@@ -11,14 +11,14 @@
 class TerrainSystem
 {
 public:
+	// size of each respective axes (absolute)
+	int size_x, size_y;
+	
 	TerrainSystem() { grid = nullptr; }
 
 	~TerrainSystem() {
 		delete[] grid;
 	}
-
-	// size of each respective axes (absolute)
-	int size_x, size_y;
 
 	/// <summary>
 	/// Represents one cell in the grid, internal uses for now. Exposed to public

@@ -21,6 +21,19 @@ class WorldSystem
 public:
 	WorldSystem();
 
+	// Movement with velocity 
+	enum InputKeyIndex {
+		LEFT = 0,
+		RIGHT = LEFT + 1,
+		UP = RIGHT + 1,
+		DOWN = UP + 1,
+		CAMERA_LEFT = DOWN + 1,
+		CAMERA_RIGHT = CAMERA_LEFT + 1,
+		CAMERA_UP = CAMERA_RIGHT + 1,
+		CAMERA_DOWN = CAMERA_UP + 1,
+		KEYS = CAMERA_DOWN + 1
+	};
+
 	// Creates a window
 	GLFWwindow* create_window();
 
@@ -33,6 +46,14 @@ public:
 	// Steps the game ahead by ms milliseconds
 	bool step(float elapsed_ms);
 
+	/// <summary>
+	/// Generic movement controller function for entities that move via player input
+	/// </summary>
+	/// <param name="motion">The motion component of the entity that will be controlled</param>
+	/// <param name="index_start">The 'InputKeyIndex::XX_LEFT' associated with the left-moving key</param>
+	/// <param name="invertDirection">Should the directions be inverted?</param>
+	void handle_movement(Motion& motion, InputKeyIndex index_start, bool invertDirection = false);
+
 	// Check for collisions
 	void handle_collisions();
 
@@ -41,13 +62,8 @@ public:
 private:
 	// Input callback functions
 	void on_key(int key, int, int action, int mod);
-	void camera_controls(int action, int key);
 	void on_mouse_move(vec2 pos);
-
-	// TODO: improve input checking
-	// This helps prevent button-up actions from happening if game is reset in-between
-	// button-down and button-up states
-	int key_downs = 0;
+	vec2 interpolate(vec2 p1, vec2 p2, float param);
 
 	// restart level
 	void restart_game();
@@ -69,6 +85,8 @@ private:
 	Entity player_salmon;
 	Entity main_camera;
 	Entity fow;
+	Entity health_bar;
+	Entity food_bar;
 
 	// music references
 	Mix_Music* background_music;
@@ -79,16 +97,54 @@ private:
 	std::default_random_engine rng;
 	std::uniform_real_distribution<float> uniform_dist; // number between 0..1
 
-	// Movement with velocity 
-	enum MovementKeyIndex {
-		LEFT = 0,
-		RIGHT = LEFT + 1,
-		UP = RIGHT + 1,
-		DOWN = UP + 1
-		};
+	// Random item and mob spawning 
+	// Limits on the number of items and mobs
+	const int ITEM_LIMIT = 4;
+	const int MOB_LIMIT = 2;
 
+	// Vector to keep track of locations where an item/mob has been spawned
+	std::vector<vec2> used_spawn_locations;
+
+	/// <summary>
+	/// Spawns ITEM_LIMIT items randomly across the map
+	///	</summary>
+	void spawn_items();
+
+	/// <summary>
+	/// Spawns MOB_LIMIT mobs randomly across the map
+	///	</summary>
+	void spawn_mobs();
+
+	/// <summary>
+	/// Checks if a position has already been used as a spawn location
+	///	</summary>
+	/// <param name="position">The position to check</param>
+	/// <returns>True if the position has been used as a spawn location, false otherwise</returns>
+	bool is_spawn_location_used(vec2 position);
+
+	/// <summary>
+	/// Gets a random position in the map that has not already been used as a spawn location	
+	///	</summary>
+	/// <returns>A position that </returns>
+	vec2 get_random_spawn_location();
+
+	/// <summary>
+	/// Maps the GLFW key into a InputKeyIndex as an int
+	/// </summary>
+	/// <param name="key">A GLFW-defined key ie. 'GLFW_KEY_...'</param>
+	/// <returns>A InputKeyIndex value as an int</returns>
 	int key_to_index(int key);
-	void player_movement(int key, int action);    // player movement helper
-	void reset_key(int key);
-	bool keyDown[4];    // see MovementKeyIndex for context
+
+	/// <summary>
+	/// Updates the state of the keys in InputKeyIndex and keyDown[KEYS]
+	/// </summary>
+	/// <param name="key">A GLFW-defined key ie. 'GLFW_KEY_...'</param>
+	/// <param name="action">A GLFW-defined key ie. 'GLFW_PRESSED' </param>
+	void update_key_presses(int key, int action);
+
+	/// <summary>
+	/// Sets camera follow mode to true if no camera-control buttons are pressed
+	/// </summary>
+	void update_camera_follow();
+	bool keyDown[KEYS];    // Uses InputKeyIndex values as index
 };

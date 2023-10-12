@@ -9,10 +9,12 @@
 #include "physics_system.hpp"
 
 // Game configuration
-const size_t MAX_TURTLES = 15;
-const size_t MAX_FISH = 5;
-const size_t TURTLE_DELAY_MS = 2000 * 3;
-const size_t FISH_DELAY_MS = 5000 * 3;
+const float IFRAMES = 1500;
+const int FOOD_PICKUP_AMOUNT = 20;
+float PLAYER_TOTAL_DISTANCE = 0;
+const float FOOD_DECREASE_THRESHOLD  = 5.0f; // Adjust this value as needed
+
+
 
 // Create the fish world
 WorldSystem::WorldSystem()
@@ -42,7 +44,7 @@ WorldSystem::~WorldSystem() {
 
 // Debugging
 namespace {
-	void glfw_err_cb(int error, const char *desc) {
+	void glfw_err_cb(int error, const char* desc) {
 		fprintf(stderr, "%d: %s", error, desc);
 	}
 }
@@ -123,33 +125,34 @@ void WorldSystem::init(RenderSystem* renderer_arg, TerrainSystem* terrain_arg) {
 	fprintf(stderr, "Loaded music\n");
 
 	// Set all states to default
-    restart_game();
+	restart_game();
 }
 
 // Update our game world
 bool WorldSystem::step(float elapsed_ms_since_last_update) {
+	Player& player = registry.players.get(player_salmon);
 	// Updating window title with points
 	std::stringstream title_ss;
-	title_ss << "Points: " << points;
+	title_ss << " Food: " << player.food << "  HP: " << player.health;
 	glfwSetWindowTitle(window, title_ss.str().c_str());
 
 	// Remove debug info from the last step
 	while (registry.debugComponents.entities.size() > 0)
-	    registry.remove_all_components_of(registry.debugComponents.entities.back());
+		registry.remove_all_components_of(registry.debugComponents.entities.back());
 
 	// Removing out of screen entities
 	auto& motion_container = registry.motions;
 
 	// Processing the player state
 	assert(registry.screenStates.components.size() <= 1);
-    ScreenState &screen = registry.screenStates.components[0];
+	ScreenState& screen = registry.screenStates.components[0];
 
-    float min_timer_ms = 3000.f;
+	float min_timer_ms = 3000.f;
 	for (Entity entity : registry.deathTimers.entities) {
 		// progress timer
 		DeathTimer& timer = registry.deathTimers.get(entity);
 		timer.timer_ms -= elapsed_ms_since_last_update;
-		if(timer.timer_ms < min_timer_ms){
+		if (timer.timer_ms < min_timer_ms) {
 			min_timer_ms = timer.timer_ms;
 		}
 
@@ -157,10 +160,74 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		if (timer.timer_ms < 0) {
 			registry.deathTimers.remove(entity);
 			screen.screen_darken_factor = 0;
-            restart_game();
+			restart_game();
 			return true;
 		}
 	}
+
+	// Tick down iframes timer and health decrease timer
+	for (Entity entity : registry.players.entities) {
+		Player& player = registry.players.get(entity);
+		player.iframes_timer -= elapsed_ms_since_last_update;
+
+		if (player.iframes_timer < 0) {
+			player.iframes_timer = 0;
+		}
+
+		if (player.health_decrease_time > 0) {
+			player.health_decrease_time -= elapsed_ms_since_last_update;
+
+			if (player.health_decrease_time < 0) {
+				player.health_decrease_time = 0;
+			}
+			else {
+				Motion& health = registry.motions.get(health_bar);
+				vec2 new_health_scale = vec2(((float)player.health / (float)PLAYER_MAX_HEALTH) * HEALTH_BAR_SCALE[0], HEALTH_BAR_SCALE[1]);
+				health.scale = interpolate(health.scale, new_health_scale, 1 - (player.health_decrease_time / IFRAMES));
+			}
+		}
+	}
+
+	// Tick down iframes timer and food decrease timer 
+	for (Entity entity : registry.players.entities) {
+		Player& player = registry.players.get(entity);
+		player.iframes_timer -= elapsed_ms_since_last_update;
+
+		if (player.iframes_timer < 0) {
+			player.iframes_timer = 0;
+			}
+
+		if (player.food_decrease_time > 0) {
+			player.food_decrease_time -= elapsed_ms_since_last_update;
+
+			if (player.food_decrease_time < 0) {
+				player.food_decrease_time = 0;
+				}
+			else {
+				Motion& food = registry.motions.get(food_bar);
+				vec2 new_food_scale = vec2(((float)player.food / (float)PLAYER_MAX_FOOD) * FOOD_BAR_SCALE[0], FOOD_BAR_SCALE[1]);
+				food.scale = interpolate(food.scale, new_food_scale, 1 - (player.food_decrease_time / IFRAMES));
+				}
+			}
+		}
+	// Apply food decreasing the more you travel. 
+	if (player.food > 0) {
+		if (PLAYER_TOTAL_DISTANCE >= FOOD_DECREASE_THRESHOLD ) {
+			// Decrease player's food by 1
+			player.food -= 1;
+			// Shrink the food bar
+			player.food_decrease_time = IFRAMES;
+
+			// Reset the total movement distance
+			PLAYER_TOTAL_DISTANCE = 0;
+			}
+		}
+	// else the food is below 0, player dies
+	else if (!registry.deathTimers.has(player_salmon)) {
+		// TODO: game over screen
+		registry.deathTimers.emplace(player_salmon);
+		}
+
 	// reduce window brightness if any of the present players is dying
 	screen.screen_darken_factor = 1 - min_timer_ms / 3000;
 
@@ -168,46 +235,75 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	Motion& f = registry.motions.get(fow);
 	f.position = m.position;
 
+
+
 	// Movement code, build the velocity resulting from player moment
 	// We'll consider moveVelocity existing in player space
-	vec2 moveVelocity = m.velocity = { 0, 0 };
 	// Allow movment if player is not dead 
 	if (!registry.deathTimers.has(player_salmon)) {
-		if (keyDown[MovementKeyIndex::UP])
-			moveVelocity.y += -1;    // If UP is pressed then obviously add an up component
-		if (keyDown[MovementKeyIndex::DOWN])
-			moveVelocity.y += 1;    // If DOWN is pressed then obviously add a down component
-		if (keyDown[MovementKeyIndex::LEFT])
-			moveVelocity.x += -1;    // If Left is pressed then obviously add a left component
-		if (keyDown[MovementKeyIndex::RIGHT])
-			moveVelocity.x += 1;    // If Left is pressed then obviously add a right component
+		m.velocity = { 0, 0 };
+		handle_movement(m, LEFT);
 
-		// Only run if there are any movement
-
-		if (length(moveVelocity) > 0) {
-			// prevent player from going slightly faster if moving diagonally
-			moveVelocity = normalize(moveVelocity);
-
-			// Recall that we're in salmon space. We want to turn our movement into "world" space AKA pixel coordinates.
-			// Let's make a mini transform matrix:
-			float c = cosf(m.angle);
-			float s = sinf(m.angle);
-			mat2 rotate = { {c, s}, {-s, c} }; // Not affine because velocity is ALWAYS a vector
-
-			// Rotate the vector into "world" space. The model/entity matrix turns local/entity coordinates into
-			// "world" coordinates.
-			moveVelocity = (rotate * moveVelocity);
-
-			m.velocity = moveVelocity * current_speed;
-			}
+		// If any keys are pressed resulting movement then add to total travel distance. 
+		if (keyDown[LEFT] || keyDown[RIGHT] || keyDown[UP] || keyDown[DOWN]) {
+			PLAYER_TOTAL_DISTANCE += 0.1;
 		}
+	}
 	else {
 		// Player is dead, do not allow movement
 		m.velocity = { 0, 0 };
-		}
+	}
 
+	// Camera movement mode
+	Camera& c = registry.cameras.get(main_camera);
+	Motion& camera_motion = registry.motions.get(main_camera);
+	if (c.mode_follow) {
+		camera_motion.position = -m.position;	// why are the positions inverted???
+	}
+	else {
+		handle_movement(camera_motion, CAMERA_LEFT, true);	// why are the positions inverted???
+															// investigate this!!!
+	}
+	// bars movement 
+	Motion& health = registry.motions.get(health_bar);
+	Motion& food = registry.motions.get(food_bar);
+
+	// We're taking away from the camera's position because its positions are reversed, remember?
+	health.position = { -8.f - camera_motion.position.x, 7.f - camera_motion.position.y };
+	food.position = { 8.f - camera_motion.position.x, 7.f - camera_motion.position.y };
 
 	return true;
+}
+
+void WorldSystem::handle_movement(Motion& motion, InputKeyIndex index_start, bool invertDirection)
+{
+	float invert = invertDirection ? -1 : 1;	// shorthand that inverts the results if invertDirection.
+	vec2 moveVelocity = { 0, 0 };
+	if (keyDown[index_start])
+		moveVelocity.x += -1;    // If LEFT is pressed then obviously add a left component
+	if (keyDown[index_start + 1])
+		moveVelocity.x += 1;    // If RIGHT is pressed then obviously add a right component
+	if (keyDown[index_start + 2])
+		moveVelocity.y += -1;    // If UP is pressed then obviously add an up component
+	if (keyDown[index_start + 3])
+		moveVelocity.y += 1;    // If DOWN is pressed then obviously add a down component
+
+	if (length(moveVelocity) > 0) {
+		// prevent motion from going slightly faster if moving diagonally
+		moveVelocity = normalize(moveVelocity);
+
+		// Make a quick transformation matrix to rotate the movement according to
+		// entity orientation
+		float c = cosf(motion.angle);
+		float s = sinf(motion.angle);
+		mat2 rotate = { { c, s },{ -s, c } }; // Not affine because velocity is ALWAYS a vector
+
+		// Rotate the vector into "world" space. The model/entity matrix turns local/entity coordinates into
+		// "world" coordinates.
+		moveVelocity = (rotate * moveVelocity);
+
+		motion.velocity = moveVelocity * current_speed * invert;
+	}
 }
 
 // Reset the world state to its initial state
@@ -222,7 +318,7 @@ void WorldSystem::restart_game() {
 	// Remove all entities that we created
 	// All that have a motion, we could also iterate over all fish, turtles, ... but that would be more cumbersome
 	while (registry.motions.entities.size() > 0)
-	    registry.remove_all_components_of(registry.motions.entities.back());
+		registry.remove_all_components_of(registry.motions.entities.back());
 
 	// Debugging for memory/component leaks
 	registry.list_all_components();
@@ -235,17 +331,25 @@ void WorldSystem::restart_game() {
 
 	// Create a new salmon
 	player_salmon = createPlayer(renderer, { 0, 0 });
-	registry.colors.insert(player_salmon, {1, 0.8f, 0.8f});
+	registry.colors.insert(player_salmon, { 1, 0.8f, 0.8f });
 
 	// Create the main camera
 	main_camera = createCamera({0,0});
-	key_downs = 0;
 
 	// Create fow
-	fow = createFOW(renderer, {0,0});
+	fow = createFOW(renderer, { 0,0 });
 
-	// Create box boundaries centered at {0,0}
-	createBoxBoundary(renderer, zone1_boundary_size, { 0, 0});
+	// Create health bars 
+	health_bar = createHealthAndFoodBars(renderer, {-8.f, 7.f });
+
+	// Create food bars 
+	food_bar = createFoodBars(renderer, { 8.f, 7.f });
+
+	// test for fow demo, REMOVE LATER
+	for (int i = 0; i < 4; i++) {
+		Entity e = createTestDummy(renderer, { i+1,i-1 });
+		registry.motions.get(e).velocity = { 0.f,0.f };
+	}
 
 	
 
@@ -256,16 +360,12 @@ void WorldSystem::restart_game() {
 	//}
 
 	// FOR DEMO - to show different types of items being created.	
-	createItem(renderer, { 1, 2 }, ITEM_TYPE::FOOD);
-	createItem(renderer, { 0, 2 }, ITEM_TYPE::WEAPON);
-	createItem(renderer, { -1, 2 }, ITEM_TYPE::QUEST);
-	createMob(renderer, { -2, 2 });
+	spawn_items();
+	spawn_mobs();
 
-	// for movement velocity 
-	keyDown[MovementKeyIndex::LEFT] = false;
-	keyDown[MovementKeyIndex::RIGHT] = false;
-	keyDown[MovementKeyIndex::UP] = false;
-	keyDown[MovementKeyIndex::DOWN] = false;
+	// for movement velocity
+	for (int i = 0; i < KEYS; i++)
+	  keyDown[i] = false;
 }
 
 // Compute collisions between entities
@@ -279,22 +379,39 @@ void WorldSystem::handle_collisions() {
 
 		// Collisions involving the player
 		if (registry.players.has(entity)) {
+			Player& player = registry.players.get(entity);
 
 			// Checking Player - Mobs
 			if (registry.mobs.has(entity_other)) {
-				// TODO: game over screen
-				if (!registry.deathTimers.has(entity)) {
-					registry.deathTimers.emplace(entity);
+
+				if (player.iframes_timer > 0 || registry.deathTimers.has(entity)) {
+					// Don't damage and discard all other collisions for a bit
+					collisionsRegistry.clear();
+					return;
+				}
+
+				Mob& mob = registry.mobs.get(entity_other);
+				player.health -= mob.damage;
+
+				// Shrink the health bar
+				player.health_decrease_time = IFRAMES; // player's health decays over this period of time, using interpolation
+				// use the same amount as iframes so health is never "out of date"
+
+				// Give the player some frames of invincibility so that they cannot die instantly when running into a mob
+				player.iframes_timer = IFRAMES;
+
+				if (player.health <= 0) {
+					if (!registry.deathTimers.has(entity)) {
+						// TODO: game over screen
+						registry.deathTimers.emplace(entity);
+					}
 				}
 			}
-        
+
 			// Checking Player - Terrain
 			if (registry.terrainColliders.has(entity_other)) {
 
 				Motion& motion = registry.motions.get(player_salmon);
-
-				// TODO: this is a quick and dirty way of resetting button presses
-				key_downs = 0;
 				
 				// set velocity to 0 when collide with a terrain collider unless it is already 0
 				if (motion.velocity.x != 0.f) {
@@ -312,18 +429,24 @@ void WorldSystem::handle_collisions() {
 
 				// Handle the item based on its function
 				switch (item.data) {
-					case ITEM_TYPE::QUEST:
-						// Display a quest item as having been fetched, and update this on the screen?
-						break;
-					case ITEM_TYPE::FOOD:
-						// Add to food bar
-						break;
-					case ITEM_TYPE::WEAPON:
-						// Swap with current weapon
-						break;
-					case ITEM_TYPE::UPGRADE:
-						// Just add to inventory
-						break;
+				case ITEM_TYPE::QUEST:
+					// Display a quest item as having been fetched, and update this on the screen?
+					break;
+				case ITEM_TYPE::FOOD:
+					// Add to food bar
+					//player.food_decrease_time = IFRAMES; 
+					// TODO: do we want a set amount for food pickups?
+					player.food += FOOD_PICKUP_AMOUNT;
+					if (player.food > PLAYER_MAX_FOOD) {
+						player.food = PLAYER_MAX_FOOD;
+					}
+					break;
+				case ITEM_TYPE::WEAPON:
+					// Swap with current weapon
+					break;
+				case ITEM_TYPE::UPGRADE:
+					// Just add to inventory
+					break;
 				}
 
 				// remove item from map
@@ -336,6 +459,13 @@ void WorldSystem::handle_collisions() {
 	registry.collisions.clear();
 }
 
+// PARAM IS TIME IN OUR EXAMPLE, BETWEEN 0 AND 1
+vec2 WorldSystem::interpolate(vec2 p1, vec2 p2, float param) {
+	float new_x = p1[0] + ((p2[0] - p1[0]) * param);
+	float new_y = p1[1] + ((p2[1] - p1[1]) * param);
+	return vec2(new_x, new_y);
+}
+
 // Should the game be over ?
 bool WorldSystem::is_over() const {
 	return bool(glfwWindowShouldClose(window));
@@ -345,40 +475,66 @@ bool WorldSystem::is_over() const {
 int WorldSystem::key_to_index(int key) {
 	switch (key) {
 			case GLFW_KEY_W:
-				return MovementKeyIndex::UP;
+				return InputKeyIndex::UP;
 			case GLFW_KEY_S:
-				return MovementKeyIndex::DOWN;
+				return InputKeyIndex::DOWN;
 			case GLFW_KEY_A:
-				return MovementKeyIndex::LEFT;
+				return InputKeyIndex::LEFT;
 			case GLFW_KEY_D:
-				return MovementKeyIndex::RIGHT;
+				return InputKeyIndex::RIGHT;
+
+			// camera controls
+			case GLFW_KEY_UP:
+				return InputKeyIndex::CAMERA_UP;
+			case GLFW_KEY_DOWN:
+				return InputKeyIndex::CAMERA_DOWN;
+			case GLFW_KEY_LEFT:
+				return InputKeyIndex::CAMERA_LEFT;
+			case GLFW_KEY_RIGHT:
+				return InputKeyIndex::CAMERA_RIGHT;
+
 		}
 	return -1;    // key is not tracked so we don't really care
 	}
 
-void WorldSystem::player_movement(int key, int action) {
+void WorldSystem::update_key_presses(int key, int action) {
 	int i = key_to_index(key);
 	if (i >= 0) {
-		if (action == GLFW_PRESS)
+		if (action == GLFW_PRESS) {
 			keyDown[i] = true;
 
+			// If we press down any of the arrow keys, set camera to freemode.
+			if (i >= CAMERA_LEFT && i <= CAMERA_DOWN) {
+				Camera& c = registry.cameras.get(main_camera);
+				c.mode_follow = false;
+			}
+		}
 
-		if (action == GLFW_RELEASE)
+		if (action == GLFW_RELEASE) {
 			keyDown[i] = false;
+
+			if (i >= CAMERA_LEFT && i <= CAMERA_DOWN) {
+				update_camera_follow();
+			}
 		}
 	}
+}
+
+void WorldSystem::update_camera_follow() {
+	for (int i = CAMERA_LEFT; i <= CAMERA_DOWN; i++) {
+		if (keyDown[i])
+			return;	// if any of the camera control buttons are still pressed, do not follow the player just yet
+	}
+	Camera& c = registry.cameras.get(main_camera);
+	c.mode_follow = true;
+}
 
 // On key callback
 void WorldSystem::on_key(int key, int, int action, int mod) {
 	Motion& player_motion = registry.motions.get(player_salmon);
 
 	// Movement with velocity handled in step function  
-	player_movement(key, action);
-
-
-	
-	// Camera controls
-	camera_controls(action, key);
+	update_key_presses(key, action);
 
 	if (action == GLFW_PRESS && key == GLFW_KEY_G) {
 		Motion& player = registry.motions.get(player_salmon);
@@ -408,7 +564,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		int w, h;
 		glfwGetWindowSize(window, &w, &h);
 
-        restart_game();
+		restart_game();
 	}
 
 	if (action == GLFW_PRESS && key == GLFW_KEY_ESCAPE) {
@@ -428,7 +584,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		debugging.in_debug_mode = !debugging.in_debug_mode;
 	}
 
-	
+
 
 	// Control the current speed with `<` `>`
 	if (action == GLFW_RELEASE && (mod & GLFW_MOD_SHIFT) && key == GLFW_KEY_COMMA) {
@@ -444,59 +600,6 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	
 }
 
-/// <summary>
-/// This are the camera controls.
-/// </summary>
-/// <param name="action">from on_key</param>
-/// <param name="key">from on_key</param>
-void WorldSystem::camera_controls(int action, int key)
-{
-	vec2 camera_velocity(0);
-	if (action == GLFW_PRESS) {
-
-		if (key == GLFW_KEY_UP) {
-			key_downs++;
-			camera_velocity.y += 1;
-		}
-		if (key == GLFW_KEY_DOWN) {
-			key_downs++;
-			camera_velocity.y += -1;
-		}
-		if (key == GLFW_KEY_LEFT) {
-			key_downs++;
-			camera_velocity.x += 1;
-		}
-		if (key == GLFW_KEY_RIGHT) {
-			key_downs++;
-			camera_velocity.x += -1;
-		}
-	}
-
-	if (action == GLFW_RELEASE && key_downs) {
-		if (key == GLFW_KEY_UP) {
-			key_downs--;
-			camera_velocity.y += -1;
-		}
-		if (key == GLFW_KEY_DOWN) {
-			key_downs--;
-			camera_velocity.y += 1;
-		}
-		if (key == GLFW_KEY_LEFT) {
-			key_downs--;
-			camera_velocity.x += -1;
-		}
-		if (key == GLFW_KEY_RIGHT) {
-			key_downs--;
-			camera_velocity.x += 1;
-		}
-	}
-
-	if (length(camera_velocity) > 0) {
-		Motion& camera_motion = registry.motions.get(main_camera);
-		camera_motion.velocity += camera_velocity * current_speed;
-	}
-}
-
 void WorldSystem::on_mouse_move(vec2 mouse_position) {
 	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 	// TODO A1: HANDLE SALMON ROTATION HERE
@@ -506,3 +609,74 @@ void WorldSystem::on_mouse_move(vec2 mouse_position) {
 
 	(vec2)mouse_position; // dummy to avoid compiler warning
 }
+
+void WorldSystem::spawn_items() {
+	const int NUM_ITEM_TYPES = 4;
+
+	for (int i = 0; i < ITEM_LIMIT; i++) {
+		// Get random spawn location
+		vec2 spawn_location = get_random_spawn_location();
+
+		// Randomly choose item type
+		int item_type = rng() % NUM_ITEM_TYPES;
+
+		switch (item_type) {
+			case 0:
+				createItem(renderer, spawn_location, ITEM_TYPE::QUEST);
+				break;
+			case 1:
+				createItem(renderer, spawn_location, ITEM_TYPE::FOOD);
+				break;
+			case 2:
+				createItem(renderer, spawn_location, ITEM_TYPE::WEAPON);
+				break;
+			case 3:
+				createItem(renderer, spawn_location, ITEM_TYPE::UPGRADE);
+				break;
+		}
+	}
+};
+
+void WorldSystem::spawn_mobs() {
+	for (int i = 0; i < MOB_LIMIT; i++) {
+		// Get random spawn location
+		vec2 spawn_location = get_random_spawn_location();
+		
+		createBasicMob(renderer, spawn_location);
+	}
+};
+
+vec2 WorldSystem::get_random_spawn_location() {
+	vec2 position;
+
+	// Get unused spawn location within [-terrain->size_x/2, terrain->size_x/2] for x and 
+	// [-terrain->size_y/2, terrain->size_y/2] for y
+	while (true) {
+		position.x = abs((int) rng()) % terrain->size_x + (-(terrain->size_x / 2));
+		position.y = abs((int) rng()) % terrain->size_y + (-(terrain->size_y / 2));
+
+		// Skip locations that are covered by spaceship
+		if (position.x <= 1 && position.x >= -1 && position.y <= 2 && position.y >= -2) {
+			continue;
+		}
+
+		if (!is_spawn_location_used(position)) {
+			break;
+		}
+	} 
+
+	// Add spawn location to used spawn locations
+	used_spawn_locations.push_back(position);
+
+	return position;
+};
+
+bool WorldSystem::is_spawn_location_used(vec2 position) {
+	for (vec2 p : used_spawn_locations) {
+		if (p.x == position.x && p.y == position.y) {
+			return true;
+		}
+	}
+
+	return false;
+};
