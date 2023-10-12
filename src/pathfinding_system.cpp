@@ -31,7 +31,7 @@ void PathfindingSystem::step(float elapsed_ms)
         if (!mob_mob.is_tracking_player && !same_cell(player, mob)) {
             mob_mob.is_tracking_player = true;
             
-            std::stack<Entity> new_path = find_shortest_path(player, mob);
+            std::deque<Entity> new_path = find_shortest_path(player, mob);
             Path& mob_path = registry.paths.get(mob);
             mob_path.path = new_path;
         }
@@ -58,7 +58,7 @@ void PathfindingSystem::step(float elapsed_ms)
 };
 
 
-std::stack<Entity> PathfindingSystem::find_shortest_path(Entity player, Entity mob)
+std::deque<Entity> PathfindingSystem::find_shortest_path(Entity player, Entity mob)
 {
     // Get the cells the player and mob are in
     Motion& player_motion = registry.motions.get(player);
@@ -78,11 +78,11 @@ std::stack<Entity> PathfindingSystem::find_shortest_path(Entity player, Entity m
     }
 
     // Get shortest path by backtracking through predecessors
-    std::stack<Entity> path;
-    path.push(player_cell);
+    std::deque<Entity> path;
+    path.push_front(player_cell);
     int crawl = terrain->get_cell_index(player_cell);
     while (predecessor.at(crawl) != -1) {
-        path.push(terrain->get_cell(predecessor.at(crawl)));
+        path.push_front(terrain->get_cell(predecessor.at(crawl)));
         crawl = predecessor.at(crawl);
     }
 
@@ -158,7 +158,7 @@ bool PathfindingSystem::reached_next_cell(Entity mob)
     // Get the next cell in the path and the cell the mob is in
     Motion& mob_motion = registry.motions.get(mob);
     Path& mob_path = registry.paths.get(mob);
-    Entity next_cell = mob_path.path.top();
+    Entity next_cell = mob_path.path.front();
 
     // Calculate the distance between the mob and the center of the next cell
     Motion& next_cell_motion = registry.motions.get(next_cell);
@@ -178,8 +178,8 @@ void PathfindingSystem::update_velocity_to_next_cell(Entity mob, float elapsed_m
 {
     // Get and remove previous cell in the path
     Path& mob_path = registry.paths.get(mob);
-    Entity prev_cell = mob_path.path.top();
-    mob_path.path.pop();
+    Entity prev_cell = mob_path.path.front();
+    mob_path.path.pop_front();
 
     // Set the position of the mob to the previous cell to keep mob in the middle of the path
     Motion& mob_motion = registry.motions.get(mob);
@@ -195,7 +195,7 @@ void PathfindingSystem::update_velocity_to_next_cell(Entity mob, float elapsed_m
     }
 
     // Get next cell in the path and update the velocity of the mob
-    Entity next_cell = mob_path.path.top();
+    Entity next_cell = mob_path.path.front();
     Motion& next_cell_motion = registry.motions.get(next_cell);
     float angle = atan2(next_cell_motion.position.y - mob_motion.position.y, next_cell_motion.position.x - mob_motion.position.x);
     mob_motion.velocity[0] = cos(angle) * 0.5;
