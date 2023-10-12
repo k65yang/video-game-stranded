@@ -63,6 +63,7 @@ private:
 	// Input callback functions
 	void on_key(int key, int, int action, int mod);
 	void on_mouse_move(vec2 pos);
+	vec2 interpolate(vec2 p1, vec2 p2, float param);
 
 	// restart level
 	void restart_game();
@@ -84,6 +85,8 @@ private:
 	Entity player_salmon;
 	Entity main_camera;
 	Entity fow;
+	Entity health_bar;
+	Entity food_bar;
 
 	// music references
 	Mix_Music* background_music;
