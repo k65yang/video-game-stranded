@@ -538,6 +538,23 @@ void WorldSystem::spawn_mobs() {
 	for (int i = 0; i < MOB_LIMIT; i++) {
 		// Get random spawn location
 		vec2 spawn_location = get_random_spawn_location();
+
 		createMob(renderer, spawn_location);
 	}
+};
+
+vec2 WorldSystem::get_random_spawn_location() {
+	vec2 position;
+
+	// Get unused spawn location
+	do {
+		position.x = rng() % terrain->size_x;
+		position.y = rng() % terrain->size_y;
+	} 
+	while(is_spawn_location_used(position));
+
+	// Add spawn location to used spawn locations
+	used_spawn_locations.push_back(position);
+
+	return position;
 };
