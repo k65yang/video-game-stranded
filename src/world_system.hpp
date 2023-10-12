@@ -115,7 +115,7 @@ private:
 	///	</summary>
 	/// <param name="position">The position to check</param>
 	/// <returns>True if the position has been used as a spawn location, false otherwise</returns>
-	bool check_spawn_location_used(vec2 position);
+	bool is_spawn_location_used(vec2 position);
 
 	/// <summary>
 	/// Gets a random position in the map that has not already been used as a spawn location	

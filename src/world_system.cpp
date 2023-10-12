@@ -538,7 +538,7 @@ void WorldSystem::spawn_mobs() {
 	for (int i = 0; i < MOB_LIMIT; i++) {
 		// Get random spawn location
 		vec2 spawn_location = get_random_spawn_location();
-
+		
 		createMob(renderer, spawn_location);
 	}
 };
@@ -557,4 +557,14 @@ vec2 WorldSystem::get_random_spawn_location() {
 	used_spawn_locations.push_back(position);
 
 	return position;
+};
+
+bool WorldSystem::is_spawn_location_used(vec2 position) {
+	for (vec2 p : used_spawn_locations) {
+		if (p.x == position.x && p.y == position.y) {
+			return true;
+		}
+	}
+
+	return false;
 };
