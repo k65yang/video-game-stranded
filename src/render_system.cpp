@@ -207,8 +207,15 @@ void RenderSystem::draw()
 	gl_has_errors();
 	
 	Entity main_camera = registry.get_main_camera();
-	// Generate view matrix. This converts world space coordinates into camera-relative coords from its POV.
-	mat3 view_2D = createModelMatrix(main_camera);
+	//	Generate view matrix. This converts world space coordinates into camera-relative coords from its POV.
+	//	The reason why we inverse:
+	//		A regular TRS matrix from the given Motion component converts local (Entity) coordinates to
+	//		the world space. 
+	//		
+	//		What we want here is the opposite: turning world space values into "camera" or "view" space.
+	//		We can achieve this by inversing the local -> world matrix (regular Transform matrix!)
+	//		This will give us a world -> local matrix.
+	mat3 view_2D = inverse(createModelMatrix(main_camera));
 
 	// Generate projection matrix. This maps camera-relative coords to pixel/window coordinates.
 	mat3 projection_2D = createProjectionMatrix();
