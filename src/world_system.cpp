@@ -23,6 +23,7 @@ WorldSystem::WorldSystem()
 	, next_fish_spawn(0.f) {
 	// Seeding rng with random device
 	rng = std::default_random_engine(std::random_device()());
+
 }
 
 WorldSystem::~WorldSystem() {
@@ -238,6 +239,8 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	// Movement code, build the velocity resulting from player moment
 	// We'll consider moveVelocity existing in player space
 	// Allow movment if player is not dead 
+
+	
 	if (!registry.deathTimers.has(player_salmon)) {
 		m.velocity = { 0, 0 };
 		handle_movement(m, LEFT);
@@ -343,19 +346,8 @@ void WorldSystem::restart_game() {
 	// Create food bars 
 	food_bar = createFoodBar(renderer, { 8.f, 7.f });
 
-	// test for fow demo, REMOVE LATER
-	for (int i = 0; i < 4; i++) {
-		Entity e = createTestDummy(renderer, { i+1,i-1 });
-		registry.motions.get(e).velocity = { 0.f,0.f };
-	}
+	createBoxBoundary(renderer, { 15, 15 }, { 0,0 });
 
-	
-
-	//// test for fow demo, REMOVE LATER
-	//for (int i = 0; i < 4; i++) {
-	//	Entity e = createTestDummy(renderer, { i+1,i-1 });
-	//	registry.motions.get(e).velocity = { 0.f,0.f };
-	//}
 
 	// FOR DEMO - to show different types of items being created.	
 	spawn_items();
@@ -382,6 +374,7 @@ void WorldSystem::handle_collisions() {
 			// Checking Player - Mobs
 			if (registry.mobs.has(entity_other)) {
 
+
 				if (player.iframes_timer > 0 || registry.deathTimers.has(entity)) {
 					// Don't damage and discard all other collisions for a bit
 					collisionsRegistry.clear();
@@ -403,6 +396,7 @@ void WorldSystem::handle_collisions() {
 						// TODO: game over screen
 						registry.deathTimers.emplace(entity);
 					}
+
 				}
 			}
 
@@ -410,19 +404,36 @@ void WorldSystem::handle_collisions() {
 			if (registry.terrainColliders.has(entity_other)) {
 
 				Motion& motion = registry.motions.get(player_salmon);
+
+				// resetting key press and respected velocity
 				
-				// set velocity to 0 when collide with a terrain collider unless it is already 0
-				if (motion.velocity.x != 0.f) {
-					motion.velocity.x = 0.f;
+				if (keyDown[UP] == true) {
+					motion.velocity.y = 0;
 				}
 
-				if (motion.velocity.y != 0.f) {
-					motion.velocity.y = 0.f;
+				if (keyDown[DOWN] == true) {
+					motion.velocity.y = 0;
 				}
+
+				if (keyDown[LEFT] == true) {
+					motion.velocity.x = 0;
+				}
+
+				if (keyDown[RIGHT] == true) {
+					motion.velocity.x = 0;
+				}
+
+				// correct player position. Will need to improve for later milestone
+				motion.position.x = positionCorrection(motion.position.x);
+				motion.position.y = positionCorrection(motion.position.y);
+
+				// remove handled collision, not needed apparently
+				// collisionsRegistry.remove(entity_other);
 			}
 
 			// Checking Player - Items
 			if (registry.items.has(entity_other)) {
+
 				Item& item = registry.items.get(entity_other);
 
 				// Handle the item based on its function
@@ -606,6 +617,43 @@ void WorldSystem::on_mouse_move(vec2 mouse_position) {
 	(vec2)mouse_position; // dummy to avoid compiler warning
 }
 
+
+	/// <summary>
+	/// helper function for terrain collision response, calculates the corrected player position
+	/// </summary>
+	/// <param name="position"> pass in either player.position.x or y</param>
+float WorldSystem::positionCorrection(float position) {
+	// only correct the position when the difference is between 0.05 to 0.
+	// this is to account for case where left and down are both pressed when player is colliding wall to the left
+	// in this case we would only want to correct the x position
+
+	float whole = 0;
+
+	if (position >= 0) {
+		whole = floor(position);
+		}
+	else {
+		whole = ceil(position);
+		}
+	
+	float fraction = mod(position, whole);
+	float offset = 0.02;
+
+	// determine round up or down, adding offset to prevent continuous triggering
+	if (position >= 0 && fraction <= 0.05) {
+		position = floor(position) - offset;
+		}
+	else if (position < 0 && fraction >= -0.05) {
+		position = ceil(position) + offset;
+		}
+	else {
+		//no correction
+		// 
+		}
+
+	return position;
+}
+
 void WorldSystem::spawn_items() {
 	const int NUM_ITEM_TYPES = 4;
 
@@ -676,3 +724,4 @@ bool WorldSystem::is_spawn_location_used(vec2 position) {
 
 	return false;
 };
+

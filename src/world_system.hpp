@@ -147,4 +147,13 @@ private:
 	/// </summary>
 	void update_camera_follow();
 	bool keyDown[KEYS];    // Uses InputKeyIndex values as index
+
+	// calculate the corrected position based on size of fraction.
+	// 
+
+	/// <summary>
+	/// helper function for terrain collision response, calculates the corrected player position
+	/// </summary>
+	/// <param name="position"> pass in either player.position.x or y</param>
+	float positionCorrection(float position);
 };

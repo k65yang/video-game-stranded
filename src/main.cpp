@@ -55,9 +55,7 @@ int main()
 		physics_system.step(elapsed_ms);
 		terrain_system.step(elapsed_ms);
 		pathfinding_system.step(elapsed_ms);
-
 		world_system.handle_collisions();
-
 		render_system.draw();
 	}
 
