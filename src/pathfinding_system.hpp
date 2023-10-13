@@ -1,7 +1,7 @@
 #pragma once
 #include <queue>
 #include <vector>
-#include <stack>
+#include <deque>
 
 #include "tiny_ecs.hpp"
 #include "components.hpp"
@@ -37,10 +37,11 @@ private:
 	/// <param name="player">The player entity</param>
 	/// <param name="mob">The mob entity</param>
     /// <returns>
-    /// Returns the shortest path as a stack of Entities which correspond to cells in the world grid. 
-    /// The cell the mob is in at the top of the stack and the cell the player is in at the bottom of the stack
+    /// Returns the shortest path as a deque of Entities which correspond to cells in the world grid. 
+    /// Initially, the cell the mob is in is at the front of the deque and the cell the player is in is at the end of 
+	/// the deque
     /// </returns>
-    std::stack<Entity> find_shortest_path(Entity player, Entity mob);
+    std::deque<Entity> find_shortest_path(Entity player, Entity mob);
 
     /// <summary>
 	/// Conducts a BFS over the world grid cells, starting from the cell the mob is in, to find the shortest path 
@@ -70,6 +71,15 @@ private:
 	/// <param name="mob">The mob entity to check</param>
     /// <returns>Returns true if the mob has reached its next cell, false otherwise</returns>
     bool reached_next_cell(Entity mob);
+
+    /// <summary>
+	/// Checks if the player has moved from the cell the mob believes the player is in.
+	/// A player has moved if the cell they are in is different from the cell the mob believes the player is in
+	/// </summary>
+	/// <param name="player">The player entity</param>
+	/// <param name="mob">The mob entity</param>
+    /// <returns>Returns true if the player has moved, false otherwise</returns>
+	bool has_player_moved(Entity player, Entity mob);
 
     /// <summary>
 	/// Updates a mob’s velocity to move to the next cell in its path

@@ -20,28 +20,34 @@ void PathfindingSystem::step(float elapsed_ms)
 
         // printf("Mob: %d\n", mob);
         // printf("Mob cell index: %d\n", terrain->get_cell_index(terrain->get_cell(registry.motions.get(mob).position)));
-        // printf("Mob is_tracking_player: %d\n", mob_mob.is_tracking_player);
         // printf("Mob position before (x): %f\n", registry.motions.get(mob).position[0]);
         // printf("Mob position before (y): %f\n", registry.motions.get(mob).position[1]);
         // printf("Mob velocity before (dx): %f\n", registry.motions.get(mob).velocity[0]);
         // printf("Mob velocity before (dy): %f\n", registry.motions.get(mob).velocity[1]);
 
-        // Find new path from mob to player if mob is not tracking the player and not in the same cell
-        // as the player already
-        if (!mob_mob.is_tracking_player && !same_cell(player, mob)) {
-            mob_mob.is_tracking_player = true;
+        // Find new path from mob to player if:
+        // 1) mob is not tracking the player and not in the same cell as the player already, or
+        // 2) mob is tracking the player and has reached the next cell in their path and the player has moved
+        if ((!mob_mob.is_tracking_player && !same_cell(player, mob)) ||
+            (mob_mob.is_tracking_player && reached_next_cell(mob) && has_player_moved(player, mob))
+        ) {
+            if (!mob_mob.is_tracking_player) {
+                mob_mob.is_tracking_player = true;
+            }
             
-            std::stack<Entity> new_path = find_shortest_path(player, mob);
+            std::deque<Entity> new_path = find_shortest_path(player, mob);
             Path& mob_path = registry.paths.get(mob);
             mob_path.path = new_path;
         }
 
+        // printf("Path for mob %d: ", mob);
         // Path& mob_path = registry.paths.get(mob);
-        // std::stack<Entity> path_copy = mob_path.path;
+        // std::deque<Entity> path_copy = mob_path.path;
         // while (!path_copy.empty()) {
-        //     printf("Path (cell index): %d\n", terrain->get_cell_index(path_copy.top()));
-        //     path_copy.pop();
+        //     printf("%d ", terrain->get_cell_index(path_copy.front()));
+        //     path_copy.pop_front();
         // }
+        // printf("\n");
 
         // Update velocity of mob if they are tracking the player and reached the next cell in their path
         if (mob_mob.is_tracking_player && reached_next_cell(mob)) {
@@ -58,7 +64,7 @@ void PathfindingSystem::step(float elapsed_ms)
 };
 
 
-std::stack<Entity> PathfindingSystem::find_shortest_path(Entity player, Entity mob)
+std::deque<Entity> PathfindingSystem::find_shortest_path(Entity player, Entity mob)
 {
     // Get the cells the player and mob are in
     Motion& player_motion = registry.motions.get(player);
@@ -78,11 +84,11 @@ std::stack<Entity> PathfindingSystem::find_shortest_path(Entity player, Entity m
     }
 
     // Get shortest path by backtracking through predecessors
-    std::stack<Entity> path;
-    path.push(player_cell);
+    std::deque<Entity> path;
+    path.push_front(player_cell);
     int crawl = terrain->get_cell_index(player_cell);
     while (predecessor.at(crawl) != -1) {
-        path.push(terrain->get_cell(predecessor.at(crawl)));
+        path.push_front(terrain->get_cell(predecessor.at(crawl)));
         crawl = predecessor.at(crawl);
     }
 
@@ -158,11 +164,11 @@ bool PathfindingSystem::reached_next_cell(Entity mob)
     // Get the next cell in the path and the cell the mob is in
     Motion& mob_motion = registry.motions.get(mob);
     Path& mob_path = registry.paths.get(mob);
-    Entity next_cell = mob_path.path.top();
+    Entity next_cell = mob_path.path.front();
 
     // Calculate the distance between the mob and the center of the next cell
     Motion& next_cell_motion = registry.motions.get(next_cell);
-    float dist = sqrt(pow(mob_motion.position.x - next_cell_motion.position.x, 2) + pow(mob_motion.position.y - next_cell_motion.position.y, 2) * 1.0);
+    float dist = distance(mob_motion.position, next_cell_motion.position);
 
     // printf("Next cell index: %d\n", terrain->get_cell_index(next_cell));
     // printf("Next cell position (x): %f\n", next_cell_motion.position.x);
@@ -173,13 +179,24 @@ bool PathfindingSystem::reached_next_cell(Entity mob)
     return dist < 0.01;
 };
 
+bool PathfindingSystem::has_player_moved(Entity player, Entity mob) 
+{
+    // Get the cell the player is in and the cell the mob believes the player is in
+    Motion& player_motion = registry.motions.get(player);
+    Entity curr_cell_of_player = terrain->get_cell(player_motion.position);
+    Path& mob_path = registry.paths.get(mob);
+    Entity expected_cell_of_player = mob_path.path.back();
+
+    // Check if the cell the player is in and the cell the mob believes the player is in are different
+    return curr_cell_of_player != expected_cell_of_player;
+}
 
 void PathfindingSystem::update_velocity_to_next_cell(Entity mob, float elapsed_ms)
 {
     // Get and remove previous cell in the path
     Path& mob_path = registry.paths.get(mob);
-    Entity prev_cell = mob_path.path.top();
-    mob_path.path.pop();
+    Entity prev_cell = mob_path.path.front();
+    mob_path.path.pop_front();
 
     // Set the position of the mob to the previous cell to keep mob in the middle of the path
     Motion& mob_motion = registry.motions.get(mob);
@@ -195,7 +212,7 @@ void PathfindingSystem::update_velocity_to_next_cell(Entity mob, float elapsed_m
     }
 
     // Get next cell in the path and update the velocity of the mob
-    Entity next_cell = mob_path.path.top();
+    Entity next_cell = mob_path.path.front();
     Motion& next_cell_motion = registry.motions.get(next_cell);
     float angle = atan2(next_cell_motion.position.y - mob_motion.position.y, next_cell_motion.position.x - mob_motion.position.x);
     mob_motion.velocity[0] = cos(angle) * 0.5;

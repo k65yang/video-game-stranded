@@ -2,7 +2,7 @@
 #include "common.hpp"
 #include <vector>
 #include <unordered_map>
-#include <stack>
+#include <deque>
 #include "../ext/stb_image/stb_image.h"
 
 // Player component
@@ -30,7 +30,7 @@ struct Mob {
 
 // Structure to store the path for a mob
 struct Path {
-	std::stack<Entity> path;
+	std::deque<Entity> path;
 };
 
 enum class ITEM_TYPE {
