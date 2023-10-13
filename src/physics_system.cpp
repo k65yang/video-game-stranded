@@ -30,7 +30,7 @@ bool collides(const Motion& motion1, const Motion& motion2)
 // returns true if target point is on left side or on top of line formed by point A, B.
 bool isLeftForPoint(vec2 linePointA, vec2 linePointB, vec2 targetPoint) {
 	float ans = (linePointB.x - linePointA.x) * (targetPoint.y - linePointA.y) - (linePointB.y - linePointA.y) * (targetPoint.x - linePointA.x);
-	return ans > 0;
+	return ans >= 0;
 
 	}
 // point inside box test

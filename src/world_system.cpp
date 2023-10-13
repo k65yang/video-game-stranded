@@ -348,11 +348,7 @@ void WorldSystem::restart_game() {
 	// Create food bars 
 	food_bar = createFoodBars(renderer, { 8.f, 7.f });
 
-	// test for fow demo, REMOVE LATER
-	for (int i = 0; i < 4; i++) {
-		Entity e = createTestDummy(renderer, { i+1,i-1 });
-		registry.motions.get(e).velocity = { 0.f,0.f };
-	}
+	createBoxBoundary(renderer, { 15, 15 }, { 0,0 });
 
 
 	// FOR DEMO - to show different types of items being created.	
@@ -414,26 +410,22 @@ void WorldSystem::handle_collisions() {
 				// resetting key press and respected velocity
 				
 				if (keyDown[UP] == true) {
-					keyDown[UP] = false;
 					motion.velocity.y = 0;
 				}
 
 				if (keyDown[DOWN] == true) {
-					keyDown[DOWN] = false;
 					motion.velocity.y = 0;
 				}
 
 				if (keyDown[LEFT] == true) {
-					keyDown[LEFT] = false;
 					motion.velocity.x = 0;
 				}
 
 				if (keyDown[RIGHT] == true) {
-					keyDown[RIGHT] = false;
 					motion.velocity.x = 0;
 				}
 
-				// correct player position
+				// correct player position. Will need to improve for later milestone
 				motion.position.x = positionCorrection(motion.position.x);
 				motion.position.y = positionCorrection(motion.position.y);
 
@@ -664,7 +656,7 @@ float WorldSystem::positionCorrection(float position) {
 		}
 
 	return position;
-	}
+}
 
 void WorldSystem::spawn_items() {
 	const int NUM_ITEM_TYPES = 4;
