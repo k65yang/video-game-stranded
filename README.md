@@ -6,8 +6,8 @@ For our submission for milestone 1, we were able to successfully complete all fe
 
 
 WHERE ARE OUR FEATURES LOCATED:
-interpolation/key-frame animation (health and food bars): world_system.cpp, "interpolate", and in "step", where we tick down the timers and call the interpolate function.
-pathfinding with BFS: pathfinding_system.cpp
-camera controls: world_system.cpp, "handle_movement", "update_camera_follow"
-random/coded action: world_system.cpp, "get_random_spawn_location", "is_spawn_location_used", "spawn_items", "spawn_mobs"
+interpolation/key-frame animation (health and food bars): world_system.cpp, "interpolate", and in "step", where we tick down the timers and call the interpolate function. <br>
+pathfinding with BFS: pathfinding_system.cpp <br>
+camera controls: world_system.cpp, "handle_movement", "update_camera_follow" <br>
+random/coded action: world_system.cpp, "get_random_spawn_location", "is_spawn_location_used", "spawn_items", "spawn_mobs" <br>
 game-space boundaries: ?? TODO
