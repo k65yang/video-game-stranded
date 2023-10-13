@@ -156,10 +156,7 @@ Entity createLine(vec2 position, vec2 scale)
 	return entity;
 }
 
-// These will shrink and enlarge according to hp/food
-
-// TODO: food
-Entity createHealthAndFoodBars(RenderSystem* renderer, vec2 position) {
+Entity createHealthBar(RenderSystem* renderer, vec2 position) {
 	auto entity = Entity();
 
 	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
@@ -181,7 +178,7 @@ Entity createHealthAndFoodBars(RenderSystem* renderer, vec2 position) {
 
 	return entity;
 }
-Entity createFoodBars(RenderSystem* renderer, vec2 position) {
+Entity createFoodBar(RenderSystem* renderer, vec2 position) {
 	auto entity = Entity();
 
 	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);

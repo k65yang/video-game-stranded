@@ -30,8 +30,8 @@ Entity createLine(vec2 position, vec2 size);
 Entity createFOW(RenderSystem* renderer, vec2 pos);
 
 // health and food bars
-Entity createHealthAndFoodBars(RenderSystem* renderer, vec2 position);
-Entity createFoodBars(RenderSystem* renderer, vec2 position);
+Entity createHealthBar(RenderSystem* renderer, vec2 position);
+Entity createFoodBar(RenderSystem* renderer, vec2 position);
 
 // test only
 Entity createTestDummy(RenderSystem* renderer, vec2 position);

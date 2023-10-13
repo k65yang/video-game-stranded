@@ -73,8 +73,6 @@ GLFWwindow* WorldSystem::create_window() {
 #endif
 	glfwWindowHint(GLFW_RESIZABLE, 0);
 
-	// TODO: don't create a window (call a diff fn)
-
 	// Create the main window (for rendering, keyboard, and mouse input)
 	window = glfwCreateWindow(window_width_px, window_height_px, "Stranded", nullptr, nullptr);
 	if (window == nullptr) {
@@ -340,10 +338,10 @@ void WorldSystem::restart_game() {
 	fow = createFOW(renderer, { 0,0 });
 
 	// Create health bars 
-	health_bar = createHealthAndFoodBars(renderer, {-8.f, 7.f });
+	health_bar = createHealthBar(renderer, {-8.f, 7.f });
 
 	// Create food bars 
-	food_bar = createFoodBars(renderer, { 8.f, 7.f });
+	food_bar = createFoodBar(renderer, { 8.f, 7.f });
 
 	// test for fow demo, REMOVE LATER
 	for (int i = 0; i < 4; i++) {
@@ -434,8 +432,6 @@ void WorldSystem::handle_collisions() {
 					break;
 				case ITEM_TYPE::FOOD:
 					// Add to food bar
-					//player.food_decrease_time = IFRAMES; 
-					// TODO: do we want a set amount for food pickups?
 					player.food += FOOD_PICKUP_AMOUNT;
 					if (player.food > PLAYER_MAX_FOOD) {
 						player.food = PLAYER_MAX_FOOD;
@@ -602,7 +598,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 
 void WorldSystem::on_mouse_move(vec2 mouse_position) {
 	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-	// TODO A1: HANDLE SALMON ROTATION HERE
+	// TODO COMBAT IS HERE
 	// xpos and ypos are relative to the top-left of the window, the salmon's
 	// default facing direction is (1, 0)
 	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
