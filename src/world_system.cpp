@@ -259,19 +259,17 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	Camera& c = registry.cameras.get(main_camera);
 	Motion& camera_motion = registry.motions.get(main_camera);
 	if (c.mode_follow) {
-		camera_motion.position = -m.position;	// why are the positions inverted???
+		camera_motion.position = m.position;	// why are the positions inverted???
 	}
 	else {
-		handle_movement(camera_motion, CAMERA_LEFT, true);	// why are the positions inverted???
-															// investigate this!!!
+		handle_movement(camera_motion, CAMERA_LEFT);
 	}
 	// bars movement 
 	Motion& health = registry.motions.get(health_bar);
 	Motion& food = registry.motions.get(food_bar);
 
-	// We're taking away from the camera's position because its positions are reversed, remember?
-	health.position = { -8.f - camera_motion.position.x, 7.f - camera_motion.position.y };
-	food.position = { 8.f - camera_motion.position.x, 7.f - camera_motion.position.y };
+	health.position = { -8.f + camera_motion.position.x, 7.f + camera_motion.position.y };
+	food.position = { 8.f + camera_motion.position.x, 7.f + camera_motion.position.y };
 
 	return true;
 }

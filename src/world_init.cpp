@@ -217,7 +217,10 @@ Entity createCamera(vec2 pos)
 
 	camera.mode_follow = true;
 	motion.position = pos;
-	motion.scale = { 1 ,1 };
+
+	// In this case, the camera's "scale" is the scale of the image plane.
+	// Bigger value = things will look smaller
+	motion.scale = { 1 , 1 };
 	return entity;
 }
 
