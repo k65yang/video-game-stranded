@@ -93,6 +93,121 @@ bool collidesV2(const Motion& motion1, const Motion& motion2)
 	return isIn;
 }
 
+// Return the edge of collision as int: -1 no collision, 0 top, 1 right, 2 bottom, 3 lef 
+bool collidesV3(const Motion& motion1, const Motion& motion2)
+{
+
+	// get width/height of bounding box
+	vec2 bb1 = get_bounding_box(motion1);
+	vec2 bb2 = get_bounding_box(motion2);
+
+	// compute four points for motion 1 bounding box
+	vec2 b1_topLeft = { (motion1.position.x - (bb1.x / 2.f)), (motion1.position.y - (bb1.y / 2.f)) };
+	vec2 b1_topRight = { b1_topLeft.x + bb1.x, b1_topLeft.y };
+	vec2 b1_bottomRight = { (motion1.position.x + (bb1.x / 2.f)), (motion1.position.y + (bb1.y / 2.f)) };
+	vec2 b1_bottomLeft = { b1_bottomRight.x - bb1.x, b1_bottomRight.y };
+
+	vec2 box1_points[4] = { b1_topLeft,b1_topRight,b1_bottomRight,b1_bottomLeft };
+
+	// compute four points for motion 2 bounding box
+	vec2 b2_topLeft = { (motion2.position.x - (bb2.x / 2.f)), (motion2.position.y - (bb2.y / 2.f)) };
+	vec2 b2_topRight = { b2_topLeft.x + bb2.x, b2_topLeft.y };
+	vec2 b2_bottomRight = { (motion2.position.x + (bb2.x / 2.f)), (motion2.position.y + (bb2.y / 2.f)) };
+	vec2 b2_bottomLeft = { b2_bottomRight.x - bb2.x, b2_bottomRight.y };
+
+	vec2 box2_points[4] = { b2_topLeft,b2_topRight,b2_bottomRight,b2_bottomLeft };
+
+
+	int edge_count = 0;
+	bool isIn = false;
+	int closest_edge = -1;
+	int dis = 1000; // setting default to a high number 
+
+	// check if any of the 4 edge point of is within the box (on the same side of all edges)
+	// also check the smallest distance between point with 4 edges
+	
+	for (int i = 0; i < 4; i++) {
+		for (int j = 0; j < 4; j++) {
+			if (isLeftForPoint(box1_points[j], box1_points[(j + 1) % 4], box2_points[i])) {
+				edge_count += 1;
+				
+			}
+				
+		}
+
+		// if a point is detected to be inside the hit box
+		if (edge_count == 4) {
+			isIn = true;
+			
+			// compute the edge that is clostest to the point
+			if (abs(box1_points[0].y - box2_points[i].y) <= dis) {
+				dis = abs(box1_points[0].y - box2_points[i].y);
+				closest_edge = 0;
+			}
+
+			
+			if (abs(box1_points[1].x - box2_points[i].x) <= dis) {
+				dis = abs(box1_points[1].x - box2_points[i].x);
+				closest_edge = 1;
+			}
+
+			if (abs(box1_points[2].y - box2_points[i].y) <= dis) {
+				dis = abs(box1_points[2].y - box2_points[i].y);
+				closest_edge = 2;
+			}
+
+			if (abs(box1_points[3].x - box2_points[i].x) <= dis) {
+				dis = abs(box1_points[3].x - box2_points[i].x);
+				closest_edge = 3;
+			}
+
+		}
+
+		edge_count = 0;
+
+
+
+	}
+
+	// does the same check for the other way around
+	for (int i = 0; i < 4; i++) {
+		for (int j = 0; j < 4; j++) {
+			if (isLeftForPoint(box2_points[j], box2_points[(j + 1) % 4], box1_points[i]))
+				edge_count += 1;
+		}
+
+		if (edge_count == 4) {
+			isIn = true;
+
+
+			// note that clostest edge is invereted since the returned closest edge is with respect to first bounding box to be consistent
+			if (abs(box2_points[0].y - box1_points[i].y) <= dis) {
+				dis = abs(box1_points[0].y - box2_points[i].y);
+				closest_edge = 3;
+			}
+
+			if (abs(box2_points[1].x - box1_points[i].x) <= dis) {
+				dis = abs(box1_points[1].x - box2_points[i].x);
+				closest_edge = 2;
+			}
+
+			if (abs(box2_points[2].y - box1_points[i].y) <= dis) {
+				dis = abs(box1_points[2].y - box2_points[i].y);
+				closest_edge = 1;
+			}
+
+			if (abs(box2_points[3].x - box1_points[i].x) <= dis) {
+				dis = abs(box1_points[3].x - box2_points[i].x);
+				closest_edge = 0;
+			}
+		}
+		edge_count = 0;
+
+	}
+
+	return closest_edge;
+}
+
 void PhysicsSystem::step(float elapsed_ms)
 {
 	// Move fish based on how much time has passed, this is to (partially) avoid

@@ -346,6 +346,8 @@ void WorldSystem::restart_game() {
 
 	createBoxBoundary(renderer, { 15, 15 }, { 0,0 });
 
+	createTerrainCollider(renderer, { 2,2}); // TEST ONLY, REMOVE LATER
+
 
 	// FOR DEMO - to show different types of items being created.	
 	spawn_items();
