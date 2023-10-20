@@ -63,6 +63,7 @@ private:
 	// Input callback functions
 	void on_key(int key, int, int action, int mod);
 	void on_mouse_move(vec2 pos);
+	void on_mouse_click(int button, int action, int mods);
 	vec2 interpolate(vec2 p1, vec2 p2, float param);
 
 	// restart level
@@ -83,6 +84,7 @@ private:
 	float next_turtle_spawn;
 	float next_fish_spawn;
 	Entity player_salmon;
+	Entity player_equipped_weapon;
 	Entity main_camera;
 	Entity fow;
 	Entity health_bar;
@@ -156,4 +158,12 @@ private:
 	/// </summary>
 	/// <param name="position"> pass in either player.position.x or y</param>
 	float positionCorrection(float position);
+
+	/// <summary>
+	/// Creates a weapon and adds it to the weapons registry. Optionally equips the created weapon.
+	/// NOTE: Does not check if the weapon exists already. 
+	///       (If we do not limit weapon spawns we can be create the same weapon multiple times)
+	/// </summary>
+	/// <param name="weapon_type"> The type of weapon to be created</param>
+	Entity createWeapon(ITEM_TYPE weapon_type, bool equipped);
 };
