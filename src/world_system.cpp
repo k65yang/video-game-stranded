@@ -401,7 +401,7 @@ void WorldSystem::handle_collisions() {
 			}
 
 			// Checking Player - Terrain
-			if (registry.terrainColliders.has(entity_other)) {
+			if (registry.colliders.has(entity_other)) {
 
 				Motion& motion = registry.motions.get(player_salmon);
 

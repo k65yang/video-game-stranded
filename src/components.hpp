@@ -57,7 +57,12 @@ struct Collision
 {
 	// Note, the first object is stored in the ECS container.entities
 	Entity other_entity; // the second object involved in the collision
-	Collision(Entity& other_entity) { this->other_entity = other_entity; };
+	int collided_edge;
+	Collision(Entity& other_entity, int collided_edge) { 
+		this->other_entity = other_entity;
+		this->collided_edge = collided_edge;
+		};
+
 };
 
 // Data structure for toggling debug mode
@@ -128,7 +133,7 @@ struct TerrainCell
 	//bool collide;
 };
 
-struct TerrainCollider
+struct Collider
 {
 	// collider component for non-passable terrain cells, will be used to stop player movement during handle_collision
 
@@ -138,6 +143,11 @@ struct TerrainCollider
 	// for each cells
 	// either take the terrain cell position, with a scale of 50,50 pixel and create terrain collider with respected motion component here 
 	// or directly associate motion component with terrain cell component if possible
+
+	vec2 size;
+	vec2 center;
+	// unsigned int layer; not sure if its needed for now
+
 };
 
 /**

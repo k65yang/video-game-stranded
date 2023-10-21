@@ -268,7 +268,7 @@ Entity createTestDummy(RenderSystem* renderer, vec2 position)
 	motion.scale = vec2({ 1, 1 });
 
 	// Create and (empty) Turtle component to be able to refer to all turtles
-	registry.terrainColliders.emplace(entity);
+	registry.colliders.emplace(entity);
 
 	registry.renderRequests.insert(
 		entity,
@@ -299,7 +299,7 @@ Entity createTerrainCollider(RenderSystem* renderer, vec2 position)
 	motion.scale = vec2({ 1, 1 });
 
 	// Create and (empty) Turtle component to be able to refer to all turtles
-	registry.terrainColliders.emplace(entity);
+	registry.colliders.emplace(entity);
 
 	registry.renderRequests.insert(
 		entity,
