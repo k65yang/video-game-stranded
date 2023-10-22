@@ -37,13 +37,11 @@ class RenderSystem {
 			textures_path("item.png"),
 			textures_path("food.png"),
 			textures_path("weapon.png"),
-			//textures_path("fish.png"),
-			//textures_path("turtle.png"),
-			//textures_path("fow mask.png"),
 			terrain_texture_path("0.png"),
 			terrain_texture_path("1.png"),
 			terrain_texture_path("2.png"),
-			textures_path("spaceship.png")
+			textures_path("spaceship.png"), 
+			textures_path("blueblock.png")
 	};
 
 	std::array<GLuint, effect_count> effects;

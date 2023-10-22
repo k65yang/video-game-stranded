@@ -17,6 +17,7 @@ public:
 	ComponentContainer<Player> players;
 
 	ComponentContainer<Mob> mobs;
+	ComponentContainer<Path> paths;
 	ComponentContainer<Item> items;
 
 	// Rendering related
@@ -45,6 +46,7 @@ public:
 		registry_list.push_back(&collisions);
 		registry_list.push_back(&players);
 		registry_list.push_back(&mobs);
+		registry_list.push_back(&paths);
 		registry_list.push_back(&items);
 		registry_list.push_back(&meshPtrs);
 		registry_list.push_back(&renderRequests);

@@ -1,7 +1,7 @@
 // internal
 #include "physics_system.hpp"
 #include "world_init.hpp"
-
+#include <vector>
 // Returns the local bounding coordinates scaled by the current size of the entity
 vec2 get_bounding_box(const Motion& motion)
 {
@@ -16,14 +16,81 @@ bool collides(const Motion& motion1, const Motion& motion2)
 {
 	vec2 dp = motion1.position - motion2.position;
 	float dist_squared = dot(dp,dp);
-	const vec2 other_bonding_box = get_bounding_box(motion1) / 2.f;
+	const vec2 other_bonding_box = get_bounding_box(motion1)/2.f;
 	const float other_r_squared = dot(other_bonding_box, other_bonding_box);
-	const vec2 my_bonding_box = get_bounding_box(motion2) / 2.f;
+	const vec2 my_bonding_box = get_bounding_box(motion2)/2.f;
 	const float my_r_squared = dot(my_bonding_box, my_bonding_box);
 	const float r_squared = max(other_r_squared, my_r_squared);
 	if (dist_squared < r_squared)
 		return true;
 	return false;
+}
+// citation: https://stackoverflow.com/questions/1560492/how-to-tell-whether-a-point-is-to-the-right-or-left-side-of-a-line
+// determine if a point is on left side of a given line using cross product of 2d matrix
+// returns true if target point is on left side or on top of line formed by point A, B.
+bool isLeftForPoint(vec2 linePointA, vec2 linePointB, vec2 targetPoint) {
+	float ans = (linePointB.x - linePointA.x) * (targetPoint.y - linePointA.y) - (linePointB.y - linePointA.y) * (targetPoint.x - linePointA.x);
+	return ans >= 0;
+
+	}
+// point inside box test
+bool collidesV2(const Motion& motion1, const Motion& motion2)
+	{
+	
+	// get abs(scale)
+	vec2 bb1 = get_bounding_box(motion1);
+	vec2 bb2 = get_bounding_box(motion2);
+
+	// compute four points for motion 1 bounding box
+	vec2 b1_topLeft = { (motion1.position.x - (bb1.x / 2.f)), (motion1.position.y - (bb1.y / 2.f)) };
+	vec2 b1_topRight = { b1_topLeft.x + bb1.x, b1_topLeft.y };
+	vec2 b1_bottomRight = { (motion1.position.x + (bb1.x / 2.f)), (motion1.position.y + (bb1.y / 2.f)) };
+	vec2 b1_bottomLeft = { b1_bottomRight.x - bb1.x, b1_bottomRight.y };
+
+	vec2 box1_points[4] = { b1_topLeft,b1_topRight,b1_bottomRight,b1_bottomLeft };
+
+	// compute four points for motion 2 bounding box
+	vec2 b2_topLeft = { (motion2.position.x - (bb2.x / 2.f)), (motion2.position.y - (bb2.y / 2.f)) };
+	vec2 b2_topRight = { b2_topLeft.x + bb2.x, b2_topLeft.y };
+	vec2 b2_bottomRight = { (motion2.position.x + (bb2.x / 2.f)), (motion2.position.y + (bb2.y / 2.f)) };
+	vec2 b2_bottomLeft = { b2_bottomRight.x - bb2.x, b2_bottomRight.y };
+
+	vec2 box2_points[4] = { b2_topLeft,b2_topRight,b2_bottomRight,b2_bottomLeft };
+
+	
+	int edge_count = 0;
+	bool isIn = false;
+	
+	// check if any of the 4 edge point of is within the box (on the same side of all edges)
+	for (int i = 0; i < 4; i++) {
+		for (int j = 0; j < 4; j++) {
+			if (isLeftForPoint(box1_points[j], box1_points[(j + 1) % 4], box2_points[i]))
+				edge_count += 1;
+			}
+
+		if (edge_count == 4) {
+			isIn = true;
+		}
+		edge_count = 0;
+
+	}
+
+	// does the same check for the other way around
+	for (int i = 0; i < 4; i++) {
+		for (int j = 0; j < 4; j++) {
+			if (isLeftForPoint(box2_points[j], box2_points[(j + 1) % 4], box1_points[i]))
+				edge_count += 1;
+		}
+
+		if (edge_count == 4) {
+			isIn = true;
+		}
+		edge_count = 0;
+
+	}
+
+	
+	return isIn;
 }
 
 void PhysicsSystem::step(float elapsed_ms)
@@ -49,7 +116,7 @@ void PhysicsSystem::step(float elapsed_ms)
 		for(uint j = i+1; j < motion_container.components.size(); j++)
 		{
 			Motion& motion_j = motion_container.components[j];
-			if (collides(motion_i, motion_j))
+			if (collidesV2(motion_i, motion_j))
 			{
 				Entity entity_j = motion_container.entities[j];
 				// Create a collisions event

@@ -2,16 +2,35 @@
 #include "common.hpp"
 #include <vector>
 #include <unordered_map>
+#include <deque>
 #include "../ext/stb_image/stb_image.h"
 
 // Player component
+
+const int PLAYER_MAX_FOOD = 100;
+const int PLAYER_MAX_HEALTH = 100;
+
+// TODO: cool idea for later is to have a customizable difficulty that adjusts food and health.
 struct Player
 {
-
+	int health = PLAYER_MAX_HEALTH;
+	float health_decrease_time = 0; // in 
+	float food_decrease_time = 0; 
+	int decrease_health_to = PLAYER_MAX_HEALTH;
+	int decrease_food_to = PLAYER_MAX_FOOD;
+	float iframes_timer = 0; // in ms
+	int food = PLAYER_MAX_FOOD;
 };
 
+// Mob component
 struct Mob {
+	bool is_tracking_player = false;
+	int damage;
+};
 
+// Structure to store the path for a mob
+struct Path {
+	std::deque<Entity> path;
 };
 
 enum class ITEM_TYPE {
@@ -84,7 +103,7 @@ struct TexturedVertex
 struct Mesh
 {
 	static bool loadFromOBJFile(std::string obj_path, std::vector<ColoredVertex>& out_vertices, std::vector<uint16_t>& out_vertex_indices, vec2& out_size);
-	vec2 original_size = {1,1};
+	vec2 original_size = { 1,1 };
 	std::vector<ColoredVertex> vertices;
 	std::vector<uint16_t> vertex_indices;
 };
@@ -158,7 +177,8 @@ enum class TEXTURE_ASSET_ID {
 	TERRAIN_STONE = TERRAIN_GRASS + 1,
 	//TEXTURE_COUNT = TERRAIN_STONE + 1
 	SPACESHIP = TERRAIN_STONE + 1,
-	TEXTURE_COUNT = SPACESHIP + 1
+	BLUEBLOCK = SPACESHIP + 1,
+	TEXTURE_COUNT = BLUEBLOCK + 1
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 

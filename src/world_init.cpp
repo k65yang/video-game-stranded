@@ -22,7 +22,7 @@ Entity createPlayer(RenderSystem* renderer, vec2 pos)
 		{ TEXTURE_ASSET_ID::PLAYER,
 			EFFECT_ASSET_ID::TEXTURED,
 			GEOMETRY_BUFFER_ID::SPRITE,
-			RENDER_LAYER_ID::LAYER_1});
+			RENDER_LAYER_ID::LAYER_1 });
 
 	return entity;
 }
@@ -48,18 +48,18 @@ Entity createItem(RenderSystem* renderer, vec2 position, ITEM_TYPE type)
 
 	TEXTURE_ASSET_ID texture = TEXTURE_ASSET_ID::PLAYER;
 	switch (type) {
-		case ITEM_TYPE::QUEST:
-			texture = TEXTURE_ASSET_ID::ITEM;
-			break;
-		case ITEM_TYPE::UPGRADE:
-			texture = TEXTURE_ASSET_ID::ITEM;
-			break;
-		case ITEM_TYPE::FOOD:
-			texture = TEXTURE_ASSET_ID::FOOD;
-			break;
-		case ITEM_TYPE::WEAPON:
-			texture = TEXTURE_ASSET_ID::WEAPON;
-			break;
+	case ITEM_TYPE::QUEST:
+		texture = TEXTURE_ASSET_ID::ITEM;
+		break;
+	case ITEM_TYPE::UPGRADE:
+		texture = TEXTURE_ASSET_ID::ITEM;
+		break;
+	case ITEM_TYPE::FOOD:
+		texture = TEXTURE_ASSET_ID::FOOD;
+		break;
+	case ITEM_TYPE::WEAPON:
+		texture = TEXTURE_ASSET_ID::WEAPON;
+		break;
 	}
 
 	registry.renderRequests.insert(
@@ -72,8 +72,7 @@ Entity createItem(RenderSystem* renderer, vec2 position, ITEM_TYPE type)
 	return entity;
 }
 
-// GENERAL MOB CREATION FUNCTION STILL NEEDS TO BE MADE - ONLY ONE MOB AT THIS TIME.
-Entity createMob(RenderSystem* renderer, vec2 position)
+Entity createBasicMob(RenderSystem* renderer, vec2 position)
 {
 	auto entity = Entity();
 
@@ -88,10 +87,14 @@ Entity createMob(RenderSystem* renderer, vec2 position)
 	motion.position = position;
 
 	// Setting initial values, scale is negative to make it face the opposite way
-	motion.scale = vec2({ 1, 1});
+	motion.scale = vec2({ 1, 1 });
+
+	// Initialize path
+	registry.paths.emplace(entity);
 
 	// Classify this entity as a mob.
-	registry.mobs.emplace(entity);
+	auto& mob_info = registry.mobs.emplace(entity);
+	mob_info.damage = 50;
 
 	registry.renderRequests.insert(
 		entity,
@@ -104,7 +107,6 @@ Entity createMob(RenderSystem* renderer, vec2 position)
 }
 
 
-// GENERAL MOB CREATION FUNCTION STILL NEEDS TO BE MADE - ONLY ONE MOB AT THIS TIME.
 Entity createSpaceship(RenderSystem* renderer, vec2 position) {
 	auto entity = Entity();
 
@@ -154,6 +156,52 @@ Entity createLine(vec2 position, vec2 scale)
 	return entity;
 }
 
+Entity createHealthBar(RenderSystem* renderer, vec2 position) {
+	auto entity = Entity();
+
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Initialize the position, scale, and physics components
+	auto& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.velocity = { 0.f, 0.f };
+	motion.position = position; 
+	motion.scale = vec2({ 5.f, 0.5 });
+
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::REDBLOCK,
+			EFFECT_ASSET_ID::TEXTURED,
+			GEOMETRY_BUFFER_ID::SPRITE,
+			RENDER_LAYER_ID::LAYER_3 });
+
+	return entity;
+}
+Entity createFoodBar(RenderSystem* renderer, vec2 position) {
+	auto entity = Entity();
+
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Initialize the position, scale, and physics components
+	auto& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.velocity = { 0.f, 0.f };
+	motion.position = position;
+	motion.scale = vec2({ 5.5, 0.7 });
+
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::BLUEBLOCK,
+			EFFECT_ASSET_ID::TEXTURED,
+			GEOMETRY_BUFFER_ID::SPRITE,
+			RENDER_LAYER_ID::LAYER_3 });
+
+	return entity;
+	}
+
+
 /// <summary>
 /// Creates a camera centred on a position
 /// </summary>
@@ -169,7 +217,10 @@ Entity createCamera(vec2 pos)
 
 	camera.mode_follow = true;
 	motion.position = pos;
-	motion.scale = { 1 ,1 };
+
+	// In this case, the camera's "scale" is the scale of the image plane.
+	// Bigger value = things will look smaller
+	motion.scale = { 1 , 1 };
 	return entity;
 }
 
@@ -187,7 +238,7 @@ Entity createFOW(RenderSystem* renderer, vec2 position)
 	motion.angle = 0.f;
 	motion.velocity = { 0.f, 0.f };
 	motion.position = position;
-	motion.scale = vec2({50.f, 50.f});
+	motion.scale = vec2({ 50.f, 50.f });
 
 	registry.renderRequests.insert(
 		entity,
