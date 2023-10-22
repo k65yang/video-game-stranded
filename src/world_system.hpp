@@ -165,5 +165,5 @@ private:
 	///       (If we do not limit weapon spawns we can be create the same weapon multiple times)
 	/// </summary>
 	/// <param name="weapon_type"> The type of weapon to be created</param>
-	Entity createWeapon(ITEM_TYPE weapon_type, bool equipped);
+	Entity createAndEquipWeapon(ITEM_TYPE weapon_type);
 };

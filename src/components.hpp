@@ -34,9 +34,8 @@ struct Player
 // TODO: needs more efficient way to determine if a weapon is allowed to fire
 struct Weapon {
 	ITEM_TYPE weapon_type;
-	bool equipped;
 	bool can_fire;
-	float fire_rate;		             // controls fire rate, the interval between weapon shots
+	float fire_rate;                     // controls fire rate, the interval between weapon shots
 	float elapsed_last_shot_time_ms;     // controls fire rate, the time that the weapon was fired last
 	float projectile_velocity;           // speed of projectiles of this weapon
 	int projectile_damage;               // weapon damage

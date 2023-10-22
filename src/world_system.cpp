@@ -304,20 +304,6 @@ void WorldSystem::handle_movement(Motion& motion, InputKeyIndex index_start, boo
 		// prevent motion from going slightly faster if moving diagonally
 		moveVelocity = normalize(moveVelocity);
 
-		// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-		// TO BE REMOVED. We do not want to rotate movement based on entity orientation. 
-		// It is too hard for the player to control. 
-		// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-		// Make a quick transformation matrix to rotate the movement according to entity orientation
-		// float c = cosf(motion.angle);
-		// float s = sinf(motion.angle);
-		// mat2 rotate = { { c, s },{ -s, c } }; // Not affine because velocity is ALWAYS a vector
-
-		// Rotate the vector into "world" space. The model/entity matrix turns local/entity coordinates into
-		// "world" coordinates.
-		// moveVelocity = (rotate * moveVelocity);
-
 		motion.velocity = moveVelocity * current_speed * invert;
 	}
 }
@@ -351,7 +337,7 @@ void WorldSystem::restart_game() {
 
 	// Equip the player weapon. Player starts with no weapon for now.
 	// TODO: do we want to give the player a starting weapon?
-	player_equipped_weapon = createWeapon(ITEM_TYPE::WEAPON_NONE, true);
+	player_equipped_weapon = createAndEquipWeapon(ITEM_TYPE::WEAPON_NONE);
 
 	// Create the main camera
 	main_camera = createCamera({0,0});
@@ -370,7 +356,7 @@ void WorldSystem::restart_game() {
 
 	// FOR DEMO - to show different types of items being created.	
 	spawn_items();
-	// spawn_mobs();
+	spawn_mobs();
 
 	// for movement velocity
 	for (int i = 0; i < KEYS; i++)
@@ -468,7 +454,7 @@ void WorldSystem::handle_collisions() {
 					}
 					break;
 				case ITEM_TYPE::WEAPON_GENERIC:
-					player_equipped_weapon = createWeapon(ITEM_TYPE::WEAPON_GENERIC, true);
+					player_equipped_weapon = createAndEquipWeapon(ITEM_TYPE::WEAPON_GENERIC);
 					// TODO: some sort of UI update
 					break;
 				case ITEM_TYPE::UPGRADE:
@@ -674,8 +660,6 @@ void WorldSystem::on_mouse_move(vec2 mouse_position) {
 /// Function to handle mouse click (weapon fire)
 /// </summary>
 void WorldSystem::on_mouse_click(int button, int action, int mods) {
-	// TODO: use elapsed_ms_since_last_update to control fire rate
-
 	Weapon& weapon = registry.weapons.get(player_equipped_weapon);
 	if (weapon.weapon_type != ITEM_TYPE::WEAPON_NONE && weapon.can_fire) {
 		if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
@@ -808,15 +792,14 @@ bool WorldSystem::is_spawn_location_used(vec2 position) {
 	return false;
 };
 
-Entity WorldSystem::createWeapon(ITEM_TYPE weapon_type, bool equipped) {
+Entity WorldSystem::createAndEquipWeapon(ITEM_TYPE weapon_type) {
 	// Reserve an entity
 	auto entity = Entity();
 
 	// Initialize the weapon
 	auto& weapon = registry.weapons.emplace(entity);
 	weapon.weapon_type = weapon_type;
-	weapon.equipped = equipped;
-	weapon.can_fire = 0.f;
+	weapon.can_fire = true;
 	weapon.elapsed_last_shot_time_ms = 0.f;
 
 	switch (weapon_type) {
