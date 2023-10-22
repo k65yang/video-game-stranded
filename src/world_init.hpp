@@ -3,6 +3,7 @@
 #include "common.hpp"
 #include "tiny_ecs.hpp"
 #include "render_system.hpp"
+#include "terrain_system.hpp"
 
 // These are ahrd coded to the dimensions of the entity texture
 const float FISH_BB_WIDTH = 0.4f * 296.f;
@@ -37,8 +38,16 @@ Entity createFoodBar(RenderSystem* renderer, vec2 position);
 Entity createTestDummy(RenderSystem* renderer, vec2 position);
 
 // terrain collider
-Entity createTerrainCollider(RenderSystem* renderer, vec2 position);
+Entity createTerrainCollider(RenderSystem* renderer,TerrainSystem* terrin, vec2 position);
 
+
+/// <summary>
+/// Creates a box boundary with given size and center point
+/// </summary>
+/// <param name="size">size of box in vec2</param>
+/// <param name="center">center point of box boundary in world space</param>
+/// <returns>void</returns>
+void createBoxBoundary(RenderSystem* renderer, TerrainSystem* terrain, vec2 size, vec2 center);
 
 
 /// <summary>
@@ -49,10 +58,3 @@ Entity createTerrainCollider(RenderSystem* renderer, vec2 position);
 Entity createCamera(vec2 pos);
 
 
-/// <summary>
-/// Creates a box boundary with given size and center point
-/// </summary>
-/// <param name="size">size of box in vec2</param>
-/// <param name="center">center point of box boundary in world space</param>
-/// <returns>void</returns>
-void createBoxBoundary(RenderSystem* renderer, vec2 size, vec2 center);

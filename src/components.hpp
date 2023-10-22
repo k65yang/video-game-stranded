@@ -126,27 +126,31 @@ enum class TERRAIN_TYPE {
 	ROCK = GRASS + 1
 };
 
+enum TERRAIN_FLAGS {
+	COLLIDABLE = 0b1,
+	DISABLE_PATHFIND = 0b10,
+};
+
 // Data structure that supports 
 struct TerrainCell 
 {
-	TERRAIN_TYPE terrain_type = TERRAIN_TYPE::AIR;
-	//bool collide;
+	TERRAIN_TYPE terrain_type;
+	uint flag;  // 
+	TerrainCell(TERRAIN_TYPE terrain_type, int flag) {
+	this->terrain_type = terrain_type;
+	this->flag = flag;
+	};
+
+	
 };
 
+// component for entity that have collision, size is the width/height of bounding box
 struct Collider
 {
-	// collider component for non-passable terrain cells, will be used to stop player movement during handle_collision
-
-	// since current version of collision check requires entity with motion component
-	// will later on load all non-passable terrain cells location in world
-	// 
-	// for each cells
-	// either take the terrain cell position, with a scale of 50,50 pixel and create terrain collider with respected motion component here 
-	// or directly associate motion component with terrain cell component if possible
-
+	
 	vec2 size;
 	vec2 center;
-	// unsigned int layer; not sure if its needed for now
+	uint layer; 
 
 };
 

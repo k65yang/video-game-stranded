@@ -154,6 +154,6 @@ private:
 	/// <summary>
 	/// helper function for terrain collision response, calculates the corrected player position
 	/// </summary>
-	/// <param name="position"> pass in either player.position.x or y</param>
-	float positionCorrection(float position);
+	/// <param name="position"> pass in either player.position , as well as collided edge</param>
+	vec2 positionCorrection(vec2 position, int collided_edge);
 };

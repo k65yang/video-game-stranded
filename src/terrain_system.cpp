@@ -136,13 +136,12 @@ void TerrainSystem::init(const unsigned int x, const unsigned int y, const Rende
 
 	for (int i = 0; i < x * y; i++) {
 		Entity& entity = grid[i].entity;
-		registry.terrainCells.emplace(entity);
+		
+		TerrainCell& cell = registry.terrainCells.emplace(entity, TERRAIN_TYPE::AIR, grid[i].flags);
 		registry.motions.emplace(entity);
 		Motion& motion = registry.motions.get(entity);
 
 		motion.position = to_world_coordinates(i);
-
-		TerrainCell& cell = registry.terrainCells.get(entity);
 
 		// TODO: Insert to 'terrainRenderRequests' to make rendering much more optimized
 		// by only rendering the entire terrain in 1 draw call.

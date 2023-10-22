@@ -344,9 +344,9 @@ void WorldSystem::restart_game() {
 	// Create food bars 
 	food_bar = createFoodBar(renderer, { 8.f, 7.f });
 
-	createBoxBoundary(renderer, { 15, 15 }, { 0,0 });
+	// createBoxBoundary(renderer, terrain,  { 15, 15 }, { 0,0 });
 
-	createTerrainCollider(renderer, { 2,2}); // TEST ONLY, REMOVE LATER
+	createTerrainCollider(renderer, terrain, { 2,2}); // TEST ONLY, REMOVE LATER
 
 
 	// FOR DEMO - to show different types of items being created.	
@@ -366,7 +366,7 @@ void WorldSystem::handle_collisions() {
 		// The entity and its collider
 		Entity entity = collisionsRegistry.entities[i];
 		Entity entity_other = collisionsRegistry.components[i].other_entity;
-
+		int collidedEdge = collisionsRegistry.components[i].collided_edge;
 		// Collisions involving the player
 		if (registry.players.has(entity)) {
 			Player& player = registry.players.get(entity);
@@ -401,9 +401,13 @@ void WorldSystem::handle_collisions() {
 			}
 
 			// Checking Player - Terrain
-			if (registry.colliders.has(entity_other)) {
+			
 
-				Motion& motion = registry.motions.get(player_salmon);
+			if (registry.terrainCells.has(entity_other)) {
+
+				// std::cout << "collided w/ a non passable terrain cell\n"; //REMOVE LATER
+				Motion& motion = registry.motions.get(player_salmon); 
+
 
 				// resetting key press and respected velocity
 				
@@ -424,8 +428,7 @@ void WorldSystem::handle_collisions() {
 				}
 
 				// correct player position. Will need to improve for later milestone
-				motion.position.x = positionCorrection(motion.position.x);
-				motion.position.y = positionCorrection(motion.position.y);
+				// motion.position = positionCorrection(motion.position,collidedEdge);
 
 				// remove handled collision, not needed apparently
 				// collisionsRegistry.remove(entity_other);
@@ -622,6 +625,16 @@ void WorldSystem::on_mouse_move(vec2 mouse_position) {
 	/// helper function for terrain collision response, calculates the corrected player position
 	/// </summary>
 	/// <param name="position"> pass in either player.position.x or y</param>
+vec2 WorldSystem::positionCorrection(vec2 position, int collided_edge) {
+	// only correct the position when the difference is between 0.05 to 0.
+	// this is to account for case where left and down are both pressed when player is colliding wall to the left
+	// in this case we would only want to correct the x position
+
+
+
+	return { 0,0 };
+}
+/*
 float WorldSystem::positionCorrection(float position) {
 	// only correct the position when the difference is between 0.05 to 0.
 	// this is to account for case where left and down are both pressed when player is colliding wall to the left
@@ -635,7 +648,7 @@ float WorldSystem::positionCorrection(float position) {
 	else {
 		whole = ceil(position);
 		}
-	
+
 	float fraction = mod(position, whole);
 	float offset = 0.02;
 
@@ -652,8 +665,8 @@ float WorldSystem::positionCorrection(float position) {
 		}
 
 	return position;
-}
-
+	}
+	*/
 void WorldSystem::spawn_items() {
 	const int NUM_ITEM_TYPES = 4;
 

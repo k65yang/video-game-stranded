@@ -9,6 +9,28 @@ vec2 get_bounding_box(const Collider& collider)
 	return { abs(collider.size.x), abs(collider.size.y) };
 }
 
+int invertEdgeHelper(int collided_edge)
+	{
+	if (collided_edge == 0)
+		{
+		collided_edge = 3;
+		}
+	else if (collided_edge == 1)
+		{
+		collided_edge = 2;
+		}
+	else if (collided_edge == 2)
+		{
+		collided_edge = 1;
+		}
+	else
+		{
+		collided_edge = 0;
+		}
+
+	return collided_edge;
+	}
+
 // This is a SUPER APPROXIMATE check that puts a circle around the bounding boxes and sees
 // if the center point of either object is inside the other's bounding-box-circle. You can
 // surely implement a more accurate detection
@@ -239,7 +261,6 @@ void PhysicsSystem::step(float elapsed_ms)
 		}
 
 	// Check for collisions between all entities with collider
-
 	for (uint i = 0; i < collider_container.components.size(); i++)
 		{
 		Collider& collider_i = collider_container.components[i];
@@ -269,27 +290,7 @@ void PhysicsSystem::step(float elapsed_ms)
 	}
 
 
-int invertEdgeHelper(int collided_edge) 
-	{
-	if (collided_edge == 0) 
-		{
-		collided_edge = 3;
-		}
-	else if (collided_edge == 1) 
-		{
-		collided_edge = 2;
-		}
-	else if (collided_edge == 2) 
-		{
-		collided_edge = 1;
-		}
-	else 
-		{
-		collided_edge = 0;
-		}
-	
-	return collided_edge;
-	}
+
 		
 		
 		
@@ -334,4 +335,3 @@ void PhysicsSystem::step(float elapsed_ms)
 	// TODO A2: HANDLE PEBBLE collisions HERE
 	// DON'T WORRY ABOUT THIS UNTIL ASSIGNMENT 2
 	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-}
