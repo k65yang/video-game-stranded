@@ -63,6 +63,58 @@ bool RenderSystem::init(GLFWwindow* window_arg)
 	return true;
 }
 
+/// <summary>
+/// Adds a new quad and places it in the vertex and index buffer.
+/// Used for batch rendering.
+/// </summary>
+/// <param name="modelMatrix"></param>
+/// <param name="texture"></param>
+/// <param name="vertices"></param>
+/// <param name="indicies"></param>
+void RenderSystem::make_quad(mat3 modelMatrix,
+	TEXTURE_ASSET_ID texture,
+	std::vector<BatchedVertex>& vertices,
+	std::vector<uint16_t>& indicies) {
+
+	BatchedVertex quad[4];
+	quad[0].position = { -0.5f, 0.5f, 1.f };
+	quad[0].texCoords = { 0.f, 1.f };
+
+	quad[1].position = { 0.5f, 0.5f, 1.f };
+	quad[1].texCoords = { 1.f, 1.f };
+
+	quad[2].position = { 0.5f, -0.5f, 1.f };
+	quad[2].texCoords = { 1.f, 0.f };
+
+	quad[3].position = { -0.5f, -0.5f, 1.f };
+	quad[3].texCoords = { 0.f, 0.f };
+
+	for (BatchedVertex& v : quad) {
+		v.position = modelMatrix * v.position;
+		v.texIndex = (uint16_t)texture;
+		vertices.push_back(v);
+	}
+
+	int i = vertices.size() / 4;
+	for (uint x : { 0, 3, 1, 1, 3, 2 }) {
+		indicies.push_back(i * 4 + x);
+	}
+}
+
+void RenderSystem::initializeTerrainVAO()
+{
+	std::vector<BatchedVertex> vertices;
+	std::vector<uint16_t> indices;
+	for (Entity e : registry.terrainRenderRequests.entities) {
+		mat3 modelMatrix = createModelMatrix(e);	// preprocess transform matrices because
+		RenderRequest r = registry.terrainRenderRequests.get(e);
+
+		// we can't really have per-mesh transforms so let's just bake them in!
+		make_quad(modelMatrix, r.used_texture, vertices, indices);
+	}
+	bindVBOandIBO(GEOMETRY_BUFFER_ID::TERRAIN, vertices, indices);
+}
+
 void RenderSystem::initializeGlTextures()
 {
     glGenTextures((GLsizei)texture_gl_handles.size(), texture_gl_handles.data());

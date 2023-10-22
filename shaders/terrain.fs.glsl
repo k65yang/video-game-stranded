@@ -2,9 +2,11 @@
 
 // From vertex shader
 in vec2 texcoord;
+flat in uint tex_i;
+//out uint flags;
 
 // Application data
-//uniform sampler2D sampler0;
+//uniform sampler2D textures[11];
 uniform vec3 fcolor;
 
 // Output color
@@ -12,5 +14,6 @@ layout(location = 0) out  vec4 color;
 
 void main()
 {
-	color = vec4(fcolor, 1.0); // * texture(sampler0, vec2(texcoord.x, texcoord.y));
+	// TODO: get textures working
+	color = vec4(fcolor, tex_i / 11.0); //texture(textures[tex_i], texcoord);
 }

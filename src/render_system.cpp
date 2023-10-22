@@ -182,91 +182,84 @@ void RenderSystem::drawToScreen()
 	gl_has_errors();
 }
 
-void RenderSystem::make_quad(mat3 modelMatrix,
-	std::vector<vertex>& vertices,
-	std::vector<uint16_t>& indicies) {
-	vec3 zero = { -0.5f, -0.5f, 1.f };
-	vec3 one = { -0.5f, 0.5f, 1.f };
-	vec3 two = { 0.5f, 0.5f, 1.f };
-	vec3 three = { 0.5f, -0.5f, 1.f };
-	zero = modelMatrix * zero;
-	one = modelMatrix * one;
-	two = modelMatrix * two;
-	three = modelMatrix * three;
-
-	int i = vertices.size() / 4;
-
-	vertices.push_back({ zero, { 0.f, 0.f } });
-	vertices.push_back({ one, { 0.f, 1.f } });
-	vertices.push_back({ two, { 1.f, 1.f } });
-	vertices.push_back({ three, { 1.f, 0.f }});
-
-	for (int x : { 0, 1, 2, 1, 3, 2 }) {
-		indicies.push_back(i + x);
-	}
-}
-
-
 void RenderSystem::drawTerrain(const TEXTURE_ASSET_ID texture, const mat3& view_2D, const mat3& projection_2D)
 {
-	GLuint program = (GLuint)effects[(unsigned)EFFECT_ASSET_ID::TERRAIN];
+	GLuint program = effects[(GLuint)EFFECT_ASSET_ID::TERRAIN];
 	glUseProgram(program);
-	std::vector<vertex> vertices;
-	std::vector<uint16_t> indices;
 
-	for (Entity e : registry.terrainRenderRequests.entities) {
-		mat3 modelMatrix = createModelMatrix(e);	// preprocess transform matrices because 
-													// we can't really have per-mesh transforms.
-		make_quad(modelMatrix, vertices, indices);
-	}
+	const GLuint vbo = vertex_buffers[(GLuint)GEOMETRY_BUFFER_ID::TERRAIN];
+	const GLuint ibo = index_buffers[(GLuint)GEOMETRY_BUFFER_ID::TERRAIN];
 
-	GLuint vbo;
-	unsigned vertices_size = vertices.size();
-
-	glGenBuffers(1, &vbo);
-	gl_has_errors();
+	// Setting vertex and index buffers
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
-	glBufferData(GL_ARRAY_BUFFER, vertices_size * sizeof(vertex), vertices.data(),
-		GL_DYNAMIC_DRAW);
-	gl_has_errors();
-
-	GLuint ibo;
-	GLuint indices_size = indices.size();
-	glGenBuffers(1, &ibo);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices_size * sizeof(uint16_t), indices.data(),
-		GL_DYNAMIC_DRAW);
 	gl_has_errors();
 
 	GLint viewMatrix_uloc = glGetUniformLocation(program, "viewMatrix");
+	assert(viewMatrix_uloc >= 0);
 	GLint projectionMatrix_uloc = glGetUniformLocation(program, "projectionMatrix");
+	assert(projectionMatrix_uloc >= 0);
+	GLint textures_uloc = glGetUniformLocation(program, "textures");
+	//assert(textures_uloc >= 0);
 	GLint color_uloc = glGetUniformLocation(program, "fcolor");
+	assert(color_uloc >= 0);
 	GLint in_position_loc = glGetAttribLocation(program, "in_position");
-	GLint in_uv_loc = glGetAttribLocation(program, "in_uv");
+	assert(in_position_loc >= 0);
+	GLint in_texcoord_loc = glGetAttribLocation(program, "in_texcoord");
+	//assert(in_texcoord_loc >= 0);
+	GLint in_tex_i_loc = glGetAttribLocation(program, "in_tex_i");
+	assert(in_tex_i_loc >= 0);
+	//GLint in_flags_loc = glGetAttribLocation(program, "in_flags");
+	//assert(in_flags_loc >= 0);
 	gl_has_errors();
 
-	auto SIZE_OF_EACH_VERTEX = sizeof(vertex);
-	void* POSITION_OFFSET = reinterpret_cast<void*>(offsetof(vertex, position));
-	void* UV_OFFSET = reinterpret_cast<void*>(offsetof(vertex, texCoords));
+	for (auto i : texture_gl_handles) {
+
+	}
+
+
+	auto SIZE_OF_EACH_VERTEX = sizeof(BatchedVertex);
+	void* POSITION_OFFSET = reinterpret_cast<void*>(offsetof(BatchedVertex, position));
+	void* UV_OFFSET = reinterpret_cast<void*>(offsetof(BatchedVertex, texCoords));
+	void* TEX_INDEX_OFFSET = reinterpret_cast<void*>(offsetof(BatchedVertex, texIndex));
 	glEnableVertexAttribArray(in_position_loc);
 	gl_has_errors();
 	glVertexAttribPointer(in_position_loc, 3, GL_FLOAT, GL_FALSE, SIZE_OF_EACH_VERTEX, POSITION_OFFSET);
 	gl_has_errors();
-	glEnableVertexAttribArray(in_uv_loc);
+
+	// TODO: get textures working!!
+
+	//glEnableVertexAttribArray(in_texcoord_loc);
 	gl_has_errors();
-	glVertexAttribPointer(in_uv_loc, 2, GL_FLOAT, GL_FALSE, SIZE_OF_EACH_VERTEX, UV_OFFSET);
+	//glVertexAttribPointer(in_texcoord_loc, 2, GL_FLOAT, GL_FALSE, SIZE_OF_EACH_VERTEX, UV_OFFSET);
+	gl_has_errors();
+	glEnableVertexAttribArray(in_tex_i_loc);
+	gl_has_errors();
+	glVertexAttribIPointer(in_tex_i_loc, 1, GL_UNSIGNED_SHORT, SIZE_OF_EACH_VERTEX, TEX_INDEX_OFFSET);
 	gl_has_errors();
 
 	const vec3 color = vec3(0, 1, 0);
 
 	glUniformMatrix3fv(viewMatrix_uloc, 1, GL_FALSE, (float*)&view_2D);
-	glUniformMatrix3fv(projectionMatrix_uloc, 1, GL_FALSE, (float*)&projection_2D);
-	glUniformMatrix3fv(color_uloc, 1, GL_FALSE, (float*)&color);
 	gl_has_errors();
+	glUniformMatrix3fv(projectionMatrix_uloc, 1, GL_FALSE, (float*)&projection_2D);
+	gl_has_errors();
+	glUniform3fv(color_uloc, 1, (float*)&color);
+	gl_has_errors();
+	//glUniform1iv(textures_uloc, (GLsizei)TEXTURE_ASSET_ID::TEXTURE_COUNT, (const GLint*)texture_gl_handles.data());
 	gl_has_errors();
 
-	glDrawArrays(GL_TRIANGLES, 0, indices_size);
+	// Get number of indices from index buffer, which has elements uint16_t
+	GLint size = 0;
+	glGetBufferParameteriv(GL_ELEMENT_ARRAY_BUFFER, GL_BUFFER_SIZE, &size);
 	gl_has_errors();
+	size /= sizeof(uint16_t);
+
+	glDrawElements(GL_TRIANGLES, size, GL_UNSIGNED_SHORT, nullptr);
+	gl_has_errors();
+
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 }
 
 // Render our game world
@@ -283,7 +276,7 @@ void RenderSystem::draw()
 	// Clearing backbuffer
 	glViewport(0, 0, w, h);
 	glDepthRange(0.00001, 10);
-	glClearColor(0, 0, 1, 1.0);
+	glClearColor(0, 0, 0, 1.0);
 	glClearDepth(10.f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glEnable(GL_BLEND);

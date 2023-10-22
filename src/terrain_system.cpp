@@ -148,7 +148,7 @@ void TerrainSystem::init(const unsigned int x, const unsigned int y, const Rende
 
 		// TODO: Insert to 'terrainRenderRequests' to make rendering much more optimized
 		// by only rendering the entire terrain in 1 draw call.
-		registry.renderRequests.insert(entity, make_render_request(cell));
+		//registry.renderRequests.insert(entity, make_render_request(cell));
 		registry.terrainRenderRequests.insert(entity, make_render_request(cell));
 	}
 }

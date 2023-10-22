@@ -65,6 +65,8 @@ public:
 	template <class T>
 	void bindVBOandIBO(GEOMETRY_BUFFER_ID gid, std::vector<T> vertices, std::vector<uint16_t> indices);
 
+	void initializeTerrainVAO();
+
 	void initializeGlTextures();
 
 	void initializeGlEffects();
@@ -88,17 +90,18 @@ public:
 	mat3 createProjectionMatrix();
 
 private:
-	// Internal vertex data structure
-	struct vertex {
+	// Internal vertex data structure used for batched rendering
+	struct BatchedVertex {
 		vec3 position;
 		vec2 texCoords;
-		//float tex;
+		uint16_t texIndex;
+		uint16_t flags;	// reserved for animated textures, etc.
 	};
 
 	// Internal drawing functions for each entity type
 	void drawTexturedMesh(Entity entity, const mat3& view_matrix, const mat3& projection);
 	void drawToScreen();
-	void make_quad(mat3 modelMatrix, std::vector<vertex>& vertices, std::vector<uint16_t>& indicies);
+	void make_quad(mat3 modelMatrix, TEXTURE_ASSET_ID texture, std::vector<BatchedVertex>& vertices, std::vector<uint16_t>& indicies);
 	void drawTerrain(const TEXTURE_ASSET_ID texture, const mat3& view_2D, const mat3& projection_2D);
 	// void drawFOW();
 
@@ -109,6 +112,10 @@ private:
 	GLuint frame_buffer;
 	GLuint off_screen_render_buffer_color;
 	GLuint off_screen_render_buffer_depth;
+
+	GLuint terrain_vao;
+	GLuint terrain_vbo;
+	GLuint terrain_ibo;
 
 	Entity screen_state_entity;
 };
