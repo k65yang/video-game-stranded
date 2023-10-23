@@ -2,6 +2,10 @@
 #include "physics_system.hpp"
 #include "world_init.hpp"
 #include <vector>
+#include <iostream>
+
+
+
 // Returns the local bounding coordinates of collider size
 vec2 get_bounding_box(const Collider& collider)
 {
@@ -48,8 +52,8 @@ bool collides(const Motion& motion1, const Motion& motion2)
 		return true;
 	return false;
 }
-
 */
+
 
 // citation: https://stackoverflow.com/questions/1560492/how-to-tell-whether-a-point-is-to-the-right-or-left-side-of-a-line
 // determine if a point is on left side of a given line using cross product of 2d matrix
@@ -123,10 +127,43 @@ bool collidesV2(const Motion& motion1, const Motion& motion2)
 
 
 // Return the edge of collision as int: -1 no collision, 0 top, 1 right, 2 bottom, 3 lef 
-bool collidesV3(const Collider& collider1, const Collider& collider2)
+int collidesV3(const Collider& collider1, const Collider& collider2)
 {
 
+	
+	/*
+	
+
+	Entity e1 = Entity();
+	std::cout << e1 << "\n";
+	registry.colliders.emplace(e1);
+	Collider& c1 = registry.colliders.get(e1);
+	c1.center = { 0.f, 0.f };
+	c1.size = { 1.f, 1.f };
+	c1.layer = 0;
+
+
+	Entity e3 = Entity();
+	std::cout << e1 << "\n";
+	registry.colliders.emplace(e3);
+	Collider& c23 = registry.colliders.get(e3);
+	c23.center = { 5.f,5.f };
+	c23.size = { 1.f,1.f };
+	c23.layer = 0;
+	
+
+	std::cout <<"c1 size before get bounding box " <<  c1.size.x << " ,  " << c1.size.y << "\n";
+	std::cout << "c3 size before get bounding box " << c23.size.x << " ,  " << c23.size.y << "\n";
+	
 	// get width/height of bounding box
+	vec2 bb1 = get_bounding_box(c1);
+	vec2 bb2 = get_bounding_box(c23);
+
+
+	std::cout << "after ggb c1 bb1.x is " << bb1.x << "and bb1.y is" << bb1.y << "\n";
+	std::cout << "after ggb c3 bb2.x is " << bb2.x << "and bb2.y is" << bb2.y << "\n";
+	*/
+
 	vec2 bb1 = get_bounding_box(collider1);
 	vec2 bb2 = get_bounding_box(collider2);
 
@@ -139,7 +176,7 @@ bool collidesV3(const Collider& collider1, const Collider& collider2)
 	vec2 b1_bottomLeft = { b1_bottomRight.x - bb1.x, b1_bottomRight.y };
 
 	vec2 box1_points[4] = { b1_topLeft,b1_topRight,b1_bottomRight,b1_bottomLeft };
-
+	
 	// compute four points for motion 2 bounding box
 	vec2 b2_topLeft = { (collider2.center.x - (bb2.x / 2.f)), (collider2.center.y - (bb2.y / 2.f)) };
 	vec2 b2_topRight = { b2_topLeft.x + bb2.x, b2_topLeft.y };
@@ -152,18 +189,16 @@ bool collidesV3(const Collider& collider1, const Collider& collider2)
 	int edge_count = 0;
 	bool isIn = false;
 	int closest_edge = -1;
-	int dis = 1000; // setting default to a high number 
+	float dis = 1000; // setting default to a high number 
 
 	// check if any of the 4 edge point of is within the box (on the same side of all edges)
 	// also check the smallest distance between point with 4 edges
 	
-	for (uint i = 0; i < 4; i++) {
-		for (uint j = 0; j < 4; j++) {
+	for (int i = 0; i < 4; i++) {
+		for (int j = 0; j < 4; j++) {
 			if (isLeftForPoint(box1_points[j], box1_points[(j + 1) % 4], box2_points[i])) {
 				edge_count += 1;
-				
 			}
-				
 		}
 
 		// if a point is detected to be inside the hit box
@@ -193,16 +228,13 @@ bool collidesV3(const Collider& collider1, const Collider& collider2)
 			}
 
 		}
-
 		edge_count = 0;
-
-
 
 	}
 
 	// does the same check for the other way around
-	for (uint i = 0; i < 4; i++) {
-		for (uint j = 0; j < 4; j++) {
+	for (int i = 0; i < 4; i++) {
+		for (int j = 0; j < 4; j++) {
 			if (isLeftForPoint(box2_points[j], box2_points[(j + 1) % 4], box1_points[i]))
 				edge_count += 1;
 		}
@@ -252,7 +284,7 @@ void PhysicsSystem::step(float elapsed_ms)
 		Entity entity = motion_container.entities[i];
 		motion.position += motion.velocity * elapsed_ms / 1000.f;
 
-		// adjusting collider center
+		// adjusting collider center for moving object
 		if (collider_container.has(entity))
 			{
 			collider_container.get(entity).center = motion.position;

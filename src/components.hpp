@@ -135,7 +135,7 @@ enum TERRAIN_FLAGS {
 struct TerrainCell 
 {
 	TERRAIN_TYPE terrain_type;
-	uint flag;  // 
+	int flag;  // 
 	TerrainCell(TERRAIN_TYPE terrain_type, int flag) {
 	this->terrain_type = terrain_type;
 	this->flag = flag;
@@ -147,11 +147,9 @@ struct TerrainCell
 // component for entity that have collision, size is the width/height of bounding box
 struct Collider
 {
-	
 	vec2 size;
 	vec2 center;
-	uint layer; 
-
+	int layer; 
 };
 
 /**

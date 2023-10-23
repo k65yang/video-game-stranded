@@ -47,7 +47,7 @@ Entity createTerrainCollider(RenderSystem* renderer,TerrainSystem* terrin, vec2 
 /// <param name="size">size of box in vec2</param>
 /// <param name="center">center point of box boundary in world space</param>
 /// <returns>void</returns>
-void createBoxBoundary(RenderSystem* renderer, TerrainSystem* terrain, vec2 size, vec2 center);
+void createBoxBoundary(RenderSystem* renderer, vec2 size, vec2 center);
 
 
 /// <summary>

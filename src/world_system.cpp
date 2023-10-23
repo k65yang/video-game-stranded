@@ -333,20 +333,20 @@ void WorldSystem::restart_game() {
 	registry.colors.insert(player_salmon, { 1, 0.8f, 0.8f });
 
 	// Create the main camera
-	main_camera = createCamera({0,0});
+	main_camera = createCamera({ 0,0 });
 
 	// Create fow
 	fow = createFOW(renderer, { 0,0 });
 
 	// Create health bars 
-	health_bar = createHealthBar(renderer, {-8.f, 7.f });
+	health_bar = createHealthBar(renderer, { -8.f, 7.f });
 
 	// Create food bars 
 	food_bar = createFoodBar(renderer, { 8.f, 7.f });
 
-	// createBoxBoundary(renderer, terrain,  { 15, 15 }, { 0,0 });
-
-	createTerrainCollider(renderer, terrain, { 2,2}); // TEST ONLY, REMOVE LATER
+	createBoxBoundary(renderer, { 15.f,15.f }, { 0,0 });
+	createTerrainCollider(renderer, terrain, { 3.f, -3.f });  //TESTING, REMOVE LATER
+	createTestDummy(renderer, { -0.8f, 0.2f }); ////TESTING, REMOVE LATER
 
 
 	// FOR DEMO - to show different types of items being created.	
@@ -403,12 +403,11 @@ void WorldSystem::handle_collisions() {
 			// Checking Player - Terrain
 			
 
-			if (registry.terrainCells.has(entity_other)) {
+			if (registry.terrainCells.has(entity_other) || registry.colliders.has(entity_other)) {
 
-				// std::cout << "collided w/ a non passable terrain cell\n"; //REMOVE LATER
 				Motion& motion = registry.motions.get(player_salmon); 
 
-
+				std::cout << "collided w/ a non passable terrain cell\n"; //REMOVE LATER
 				// resetting key press and respected velocity
 				
 				if (keyDown[UP] == true) {

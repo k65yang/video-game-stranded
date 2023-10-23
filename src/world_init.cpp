@@ -56,6 +56,11 @@ Entity createItem(RenderSystem* renderer, vec2 position, ITEM_TYPE type)
 	auto& item = registry.items.emplace(entity);
 	item.data = type;
 
+	// Initialize the collider
+	auto& collider = registry.colliders.emplace(entity);
+	collider.center = motion.position;
+	collider.size = motion.scale;
+
 	TEXTURE_ASSET_ID texture = TEXTURE_ASSET_ID::PLAYER;
 	switch (type) {
 	case ITEM_TYPE::QUEST:
@@ -105,6 +110,11 @@ Entity createBasicMob(RenderSystem* renderer, vec2 position)
 	// Classify this entity as a mob.
 	auto& mob_info = registry.mobs.emplace(entity);
 	mob_info.damage = 50;
+
+	// Initialize the collider
+	auto& collider = registry.colliders.emplace(entity);
+	collider.center = motion.position;
+	collider.size = motion.scale;
 
 	registry.renderRequests.insert(
 		entity,
@@ -270,15 +280,15 @@ Entity createTestDummy(RenderSystem* renderer, vec2 position)
 
 	// Initialize the motion
 	auto& motion = registry.motions.emplace(entity);
-	motion.angle = 0.f;
-	motion.velocity = { 0.f, 0.f };
 	motion.position = position;
 
 	// Setting initial values, scale is negative to make it face the opposite way
 	motion.scale = vec2({ 1, 1 });
 
 	// Create and (empty) Turtle component to be able to refer to all turtles
-	registry.colliders.emplace(entity);
+	auto& c1 = registry.colliders.emplace(entity);
+	c1.center = motion.position;
+	c1.size = motion.scale;
 
 	registry.renderRequests.insert(
 		entity,
@@ -293,24 +303,50 @@ Entity createTestDummy(RenderSystem* renderer, vec2 position)
 
 Entity createTerrainCollider(RenderSystem* renderer, TerrainSystem* terrain, vec2 position)
 {
-	Entity entity = terrain->get_cell(position.x, position.y);
-	std::cout << "cell x pos is" << position.x << "ypos is " << position.y << "\n";
+	auto entity = terrain->get_cell(position.x, position.y);
+	std::cout << "cell x pos is " << position.x << " ypos is " << position.y << "\n"; //REMOVE LATER
 	TerrainCell& tCell = registry.terrainCells.get(entity);
 	Motion& motion = registry.motions.get(entity);
 
 	// set the cell to collidable
-	tCell.flag = uint(1) | TERRAIN_FLAGS::DISABLE_PATHFIND;
+	tCell.flag = uint(1) | TERRAIN_FLAGS::COLLIDABLE;
 
 	// attach collider
 	Collider& collider = registry.colliders.emplace(entity);
 	motion.scale = { 1 , 1 };
-
 	collider.center = motion.position;
 	collider.size = motion.scale;
 
 	RenderRequest& rr = registry.renderRequests.get(entity);
 	rr.used_texture = TEXTURE_ASSET_ID::REDBLOCK;
 
+
+	return entity;
+}
+
+Entity createBoundaryBlock(RenderSystem* renderer, vec2 position)
+{
+	auto entity = Entity();
+
+
+	// Initialize the motion
+	auto& motion = registry.motions.emplace(entity);
+	motion.position = position;
+
+	// Setting initial values, scale is negative to make it face the opposite way
+	motion.scale = vec2({ 1, 1 });
+
+	// Initialize the collider
+	auto& collider = registry.colliders.emplace(entity);
+	collider.center = motion.position;
+	collider.size = motion.scale;
+
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::REDBLOCK,
+		EFFECT_ASSET_ID::TEXTURED,
+		GEOMETRY_BUFFER_ID::SPRITE,
+		RENDER_LAYER_ID::LAYER_1 });
 
 	return entity;
 }
@@ -322,23 +358,23 @@ Entity createTerrainCollider(RenderSystem* renderer, TerrainSystem* terrain, vec
 /// <param name="size">size of box in vec2</param>
 /// <param name="center">center point of box boundary in world space</param>
 /// <returns>void</returns>
-void createBoxBoundary(RenderSystem* renderer, TerrainSystem* terrain, vec2 size, vec2 center) {
+void createBoxBoundary(RenderSystem* renderer, vec2 size, vec2 center) {
 	vec2 topleftpos = {center.x - (int)size.x / 2, center.y - (int)size.y / 2};
 	// start from top left
 
 	// draw top and bottom of the box
 	for (int i = 0; i < size.x; i++) {
-		createTerrainCollider(renderer, terrain, { topleftpos.x + i, topleftpos.y });
+		createBoundaryBlock(renderer, { topleftpos.x + i, topleftpos.y });
 
 		// We're subtracting the y position by 1 because we're off by 1
-		createTerrainCollider(renderer, terrain, {topleftpos.x + i, topleftpos.y + size.y - 1});
+		createBoundaryBlock(renderer, {topleftpos.x + i, topleftpos.y + size.y - 1});
 	}
 
 	//draw left and right of the box
 	for (int i = 1; i < size.y - 1; i++) {
 		// start from top left
-		createTerrainCollider(renderer, terrain, { topleftpos.x, topleftpos.y + i});
-		createTerrainCollider(renderer, terrain, { topleftpos.x + size.x - 1, topleftpos.y + i});
+		createBoundaryBlock(renderer, { topleftpos.x, topleftpos.y + i});
+		createBoundaryBlock(renderer, { topleftpos.x + size.x - 1, topleftpos.y + i});
 	}
 
 }
