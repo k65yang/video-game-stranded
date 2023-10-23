@@ -287,22 +287,34 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	return true;
 }
 
-void WorldSystem::handle_movement(Motion& motion, InputKeyIndex index_start, bool invertDirection)
+void WorldSystem::handle_movement(Motion& motion, InputKeyIndex indexStart, bool invertDirection, bool useAbsoluteVelocity)
 {
 	float invert = invertDirection ? -1 : 1;	// shorthand that inverts the results if invertDirection.
 	vec2 moveVelocity = { 0, 0 };
-	if (keyDown[index_start])
+	if (keyDown[indexStart])
 		moveVelocity.x += -1;    // If LEFT is pressed then obviously add a left component
-	if (keyDown[index_start + 1])
+	if (keyDown[indexStart + 1])
 		moveVelocity.x += 1;    // If RIGHT is pressed then obviously add a right component
-	if (keyDown[index_start + 2])
+	if (keyDown[indexStart + 2])
 		moveVelocity.y += -1;    // If UP is pressed then obviously add an up component
-	if (keyDown[index_start + 3])
+	if (keyDown[indexStart + 3])
 		moveVelocity.y += 1;    // If DOWN is pressed then obviously add a down component
 
 	if (length(moveVelocity) > 0) {
 		// prevent motion from going slightly faster if moving diagonally
 		moveVelocity = normalize(moveVelocity);
+
+		if (!useAbsoluteVelocity) {
+			// Make a quick transformation matrix to rotate the movement according to
+			// entity orientation
+			float c = cosf(motion.angle);
+			float s = sinf(motion.angle);
+			mat2 rotate = { { c, s },{ -s, c } }; // Not affine because velocity is ALWAYS a vector
+
+			// Rotate the vector into "world" space. The model/entity matrix turns local/entity coordinates into
+			// "world" coordinates.
+			moveVelocity = (rotate * moveVelocity);
+		}
 
 		motion.velocity = moveVelocity * current_speed * invert;
 	}

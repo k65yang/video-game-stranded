@@ -50,9 +50,10 @@ public:
 	/// Generic movement controller function for entities that move via player input
 	/// </summary>
 	/// <param name="motion">The motion component of the entity that will be controlled</param>
-	/// <param name="index_start">The 'InputKeyIndex::XX_LEFT' associated with the left-moving key</param>
+	/// <param name="indexStart">The 'InputKeyIndex::XX_LEFT' associated with the left-moving key</param>
 	/// <param name="invertDirection">Should the directions be inverted?</param>
-	void handle_movement(Motion& motion, InputKeyIndex index_start, bool invertDirection = false);
+	/// <param name="useAbsoluteVelocity">Is player velocity dependent on the direction the player is facing?</param>
+	void handle_movement(Motion& motion, InputKeyIndex indexStart, bool invertDirection = false, bool useAbsoluteVelocity = true);
 
 	// Check for collisions
 	void handle_collisions();
