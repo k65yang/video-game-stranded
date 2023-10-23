@@ -10,6 +10,14 @@
 const int PLAYER_MAX_FOOD = 100;
 const int PLAYER_MAX_HEALTH = 100;
 
+enum class ITEM_TYPE {
+	QUEST = 0,
+	WEAPON_NONE = 1,
+	WEAPON_GENERIC = 2,
+	FOOD = 3,
+	UPGRADE = 4,
+};
+
 // TODO: cool idea for later is to have a customizable difficulty that adjusts food and health.
 struct Player
 {
@@ -22,10 +30,27 @@ struct Player
 	int food = PLAYER_MAX_FOOD;
 };
 
+// Generic weapon for now
+// TODO: needs more efficient way to determine if a weapon is allowed to fire
+struct Weapon {
+	ITEM_TYPE weapon_type;
+	bool can_fire;
+	float fire_rate;                     // controls fire rate, the interval between weapon shots
+	float elapsed_last_shot_time_ms;     // controls fire rate, the time that the weapon was fired last
+	float projectile_velocity;           // speed of projectiles of this weapon
+	int projectile_damage;               // weapon damage
+};
+
+// Generic projectile for now
+struct Projectile {
+	int damage = 100;
+};
+
 // Mob component
 struct Mob {
 	bool is_tracking_player = false;
 	int damage;
+	int health = 1;
 };
 
 // Structure to store the path for a mob
@@ -33,12 +58,7 @@ struct Path {
 	std::deque<Entity> path;
 };
 
-enum class ITEM_TYPE {
-	QUEST = 0,
-	FOOD = 1,
-	WEAPON = 2,
-	UPGRADE = 3,
-};
+
 
 struct Item {
 	ITEM_TYPE data;

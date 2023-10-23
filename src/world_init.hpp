@@ -15,6 +15,8 @@ const vec2 FOOD_BAR_SCALE = vec2(5.5, 0.7);
 
 // the player
 Entity createPlayer(RenderSystem* renderer, vec2 pos);
+// the projectile from the weapon
+Entity createProjectile(RenderSystem* renderer, vec2 pos);
 // the prey
 Entity createItem(RenderSystem* renderer, vec2 position, ITEM_TYPE type);
 // the enemy
