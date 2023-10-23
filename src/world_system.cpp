@@ -185,30 +185,21 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 				health.scale = interpolate(health.scale, new_health_scale, 1 - (player.health_decrease_time / IFRAMES));
 			}
 		}
-	}
-
-	// Tick down iframes timer and food decrease timer 
-	for (Entity entity : registry.players.entities) {
-		Player& player = registry.players.get(entity);
-		player.iframes_timer -= elapsed_ms_since_last_update;
-
-		if (player.iframes_timer < 0) {
-			player.iframes_timer = 0;
-			}
 
 		if (player.food_decrease_time > 0) {
 			player.food_decrease_time -= elapsed_ms_since_last_update;
 
 			if (player.food_decrease_time < 0) {
 				player.food_decrease_time = 0;
-				}
+			}
 			else {
 				Motion& food = registry.motions.get(food_bar);
 				vec2 new_food_scale = vec2(((float)player.food / (float)PLAYER_MAX_FOOD) * FOOD_BAR_SCALE[0], FOOD_BAR_SCALE[1]);
 				food.scale = interpolate(food.scale, new_food_scale, 1 - (player.food_decrease_time / IFRAMES));
-				}
 			}
 		}
+	}
+
 	// Apply food decreasing the more you travel. 
 	if (player.food > 0) {
 		if (PLAYER_TOTAL_DISTANCE >= FOOD_DECREASE_THRESHOLD ) {
@@ -219,13 +210,12 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 			// Reset the total movement distance
 			PLAYER_TOTAL_DISTANCE = 0;
-			}
 		}
+	}
 	// else the food is below 0, player dies
 	else if (!registry.deathTimers.has(player_salmon)) {
-		// TODO: game over screen
 		registry.deathTimers.emplace(player_salmon);
-		}
+	}
 
 	// reduce window brightness if any of the present players is dying
 	screen.screen_darken_factor = 1 - min_timer_ms / 3000;
@@ -389,12 +379,18 @@ void WorldSystem::handle_collisions() {
 				// Give the player some frames of invincibility so that they cannot die instantly when running into a mob
 				player.iframes_timer = IFRAMES;
 
+				// Screen shake, for feedback to the player that they have been hit.
+				Motion& camera_motion = registry.motions.get(main_camera);
+				camera_motion.position += vec2(0, 0.9);
+				camera_motion.position += vec2(1.2, 0);
+				camera_motion.position -= vec2(0, 2.3);
+				camera_motion.position -= vec2(1.5, 0);
+
 				if (player.health <= 0) {
 					if (!registry.deathTimers.has(entity)) {
 						// TODO: game over screen
 						registry.deathTimers.emplace(entity);
 					}
-
 				}
 			}
 
