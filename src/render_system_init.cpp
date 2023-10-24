@@ -57,6 +57,7 @@ bool RenderSystem::init(GLFWwindow* window_arg)
 
 	initScreenTexture();
     initializeGlTextures();
+	initializeGl3DTextures();
 	initializeGlEffects();
 	initializeGlGeometryBuffers();
 
@@ -140,6 +141,79 @@ void RenderSystem::initializeGlTextures()
 		gl_has_errors();
 		stbi_image_free(data);
     }
+	gl_has_errors();
+}
+
+void RenderSystem::initializeGl3DTextures() {
+	glGenTextures(1, &texture_array);
+	gl_has_errors();
+	glBindTexture(GL_TEXTURE_2D_ARRAY, texture_array);
+	gl_has_errors();
+
+	uint n = terrain_texture_paths.size();
+	if (n == 0) {
+		std::cout << "There are no terrain textures loaded! Please fill in 'terrain_texture_paths'." << std::endl;
+		assert(n > 0);	// no textures!!
+	}
+
+	// Since we don't know how big our textures are going to be, we have to
+	// read the first texture.
+	ivec2 dimensions;
+	stbi_uc* data;
+	data = stbi_load(terrain_texture_paths[0].c_str(), &dimensions.x, &dimensions.y, NULL, 4);
+	
+	// Can't load the first texture
+	if (data == NULL)
+	{
+		const std::string message = "Could not load the file " + terrain_texture_paths[0] + ".";
+		fprintf(stderr, "%s", message.c_str());
+		assert(false);
+	}
+
+	// Tell GPU to allocate the 3d texture
+	glTexStorage3D(GL_TEXTURE_2D_ARRAY, 1, GL_RGBA8, dimensions.x, dimensions.y, n);
+	gl_has_errors();
+
+
+	// Put the actual texture data at the 0th depth
+
+	// The numbers Mason, what do they mean?:
+	// The 4 zeroes: 
+	// The first zero: the "layer" of this element (complicated stuff I don't want to get into)
+	// The next two zeros: The x,y offset inside the uv space where the data is placed
+	// The zero after: Specifies that this texture is the i-th element in the array
+	// The zero after dimensions.x and dimensions.y: "border - This value must be 0"
+	
+	// It literally says here LMAO: https://registry.khronos.org/OpenGL-Refpages/gl4/html/glTexImage3D.xhtml
+	glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, 0, 0, 0, dimensions.x, dimensions.y, 1, GL_RGBA, GL_UNSIGNED_BYTE, data);
+	gl_has_errors();
+
+	// Free the data pointer since it allocated to heap.
+	// It will be reassigned in the loop.
+	stbi_image_free(data);
+	data = nullptr;
+
+	for (uint i = 1; i < n; i++)
+	{
+		const std::string& path = terrain_texture_paths[i];
+		data = stbi_load(path.c_str(), &dimensions.x, &dimensions.y, NULL, 4);
+
+		if (data == NULL)
+		{
+			const std::string message = "Could not load the file " + path + ".";
+			fprintf(stderr, "%s", message.c_str());
+			assert(false);
+		}
+
+		// Assign the i-th texture
+		glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, 0, 0, i, dimensions.x, dimensions.y, 1, GL_RGBA, GL_UNSIGNED_BYTE, data);
+		gl_has_errors();
+		stbi_image_free(data);
+		data = nullptr;
+	}
+	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	gl_has_errors();
+	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	gl_has_errors();
 }
 

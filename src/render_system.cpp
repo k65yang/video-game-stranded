@@ -199,14 +199,10 @@ void RenderSystem::drawTerrain(const TEXTURE_ASSET_ID texture, const mat3& view_
 	assert(viewMatrix_uloc >= 0);
 	GLint projectionMatrix_uloc = glGetUniformLocation(program, "projectionMatrix");
 	assert(projectionMatrix_uloc >= 0);
-	GLint textures_uloc = glGetUniformLocation(program, "textures");
-	//assert(textures_uloc >= 0);
-	GLint color_uloc = glGetUniformLocation(program, "fcolor");
-	assert(color_uloc >= 0);
 	GLint in_position_loc = glGetAttribLocation(program, "in_position");
 	assert(in_position_loc >= 0);
 	GLint in_texcoord_loc = glGetAttribLocation(program, "in_texcoord");
-	//assert(in_texcoord_loc >= 0);
+	assert(in_texcoord_loc >= 0);
 	GLint in_tex_i_loc = glGetAttribLocation(program, "in_tex_i");
 	assert(in_tex_i_loc >= 0);
 	//GLint in_flags_loc = glGetAttribLocation(program, "in_flags");
@@ -229,9 +225,9 @@ void RenderSystem::drawTerrain(const TEXTURE_ASSET_ID texture, const mat3& view_
 
 	// TODO: get textures working!!
 
-	//glEnableVertexAttribArray(in_texcoord_loc);
+	glEnableVertexAttribArray(in_texcoord_loc);
 	gl_has_errors();
-	//glVertexAttribPointer(in_texcoord_loc, 2, GL_FLOAT, GL_FALSE, SIZE_OF_EACH_VERTEX, UV_OFFSET);
+	glVertexAttribPointer(in_texcoord_loc, 2, GL_FLOAT, GL_FALSE, SIZE_OF_EACH_VERTEX, UV_OFFSET);
 	gl_has_errors();
 	glEnableVertexAttribArray(in_tex_i_loc);
 	gl_has_errors();
@@ -244,9 +240,12 @@ void RenderSystem::drawTerrain(const TEXTURE_ASSET_ID texture, const mat3& view_
 	gl_has_errors();
 	glUniformMatrix3fv(projectionMatrix_uloc, 1, GL_FALSE, (float*)&projection_2D);
 	gl_has_errors();
-	glUniform3fv(color_uloc, 1, (float*)&color);
-	gl_has_errors();
-	//glUniform1iv(textures_uloc, (GLsizei)TEXTURE_ASSET_ID::TEXTURE_COUNT, (const GLint*)texture_gl_handles.data());
+	//glUniform3fv(color_uloc, 1, (float*)&color);
+	//gl_has_errors();
+
+
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D_ARRAY, texture_array);
 	gl_has_errors();
 
 	// Get number of indices from index buffer, which has elements uint16_t

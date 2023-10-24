@@ -6,14 +6,14 @@ flat in uint tex_i;
 //out uint flags;
 
 // Application data
-//uniform sampler2D textures[11];
-uniform vec3 fcolor;
+uniform sampler2DArray textures;
+//uniform vec3 fcolor;
 
 // Output color
 layout(location = 0) out  vec4 color;
 
 void main()
 {
-	// TODO: get textures working
-	color = vec4(fcolor, tex_i / 11.0); //texture(textures[tex_i], texcoord);
+	vec3 _uv = vec3(texcoord, tex_i - 7u);
+	color = texture(textures, _uv);
 }

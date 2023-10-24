@@ -44,6 +44,14 @@ class RenderSystem {
 			textures_path("blueblock.png")
 	};
 
+	// This is used for generating the texture array for batched renders
+	// NOTE: all images must have the same dimensions.
+	const std::array<std::string, 3> terrain_texture_paths = {
+		terrain_texture_path("0.png"),
+		terrain_texture_path("1.png"),
+		terrain_texture_path("2.png"),
+	};
+
 	std::array<GLuint, effect_count> effects;
 	// Make sure these paths remain in sync with the associated enumerators.
 	const std::array<std::string, effect_count> effect_paths = {
@@ -68,6 +76,8 @@ public:
 	void initializeTerrainVAO();
 
 	void initializeGlTextures();
+
+	void initializeGl3DTextures();
 
 	void initializeGlEffects();
 
@@ -113,9 +123,7 @@ private:
 	GLuint off_screen_render_buffer_color;
 	GLuint off_screen_render_buffer_depth;
 
-	GLuint terrain_vao;
-	GLuint terrain_vbo;
-	GLuint terrain_ibo;
+	GLuint texture_array;
 
 	Entity screen_state_entity;
 };
