@@ -344,9 +344,12 @@ void WorldSystem::restart_game() {
 	// Create food bars 
 	food_bar = createFoodBar(renderer, { 8.f, 7.f });
 
-	createBoxBoundary(renderer, { 15.f,15.f }, { 0,0 });
+	//createBoxBoundary(renderer, { 15.f,15.f }, { 0,0 });
+
 	createTerrainCollider(renderer, terrain, { 3.f, -3.f });  //TESTING, REMOVE LATER
-	createTestDummy(renderer, { -0.8f, 0.2f }); ////TESTING, REMOVE LATER
+	createTerrainCollider(renderer, terrain, { 3.f, 3.f });
+	createTerrainCollider(renderer, terrain, { -3.f, 3.f });
+	createTerrainCollider(renderer, terrain, { -3.f, -3.f });
 
 
 	// FOR DEMO - to show different types of items being created.	
@@ -403,34 +406,13 @@ void WorldSystem::handle_collisions() {
 			// Checking Player - Terrain
 			
 
-			if (registry.terrainCells.has(entity_other) || registry.colliders.has(entity_other)) {
+			if (registry.terrainCells.has(entity_other) || registry.boundaries.has(entity_other)) {
 
 				Motion& motion = registry.motions.get(player_salmon); 
-
-				std::cout << "collided w/ a non passable terrain cell\n"; //REMOVE LATER
-				// resetting key press and respected velocity
+				std::cout << "collided edge is " << collidedEdge << "\n";
 				
-				if (keyDown[UP] == true) {
-					motion.velocity.y = 0;
-				}
+				motion.position = positionCorrection(motion.position,collidedEdge, 0.f);
 
-				if (keyDown[DOWN] == true) {
-					motion.velocity.y = 0;
-				}
-
-				if (keyDown[LEFT] == true) {
-					motion.velocity.x = 0;
-				}
-
-				if (keyDown[RIGHT] == true) {
-					motion.velocity.x = 0;
-				}
-
-				// correct player position. Will need to improve for later milestone
-				// motion.position = positionCorrection(motion.position,collidedEdge);
-
-				// remove handled collision, not needed apparently
-				// collisionsRegistry.remove(entity_other);
 			}
 
 			// Checking Player - Items
@@ -621,17 +603,48 @@ void WorldSystem::on_mouse_move(vec2 mouse_position) {
 
 
 	/// <summary>
-	/// helper function for terrain collision response, calculates the corrected player position
+	/// helper function for terrain collision response, calculates the corrected player position based on collided edge, offset 
 	/// </summary>
-	/// <param name="position"> pass in either player.position.x or y</param>
-vec2 WorldSystem::positionCorrection(vec2 position, int collided_edge) {
-	// only correct the position when the difference is between 0.05 to 0.
-	// this is to account for case where left and down are both pressed when player is colliding wall to the left
-	// in this case we would only want to correct the x position
+	/// <param name="position"> pass in player.position</param>
+	/// <param name="collided_edge"> colliding edge</param>
+	/// <param name="offset"> offset added to corerction to avoid re-trigger the collision detection</param>
+
+vec2 WorldSystem::positionCorrection(const vec2 position, int collided_edge, float offset) {
+	
+
+	vec2 newPosition = position;
+
+	std::cout << "position before correction is " << position.x << " and " << position.y << "\n";
+	switch (collided_edge) {
+		case 0:
+
+			newPosition.y = ceil(position.y); // ceil round number up, floor round number down. even for negative. ceil(-0.5) = 0 
+			newPosition.y += offset;
+			break;
+		case 1:
+			newPosition.x = floor(position.x);
+			newPosition.x -= offset;
+			break;
+
+		case 2:
+			newPosition.y = floor(position.y);
+			newPosition.y -= offset;
+			break;
+
+		case 3:
+			newPosition.x = ceil(position.x);
+			newPosition.x += offset;
+			break;
+		default:
+			// no correction
+			break;
+
+		}
+
+	std::cout << "position after correction is " << position.x << " and " << position.y << "\n\n\n";
 
 
-
-	return { 0,0 };
+	return newPosition;
 }
 /*
 float WorldSystem::positionCorrection(float position) {

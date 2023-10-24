@@ -30,6 +30,8 @@ public:
 	ComponentContainer<vec3> colors;
 	ComponentContainer<Collider> colliders;
 
+	ComponentContainer<BoundaryBlock> boundaries;
+
 
 	// Terrain-related
 	ComponentContainer<TerrainCell> terrainCells;
@@ -54,6 +56,7 @@ public:
 		registry_list.push_back(&debugComponents);
 		registry_list.push_back(&colors);
 		registry_list.push_back(&colliders);
+		registry_list.push_back(&boundaries);
 
 
 		registry_list.push_back(&cameras);

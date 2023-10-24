@@ -57,9 +57,9 @@ Entity createItem(RenderSystem* renderer, vec2 position, ITEM_TYPE type)
 	item.data = type;
 
 	// Initialize the collider
-	auto& collider = registry.colliders.emplace(entity);
-	collider.center = motion.position;
-	collider.size = motion.scale;
+	//auto& collider = registry.colliders.emplace(entity);
+	//collider.center = motion.position;
+	//collider.size = motion.scale;
 
 	TEXTURE_ASSET_ID texture = TEXTURE_ASSET_ID::PLAYER;
 	switch (type) {
@@ -112,9 +112,9 @@ Entity createBasicMob(RenderSystem* renderer, vec2 position)
 	mob_info.damage = 50;
 
 	// Initialize the collider
-	auto& collider = registry.colliders.emplace(entity);
-	collider.center = motion.position;
-	collider.size = motion.scale;
+	//auto& collider = registry.colliders.emplace(entity);
+	//collider.center = motion.position;
+	//collider.size = motion.scale;
 
 	registry.renderRequests.insert(
 		entity,
@@ -286,9 +286,9 @@ Entity createTestDummy(RenderSystem* renderer, vec2 position)
 	motion.scale = vec2({ 1, 1 });
 
 	// Create and (empty) Turtle component to be able to refer to all turtles
-	auto& c1 = registry.colliders.emplace(entity);
-	c1.center = motion.position;
-	c1.size = motion.scale;
+	//auto& c1 = registry.colliders.emplace(entity);
+	//c1.center = motion.position;
+	//c1.size = motion.scale;
 
 	registry.renderRequests.insert(
 		entity,
@@ -312,7 +312,8 @@ Entity createTerrainCollider(RenderSystem* renderer, TerrainSystem* terrain, vec
 	tCell.flag = uint(1) | TERRAIN_FLAGS::COLLIDABLE;
 
 	// attach collider
-	Collider& collider = registry.colliders.emplace(entity);
+	registry.colliders.emplace(entity);
+	Collider& collider = registry.colliders.get(entity);
 	motion.scale = { 1 , 1 };
 	collider.center = motion.position;
 	collider.size = motion.scale;
@@ -328,6 +329,8 @@ Entity createBoundaryBlock(RenderSystem* renderer, vec2 position)
 {
 	auto entity = Entity();
 
+	// attach boundary block component
+	registry.boundaries.emplace(entity);
 
 	// Initialize the motion
 	auto& motion = registry.motions.emplace(entity);

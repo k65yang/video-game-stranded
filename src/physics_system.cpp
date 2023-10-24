@@ -3,7 +3,7 @@
 #include "world_init.hpp"
 #include <vector>
 #include <iostream>
-
+#include <cmath>
 
 
 // Returns the local bounding coordinates of collider size
@@ -13,23 +13,31 @@ vec2 get_bounding_box(const Collider& collider)
 	return { abs(collider.size.x), abs(collider.size.y) };
 }
 
+vec2 findClosestPoint(vec2 box_points[], vec2 targetPoint) {
+	
+	
+	float dis1 = (pow(float((box_points[0].x - targetPoint.x)),2.f) + (pow(float(box_points[0].y - targetPoint.y),2.f)));
+	
+	return { 0,0 };
+	}
+
 int invertEdgeHelper(int collided_edge)
 	{
 	if (collided_edge == 0)
 		{
-		collided_edge = 3;
+		collided_edge = 2;
 		}
 	else if (collided_edge == 1)
 		{
-		collided_edge = 2;
+		collided_edge = 3;
 		}
 	else if (collided_edge == 2)
 		{
-		collided_edge = 1;
+		collided_edge = 0;
 		}
 	else
 		{
-		collided_edge = 0;
+		collided_edge = 1;
 		}
 
 	return collided_edge;
@@ -131,38 +139,19 @@ int collidesV3(const Collider& collider1, const Collider& collider2)
 {
 
 	
-	/*
 	
+	/*
 
 	Entity e1 = Entity();
-	std::cout << e1 << "\n";
-	registry.colliders.emplace(e1);
-	Collider& c1 = registry.colliders.get(e1);
-	c1.center = { 0.f, 0.f };
-	c1.size = { 1.f, 1.f };
-	c1.layer = 0;
-
+	Collider& c1 = registry.colliders.emplace(e1);
+	c1.size = { 1,1 };
 
 	Entity e3 = Entity();
-	std::cout << e1 << "\n";
-	registry.colliders.emplace(e3);
-	Collider& c23 = registry.colliders.get(e3);
-	c23.center = { 5.f,5.f };
-	c23.size = { 1.f,1.f };
-	c23.layer = 0;
+	Collider& c3 = registry.colliders.emplace(e3); //makes c1 dangling when component container is expanded
+	Collider& c4 = registry.colliders.get(e1);
 	
-
-	std::cout <<"c1 size before get bounding box " <<  c1.size.x << " ,  " << c1.size.y << "\n";
-	std::cout << "c3 size before get bounding box " << c23.size.x << " ,  " << c23.size.y << "\n";
-	
-	// get width/height of bounding box
-	vec2 bb1 = get_bounding_box(c1);
-	vec2 bb2 = get_bounding_box(c23);
-
-
-	std::cout << "after ggb c1 bb1.x is " << bb1.x << "and bb1.y is" << bb1.y << "\n";
-	std::cout << "after ggb c3 bb2.x is " << bb2.x << "and bb2.y is" << bb2.y << "\n";
 	*/
+
 
 	vec2 bb1 = get_bounding_box(collider1);
 	vec2 bb2 = get_bounding_box(collider2);
@@ -184,7 +173,7 @@ int collidesV3(const Collider& collider1, const Collider& collider2)
 	vec2 b2_bottomLeft = { b2_bottomRight.x - bb2.x, b2_bottomRight.y };
 
 	vec2 box2_points[4] = { b2_topLeft,b2_topRight,b2_bottomRight,b2_bottomLeft };
-
+	
 
 	int edge_count = 0;
 	bool isIn = false;
@@ -204,26 +193,33 @@ int collidesV3(const Collider& collider1, const Collider& collider2)
 		// if a point is detected to be inside the hit box
 		if (edge_count == 4) {
 			isIn = true;
-			
-			// compute the edge that is clostest to the point
+
 			if (abs(box1_points[0].y - box2_points[i].y) <= dis) {
+				
 				dis = abs(box1_points[0].y - box2_points[i].y);
+				std::cout << "\ndis from edge 0 is " << dis << "\n";
 				closest_edge = 0;
 			}
 
 			
 			if (abs(box1_points[1].x - box2_points[i].x) <= dis) {
 				dis = abs(box1_points[1].x - box2_points[i].x);
+				std::cout << "\ndis from edge 1 is " << dis << "\n";
+
 				closest_edge = 1;
 			}
 
 			if (abs(box1_points[2].y - box2_points[i].y) <= dis) {
 				dis = abs(box1_points[2].y - box2_points[i].y);
+				std::cout << "\ndis from edge 2 is " << dis << "\n";
+
 				closest_edge = 2;
 			}
 
 			if (abs(box1_points[3].x - box2_points[i].x) <= dis) {
 				dis = abs(box1_points[3].x - box2_points[i].x);
+				std::cout << "\ndis from edge 3 is " << dis << "\n";
+
 				closest_edge = 3;
 			}
 
@@ -231,7 +227,8 @@ int collidesV3(const Collider& collider1, const Collider& collider2)
 		edge_count = 0;
 
 	}
-
+	
+	 
 	// does the same check for the other way around
 	for (int i = 0; i < 4; i++) {
 		for (int j = 0; j < 4; j++) {
@@ -245,29 +242,42 @@ int collidesV3(const Collider& collider1, const Collider& collider2)
 
 			// note that clostest edge is invereted since the returned closest edge is with respect to first bounding box to be consistent
 			if (abs(box2_points[0].y - box1_points[i].y) <= dis) {
-				dis = abs(box1_points[0].y - box2_points[i].y);
-				closest_edge = 3;
-			}
+				dis = abs(box2_points[0].y - box1_points[i].y);
+				std::cout << "\nother entity dis from edge 0 is " << dis << "\n";
 
-			if (abs(box2_points[1].x - box1_points[i].x) <= dis) {
-				dis = abs(box1_points[1].x - box2_points[i].x);
 				closest_edge = 2;
 			}
 
+			if (abs(box2_points[1].x - box1_points[i].x) <= dis) {
+				dis = abs(box2_points[1].x - box1_points[i].x);
+				std::cout << "\nother entity dis from edge 1 is " << dis << "\n";
+
+				closest_edge = 3;
+			}
+
 			if (abs(box2_points[2].y - box1_points[i].y) <= dis) {
-				dis = abs(box1_points[2].y - box2_points[i].y);
-				closest_edge = 1;
+				dis = abs(box2_points[2].y - box1_points[i].y);
+				std::cout << "\nother entity dis from edge 2 is " << dis << "\n";
+				closest_edge = 0;
 			}
 
 			if (abs(box2_points[3].x - box1_points[i].x) <= dis) {
-				dis = abs(box1_points[3].x - box2_points[i].x);
-				closest_edge = 0;
+				dis = abs(box2_points[3].x - box1_points[i].x);
+				std::cout << "\nother entity dis from edge 3 is " << dis << "\n";
+				closest_edge = 1;
 			}
 		}
 		edge_count = 0;
 
 	}
+	
+	if (dis != 1000)
+		std::cout << dis << " after second box check \n";
+		
 
+	if (closest_edge != -1)
+		std::cout << "end of check, returing edge " << closest_edge<< "\n";
+	
 	return closest_edge;
 }
 
