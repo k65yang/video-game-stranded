@@ -172,31 +172,50 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		if (player.iframes_timer < 0) {
 			player.iframes_timer = 0;
 		}
+		
+		if (player.health_decrease_time < 0) {
+			player.health_decrease_time = 0;
+			Motion& camera_motion = registry.motions.get(main_camera);
+			camera_motion.angle = 0.f;
+			camera_motion.scale = vec2(1.0, 1.0);
+		} 
+		
+		if (player.food_decrease_time < 0) {
+			player.food_decrease_time = 0;
+		}
 
 		if (player.health_decrease_time > 0) {
 			player.health_decrease_time -= elapsed_ms_since_last_update;
 
-			if (player.health_decrease_time < 0) {
-				player.health_decrease_time = 0;
-			}
-			else {
-				Motion& health = registry.motions.get(health_bar);
-				vec2 new_health_scale = vec2(((float)player.health / (float)PLAYER_MAX_HEALTH) * HEALTH_BAR_SCALE[0], HEALTH_BAR_SCALE[1]);
-				health.scale = interpolate(health.scale, new_health_scale, 1 - (player.health_decrease_time / IFRAMES));
+			Motion& health = registry.motions.get(health_bar);
+			vec2 new_health_scale = vec2(((float)player.health / (float)PLAYER_MAX_HEALTH) * HEALTH_BAR_SCALE[0], HEALTH_BAR_SCALE[1]);
+			health.scale = interpolate(health.scale, new_health_scale, 1 - (player.health_decrease_time / IFRAMES));
+
+			// Screen shake, for feedback to the player that they have been hit.
+			int direction = rand() % 8;
+			Motion& camera_motion = registry.motions.get(main_camera);
+			switch (direction) {
+				case 0:
+					camera_motion.angle += 0.01;
+					break;
+				case 1:
+					camera_motion.angle -= 0.01;
+					break;
+				case 2:
+					camera_motion.scale += vec2(0.004, 0.004);
+					break;
+				case 3:
+					camera_motion.scale -= vec2(0.004, 0.004);
+					break;
 			}
 		}
-
+		
 		if (player.food_decrease_time > 0) {
 			player.food_decrease_time -= elapsed_ms_since_last_update;
 
-			if (player.food_decrease_time < 0) {
-				player.food_decrease_time = 0;
-			}
-			else {
-				Motion& food = registry.motions.get(food_bar);
-				vec2 new_food_scale = vec2(((float)player.food / (float)PLAYER_MAX_FOOD) * FOOD_BAR_SCALE[0], FOOD_BAR_SCALE[1]);
-				food.scale = interpolate(food.scale, new_food_scale, 1 - (player.food_decrease_time / IFRAMES));
-			}
+			Motion& food = registry.motions.get(food_bar);
+			vec2 new_food_scale = vec2(((float)player.food / (float)PLAYER_MAX_FOOD) * FOOD_BAR_SCALE[0], FOOD_BAR_SCALE[1]);
+			food.scale = interpolate(food.scale, new_food_scale, 1 - (player.food_decrease_time / IFRAMES));
 		}
 	}
 
@@ -378,13 +397,6 @@ void WorldSystem::handle_collisions() {
 
 				// Give the player some frames of invincibility so that they cannot die instantly when running into a mob
 				player.iframes_timer = IFRAMES;
-
-				// Screen shake, for feedback to the player that they have been hit.
-				Motion& camera_motion = registry.motions.get(main_camera);
-				camera_motion.position += vec2(0, 0.9);
-				camera_motion.position += vec2(1.2, 0);
-				camera_motion.position -= vec2(0, 2.3);
-				camera_motion.position -= vec2(1.5, 0);
 
 				if (player.health <= 0) {
 					if (!registry.deathTimers.has(entity)) {
