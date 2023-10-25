@@ -326,7 +326,7 @@ void WorldSystem::restart_game() {
 	terrain->init(world_size_x, world_size_y, renderer);
 
 	// Create a Spaceship 
-	createSpaceship(renderer, { 0,0 });
+	//createSpaceship(renderer, { 0,0 });
 
 	// Create a new salmon
 	player_salmon = createPlayer(renderer, { 0, 0 });
@@ -344,7 +344,7 @@ void WorldSystem::restart_game() {
 	// Create food bars 
 	food_bar = createFoodBar(renderer, { 8.f, 7.f });
 
-	//createBoxBoundary(renderer, { 15.f,15.f }, { 0,0 });
+	createBoxBoundary(renderer, { 15.f,15.f }, { 0,0 });
 
 	createTerrainCollider(renderer, terrain, { 3.f, -3.f });  //TESTING, REMOVE LATER
 	createTerrainCollider(renderer, terrain, { 3.f, 3.f });
@@ -369,7 +369,7 @@ void WorldSystem::handle_collisions() {
 		// The entity and its collider
 		Entity entity = collisionsRegistry.entities[i];
 		Entity entity_other = collisionsRegistry.components[i].other_entity;
-		int collidedEdge = collisionsRegistry.components[i].collided_edge;
+
 		// Collisions involving the player
 		if (registry.players.has(entity)) {
 			Player& player = registry.players.get(entity);
@@ -409,10 +409,15 @@ void WorldSystem::handle_collisions() {
 			if (registry.terrainCells.has(entity_other) || registry.boundaries.has(entity_other)) {
 
 				Motion& motion = registry.motions.get(player_salmon); 
-				std::cout << "collided edge is " << collidedEdge << "\n";
-				
-				motion.position = positionCorrection(motion.position,collidedEdge, 0.f);
+				/*
+				std::cout << "collided with terraincell" << std::endl;
+				std::cout << "MTV is " << collisionsRegistry.components[i].MTV.x << " and "
+					<< collisionsRegistry.components[i].MTV.y << " and overlap is "
+					<< collisionsRegistry.components[i].overlap << std::endl;
+				*/
 
+				vec2 correctionVec = registry.collisions.components[i].MTV * registry.collisions.components[i].overlap;
+				motion.position = motion.position + correctionVec;
 			}
 
 			// Checking Player - Items

@@ -5,43 +5,315 @@
 #include <iostream>
 #include <cmath>
 
+vec2 invertHelper(vec2 MTV)
+	{
+	return MTV *= -1.0f;
+	}
 
-// Returns the local bounding coordinates of collider size
-vec2 get_bounding_box(const Collider& collider)
+
+// Broad phase collision detection in Axis Aligned Bounding Box (AABB)
+
+bool AABBCollides(const Collider& collider1, const Collider& collider2) 
 {
-	// abs is to avoid negative scale due to the facing direction.
-	return { abs(collider.size.x), abs(collider.size.y) };
+	float xPos1 = collider1.position.x;
+	float yPos1 = collider1.position.y;
+	float width1 = collider1.scale.x;
+	float height1 = collider1.scale.y;
+
+	float xPos2 = collider2.position.x;
+	float yPos2 = collider2.position.y;
+	float width2 = collider2.scale.x;
+	float height2 = collider2.scale.y;
+
+	float minX1 = xPos1 - (width1 / 2.f);
+	float maxX1 = xPos1 + (width1 / 2.f);
+	float minY1 = yPos1 - (height1 / 2.f);
+	float maxY1 = yPos1 + (height1 / 2.f);
+
+	float minX2 = xPos2 - (width2 / 2.f);
+	float maxX2 = xPos2 + (width2 / 2.f);
+	float minY2 = yPos2 - (height2 / 2.f);
+	float maxY2 = yPos2 + (height2 / 2.f);
+
+	if (maxX1 < minX2 || minX1 > maxX2 || maxY1 < minY2 || minY1 > maxY2) {
+		return false;
+	}
+	else {
+		return true;
+	}
+
 }
 
-vec2 findClosestPoint(vec2 box_points[], vec2 targetPoint) {
-	
-	
-	float dis1 = (pow(float((box_points[0].x - targetPoint.x)),2.f) + (pow(float(box_points[0].y - targetPoint.y),2.f)));
-	
-	return { 0,0 };
+// reference:: https://gamedev.stackexchange.com/questions/105296/calculation-correct-position-of-object-after-collision-2d
+// Narrow phase of collision detection in SAT
+// Separating axis theorem(SAT): if there are no axises(all normals of two collider's edges) that seperates two collider,
+// then they must intercept each other.
+
+std::tuple <bool, float, vec2> SATcollides(const Collider& collider1, const Collider& collider2)
+{
+	vec2 minimalTranslationVector;
+	float overlap = 10000;
+
+
+	// obtain collider points in world coord through world position and local coord of all points for both collider
+	std::vector<vec2> collider1_worldPoints;
+	int c1_numOfPoints = collider1.points.size();
+
+	for (int i = 0; i < c1_numOfPoints; i++) {
+		collider1_worldPoints.push_back(collider1.position + collider1.rotation * collider1.points[i]);
 	}
 
-int invertEdgeHelper(int collided_edge)
+	std::vector<vec2> collider2_worldPoints;
+	int c2_numOfPoints = collider2.points.size();
+
+	for (int i = 0; i < c2_numOfPoints; i++) {
+		collider2_worldPoints.push_back(collider2.position + collider2.rotation * collider2.points[i]);
+	}
+
+	// obtain rotated normals for both collider
+	std::vector<vec2> collider1_worldNormals;
+	int c1_numOfNormals = collider1.normals.size();
+
+	for (int i = 0; i < c1_numOfNormals; i++) {
+		collider1_worldNormals.push_back(collider1.rotation * collider1.normals[i]);
+	}
+
+	std::vector<vec2> collider2_worldNormals;
+	int c2_numOfNormals = collider2.normals.size();
+
+	for (int i = 0; i < c1_numOfNormals; i++) {
+		collider2_worldNormals.push_back(collider2.rotation * collider2.normals[i]);
+	}
+
+
+	
+	// for every normal, we project all points from collider onto this axis and find the max and min 
+	// basically we want to find out the interval (min and max point) after projection all point to the normal
+	// if the intervals on the same normal from both collider intercept, then it mean they are colliding
+
+	// since we just care about the min max point of the interval on the axis , we dont need the projected vector 
+	// but just the "distance" they landed on the line. 
+	// To project vector x onto vector y: Proj_y(x) = (x . y)/(y . y) * y
+	// since our normal vector is normalized it becomes (x . y) * y
+	// in a case comparing v1 and v2 against normal
+	// if (v1 . normal) * normal  > (v2 . normal) * normal then (v1 . normal) > (v2 . normal)
+	// This means v1 is more align with normal than v2 alignment with normal
+	// in another word, v2 is farther away from the edge since the alignment is against normal
+	// we see that we can just compare (v1 . normal) instead of (v1 . normal) * normal
+
+
+	// check all normals from collider 1
+
+	for (int i = 0; i < c1_numOfNormals; i++) {
+
+		// finding collider 1 interval
+
+		float min1, max1;
+
+		// initialize min max from the first point
+		min1 = max1 = glm::dot(collider1_worldPoints[0], collider1_worldNormals[i]);
+		
+		for (int j = 1; j < c1_numOfPoints; j++) {
+
+			float current = glm::dot(collider1_worldPoints[j], collider1_worldNormals[i]);
+			if (current < min1) {
+				min1 = current;
+			}
+			else if(current > max1) {
+				max1 = current;
+			}
+
+		}
+
+		// finding collider 2 interval
+		float min2, max2;
+
+		min2 = max2 = glm::dot(collider2_worldPoints[0], collider1_worldNormals[i]);
+
+		for (int j = 1; j < c2_numOfPoints; j++) {
+
+			float current = glm::dot(collider2_worldPoints[j], collider1_worldNormals[i]);
+			if (current < min2) {
+				min2 = current;
+			}
+			else if (current > max2) {
+				max2 = current;
+			}
+
+		}
+
+		// checking if two interval overlaps
+		if (min1 < max2 && max1 > min2) {
+			
+			// compute the two overlap
+			float overlap1 = max2 - min1;
+			float overlap2 = max1 - min2;
+
+			// find the smaller overlap
+			overlap1 = overlap1 < overlap2 ? overlap1 : overlap2;
+
+			// if smaller than current than we update overlap and minimal translation vector
+			if (i == 0 || overlap1 < overlap) {
+				overlap = overlap1;
+				minimalTranslationVector = collider1_worldNormals[i];
+			}
+		}
+		else {
+		// if no interval overlaps, then we found an axis that separates the two collider, hence no collision
+		
+			return std::make_tuple(false, 0.f, vec2{ 0.f,0.f });
+		
+		}
+	
+	}
+
+	// check all normals from collider 2
+
+	for (int i = 0; i < c2_numOfNormals; i++) {
+
+		// finding collider 1 interval
+		float min1, max1;
+
+		// initialize min max from the first point
+		min1 = max1 = glm::dot(collider1_worldPoints[0], collider2_worldNormals[i]);
+
+		for (int j = 1; j < c1_numOfPoints; j++) {
+
+			float current = glm::dot(collider1_worldPoints[j], collider2_worldNormals[i]);
+			if (current < min1) {
+				min1 = current;
+			}
+			else if (current > max1) {
+				max1 = current;
+			}
+
+		}
+
+		// finding collider 2 interval
+		float min2, max2;
+
+		min2 = max2 = glm::dot(collider2_worldPoints[0], collider2_worldNormals[i]);
+
+		for (int j = 1; j < c2_numOfPoints; j++) {
+
+			float current = glm::dot(collider2_worldPoints[j], collider2_worldNormals[i]);
+			if (current < min2) {
+				min2 = current;
+			}
+			else if (current > max2) {
+				max2 = current;
+			}
+
+		}
+
+		// checking if two interval overlaps
+		if (min1 < max2 && max1 > min2) {
+
+			// compute the two overlap
+			float overlap1 = max2 - min1;
+			float overlap2 = max1 - min2;
+
+			// find the smaller overlap
+			overlap1 = overlap1 < overlap2 ? overlap1 : overlap2;
+
+			// if smaller than current than we update overlap and minimal translation vector
+			if (i == 0 || overlap1 < overlap) {
+				overlap = overlap1;
+				minimalTranslationVector = collider2_worldNormals[i];
+			}
+		}
+		else {
+			// if no interval overlaps, then we found an axis that separates the two collider, hence no collision
+
+			return std::make_tuple(false, 0.f, vec2{ 0.f,0.f });
+
+		}
+
+	}
+
+	// Reach here if there is collision
+
+	// make the minimal translation vector always points to first collider
+	vec2 dirPointedToCollider1 = collider1.position - collider2.position;
+
+	// negative dot product means two vector are facing opposite direction
+	if (glm::dot(dirPointedToCollider1, minimalTranslationVector) < 0.f) {
+		minimalTranslationVector *= -1.0f;
+	}
+
+
+	return std::make_tuple(true, overlap, minimalTranslationVector);
+}
+
+
+void PhysicsSystem::step(float elapsed_ms)
 	{
-	if (collided_edge == 0)
+	// Move fish based on how much time has passed, this is to (partially) avoid
+	// having entities move at different speed based on the machine.
+	auto& motion_container = registry.motions;
+	auto& collider_container = registry.colliders;
+
+	for (uint i = 0; i < motion_container.size(); i++)
 		{
-		collided_edge = 2;
-		}
-	else if (collided_edge == 1)
-		{
-		collided_edge = 3;
-		}
-	else if (collided_edge == 2)
-		{
-		collided_edge = 0;
-		}
-	else
-		{
-		collided_edge = 1;
+		Motion& motion = motion_container.components[i];
+		Entity entity = motion_container.entities[i];
+		motion.position += motion.velocity * elapsed_ms / 1000.f;
+	
+		// adjusting collider center for moving object
+		if (collider_container.has(entity))
+			{
+			collider_container.get(entity).position = motion.position;
+			}
+
 		}
 
-	return collided_edge;
+	// Check for collisions between all entities with collider
+	for (uint i = 0; i < collider_container.components.size(); i++)
+		{
+
+		Collider& collider_i = collider_container.components[i];
+		Entity entity_i = collider_container.entities[i];
+
+		// note starting j at i+1 to compare all (i,j) pairs only once (and to not compare with itself)
+		for (uint j = i + 1; j < collider_container.components.size(); j++)
+			{
+			Collider& collider_j = collider_container.components[j];
+
+			// Broad phase collision detection with AABB first
+			if (AABBCollides(collider_i, collider_j))
+				{
+				bool isCollide;
+				float overlap;
+				vec2 MTV;
+
+				// Narrow phase collision detection with SAT
+				auto result = SATcollides(collider_i, collider_j);
+				std::tie(isCollide, overlap, MTV) = result;
+
+				if (isCollide)
+					{
+					Entity entity_j = collider_container.entities[j];
+
+					// Create a collisions event
+					// We are abusing the ECS system a bit in that we potentially insert muliple collisions for the same entity
+					registry.collisions.emplace_with_duplicates(entity_i, entity_j, overlap, MTV);
+
+					// inverting correction vector for other entites
+					registry.collisions.emplace_with_duplicates(entity_j, entity_i, overlap, invertHelper(MTV));
+					}
+				}
+		
+			}
+			
+		}
+	
 	}
+
+
+
+		
+		
+
 
 // This is a SUPER APPROXIMATE check that puts a circle around the bounding boxes and sees
 // if the center point of either object is inside the other's bounding-box-circle. You can
@@ -61,281 +333,6 @@ bool collides(const Motion& motion1, const Motion& motion2)
 	return false;
 }
 */
-
-
-// citation: https://stackoverflow.com/questions/1560492/how-to-tell-whether-a-point-is-to-the-right-or-left-side-of-a-line
-// determine if a point is on left side of a given line using cross product of 2d matrix
-// returns true if target point is on left side or on top of line formed by point A, B.
-bool isLeftForPoint(vec2 linePointA, vec2 linePointB, vec2 targetPoint) {
-	float ans = (linePointB.x - linePointA.x) * (targetPoint.y - linePointA.y) - (linePointB.y - linePointA.y) * (targetPoint.x - linePointA.x);
-	return ans >= 0;
-
-	}
-// point inside box test
-/*
-bool collidesV2(const Motion& motion1, const Motion& motion2)
-	{
-	
-	// get abs(scale)
-	vec2 bb1 = get_bounding_box(motion1);
-	vec2 bb2 = get_bounding_box(motion2);
-
-	// compute four points for motion 1 bounding box
-	vec2 b1_topLeft = { (motion1.position.x - (bb1.x / 2.f)), (motion1.position.y - (bb1.y / 2.f)) };
-	vec2 b1_topRight = { b1_topLeft.x + bb1.x, b1_topLeft.y };
-	vec2 b1_bottomRight = { (motion1.position.x + (bb1.x / 2.f)), (motion1.position.y + (bb1.y / 2.f)) };
-	vec2 b1_bottomLeft = { b1_bottomRight.x - bb1.x, b1_bottomRight.y };
-
-	vec2 box1_points[4] = { b1_topLeft,b1_topRight,b1_bottomRight,b1_bottomLeft };
-
-	// compute four points for motion 2 bounding box
-	vec2 b2_topLeft = { (motion2.position.x - (bb2.x / 2.f)), (motion2.position.y - (bb2.y / 2.f)) };
-	vec2 b2_topRight = { b2_topLeft.x + bb2.x, b2_topLeft.y };
-	vec2 b2_bottomRight = { (motion2.position.x + (bb2.x / 2.f)), (motion2.position.y + (bb2.y / 2.f)) };
-	vec2 b2_bottomLeft = { b2_bottomRight.x - bb2.x, b2_bottomRight.y };
-
-	vec2 box2_points[4] = { b2_topLeft,b2_topRight,b2_bottomRight,b2_bottomLeft };
-
-	
-	int edge_count = 0;
-	bool isIn = false;
-	
-	// check if any of the 4 edge point of is within the box (on the same side of all edges)
-	for (int i = 0; i < 4; i++) {
-		for (int j = 0; j < 4; j++) {
-			if (isLeftForPoint(box1_points[j], box1_points[(j + 1) % 4], box2_points[i]))
-				edge_count += 1;
-			}
-
-		if (edge_count == 4) {
-			isIn = true;
-		}
-		edge_count = 0;
-
-	}
-
-	// does the same check for the other way around
-	for (int i = 0; i < 4; i++) {
-		for (int j = 0; j < 4; j++) {
-			if (isLeftForPoint(box2_points[j], box2_points[(j + 1) % 4], box1_points[i]))
-				edge_count += 1;
-		}
-
-		if (edge_count == 4) {
-			isIn = true;
-		}
-		edge_count = 0;
-
-	}
-
-	
-	return isIn;
-}
-*/
-
-
-// Return the edge of collision as int: -1 no collision, 0 top, 1 right, 2 bottom, 3 lef 
-int collidesV3(const Collider& collider1, const Collider& collider2)
-{
-
-	
-	
-	/*
-
-	Entity e1 = Entity();
-	Collider& c1 = registry.colliders.emplace(e1);
-	c1.size = { 1,1 };
-
-	Entity e3 = Entity();
-	Collider& c3 = registry.colliders.emplace(e3); //makes c1 dangling when component container is expanded
-	Collider& c4 = registry.colliders.get(e1);
-	
-	*/
-
-
-	vec2 bb1 = get_bounding_box(collider1);
-	vec2 bb2 = get_bounding_box(collider2);
-
-	// compute four points for motion 1 bounding box
-
-	// calculate top left x position by center x - width/2, similar on y position etc..
-	vec2 b1_topLeft = { (collider1.center.x - (bb1.x / 2.f)), (collider1.center.y - (bb1.y / 2.f)) };
-	vec2 b1_topRight = { b1_topLeft.x + bb1.x, b1_topLeft.y };
-	vec2 b1_bottomRight = { (collider1.center.x + (bb1.x / 2.f)), (collider1.center.y + (bb1.y / 2.f)) };
-	vec2 b1_bottomLeft = { b1_bottomRight.x - bb1.x, b1_bottomRight.y };
-
-	vec2 box1_points[4] = { b1_topLeft,b1_topRight,b1_bottomRight,b1_bottomLeft };
-	
-	// compute four points for motion 2 bounding box
-	vec2 b2_topLeft = { (collider2.center.x - (bb2.x / 2.f)), (collider2.center.y - (bb2.y / 2.f)) };
-	vec2 b2_topRight = { b2_topLeft.x + bb2.x, b2_topLeft.y };
-	vec2 b2_bottomRight = { (collider2.center.x + (bb2.x / 2.f)), (collider2.center.y + (bb2.y / 2.f)) };
-	vec2 b2_bottomLeft = { b2_bottomRight.x - bb2.x, b2_bottomRight.y };
-
-	vec2 box2_points[4] = { b2_topLeft,b2_topRight,b2_bottomRight,b2_bottomLeft };
-	
-
-	int edge_count = 0;
-	bool isIn = false;
-	int closest_edge = -1;
-	float dis = 1000; // setting default to a high number 
-
-	// check if any of the 4 edge point of is within the box (on the same side of all edges)
-	// also check the smallest distance between point with 4 edges
-	
-	for (int i = 0; i < 4; i++) {
-		for (int j = 0; j < 4; j++) {
-			if (isLeftForPoint(box1_points[j], box1_points[(j + 1) % 4], box2_points[i])) {
-				edge_count += 1;
-			}
-		}
-
-		// if a point is detected to be inside the hit box
-		if (edge_count == 4) {
-			isIn = true;
-
-			if (abs(box1_points[0].y - box2_points[i].y) <= dis) {
-				
-				dis = abs(box1_points[0].y - box2_points[i].y);
-				std::cout << "\ndis from edge 0 is " << dis << "\n";
-				closest_edge = 0;
-			}
-
-			
-			if (abs(box1_points[1].x - box2_points[i].x) <= dis) {
-				dis = abs(box1_points[1].x - box2_points[i].x);
-				std::cout << "\ndis from edge 1 is " << dis << "\n";
-
-				closest_edge = 1;
-			}
-
-			if (abs(box1_points[2].y - box2_points[i].y) <= dis) {
-				dis = abs(box1_points[2].y - box2_points[i].y);
-				std::cout << "\ndis from edge 2 is " << dis << "\n";
-
-				closest_edge = 2;
-			}
-
-			if (abs(box1_points[3].x - box2_points[i].x) <= dis) {
-				dis = abs(box1_points[3].x - box2_points[i].x);
-				std::cout << "\ndis from edge 3 is " << dis << "\n";
-
-				closest_edge = 3;
-			}
-
-		}
-		edge_count = 0;
-
-	}
-	
-	 
-	// does the same check for the other way around
-	for (int i = 0; i < 4; i++) {
-		for (int j = 0; j < 4; j++) {
-			if (isLeftForPoint(box2_points[j], box2_points[(j + 1) % 4], box1_points[i]))
-				edge_count += 1;
-		}
-
-		if (edge_count == 4) {
-			isIn = true;
-
-
-			// note that clostest edge is invereted since the returned closest edge is with respect to first bounding box to be consistent
-			if (abs(box2_points[0].y - box1_points[i].y) <= dis) {
-				dis = abs(box2_points[0].y - box1_points[i].y);
-				std::cout << "\nother entity dis from edge 0 is " << dis << "\n";
-
-				closest_edge = 2;
-			}
-
-			if (abs(box2_points[1].x - box1_points[i].x) <= dis) {
-				dis = abs(box2_points[1].x - box1_points[i].x);
-				std::cout << "\nother entity dis from edge 1 is " << dis << "\n";
-
-				closest_edge = 3;
-			}
-
-			if (abs(box2_points[2].y - box1_points[i].y) <= dis) {
-				dis = abs(box2_points[2].y - box1_points[i].y);
-				std::cout << "\nother entity dis from edge 2 is " << dis << "\n";
-				closest_edge = 0;
-			}
-
-			if (abs(box2_points[3].x - box1_points[i].x) <= dis) {
-				dis = abs(box2_points[3].x - box1_points[i].x);
-				std::cout << "\nother entity dis from edge 3 is " << dis << "\n";
-				closest_edge = 1;
-			}
-		}
-		edge_count = 0;
-
-	}
-	
-	if (dis != 1000)
-		std::cout << dis << " after second box check \n";
-		
-
-	if (closest_edge != -1)
-		std::cout << "end of check, returing edge " << closest_edge<< "\n";
-	
-	return closest_edge;
-}
-
-void PhysicsSystem::step(float elapsed_ms)
-	{
-	// Move fish based on how much time has passed, this is to (partially) avoid
-	// having entities move at different speed based on the machine.
-	auto& motion_container = registry.motions;
-	auto& collider_container = registry.colliders;
-
-	for (uint i = 0; i < motion_container.size(); i++)
-		{
-		Motion& motion = motion_container.components[i];
-		Entity entity = motion_container.entities[i];
-		motion.position += motion.velocity * elapsed_ms / 1000.f;
-
-		// adjusting collider center for moving object
-		if (collider_container.has(entity))
-			{
-			collider_container.get(entity).center = motion.position;
-			}
-
-		}
-
-	// Check for collisions between all entities with collider
-	for (uint i = 0; i < collider_container.components.size(); i++)
-		{
-		Collider& collider_i = collider_container.components[i];
-		Entity entity_i = collider_container.entities[i];
-
-		// note starting j at i+1 to compare all (i,j) pairs only once (and to not compare with itself)
-		for (uint j = i + 1; j < collider_container.components.size(); j++)
-			{
-			Collider& collider_j = collider_container.components[j];
-
-			int collided_edge = collidesV3(collider_i, collider_j);
-
-			// has collided with other 
-			if (collided_edge > -1)
-				{
-				Entity entity_j = collider_container.entities[j];
-
-				// Create a collisions event
-				// We are abusing the ECS system a bit in that we potentially insert muliple collisions for the same entity
-				registry.collisions.emplace_with_duplicates(entity_i, entity_j, collided_edge);
-
-				// inverting collided edge for other entites
-				registry.collisions.emplace_with_duplicates(entity_j, entity_i, invertEdgeHelper(collided_edge));
-				}
-			}
-		}
-	}
-
-
-
-		
-		
-		
 
 /*
 void PhysicsSystem::step(float elapsed_ms)
@@ -373,7 +370,3 @@ void PhysicsSystem::step(float elapsed_ms)
 	}
 	*/
 
-	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-	// TODO A2: HANDLE PEBBLE collisions HERE
-	// DON'T WORRY ABOUT THIS UNTIL ASSIGNMENT 2
-	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

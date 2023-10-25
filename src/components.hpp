@@ -57,10 +57,13 @@ struct Collision
 {
 	// Note, the first object is stored in the ECS container.entities
 	Entity other_entity; // the second object involved in the collision
-	int collided_edge;
-	Collision(Entity& other_entity, int collided_edge) { 
+	vec2 MTV; // minimal translation vector for collision resolution
+	float overlap; // magnitude of collision depth
+
+	Collision(Entity& other_entity, float overlap, vec2 MTV) { 
 		this->other_entity = other_entity;
-		this->collided_edge = collided_edge;
+		this->overlap = overlap;
+		this->MTV = MTV;
 		};
 
 };
@@ -135,26 +138,26 @@ enum TERRAIN_FLAGS {
 struct TerrainCell 
 {
 	TERRAIN_TYPE terrain_type;
-	int flag;  // 
+	int flag; 
+
 	TerrainCell(TERRAIN_TYPE terrain_type, int flag) {
 	this->terrain_type = terrain_type;
 	this->flag = flag;
 	};
-
-	
 };
 
 // component for entity that have collision, size is the width/height of bounding box
 struct Collider
 {
-	vec2 size;
-	vec2 center;
-	int layer; 
+	vec2 position;  //position in world coord, used in collision detection. This needs to be updated by physics::step
+	std::vector<vec2> points;  // in local coord
+	std::vector<vec2> normals; 
+	mat2 rotation;	// might need for later when we have entity(mobs) that can rotate its sprites
+	vec2 scale; // used for AABB broad phase detection
+	int flag;  // for filtering 
 };
 
-// for boundary block only
 struct BoundaryBlock {
-
 
 };
 

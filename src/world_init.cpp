@@ -1,6 +1,8 @@
 #include "world_init.hpp"
 #include "tiny_ecs_registry.hpp"
 #include <iostream>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 
 Entity createPlayer(RenderSystem* renderer, vec2 pos)
 	{
@@ -18,9 +20,7 @@ Entity createPlayer(RenderSystem* renderer, vec2 pos)
 	motion.scale = { 1.f,1.f };
 
 	// Initialize the collider
-	auto& collider = registry.colliders.emplace(entity);
-	collider.center = motion.position;
-	collider.size = motion.scale;
+	createCollider(entity);
 
 	// Add the player to the players registry
 	registry.players.emplace(entity);
@@ -57,9 +57,7 @@ Entity createItem(RenderSystem* renderer, vec2 position, ITEM_TYPE type)
 	item.data = type;
 
 	// Initialize the collider
-	//auto& collider = registry.colliders.emplace(entity);
-	//collider.center = motion.position;
-	//collider.size = motion.scale;
+	createCollider(entity);
 
 	TEXTURE_ASSET_ID texture = TEXTURE_ASSET_ID::PLAYER;
 	switch (type) {
@@ -112,9 +110,7 @@ Entity createBasicMob(RenderSystem* renderer, vec2 position)
 	mob_info.damage = 50;
 
 	// Initialize the collider
-	//auto& collider = registry.colliders.emplace(entity);
-	//collider.center = motion.position;
-	//collider.size = motion.scale;
+	createCollider(entity);
 
 	registry.renderRequests.insert(
 		entity,
@@ -244,10 +240,15 @@ Entity createCamera(vec2 pos)
 	return entity;
 }
 
-// Creates FOW entity on given position
+
+/// <summary>
+/// Creates FOW entity on given position
+/// </summary>
+/// <param name="renderer">renderer for render request</param>
+/// <param name="position">position for FOW</param>
+/// <returns>The fow entity</returns>
 Entity createFOW(RenderSystem* renderer, vec2 position)
 {
-	// Reserve en entity
 	auto entity = Entity();
 
 	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
@@ -281,14 +282,10 @@ Entity createTestDummy(RenderSystem* renderer, vec2 position)
 	// Initialize the motion
 	auto& motion = registry.motions.emplace(entity);
 	motion.position = position;
-
-	// Setting initial values, scale is negative to make it face the opposite way
 	motion.scale = vec2({ 1, 1 });
 
-	// Create and (empty) Turtle component to be able to refer to all turtles
-	//auto& c1 = registry.colliders.emplace(entity);
-	//c1.center = motion.position;
-	//c1.size = motion.scale;
+	// Initialize collider
+	createCollider(entity);
 
 	registry.renderRequests.insert(
 		entity,
@@ -301,26 +298,29 @@ Entity createTestDummy(RenderSystem* renderer, vec2 position)
 }
 
 
+/// <summary>
+/// Turn a terrain cell non-passable, as well as changing the sprite
+/// </summary>
+/// <param name="renderer">renderer for render request</param>
+/// /// <param name="renderer">terrain from terrain system</param>
+/// <param name="position">position of target terrain cell</param>
+/// <returns>The terrain cell entity</returns>
 Entity createTerrainCollider(RenderSystem* renderer, TerrainSystem* terrain, vec2 position)
 {
 	auto entity = terrain->get_cell(position.x, position.y);
-	std::cout << "cell x pos is " << position.x << " ypos is " << position.y << "\n"; //REMOVE LATER
 	TerrainCell& tCell = registry.terrainCells.get(entity);
 	Motion& motion = registry.motions.get(entity);
+	motion.position = position;
 
 	// set the cell to collidable
 	tCell.flag = uint(1) | TERRAIN_FLAGS::COLLIDABLE;
 
 	// attach collider
-	registry.colliders.emplace(entity);
-	Collider& collider = registry.colliders.get(entity);
-	motion.scale = { 1 , 1 };
-	collider.center = motion.position;
-	collider.size = motion.scale;
+	createCollider(entity);
 
+	// change sprite to redblock  TEMPORARY FOR NOW
 	RenderRequest& rr = registry.renderRequests.get(entity);
 	rr.used_texture = TEXTURE_ASSET_ID::REDBLOCK;
-
 
 	return entity;
 }
@@ -340,9 +340,7 @@ Entity createBoundaryBlock(RenderSystem* renderer, vec2 position)
 	motion.scale = vec2({ 1, 1 });
 
 	// Initialize the collider
-	auto& collider = registry.colliders.emplace(entity);
-	collider.center = motion.position;
-	collider.size = motion.scale;
+	createCollider(entity);
 
 	registry.renderRequests.insert(
 		entity,
@@ -382,32 +380,71 @@ void createBoxBoundary(RenderSystem* renderer, vec2 size, vec2 center) {
 
 }
 
-/*
 /// <summary>
-/// Creates a box boundary with given size and center point
+/// create coord of a box given a scale(width/height). Points are in local coord and center is 0,0. 
+/// points are added in clockwise direction starting from top left point
 /// </summary>
-/// <param name="size">size of box in vec2</param>
-/// <param name="center">center point of box boundary in world space</param>
+/// <param name="points">destination buffer to store the points</param>
+/// <param name="scale">width and height of the box</param>
 /// <returns>void</returns>
-void createBoxBoundary(RenderSystem* renderer, vec2 size, vec2 center) {
-	vec2 topleftpos = { center.x - (int)size.x / 2, center.y - (int)size.y / 2 };
-	// start from top left
+void createBoundingBox(std::vector<vec2>& points, vec2 scale) {
 
-	// draw top and bottom of the box
-	for (int i = 0; i < size.x; i++) {
+	// calculate top left x position by center(0) - width/2, similar on y position etc..
+	vec2 b1_topLeft = {(0 - (scale.x / 2.f)), (0 - (scale.y / 2.f))};
+	vec2 b1_topRight = { (0 + (scale.x / 2.f)), (0 - (scale.y / 2.f)) };
+	vec2 b1_bottomRight = {(0 + (scale.x / 2.f)), (0 + (scale.y / 2.f))};
+	vec2 b1_bottomLeft = {(0 - (scale.x / 2.f)), (0 + (scale.y / 2.f)) };
 
-		createTerrainCollider(renderer, { topleftpos.x + i, topleftpos.y });
+	points.push_back(b1_topLeft);
+	points.push_back(b1_topRight);
+	points.push_back(b1_bottomRight);
+	points.push_back(b1_bottomLeft);
 
-		// We're subtracting the y position by 1 because we're off by 1
-		createTerrainCollider(renderer, { topleftpos.x + i, topleftpos.y + size.y - 1 });
-		}
+}
 
-	//draw left and right of the box
-	for (int i = 1; i < size.y - 1; i++) {
-		// start from top left
-		createTerrainCollider(renderer, { topleftpos.x, topleftpos.y + i });
-		createTerrainCollider(renderer, { topleftpos.x + size.x - 1, topleftpos.y + i });
-		}
 
+// reference:: https://gamedev.stackexchange.com/questions/105296/calculation-correct-position-of-object-after-collision-2d
+
+/// <summary>
+/// Create a convex hull collider based on polygon given. 
+//	The shape is hard coded to be box shape with entity's scale for now 
+/// </summary>
+/// <param name="entity">entity to attach this collider</param>
+/// <returns>void</returns>
+void createCollider(Entity entity) {
+
+	auto& motion = registry.motions.get(entity);
+	auto& collider = registry.colliders.emplace(entity);
+
+	// world position, used in collision detection. This needs to be updated by physics::step
+	collider.position = motion.position;
+
+	// generating points in local coord(center at 0,0)
+	std::vector<glm::vec2> points;
+
+	// HARDCODED TO BOX NOW. Assuming all entity will use a box collider
+	createBoundingBox(points, motion.scale);
+
+	// generating normals
+	vec2 edge;
+	for (int i = 0; i < points.size(); i++) {
+		edge = points[(i + 1) % points.size()] - points[i];
+
+		// We can obtain the normal by swapping <x,y> with <-y, x>. Normalizing vector to ease later calculation.
+		collider.normals.push_back(glm::normalize(vec2(-edge.y, edge.x)));
+		
 	}
-*/
+
+	// move all points over to collider
+	collider.points = std::move(points);
+	
+	// rotation
+	collider.rotation = mat2(cos(motion.angle), -sin(motion.angle), sin(motion.angle), cos(motion.angle));
+
+	// scale
+	collider.scale = motion.scale;
+
+	// flags
+	collider.flag = 0;
+
+}
