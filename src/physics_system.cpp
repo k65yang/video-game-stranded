@@ -263,7 +263,15 @@ void PhysicsSystem::step(float elapsed_ms)
 		if (collider_container.has(entity))
 			{
 			collider_container.get(entity).position = motion.position;
+
+			auto& player_container = registry.players;
+			if (player_container.has(entity)) 
+			{
+				// update collider rotation matrix since player angle changes
+				collider_container.get(entity).rotation = mat2(cos(motion.angle), -sin(motion.angle), sin(motion.angle), cos(motion.angle));
 			}
+			
+		}
 
 		}
 

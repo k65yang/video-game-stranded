@@ -492,8 +492,15 @@ void WorldSystem::handle_collisions() {
 				}
 				registry.remove_all_components_of(entity);
 			} 
-			// Checking Projectile - Terrain Colliders
-			else if (registry.terrainColliders.has(entity_other)) {
+			// Checking Projectile - non passable terrain cell
+			else if ((registry.terrainCells.has(entity_other) && (registry.terrainCells.get(entity_other).flag & TERRAIN_FLAGS::COLLIDABLE)))
+			{
+				registry.remove_all_components_of(entity);
+			}
+			
+			// Checking Projectile - Boundary 
+			else if (registry.boundaries.has(entity_other))
+			{
 				registry.remove_all_components_of(entity);
 			}
 		}

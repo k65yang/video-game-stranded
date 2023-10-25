@@ -54,6 +54,9 @@ Entity createProjectile(RenderSystem* renderer, vec2 pos) {
 	// Add this projectile to the projectiles registry
 	registry.projectiles.emplace(entity);
 
+	// Initialize the collider
+	createCollider(entity);
+
 	// TODO: Change this later
 	TEXTURE_ASSET_ID texture = TEXTURE_ASSET_ID::WEAPON;
 
