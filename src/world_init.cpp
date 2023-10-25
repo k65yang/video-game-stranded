@@ -37,6 +37,36 @@ Entity createPlayer(RenderSystem* renderer, vec2 pos)
 	return entity;
 }
 
+Entity createProjectile(RenderSystem* renderer, vec2 pos) {
+	// Reserve an entity
+	auto entity = Entity();
+
+	// Store a reference to the potentially re-used mesh object
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Initialize the position, scale, and physics components
+	auto& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.velocity = { 0.f, 0.f };
+	motion.position = pos;
+
+	// Add this projectile to the projectiles registry
+	registry.projectiles.emplace(entity);
+
+	// TODO: Change this later
+	TEXTURE_ASSET_ID texture = TEXTURE_ASSET_ID::WEAPON;
+
+	registry.renderRequests.insert(
+		entity,
+		{ texture,
+			EFFECT_ASSET_ID::TEXTURED,
+			GEOMETRY_BUFFER_ID::SPRITE,
+			RENDER_LAYER_ID::LAYER_1 });
+
+	return entity;
+}
+
 Entity createItem(RenderSystem* renderer, vec2 position, ITEM_TYPE type)
 {
 	// Reserve en entity
@@ -70,7 +100,7 @@ Entity createItem(RenderSystem* renderer, vec2 position, ITEM_TYPE type)
 	case ITEM_TYPE::FOOD:
 		texture = TEXTURE_ASSET_ID::FOOD;
 		break;
-	case ITEM_TYPE::WEAPON:
+	case ITEM_TYPE::WEAPON_GENERIC:
 		texture = TEXTURE_ASSET_ID::WEAPON;
 		break;
 	}

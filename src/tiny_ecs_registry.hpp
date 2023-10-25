@@ -15,6 +15,8 @@ public:
 	ComponentContainer<Motion> motions;
 	ComponentContainer<Collision> collisions;
 	ComponentContainer<Player> players;
+	ComponentContainer<Weapon> weapons;
+	ComponentContainer<Projectile> projectiles;
 
 	ComponentContainer<Mob> mobs;
 	ComponentContainer<Path> paths;
@@ -47,6 +49,8 @@ public:
 		registry_list.push_back(&motions);
 		registry_list.push_back(&collisions);
 		registry_list.push_back(&players);
+		registry_list.push_back(&weapons);
+		registry_list.push_back(&projectiles);
 		registry_list.push_back(&mobs);
 		registry_list.push_back(&paths);
 		registry_list.push_back(&items);
