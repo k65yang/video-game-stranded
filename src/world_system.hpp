@@ -148,12 +148,4 @@ private:
 	void update_camera_follow();
 	bool keyDown[KEYS];    // Uses InputKeyIndex values as index
 
-
-	/// <summary>
-	/// helper function for terrain collision response, calculates the corrected player position based on collided edge, offset 
-	/// </summary>
-	/// <param name="position"> pass in player.position</param>
-	/// <param name="collided_edge"> colliding edge</param>
-	/// <param name="offset"> offset added to corerction to avoid re-trigger the collision detection</param>
-	vec2 positionCorrection(vec2 position, int collided_edge, float offset);
 };

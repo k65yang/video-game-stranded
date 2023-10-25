@@ -326,7 +326,7 @@ void WorldSystem::restart_game() {
 	terrain->init(world_size_x, world_size_y, renderer);
 
 	// Create a Spaceship 
-	//createSpaceship(renderer, { 0,0 });
+	createSpaceship(renderer, { 0,0 });
 
 	// Create a new salmon
 	player_salmon = createPlayer(renderer, { 0, 0 });
@@ -344,13 +344,15 @@ void WorldSystem::restart_game() {
 	// Create food bars 
 	food_bar = createFoodBar(renderer, { 8.f, 7.f });
 
-	createBoxBoundary(renderer, { 15.f,15.f }, { 0,0 });
+	// Create boundary
+	boundaryInitialize(renderer, { 15.f,15.f }, { 0,0 });
 
-	createTerrainCollider(renderer, terrain, { 3.f, -3.f });  //TESTING, REMOVE LATER
-	createTerrainCollider(renderer, terrain, { 3.f, 3.f });
-	createTerrainCollider(renderer, terrain, { -3.f, 3.f });
+	//FOR DEMO, CAN REMOVE LATER
+	createTerrainCollider(renderer, terrain, { 3.f, -3.f });  
+	createTerrainCollider(renderer, terrain, { 3.f, 3.f });   
+	createTerrainCollider(renderer, terrain, { -3.f, 3.f });  
 	createTerrainCollider(renderer, terrain, { -3.f, -3.f });
-
+	 
 
 	// FOR DEMO - to show different types of items being created.	
 	spawn_items();
@@ -409,13 +411,6 @@ void WorldSystem::handle_collisions() {
 			if (registry.terrainCells.has(entity_other) || registry.boundaries.has(entity_other)) {
 
 				Motion& motion = registry.motions.get(player_salmon); 
-				/*
-				std::cout << "collided with terraincell" << std::endl;
-				std::cout << "MTV is " << collisionsRegistry.components[i].MTV.x << " and "
-					<< collisionsRegistry.components[i].MTV.y << " and overlap is "
-					<< collisionsRegistry.components[i].overlap << std::endl;
-				*/
-
 				vec2 correctionVec = registry.collisions.components[i].MTV * registry.collisions.components[i].overlap;
 				motion.position = motion.position + correctionVec;
 			}
@@ -606,84 +601,6 @@ void WorldSystem::on_mouse_move(vec2 mouse_position) {
 	(vec2)mouse_position; // dummy to avoid compiler warning
 }
 
-
-	/// <summary>
-	/// helper function for terrain collision response, calculates the corrected player position based on collided edge, offset 
-	/// </summary>
-	/// <param name="position"> pass in player.position</param>
-	/// <param name="collided_edge"> colliding edge</param>
-	/// <param name="offset"> offset added to corerction to avoid re-trigger the collision detection</param>
-
-vec2 WorldSystem::positionCorrection(const vec2 position, int collided_edge, float offset) {
-	
-
-	vec2 newPosition = position;
-
-	std::cout << "position before correction is " << position.x << " and " << position.y << "\n";
-	switch (collided_edge) {
-		case 0:
-
-			newPosition.y = ceil(position.y); // ceil round number up, floor round number down. even for negative. ceil(-0.5) = 0 
-			newPosition.y += offset;
-			break;
-		case 1:
-			newPosition.x = floor(position.x);
-			newPosition.x -= offset;
-			break;
-
-		case 2:
-			newPosition.y = floor(position.y);
-			newPosition.y -= offset;
-			break;
-
-		case 3:
-			newPosition.x = ceil(position.x);
-			newPosition.x += offset;
-			break;
-		default:
-			// no correction
-			break;
-
-		}
-
-	std::cout << "position after correction is " << position.x << " and " << position.y << "\n\n\n";
-
-
-	return newPosition;
-}
-/*
-float WorldSystem::positionCorrection(float position) {
-	// only correct the position when the difference is between 0.05 to 0.
-	// this is to account for case where left and down are both pressed when player is colliding wall to the left
-	// in this case we would only want to correct the x position
-
-	float whole = 0;
-
-	if (position >= 0) {
-		whole = floor(position);
-		}
-	else {
-		whole = ceil(position);
-		}
-
-	float fraction = mod(position, whole);
-	float offset = 0.02;
-
-	// determine round up or down, adding offset to prevent continuous triggering
-	if (position >= 0 && fraction <= 0.05) {
-		position = floor(position) - offset;
-		}
-	else if (position < 0 && fraction >= -0.05) {
-		position = ceil(position) + offset;
-		}
-	else {
-		//no correction
-		// 
-		}
-
-	return position;
-	}
-	*/
 void WorldSystem::spawn_items() {
 	const int NUM_ITEM_TYPES = 4;
 

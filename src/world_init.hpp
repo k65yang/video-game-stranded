@@ -51,6 +51,14 @@ Entity createTestDummy(RenderSystem* renderer, vec2 position);
 /// <returns>The terrain cell entity</returns>
 Entity createTerrainCollider(RenderSystem* renderer,TerrainSystem* terrin, vec2 position);
 
+/// <summary>
+/// Create boundary block given position and scale
+/// </summary>
+/// <param name="renderer">renderer for render request</param>
+/// <param name="position">scale of the block</param>
+/// <param name="scale">scale of the block</param>
+/// <returns>Boundary block entity</returns>
+Entity createBoundaryBlock(RenderSystem* renderer, vec2 position, vec2 scale);
 
 /// <summary>
 /// Creates a box boundary with given size and center point
@@ -58,7 +66,7 @@ Entity createTerrainCollider(RenderSystem* renderer,TerrainSystem* terrin, vec2 
 /// <param name="size">size of box in vec2</param>
 /// <param name="center">center point of box boundary in world space</param>
 /// <returns>void</returns>
-void createBoxBoundary(RenderSystem* renderer, vec2 size, vec2 center);
+void boundaryInitialize(RenderSystem* renderer, vec2 size, vec2 center);
 
 /// <summary>
 /// create coord of a box given a scale(width/height). Points are in local coord and center is 0,0. 

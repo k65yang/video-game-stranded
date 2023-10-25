@@ -302,7 +302,7 @@ Entity createTestDummy(RenderSystem* renderer, vec2 position)
 /// Turn a terrain cell non-passable, as well as changing the sprite
 /// </summary>
 /// <param name="renderer">renderer for render request</param>
-/// /// <param name="renderer">terrain from terrain system</param>
+/// <param name="renderer">terrain from terrain system</param>
 /// <param name="position">position of target terrain cell</param>
 /// <returns>The terrain cell entity</returns>
 Entity createTerrainCollider(RenderSystem* renderer, TerrainSystem* terrain, vec2 position)
@@ -320,12 +320,20 @@ Entity createTerrainCollider(RenderSystem* renderer, TerrainSystem* terrain, vec
 
 	// change sprite to redblock  TEMPORARY FOR NOW
 	RenderRequest& rr = registry.renderRequests.get(entity);
-	rr.used_texture = TEXTURE_ASSET_ID::REDBLOCK;
+	rr.used_texture = TEXTURE_ASSET_ID::TERRAIN_STONE;
 
 	return entity;
 }
 
-Entity createBoundaryBlock(RenderSystem* renderer, vec2 position)
+
+/// <summary>
+/// Create boundary block given position and scale
+/// </summary>
+/// <param name="renderer">renderer for render request</param>
+/// <param name="position">scale of the block</param>
+/// <param name="scale">scale of the block</param>
+/// <returns>Boundary block entity</returns>
+Entity createBoundaryBlock(RenderSystem* renderer, vec2 position, vec2 scale)
 {
 	auto entity = Entity();
 
@@ -336,8 +344,8 @@ Entity createBoundaryBlock(RenderSystem* renderer, vec2 position)
 	auto& motion = registry.motions.emplace(entity);
 	motion.position = position;
 
-	// Setting initial values, scale is negative to make it face the opposite way
-	motion.scale = vec2({ 1, 1 });
+	// Setting initial values
+	motion.scale = scale;
 
 	// Initialize the collider
 	createCollider(entity);
@@ -359,26 +367,24 @@ Entity createBoundaryBlock(RenderSystem* renderer, vec2 position)
 /// <param name="size">size of box in vec2</param>
 /// <param name="center">center point of box boundary in world space</param>
 /// <returns>void</returns>
-void createBoxBoundary(RenderSystem* renderer, vec2 size, vec2 center) {
-	vec2 topleftpos = {center.x - (int)size.x / 2, center.y - (int)size.y / 2};
-	// start from top left
+void boundaryInitialize(RenderSystem* renderer, vec2 size, vec2 center) {
 
-	// draw top and bottom of the box
-	for (int i = 0; i < size.x; i++) {
-		createBoundaryBlock(renderer, { topleftpos.x + i, topleftpos.y });
+	// optimized by making bigger scale block instead of multiple block with unit 1
 
-		// We're subtracting the y position by 1 because we're off by 1
-		createBoundaryBlock(renderer, {topleftpos.x + i, topleftpos.y + size.y - 1});
-	}
+	//top
+	createBoundaryBlock(renderer, { center.x, center.y - floor(size.y / 2.f) }, { size.x, 1 });
 
-	//draw left and right of the box
-	for (int i = 1; i < size.y - 1; i++) {
-		// start from top left
-		createBoundaryBlock(renderer, { topleftpos.x, topleftpos.y + i});
-		createBoundaryBlock(renderer, { topleftpos.x + size.x - 1, topleftpos.y + i});
-	}
+	//bottom
+	createBoundaryBlock(renderer, { center.x, center.y + floor(size.y / 2.f) }, { size.x, 1 });
+
+	//left
+	createBoundaryBlock(renderer, { center.x - floor(size.x / 2.f), center.y }, { 1, size.y - 2});
+
+	//right
+	createBoundaryBlock(renderer, { center.x + floor(size.x / 2.f), center.y }, { 1, size.y - 2});
 
 }
+
 
 /// <summary>
 /// create coord of a box given a scale(width/height). Points are in local coord and center is 0,0. 
