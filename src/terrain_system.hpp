@@ -45,7 +45,7 @@ public:
 	/// <param name="x">The size of the map in the x axis (preferably odd)</param>
 	/// <param name="y">The size of the map in the y axis (preferably odd)</param>
 	/// <param name="renderer">The main renderer</param>
-	void init(const unsigned int x, const unsigned int y, const RenderSystem* renderer);
+	void init(const unsigned int x, const unsigned int y, RenderSystem* renderer);
 
 	/// <summary>
 	/// Used for cells that may have ticking logic. futureproofing.
@@ -99,8 +99,18 @@ public:
 	/// <param name="buffer">A vector buffer</param>
 	void get_accessible_neighbours(Entity cell, std::vector<Entity>& buffer, bool checkPathfind = false);
 
+	/// <summary>
+	/// Updates the values for a tile. This includes rendering data.
+	/// </summary>
+	/// <param name="cell">The tile's entity</param>
+	void update_tile(Entity tile) {
+		RenderRequest& r = registry.terrainRenderRequests.get(tile);
+		renderer->changeTerrainData(tile, tile - entityStart, r);
+	}
+
 private:
 	Cell* grid;	// PLEASE DO NOT EXPOSE THIS UNLESS YOU KNOW WHAT YOU ARE DOING
+	RenderSystem* renderer;
 
 	// The id of the first entity made in this iteration
 	// IMPORTANT: this assumes no other entities can be made

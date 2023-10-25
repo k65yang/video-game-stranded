@@ -113,6 +113,14 @@ public:
 	mat3 createModelMatrix(Entity entity);
 	mat3 createProjectionMatrix();
 
+	/// <summary>
+	/// Modifies the terrain vertex buffer to regenerate rendering values for a specific tile.
+	/// </summary>
+	/// <param name="cell">The tile</param>
+	/// <param name="i">The tile's index in the Cell array</param>
+	/// <param name="data">The updated render request</param>
+	void changeTerrainData(Entity cell, unsigned int i, RenderRequest& data);
+
 private:
 	// Internal vertex data structure used for batched rendering
 	struct BatchedVertex {
@@ -136,6 +144,8 @@ private:
 	/// <param name="indicies">The index buffer</param>
 	template <class T>
 	void make_quad(mat3 modelMatrix, TEXTURE_ASSET_ID texture, std::vector<BatchedVertex>& vertices, std::vector<T>& indicies);
+
+	void makeQuadVertices(glm::mat3& modelMatrix, TEXTURE_ASSET_ID texture, std::vector<RenderSystem::BatchedVertex>& vertices);
 
 	/// <summary>
 	/// Batch-draws the terrain layer.

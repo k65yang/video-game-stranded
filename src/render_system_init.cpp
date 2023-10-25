@@ -78,6 +78,16 @@ void RenderSystem::make_quad(mat3 modelMatrix,
 	std::vector<BatchedVertex>& vertices,
 	std::vector<T>& indicies) {
 
+	makeQuadVertices(modelMatrix, texture, vertices);
+
+	int i = vertices.size() / 4 - 1;
+	for (uint x : { 0, 3, 1, 1, 3, 2 }) {
+		indicies.push_back(i * 4 + x);
+	}
+}
+
+void RenderSystem::makeQuadVertices(glm::mat3& modelMatrix, TEXTURE_ASSET_ID texture, std::vector<BatchedVertex>& vertices)
+{
 	BatchedVertex quad[4];
 	quad[0].position = { -0.5f, 0.5f, 1.f };
 	quad[0].texCoords = { 0.f, 1.f };
@@ -95,11 +105,6 @@ void RenderSystem::make_quad(mat3 modelMatrix,
 		v.position = modelMatrix * v.position;
 		v.texIndex = (uint16_t)texture;
 		vertices.push_back(v);
-	}
-
-	int i = vertices.size() / 4 - 1;
-	for (uint x : { 0, 3, 1, 1, 3, 2 }) {
-		indicies.push_back(i * 4 + x);
 	}
 }
 
@@ -369,6 +374,7 @@ RenderSystem::~RenderSystem()
 	glDeleteBuffers((GLsizei)index_buffers.size(), index_buffers.data());
 	glDeleteTextures((GLsizei)texture_gl_handles.size(), texture_gl_handles.data());
 	glDeleteTextures(1, &off_screen_render_buffer_color);
+	glDeleteTextures(1, &texture_array);
 	glDeleteRenderbuffers(1, &off_screen_render_buffer_depth);
 	gl_has_errors();
 

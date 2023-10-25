@@ -410,3 +410,15 @@ mat3 RenderSystem::createProjectionMatrix()
 	return {{sx, 0.f, 0.f}, {0.f, sy, 0.f}, {tx, ty, 1.f}};
 }
 
+void RenderSystem::changeTerrainData(Entity cell, unsigned int i, RenderRequest& data)
+{
+	glBindBuffer(GL_ARRAY_BUFFER, vertex_buffers[(GLuint)GEOMETRY_BUFFER_ID::TERRAIN]);
+	gl_has_errors();
+	std::vector<BatchedVertex> vertices;
+	mat3 transform = createModelMatrix(cell);
+	makeQuadVertices(transform, data.used_texture, vertices);
+
+	glBufferSubData(GL_ARRAY_BUFFER, i * sizeof(BatchedVertex) * 4, sizeof(BatchedVertex) * 4, vertices.data());
+	gl_has_errors();
+}
+

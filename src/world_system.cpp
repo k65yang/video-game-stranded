@@ -594,6 +594,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		cell.terrain_type = TERRAIN_TYPE::ROCK;
 		RenderRequest& req = registry.terrainRenderRequests.get(tile);
 		req.used_texture = TEXTURE_ASSET_ID::TERRAIN_STONE;
+		terrain->update_tile(tile);
 	}
 
 	if (action == GLFW_PRESS && key == GLFW_KEY_V) {
@@ -607,6 +608,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 			TerrainCell& cell = registry.terrainCells.get(tile);
 			cell.terrain_type = TERRAIN_TYPE::ROCK;
 			req.used_texture = TEXTURE_ASSET_ID::TERRAIN_STONE;
+			terrain->update_tile(e);
 		}
 	}
 

@@ -123,8 +123,10 @@ RenderRequest TerrainSystem::make_render_request(TerrainCell& cell) {
 	};
 }
 
-void TerrainSystem::init(const unsigned int x, const unsigned int y, const RenderSystem* renderer)
+void TerrainSystem::init(const unsigned int x, const unsigned int y, RenderSystem* renderer)
 {
+	this->renderer = renderer;
+
 	if (grid != nullptr) {		// if grid is allocated, deallocate
 		delete[] grid;
 		grid = nullptr;
