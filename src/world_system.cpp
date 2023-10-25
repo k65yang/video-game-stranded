@@ -118,9 +118,10 @@ GLFWwindow* WorldSystem::create_window() {
 	return window;
 }
 
-void WorldSystem::init(RenderSystem* renderer_arg, TerrainSystem* terrain_arg) {
+void WorldSystem::init(RenderSystem* renderer_arg, TerrainSystem* terrain_arg, WeaponsSystem* weapons_system_arg) {
 	this->renderer = renderer_arg;
 	this->terrain = terrain_arg;
+	this->weapons_system = weapons_system_arg;
 	// Playing background music indefinitely
 	Mix_PlayMusic(background_music, -1);
 	fprintf(stderr, "Loaded music\n");
@@ -282,17 +283,6 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	health.position = { -8.f + camera_motion.position.x, 7.f + camera_motion.position.y };
 	food.position = { 8.f + camera_motion.position.x, 7.f + camera_motion.position.y };
 
-	// Update weapons cooldowns
-	for (Entity entity: registry.weapons.entities) {
-		Weapon& weapon = registry.weapons.get(entity);
-		if (weapon.can_fire)
-			continue;
-
-		weapon.elapsed_last_shot_time_ms += elapsed_ms_since_last_update;
-		if (weapon.fire_rate < weapon.elapsed_last_shot_time_ms)
-			weapon.can_fire = true;
-	}
-
 	return true;
 }
 
@@ -336,7 +326,7 @@ void WorldSystem::restart_game() {
 	printf("Restarting\n");
 
 	// Reset the game speed
-	current_speed = 1.f;
+	current_speed = 5.f;
 
 	// Remove all entities that we created
 	// All that have a motion, we could also iterate over all fish, turtles, ... but that would be more cumbersome
@@ -358,7 +348,7 @@ void WorldSystem::restart_game() {
 
 	// Equip the player weapon. Player starts with no weapon for now.
 	// TODO: do we want to give the player a starting weapon?
-	player_equipped_weapon = createAndEquipWeapon(ITEM_TYPE::WEAPON_NONE);
+	player_equipped_weapon = weapons_system->createWeapon(ITEM_TYPE::WEAPON_NONE);
 
 	// Create the main camera
 	main_camera = createCamera({0,0});
@@ -474,7 +464,7 @@ void WorldSystem::handle_collisions() {
 					}
 					break;
 				case ITEM_TYPE::WEAPON_GENERIC:
-					player_equipped_weapon = createAndEquipWeapon(ITEM_TYPE::WEAPON_GENERIC);
+					player_equipped_weapon = weapons_system->createWeapon(ITEM_TYPE::WEAPON_GENERIC);
 					// TODO: some sort of UI update
 					break;
 				case ITEM_TYPE::UPGRADE:
@@ -680,26 +670,10 @@ void WorldSystem::on_mouse_move(vec2 mouse_position) {
 /// Function to handle mouse click (weapon fire)
 /// </summary>
 void WorldSystem::on_mouse_click(int button, int action, int mods) {
-	Weapon& weapon = registry.weapons.get(player_equipped_weapon);
-	if (weapon.weapon_type != ITEM_TYPE::WEAPON_NONE && weapon.can_fire) {
-		if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
-			Motion& player_motion = registry.motions.get(player_salmon);
-
-			// Create the projectile
-			// TODO: offset projectile location a little so it doesn't get created on top of player
-			Entity entity = createProjectile(renderer, {player_motion.position.x, player_motion.position.y});
-
-			// Set projectile direction
-			Motion& projectile_motion = registry.motions.get(entity);
-			projectile_motion.angle = player_motion.angle;
-			projectile_motion.velocity = weapon.projectile_velocity * vec2(cos(projectile_motion.angle), sin(projectile_motion.angle));
-
-			// Control weapon fire rate
-			weapon.can_fire = false;
-			weapon.elapsed_last_shot_time_ms = 0.f;
-		}
+	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
+		Motion& player_motion = registry.motions.get(player_salmon);
+		weapons_system->fireWeapon(player_motion.position.x, player_motion.position.y, player_motion.angle);
 	}
-
 }
 
 	/// <summary>
@@ -811,36 +785,3 @@ bool WorldSystem::is_spawn_location_used(vec2 position) {
 
 	return false;
 };
-
-Entity WorldSystem::createAndEquipWeapon(ITEM_TYPE weapon_type) {
-	// Reserve an entity
-	auto entity = Entity();
-
-	// Initialize the weapon
-	auto& weapon = registry.weapons.emplace(entity);
-	weapon.weapon_type = weapon_type;
-	weapon.can_fire = true;
-	weapon.elapsed_last_shot_time_ms = 0.f;
-
-	switch (weapon_type) {
-		case ITEM_TYPE::WEAPON_NONE:
-			weapon.fire_rate = 0;
-			weapon.projectile_velocity = 0.f;
-			weapon.projectile_damage = 0;
-			break;
-
-		case ITEM_TYPE::WEAPON_GENERIC:
-			weapon.fire_rate = 1000.f;
-			weapon.projectile_velocity = 10.f;
-			weapon.projectile_damage = 100;
-			break;
-	
-		default:
-			// TODO: better way of handling this
-			printf("Debug info: Item is not a weapon. Ignoring.");
-			break;
-		}
-	
-
-	return entity;
-}
