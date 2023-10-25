@@ -44,6 +44,14 @@ class RenderSystem {
 			textures_path("blueblock.png")
 	};
 
+	// This is used for generating the texture array for batched renders
+	// NOTE: all images must have the same dimensions.
+	const std::array<std::string, 3> terrain_texture_paths = {
+		terrain_texture_path("0.png"),
+		terrain_texture_path("1.png"),
+		terrain_texture_path("2.png"),
+	};
+
 	std::array<GLuint, effect_count> effects;
 	// Make sure these paths remain in sync with the associated enumerators.
 	const std::array<std::string, effect_count> effect_paths = {
@@ -51,7 +59,8 @@ class RenderSystem {
 		shader_path("pebble"),
 		shader_path("salmon"),
 		shader_path("textured"),
-		shader_path("water") };
+		shader_path("water"),
+		shader_path("terrain"),};
 
 	std::array<GLuint, geometry_count> vertex_buffers;
 	std::array<GLuint, geometry_count> index_buffers;
@@ -61,10 +70,28 @@ public:
 	// Initialize the window
 	bool init(GLFWwindow* window);
 
-	template <class T>
-	void bindVBOandIBO(GEOMETRY_BUFFER_ID gid, std::vector<T> vertices, std::vector<uint16_t> indices);
+	/// <summary>
+	/// Binds and allocates a given vertex and index buffer under the "index" that is gid in GPU memory.
+	/// </summary>
+	/// <typeparam name="T">Vertex type</typeparam>
+	/// <typeparam name="U">Index type (bit depth)</typeparam>
+	/// <param name="gid">The "index" to load from the CPU-side geometry buffer.</param>
+	/// <param name="vertices">The vertex buffer</param>
+	/// <param name="indices">The index buffer</param>
+	template <class T, class U>
+	void bindVBOandIBO(GEOMETRY_BUFFER_ID gid, std::vector<T> vertices, std::vector<U> indices);
+
+	/// <summary>
+	/// Generates the vertex and index buffers for batch rendering terrain.
+	/// </summary>
+	void initializeTerrainBuffers();
 
 	void initializeGlTextures();
+
+	/// <summary>
+	/// Generates 2D texture arrays for batch rendering.
+	/// </summary>
+	void initializeGl3DTextures();
 
 	void initializeGlEffects();
 
@@ -86,10 +113,46 @@ public:
 	mat3 createModelMatrix(Entity entity);
 	mat3 createProjectionMatrix();
 
+	/// <summary>
+	/// Modifies the terrain vertex buffer to regenerate rendering values for a specific tile.
+	/// </summary>
+	/// <param name="cell">The tile</param>
+	/// <param name="i">The tile's index in the Cell array</param>
+	/// <param name="data">The updated render request</param>
+	void changeTerrainData(Entity cell, unsigned int i, RenderRequest& data);
+
 private:
+	// Internal vertex data structure used for batched rendering
+	struct BatchedVertex {
+		vec3 position;
+		vec2 texCoords;
+		uint16_t texIndex;
+		uint16_t flags;	// reserved for animated textures, etc.
+	};
+
 	// Internal drawing functions for each entity type
 	void drawTexturedMesh(Entity entity, const mat3& view_matrix, const mat3& projection);
 	void drawToScreen();
+
+	/// <summary>
+	/// Adds 4 vertices and 6 indices to make a quad. Does not check for overlapping vertices.
+	/// </summary>
+	/// <typeparam name="T">Index buffer integer type</typeparam>
+	/// <param name="modelMatrix">The transform matrix of the quad</param>
+	/// <param name="texture">Texture ID assigned to this quad</param>
+	/// <param name="vertices">The vertex buffer</param>
+	/// <param name="indicies">The index buffer</param>
+	template <class T>
+	void make_quad(mat3 modelMatrix, TEXTURE_ASSET_ID texture, std::vector<BatchedVertex>& vertices, std::vector<T>& indicies);
+
+	void makeQuadVertices(glm::mat3& modelMatrix, TEXTURE_ASSET_ID texture, std::vector<RenderSystem::BatchedVertex>& vertices);
+
+	/// <summary>
+	/// Batch-draws the terrain layer.
+	/// </summary>
+	/// <param name="view_2D">The camera view matrix</param>
+	/// <param name="projection_2D">The screen projection matrix</param>
+	void drawTerrain(const mat3& view_2D, const mat3& projection_2D);
 	// void drawFOW();
 
 	// Window handle
@@ -99,6 +162,9 @@ private:
 	GLuint frame_buffer;
 	GLuint off_screen_render_buffer_color;
 	GLuint off_screen_render_buffer_depth;
+
+	// Used for terrain batch rendering. This is a 2D array of terrain textures.
+	GLuint texture_array;
 
 	Entity screen_state_entity;
 };

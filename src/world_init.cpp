@@ -352,7 +352,7 @@ Entity createTerrainCollider(RenderSystem* renderer, TerrainSystem* terrain, vec
 	createCollider(entity);
 
 	// change sprite to redblock  TEMPORARY FOR NOW
-	RenderRequest& rr = registry.renderRequests.get(entity);
+	RenderRequest& rr = registry.terrainRenderRequests.get(entity);
 	rr.used_texture = TEXTURE_ASSET_ID::TERRAIN_STONE;
 
 	return entity;

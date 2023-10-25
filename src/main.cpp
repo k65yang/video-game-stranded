@@ -37,6 +37,7 @@ int main()
 	// initialize the main systems
 	render_system.init(window);
 	world_system.init(&render_system, &terrain_system);
+	render_system.initializeTerrainBuffers();
 	pathfinding_system.init(&terrain_system);
 
 	// variable timestep loop
