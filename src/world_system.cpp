@@ -592,8 +592,9 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		Entity tile = terrain->get_cell(player.position);
 		TerrainCell& cell = registry.terrainCells.get(tile);
 		cell.terrain_type = TERRAIN_TYPE::ROCK;
-		RenderRequest& req = registry.renderRequests.get(tile);
+		RenderRequest& req = registry.terrainRenderRequests.get(tile);
 		req.used_texture = TEXTURE_ASSET_ID::TERRAIN_STONE;
+		terrain->update_tile(tile);
 	}
 
 	if (action == GLFW_PRESS && key == GLFW_KEY_V) {
@@ -603,10 +604,11 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		std::vector<Entity> entities;
 		terrain->get_accessible_neighbours(tile, entities);
 		for (Entity e : entities) {
-			RenderRequest& req = registry.renderRequests.get(e);
+			RenderRequest& req = registry.terrainRenderRequests.get(e);
 			TerrainCell& cell = registry.terrainCells.get(tile);
 			cell.terrain_type = TERRAIN_TYPE::ROCK;
 			req.used_texture = TEXTURE_ASSET_ID::TERRAIN_STONE;
+			terrain->update_tile(e);
 		}
 	}
 
