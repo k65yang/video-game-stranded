@@ -37,10 +37,7 @@ public:
 		unsigned int flags;
 	};
 
-	enum TERRAIN_FLAGS {
-		COLLIDABLE	= 0b1,
-		DISABLE_PATHFIND = 0b10,
-	};
+	
 
 	/// <summary>
 	/// Initializes the world grid with the given size. Each axis should preferably be odd.
