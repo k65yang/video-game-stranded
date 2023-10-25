@@ -10,6 +10,14 @@
 const int PLAYER_MAX_FOOD = 100;
 const int PLAYER_MAX_HEALTH = 100;
 
+enum class ITEM_TYPE {
+	QUEST = 0,
+	WEAPON_NONE = 1,
+	WEAPON_GENERIC = 2,
+	FOOD = 3,
+	UPGRADE = 4,
+};
+
 // TODO: cool idea for later is to have a customizable difficulty that adjusts food and health.
 struct Player
 {
@@ -22,10 +30,27 @@ struct Player
 	int food = PLAYER_MAX_FOOD;
 };
 
+// Generic weapon for now
+// TODO: needs more efficient way to determine if a weapon is allowed to fire
+struct Weapon {
+	ITEM_TYPE weapon_type;
+	bool can_fire;
+	float fire_rate;                     // controls fire rate, the interval between weapon shots
+	float elapsed_last_shot_time_ms;     // controls fire rate, the time that the weapon was fired last
+	float projectile_velocity;           // speed of projectiles of this weapon
+	int projectile_damage;               // weapon damage
+};
+
+// Generic projectile for now
+struct Projectile {
+	int damage = 100;
+};
+
 // Mob component
 struct Mob {
 	bool is_tracking_player = false;
 	int damage;
+	int health = 1;
 };
 
 // Structure to store the path for a mob
@@ -33,12 +58,7 @@ struct Path {
 	std::deque<Entity> path;
 };
 
-enum class ITEM_TYPE {
-	QUEST = 0,
-	FOOD = 1,
-	WEAPON = 2,
-	UPGRADE = 3,
-};
+
 
 struct Item {
 	ITEM_TYPE data;
@@ -57,7 +77,15 @@ struct Collision
 {
 	// Note, the first object is stored in the ECS container.entities
 	Entity other_entity; // the second object involved in the collision
-	Collision(Entity& other_entity) { this->other_entity = other_entity; };
+	vec2 MTV; // minimal translation vector for collision resolution
+	float overlap; // magnitude of collision depth
+
+	Collision(Entity& other_entity, float overlap, vec2 MTV) { 
+		this->other_entity = other_entity;
+		this->overlap = overlap;
+		this->MTV = MTV;
+		};
+
 };
 
 // Data structure for toggling debug mode
@@ -121,23 +149,36 @@ enum class TERRAIN_TYPE {
 	ROCK = GRASS + 1
 };
 
+enum TERRAIN_FLAGS {
+	COLLIDABLE = 0b1,
+	DISABLE_PATHFIND = 0b10,
+};
+
 // Data structure that supports 
 struct TerrainCell 
 {
-	TERRAIN_TYPE terrain_type = TERRAIN_TYPE::AIR;
-	//bool collide;
+	TERRAIN_TYPE terrain_type;
+	int flag; 
+
+	TerrainCell(TERRAIN_TYPE terrain_type, int flag) {
+	this->terrain_type = terrain_type;
+	this->flag = flag;
+	};
 };
 
-struct TerrainCollider
+// component for entity that have collision, size is the width/height of bounding box
+struct Collider
 {
-	// collider component for non-passable terrain cells, will be used to stop player movement during handle_collision
+	vec2 position;  //position in world coord, used in collision detection. This needs to be updated by physics::step
+	std::vector<vec2> points;  // in local coord
+	std::vector<vec2> normals; 
+	mat2 rotation;	// might need for later when we have entity(mobs) that can rotate its sprites
+	vec2 scale; // used for AABB broad phase detection
+	int flag;  // for filtering 
+};
 
-	// since current version of collision check requires entity with motion component
-	// will later on load all non-passable terrain cells location in world
-	// 
-	// for each cells
-	// either take the terrain cell position, with a scale of 50,50 pixel and create terrain collider with respected motion component here 
-	// or directly associate motion component with terrain cell component if possible
+struct BoundaryBlock {
+
 };
 
 /**

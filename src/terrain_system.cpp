@@ -138,7 +138,7 @@ void TerrainSystem::init(const unsigned int x, const unsigned int y, const Rende
 
 	for (int i = 0; i < x * y; i++) {
 		Entity& entity = grid[i].entity;
-		TerrainCell& cell = registry.terrainCells.emplace(entity);
+		TerrainCell& cell = registry.terrainCells.emplace(entity, TERRAIN_TYPE::AIR, grid[i].flags);
 		Motion& motion = registry.motions.emplace(entity);
 		motion.position = to_world_coordinates(i);
 

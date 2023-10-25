@@ -15,6 +15,8 @@ public:
 	ComponentContainer<Motion> motions;
 	ComponentContainer<Collision> collisions;
 	ComponentContainer<Player> players;
+	ComponentContainer<Weapon> weapons;
+	ComponentContainer<Projectile> projectiles;
 
 	ComponentContainer<Mob> mobs;
 	ComponentContainer<Path> paths;
@@ -28,7 +30,9 @@ public:
 	ComponentContainer<ScreenState> screenStates;
 	ComponentContainer<DebugComponent> debugComponents;
 	ComponentContainer<vec3> colors;
-	ComponentContainer<TerrainCollider> terrainColliders;
+	ComponentContainer<Collider> colliders;
+
+	ComponentContainer<BoundaryBlock> boundaries;
 
 
 	// Terrain-related
@@ -45,6 +49,8 @@ public:
 		registry_list.push_back(&motions);
 		registry_list.push_back(&collisions);
 		registry_list.push_back(&players);
+		registry_list.push_back(&weapons);
+		registry_list.push_back(&projectiles);
 		registry_list.push_back(&mobs);
 		registry_list.push_back(&paths);
 		registry_list.push_back(&items);
@@ -53,7 +59,8 @@ public:
 		registry_list.push_back(&screenStates);
 		registry_list.push_back(&debugComponents);
 		registry_list.push_back(&colors);
-		registry_list.push_back(&terrainColliders);
+		registry_list.push_back(&colliders);
+		registry_list.push_back(&boundaries);
 
 
 		registry_list.push_back(&cameras);
