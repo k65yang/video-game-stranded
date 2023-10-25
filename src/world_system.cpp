@@ -250,9 +250,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 	// Movement code, build the velocity resulting from player moment
 	// We'll consider moveVelocity existing in player space
-	// Allow movment if player is not dead 
-
-	
+	// Allow movement if player is not dead 
 	if (!registry.deathTimers.has(player_salmon)) {
 		m.velocity = { 0, 0 };
 		handle_movement(m, LEFT);
@@ -463,9 +461,15 @@ void WorldSystem::handle_collisions() {
 						player.food = PLAYER_MAX_FOOD;
 					}
 					break;
-				case ITEM_TYPE::WEAPON_GENERIC:
-					player_equipped_weapon = weapons_system->createWeapon(ITEM_TYPE::WEAPON_GENERIC);
+				case ITEM_TYPE::WEAPON_NONE:
+					// Do nothing
+					break;
+				case ITEM_TYPE::WEAPON_SHURIKEN:
+					player_equipped_weapon = weapons_system->createWeapon(ITEM_TYPE::WEAPON_SHURIKEN);
 					// TODO: some sort of UI update
+					break;
+				case ITEM_TYPE::WEAPON_CROSSBOW:
+					player_equipped_weapon = weapons_system->createWeapon(ITEM_TYPE::WEAPON_CROSSBOW);
 					break;
 				case ITEM_TYPE::UPGRADE:
 					// Just add to inventory
@@ -713,7 +717,7 @@ float WorldSystem::positionCorrection(float position) {
 }
 
 void WorldSystem::spawn_items() {
-	const int NUM_ITEM_TYPES = 4;
+	const int NUM_ITEM_TYPES = 3;
 
 	for (int i = 0; i < ITEM_LIMIT; i++) {
 		// Get random spawn location
@@ -730,16 +734,14 @@ void WorldSystem::spawn_items() {
 				createItem(renderer, spawn_location, ITEM_TYPE::FOOD);
 				break;
 			case 2:
-				createItem(renderer, spawn_location, ITEM_TYPE::WEAPON_GENERIC);
-				break;
-			case 3:
 				createItem(renderer, spawn_location, ITEM_TYPE::UPGRADE);
 				break;
 		}
 	}
 
-	// TESTING: spawning a generic item
-	createItem(renderer, get_random_spawn_location(), ITEM_TYPE::WEAPON_GENERIC);
+	// TESTING: Force one spawn of each weapon.
+	createItem(renderer, get_random_spawn_location(), ITEM_TYPE::WEAPON_SHURIKEN);
+	createItem(renderer, get_random_spawn_location(), ITEM_TYPE::WEAPON_CROSSBOW);
 };
 
 void WorldSystem::spawn_mobs() {

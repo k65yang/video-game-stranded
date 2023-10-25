@@ -57,8 +57,11 @@ Entity createItem(RenderSystem* renderer, vec2 position, ITEM_TYPE type)
 	case ITEM_TYPE::FOOD:
 		texture = TEXTURE_ASSET_ID::FOOD;
 		break;
-	case ITEM_TYPE::WEAPON_GENERIC:
-		texture = TEXTURE_ASSET_ID::WEAPON;
+	case ITEM_TYPE::WEAPON_SHURIKEN:
+		texture = TEXTURE_ASSET_ID::WEAPON_SHURIKEN;
+		break;
+	case ITEM_TYPE::WEAPON_CROSSBOW:
+		texture = TEXTURE_ASSET_ID::WEAPON_CROSSBOW;
 		break;
 	}
 

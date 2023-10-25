@@ -10,6 +10,9 @@ void WeaponsSystem::step(float elapsed_ms) {
 }
 
 Entity WeaponsSystem::createWeapon(ITEM_TYPE weapon_type) {
+	// Item must be a weapon
+	assert((isValidWeapon(weapon_type)) && "Error: Attempted to create weapon from non-weapon type");
+
     // Reserve an entity
 	auto entity = Entity();
 
@@ -18,25 +21,11 @@ Entity WeaponsSystem::createWeapon(ITEM_TYPE weapon_type) {
 	weapon.weapon_type = weapon_type;
 	weapon.can_fire = true;
 	weapon.elapsed_last_shot_time_ms = 0.f;
+	weapon.fire_rate = weapon_fire_rate_map[weapon_type];
+	weapon.projectile_velocity = weapon_projectile_velocity_map[weapon_type];
+	weapon.projectile_damage = weapon_damage_map[weapon_type];
 
-	switch (weapon_type) {
-		case ITEM_TYPE::WEAPON_NONE:
-			weapon.fire_rate = 0;
-			weapon.projectile_velocity = 0.f;
-			weapon.projectile_damage = 0;
-			break;
-
-		case ITEM_TYPE::WEAPON_GENERIC:
-			weapon.fire_rate = 1000.f;
-			weapon.projectile_velocity = 10.f;
-			weapon.projectile_damage = 100;
-			break;
-	
-		default:
-			// TODO: better way of handling this
-			printf("Debug info: Item is not a weapon. Ignoring.\n");
-			break;
-		}
+	// Set tracking for the newly created weapon
 	active_weapon_type = weapon_type;
 	active_weapon_entity = entity;
 	weapon_component = &weapon;
@@ -52,16 +41,7 @@ void WeaponsSystem::fireWeapon(float player_x, float player_y, float player_angl
 	// Create the projectile
 	// TODO: offset projectile location a little so it doesn't get created on top of player
 	createProjectile(renderer, {player_x, player_y}, player_angle);
-
-	// Set projectile direction
-	// Motion& projectile_motion = registry.motions.get(entity);
-	// projectile_motion.angle = player_motion.angle;
-	// projectile_motion.velocity = weapon.projectile_velocity * vec2(cos(projectile_motion.angle), sin(projectile_motion.angle));
-
-	// Control weapon fire rate
-	// weapon_component = registry.weapons.get(active_weapon_entity);
 	weapon_component->can_fire = false;
-	// printf("%f\n", weapon_component.projectile_damage);
 	weapon_component->elapsed_last_shot_time_ms = 0.f;
 }
 
@@ -76,14 +56,14 @@ Entity WeaponsSystem::createProjectile(RenderSystem* renderer, vec2 pos, float a
 	// Initialize the position, scale, and physics components
 	auto& motion = registry.motions.emplace(entity);
 	motion.angle = angle;
-	motion.velocity = weaponProjectileVelocityMap[active_weapon_type] * vec2(cos(angle), sin(angle));;
+	motion.velocity = weapon_projectile_velocity_map[active_weapon_type] * vec2(cos(angle), sin(angle));;
 	motion.position = pos;
 
 	// Add this projectile to the projectiles registry
 	registry.projectiles.emplace(entity);
 
 	// TODO: Change this later
-	TEXTURE_ASSET_ID texture = TEXTURE_ASSET_ID::WEAPON;
+	TEXTURE_ASSET_ID texture = projectile_textures_map[active_weapon_type];
 
 	registry.renderRequests.insert(
 		entity,
@@ -93,4 +73,13 @@ Entity WeaponsSystem::createProjectile(RenderSystem* renderer, vec2 pos, float a
 			RENDER_LAYER_ID::LAYER_1 });
 
 	return entity;
+}
+
+bool WeaponsSystem::isValidWeapon(ITEM_TYPE test) {
+	static const std::set<ITEM_TYPE> weapons_list{
+		ITEM_TYPE::WEAPON_NONE,
+		ITEM_TYPE::WEAPON_SHURIKEN,
+		ITEM_TYPE::WEAPON_CROSSBOW,
+	};
+	return weapons_list.count(test);
 }
