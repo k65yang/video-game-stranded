@@ -70,13 +70,27 @@ public:
 	// Initialize the window
 	bool init(GLFWwindow* window);
 
-	template <class T>
-	void bindVBOandIBO(GEOMETRY_BUFFER_ID gid, std::vector<T> vertices, std::vector<uint16_t> indices);
+	/// <summary>
+	/// Binds and allocates a given vertex and index buffer under the "index" that is gid in GPU memory.
+	/// </summary>
+	/// <typeparam name="T">Vertex type</typeparam>
+	/// <typeparam name="U">Index type (bit depth)</typeparam>
+	/// <param name="gid">The "index" to load from the CPU-side geometry buffer.</param>
+	/// <param name="vertices">The vertex buffer</param>
+	/// <param name="indices">The index buffer</param>
+	template <class T, class U>
+	void bindVBOandIBO(GEOMETRY_BUFFER_ID gid, std::vector<T> vertices, std::vector<U> indices);
 
-	void initializeTerrainVAO();
+	/// <summary>
+	/// Generates the vertex and index buffers for batch rendering terrain.
+	/// </summary>
+	void initializeTerrainBuffers();
 
 	void initializeGlTextures();
 
+	/// <summary>
+	/// Generates 2D texture arrays for batch rendering.
+	/// </summary>
 	void initializeGl3DTextures();
 
 	void initializeGlEffects();
@@ -111,8 +125,24 @@ private:
 	// Internal drawing functions for each entity type
 	void drawTexturedMesh(Entity entity, const mat3& view_matrix, const mat3& projection);
 	void drawToScreen();
-	void make_quad(mat3 modelMatrix, TEXTURE_ASSET_ID texture, std::vector<BatchedVertex>& vertices, std::vector<uint16_t>& indicies);
-	void drawTerrain(const TEXTURE_ASSET_ID texture, const mat3& view_2D, const mat3& projection_2D);
+
+	/// <summary>
+	/// Adds 4 vertices and 6 indices to make a quad. Does not check for overlapping vertices.
+	/// </summary>
+	/// <typeparam name="T">Index buffer integer type</typeparam>
+	/// <param name="modelMatrix">The transform matrix of the quad</param>
+	/// <param name="texture">Texture ID assigned to this quad</param>
+	/// <param name="vertices">The vertex buffer</param>
+	/// <param name="indicies">The index buffer</param>
+	template <class T>
+	void make_quad(mat3 modelMatrix, TEXTURE_ASSET_ID texture, std::vector<BatchedVertex>& vertices, std::vector<T>& indicies);
+
+	/// <summary>
+	/// Batch-draws the terrain layer.
+	/// </summary>
+	/// <param name="view_2D">The camera view matrix</param>
+	/// <param name="projection_2D">The screen projection matrix</param>
+	void drawTerrain(const mat3& view_2D, const mat3& projection_2D);
 	// void drawFOW();
 
 	// Window handle
@@ -123,6 +153,7 @@ private:
 	GLuint off_screen_render_buffer_color;
 	GLuint off_screen_render_buffer_depth;
 
+	// Used for terrain batch rendering. This is a 2D array of terrain textures.
 	GLuint texture_array;
 
 	Entity screen_state_entity;

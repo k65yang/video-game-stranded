@@ -72,10 +72,11 @@ bool RenderSystem::init(GLFWwindow* window_arg)
 /// <param name="texture"></param>
 /// <param name="vertices"></param>
 /// <param name="indicies"></param>
+template <class T>
 void RenderSystem::make_quad(mat3 modelMatrix,
 	TEXTURE_ASSET_ID texture,
 	std::vector<BatchedVertex>& vertices,
-	std::vector<uint16_t>& indicies) {
+	std::vector<T>& indicies) {
 
 	BatchedVertex quad[4];
 	quad[0].position = { -0.5f, 0.5f, 1.f };
@@ -96,16 +97,20 @@ void RenderSystem::make_quad(mat3 modelMatrix,
 		vertices.push_back(v);
 	}
 
-	int i = vertices.size() / 4;
+	int i = vertices.size() / 4 - 1;
 	for (uint x : { 0, 3, 1, 1, 3, 2 }) {
 		indicies.push_back(i * 4 + x);
 	}
 }
 
-void RenderSystem::initializeTerrainVAO()
+void RenderSystem::initializeTerrainBuffers()
 {
 	std::vector<BatchedVertex> vertices;
-	std::vector<uint16_t> indices;
+	// We need 32-bit indices because 16-bit indices limits us to 
+	// sqrt[2^16 / (number of indices per quad = 6)] = ~104 x 104 grid
+	// The new maximum should be ~26,754 x 26,754.
+	std::vector<uint32_t> indices;
+
 	for (Entity e : registry.terrainRenderRequests.entities) {
 		mat3 modelMatrix = createModelMatrix(e);	// preprocess transform matrices because
 		RenderRequest r = registry.terrainRenderRequests.get(e);
@@ -113,6 +118,7 @@ void RenderSystem::initializeTerrainVAO()
 		// we can't really have per-mesh transforms so let's just bake them in!
 		make_quad(modelMatrix, r.used_texture, vertices, indices);
 	}
+
 	bindVBOandIBO(GEOMETRY_BUFFER_ID::TERRAIN, vertices, indices);
 }
 
@@ -171,6 +177,7 @@ void RenderSystem::initializeGl3DTextures() {
 	}
 
 	// Tell GPU to allocate the 3d texture
+	// We are now limited to OpenGL 4.2+ LMAO
 	glTexStorage3D(GL_TEXTURE_2D_ARRAY, 1, GL_RGBA8, dimensions.x, dimensions.y, n);
 	gl_has_errors();
 
@@ -230,8 +237,8 @@ void RenderSystem::initializeGlEffects()
 }
 
 // One could merge the following two functions as a template function...
-template <class T>
-void RenderSystem::bindVBOandIBO(GEOMETRY_BUFFER_ID gid, std::vector<T> vertices, std::vector<uint16_t> indices)
+template <class T, class U>
+void RenderSystem::bindVBOandIBO(GEOMETRY_BUFFER_ID gid, std::vector<T> vertices, std::vector<U> indices)
 {
 	glBindBuffer(GL_ARRAY_BUFFER, vertex_buffers[(uint)gid]);
 	glBufferData(GL_ARRAY_BUFFER,
