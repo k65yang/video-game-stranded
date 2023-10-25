@@ -31,8 +31,7 @@ struct Player
 	int food = PLAYER_MAX_FOOD;
 };
 
-// Generic weapon for now
-// TODO: needs more efficient way to determine if a weapon is allowed to fire
+// The weapon
 struct Weapon {
 	ITEM_TYPE weapon_type;
 	bool can_fire;
@@ -42,24 +41,32 @@ struct Weapon {
 	int projectile_damage;               // weapon damage
 };
 
-// Generic projectile for now
+// The projectile
 struct Projectile {
-	int damage = 100;
+	int damage;
+	Entity weapon; // link the projectile to the weapon
 };
 
 // Mob component
 struct Mob {
 	bool is_tracking_player = false;
 	int damage;
-	int health = 1;
+	int health = 100000;
+};
+
+// Slowing effect for mobs from weapons
+struct MobSlowEffect {
+	bool applied;
+	vec2 initial_velocity;
+	float duration_ms;				// how long effect lasts
+	float elapsed_slow_time_ms;		// how long effect has been active
+	float slow_ratio;				// how much slowing
 };
 
 // Structure to store the path for a mob
 struct Path {
 	std::deque<Entity> path;
 };
-
-
 
 struct Item {
 	ITEM_TYPE data;
@@ -134,7 +141,6 @@ struct Camera
 {
 	bool mode_follow;
 };
-
 
 enum class TERRAIN_TYPE {
 	AIR = 0,

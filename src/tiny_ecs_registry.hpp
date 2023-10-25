@@ -19,6 +19,7 @@ public:
 	ComponentContainer<Projectile> projectiles;
 
 	ComponentContainer<Mob> mobs;
+	ComponentContainer<MobSlowEffect> mobSlowEffects;
 	ComponentContainer<Path> paths;
 	ComponentContainer<Item> items;
 
@@ -49,12 +50,16 @@ public:
 		registry_list.push_back(&players);
 		registry_list.push_back(&weapons);
 		registry_list.push_back(&projectiles);
+
 		registry_list.push_back(&mobs);
+		registry_list.push_back(&mobSlowEffects);
 		registry_list.push_back(&paths);
 		registry_list.push_back(&items);
+
 		registry_list.push_back(&meshPtrs);
 		registry_list.push_back(&renderRequests);
 		registry_list.push_back(&screenStates);
+		
 		registry_list.push_back(&debugComponents);
 		registry_list.push_back(&colors);
 		registry_list.push_back(&terrainColliders);

@@ -281,6 +281,32 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	health.position = { -8.f + camera_motion.position.x, 7.f + camera_motion.position.y };
 	food.position = { 8.f + camera_motion.position.x, 7.f + camera_motion.position.y };
 
+	// Mob updates
+	for (Entity entity : registry.mobs.entities) {
+		// slow updates
+		if (registry.mobSlowEffects.has(entity)) {
+			Motion& motion = registry.motions.get(entity);
+			MobSlowEffect& mobSlowEffect = registry.mobSlowEffects.get(entity);
+
+			// Apply slow effect if not yet applied
+			if (!mobSlowEffect.applied) {
+				mobSlowEffect.initial_velocity = motion.velocity;
+				motion.velocity = motion.velocity * mobSlowEffect.slow_ratio;
+				mobSlowEffect.applied = true;
+			}
+			
+			// Increment duration
+			mobSlowEffect.elapsed_slow_time_ms += elapsed_ms_since_last_update;
+
+			// Return mob to normal speed if slow duration is over. 
+			// Remove the MobSlowEffect component only.
+			if (mobSlowEffect.duration_ms > mobSlowEffect.elapsed_slow_time_ms) {
+				motion.velocity = mobSlowEffect.initial_velocity;
+				registry.mobSlowEffects.remove(entity);
+			}
+		}
+	}
+
 	return true;
 }
 
@@ -491,13 +517,16 @@ void WorldSystem::handle_collisions() {
 			if (registry.mobs.has(entity_other)) {
 				Mob& mob = registry.mobs.get(entity_other);
 
-				// Mob takes damage.
+				// Mob takes damage. Kill if no hp left.
 				mob.health -= projectile.damage;
-
-				// If mob has no hp, it is killed.
 				if (mob.health <= 0) {
 					registry.remove_all_components_of(entity_other);
 				}
+
+				// Add weapon effects to the mob
+				weapons_system->applyWeaponEffects(entity, entity_other);
+
+				// Remove projectile
 				registry.remove_all_components_of(entity);
 			} 
 			// Checking Projectile - Terrain Colliders

@@ -40,6 +40,14 @@ class WeaponsSystem
         /// @param angle The angle of the player
         void fireWeapon(float player_x, float player_y, float angle);
 
+        /// @brief Applies weapon weapon effects if any (slow, poison, knockback)
+        /// @param mob Entity to apply the effects to
+        void applyWeaponEffects(Entity projectile, Entity mob);
+
+        // TODO
+        /// @brief When the game restarts, we must clean the weapons system
+        // void cleanWeaponsSystem();
+
     private:
         // Keeps track of the weapon
         ITEM_TYPE active_weapon_type;
@@ -77,6 +85,31 @@ class WeaponsSystem
             {ITEM_TYPE::WEAPON_CROSSBOW, TEXTURE_ASSET_ID::WEAPON_ARROW},
         };
 
+        // Current weapon upgrade levels
+        std::map<ITEM_TYPE, int> weapon_level {
+            {ITEM_TYPE::WEAPON_NONE, 0},
+            {ITEM_TYPE::WEAPON_SHURIKEN, 1},
+            {ITEM_TYPE::WEAPON_CROSSBOW, 1},
+        };
+
+        /// @brief Fires the shuriken based on upgrade level
+        /// @param player_x The x coordinate of the player
+        /// @param player_y The y coordinate of the player
+        /// @param angle The angle of the player
+        void fireShuriken(float player_x, float player_y, float player_angle);
+
+        /// @brief Fires the crossbow based on upgrade level
+        /// @param player_x The x coordinate of the player
+        /// @param player_y The y coordinate of the player
+        /// @param angle The angle of the player
+        void fireCrossbow(float player_x, float player_y, float player_angle);
+
+        /// @brief Applies a slow to the mob
+        /// @param mob Entity to apply the slow to
+        /// @param duration_ms How long in ms the slow lasts
+        /// @param slow_ratio How much to slow it by [0.0, 1.0] (1.0 is no slow)
+        void applySlow(Entity mob, float duration_ms, float slow_ratio);
+        
         /// @brief Creates a projectile
         /// @param renderer Pointer to the render system
         /// @param pos Position to draw the projectile
