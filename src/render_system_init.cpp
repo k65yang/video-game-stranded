@@ -150,6 +150,9 @@ void RenderSystem::initializeGlTextures()
 	gl_has_errors();
 }
 
+// Holy hell thank you to these:
+// https://www.khronos.org/opengl/wiki/Array_Texture
+// https://stackoverflow.com/questions/72390151/how-to-use-a-2d-texture-array-in-opengl
 void RenderSystem::initializeGl3DTextures() {
 	glGenTextures(1, &texture_array);
 	gl_has_errors();
@@ -177,7 +180,7 @@ void RenderSystem::initializeGl3DTextures() {
 	}
 
 	// Tell GPU to allocate the 3d texture
-	// We are now limited to OpenGL 4.2+ LMAO
+	// We are now officially limited to OpenGL 4.2+ LMAO
 	glTexStorage3D(GL_TEXTURE_2D_ARRAY, 1, GL_RGBA8, dimensions.x, dimensions.y, n);
 	gl_has_errors();
 
@@ -188,10 +191,10 @@ void RenderSystem::initializeGl3DTextures() {
 	// The 4 zeroes: 
 	// The first zero: the "layer" of this element (complicated stuff I don't want to get into)
 	// The next two zeros: The x,y offset inside the uv space where the data is placed
-	// The zero after: Specifies that this texture is the i-th element in the array
-	// The zero after dimensions.x and dimensions.y: "border - This value must be 0"
-	
-	// It literally says here LMAO: https://registry.khronos.org/OpenGL-Refpages/gl4/html/glTexImage3D.xhtml
+	// The zero after: Specifies that this texture is the i-th element in the array	
+	// 
+	// The reason why we're using glTexSubImage3D is because we've already "allocated" the space for the texture.
+	// We're just modifying that space, hence the 'Sub' in 'SubImage'.
 	glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, 0, 0, 0, dimensions.x, dimensions.y, 1, GL_RGBA, GL_UNSIGNED_BYTE, data);
 	gl_has_errors();
 

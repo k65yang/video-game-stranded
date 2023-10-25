@@ -182,6 +182,7 @@ void RenderSystem::drawToScreen()
 	gl_has_errors();
 }
 
+/// Totally not a blatant copy of the template code.
 void RenderSystem::drawTerrain(const mat3& view_2D, const mat3& projection_2D)
 {
 	GLuint program = effects[(GLuint)EFFECT_ASSET_ID::TERRAIN];
@@ -211,6 +212,7 @@ void RenderSystem::drawTerrain(const mat3& view_2D, const mat3& projection_2D)
 	//assert(in_flags_loc >= 0);
 
 	// Calculates the offsets of each field within BatchedVertex
+	// Thank you to: https://www.cs.ubc.ca/~rhodin/2023_2024_CPSC_427/resources/minimal_mesh_rendering.cpp
 	const auto SIZE_OF_EACH_VERTEX = sizeof(BatchedVertex);
 	const void* POSITION_OFFSET = reinterpret_cast<void*>(offsetof(BatchedVertex, position));
 	const void* UV_OFFSET = reinterpret_cast<void*>(offsetof(BatchedVertex, texCoords));
@@ -256,6 +258,7 @@ void RenderSystem::drawTerrain(const mat3& view_2D, const mat3& projection_2D)
 	size /= sizeof(uint32_t);
 
 	// Draw!
+	// Recall that we're using GL_UNSIGNED_INT because the index buffer are int32_t's
 	glDrawElements(GL_TRIANGLES, size, GL_UNSIGNED_INT, nullptr);
 	gl_has_errors();
 
