@@ -51,7 +51,7 @@ Entity createTestDummy(RenderSystem* renderer, vec2 position);
 /// /// <param name="renderer">terrain from terrain system</param>
 /// <param name="position">position of target terrain cell</param>
 /// <returns>The terrain cell entity</returns>
-Entity createTerrainCollider(RenderSystem* renderer,TerrainSystem* terrin, vec2 position);
+Entity createTerrainCollider(RenderSystem* renderer,TerrainSystem* terrain, vec2 position);
 
 /// <summary>
 /// Create boundary block given position and scale

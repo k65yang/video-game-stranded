@@ -29,8 +29,8 @@ public:
 		Entity entity;
 
 		// STRUCTURE:
-		// [bits 31-2 are reserved, disable pathfind, collidable]
-		//							    1st bit		    0th bit
+		// [ TERRAIN_TYPE, bits 14-2 are reserved , disable pathfind, collidable]
+		//	  bits 31-15								1st bit		    0th bit
 		// 
 		// We're using unsigned int flags because it is the largest data structure that
 		// remains aligned with Entity
@@ -100,12 +100,24 @@ public:
 	void get_accessible_neighbours(Entity cell, std::vector<Entity>& buffer, bool checkPathfind = false);
 
 	/// <summary>
-	/// Updates the values for a tile. This includes rendering data.
+	/// Updates the values for a tile. This includes rendering data and TerrainCell data.
 	/// </summary>
-	/// <param name="cell">The tile's entity</param>
+	/// <param name="tile">The tile's entity</param>
 	void update_tile(Entity tile) {
-		RenderRequest& r = registry.terrainRenderRequests.get(tile);
-		renderer->changeTerrainData(tile, tile - entityStart, r);
+		TerrainCell& cell = registry.terrainCells.get(tile);
+		return update_tile(tile, cell);
+	}
+
+	/// <summary>
+	/// Updates the values for a tile. This includes rendering data and TerrainCell data.
+	/// </summary>
+	/// <param name="tile">The tile's entity</param>
+	/// <param name="cell">The tile's TerrainCell component</param>
+	void update_tile(Entity tile, TerrainCell& cell) {
+		grid[tile - entityStart].flags = cell;
+		// We may have tiles changed during world_system.init() at startup so we need to check!
+		if (renderer->is_terrain_mesh_loaded)
+			renderer->changeTerrainData(tile, tile - entityStart, cell);
 	}
 
 private:
@@ -131,9 +143,4 @@ private:
 	/// <param name="index">The index to a cell in 'grid'</param>
 	/// <returns>The cell's world position</returns>
 	vec2 to_world_coordinates(const int index);
-
-	/// <summary>
-	/// Builds a RenderRequest component for this cell.
-	/// </summary>
-	RenderRequest make_render_request(TerrainCell& cell);
 };

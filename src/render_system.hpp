@@ -37,9 +37,6 @@ class RenderSystem {
 			textures_path("item.png"),
 			textures_path("food.png"),
 			textures_path("weapon.png"),
-			terrain_texture_path("0.png"),
-			terrain_texture_path("1.png"),
-			terrain_texture_path("2.png"),
 			textures_path("spaceship.png"), 
 			textures_path("blueblock.png")
 	};
@@ -119,7 +116,10 @@ public:
 	/// <param name="cell">The tile</param>
 	/// <param name="i">The tile's index in the Cell array</param>
 	/// <param name="data">The updated render request</param>
-	void changeTerrainData(Entity cell, unsigned int i, RenderRequest& data);
+	void changeTerrainData(Entity cell, unsigned int i, TerrainCell& data);
+
+	// Do not modify this. READ ONLY!!
+	bool is_terrain_mesh_loaded = false;
 
 private:
 	// Internal vertex data structure used for batched rendering
@@ -143,9 +143,9 @@ private:
 	/// <param name="vertices">The vertex buffer</param>
 	/// <param name="indicies">The index buffer</param>
 	template <class T>
-	void make_quad(mat3 modelMatrix, TEXTURE_ASSET_ID texture, std::vector<BatchedVertex>& vertices, std::vector<T>& indicies);
+	void make_quad(mat3 modelMatrix, uint16_t texture_id, std::vector<BatchedVertex>& vertices, std::vector<T>& indicies);
 
-	void makeQuadVertices(glm::mat3& modelMatrix, TEXTURE_ASSET_ID texture, std::vector<RenderSystem::BatchedVertex>& vertices);
+	void makeQuadVertices(glm::mat3& modelMatrix, uint16_t texture_id, std::vector<RenderSystem::BatchedVertex>& vertices);
 
 	/// <summary>
 	/// Batch-draws the terrain layer.

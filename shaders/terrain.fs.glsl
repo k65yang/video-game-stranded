@@ -14,6 +14,6 @@ layout(location = 0) out  vec4 color;
 
 void main()
 {
-	vec3 _uv = vec3(texcoord, tex_i - 7u);
+	vec3 _uv = vec3(texcoord, tex_i);
 	color = texture(textures, _uv);
 }
