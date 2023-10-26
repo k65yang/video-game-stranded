@@ -511,6 +511,7 @@ void WorldSystem::handle_collisions() {
 
 				// Mob takes damage. Kill if no hp left.
 				mob.health -= projectile.damage;
+				// printf("mob health: %i", mob.health);
 				if (mob.health <= 0) {
 					registry.remove_all_components_of(entity_other);
 				}
@@ -666,8 +667,6 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		debugging.in_debug_mode = !debugging.in_debug_mode;
 	}
 
-
-
 	// Control the current speed with `<` `>`
 	if (action == GLFW_RELEASE && (mod & GLFW_MOD_SHIFT) && key == GLFW_KEY_COMMA) {
 		current_speed -= 0.1f;
@@ -679,7 +678,24 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	}
 	current_speed = fmax(0.f, current_speed);
 
-	
+	// TESTING: hotkeys to equip weapons
+	if (key == GLFW_KEY_1 && action == GLFW_PRESS) {
+		player_equipped_weapon = weapons_system->createWeapon(ITEM_TYPE::WEAPON_SHURIKEN);
+	}
+	if (key == GLFW_KEY_2 && action == GLFW_PRESS) {
+		player_equipped_weapon = weapons_system->createWeapon(ITEM_TYPE::WEAPON_CROSSBOW);
+	}
+	if (key == GLFW_KEY_3 && action == GLFW_PRESS) {
+		player_equipped_weapon = weapons_system->createWeapon(ITEM_TYPE::WEAPON_SHOTGUN);
+	}
+	if (key == GLFW_KEY_4 && action == GLFW_PRESS) {
+		player_equipped_weapon = weapons_system->createWeapon(ITEM_TYPE::WEAPON_MACHINEGUN);
+	}
+
+	// TESING: hotkey to upgrade weapon
+	if (key == GLFW_KEY_U && action == GLFW_PRESS) {
+		weapons_system->upgradeCurrentWeapon();
+	}
 }
 
 /// <summary>
@@ -736,10 +752,10 @@ void WorldSystem::spawn_items() {
 	}
 
 	// TESTING: Force one spawn of each weapon.
-	createItem(renderer, get_random_spawn_location(), ITEM_TYPE::WEAPON_SHURIKEN);
-	createItem(renderer, get_random_spawn_location(), ITEM_TYPE::WEAPON_CROSSBOW);
-	createItem(renderer, get_random_spawn_location(), ITEM_TYPE::WEAPON_SHOTGUN);
-	createItem(renderer, get_random_spawn_location(), ITEM_TYPE::WEAPON_MACHINEGUN);
+	// createItem(renderer, get_random_spawn_location(), ITEM_TYPE::WEAPON_SHURIKEN);
+	// createItem(renderer, get_random_spawn_location(), ITEM_TYPE::WEAPON_CROSSBOW);
+	// createItem(renderer, get_random_spawn_location(), ITEM_TYPE::WEAPON_SHOTGUN);
+	// createItem(renderer, get_random_spawn_location(), ITEM_TYPE::WEAPON_MACHINEGUN);
 };
 
 void WorldSystem::spawn_mobs() {

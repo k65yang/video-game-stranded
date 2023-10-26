@@ -53,7 +53,6 @@ void WeaponsSystem::fireWeapon(float player_x, float player_y, float player_angl
 		case ITEM_TYPE::WEAPON_SHOTGUN:
 			fireShotgun(player_x, player_y, player_angle);
 			break;
-
 		case ITEM_TYPE::WEAPON_MACHINEGUN:
 			fireMachineGun(player_x, player_y, player_angle);
 			break;
@@ -74,14 +73,12 @@ void WeaponsSystem::fireShuriken(float player_x, float player_y, float angle) {
 			weapon_component->can_fire = false;
 			weapon_component->elapsed_last_shot_time_ms = 0.f;
 			break;
-		case 1:
+		default:
 			createProjectile(renderer, {player_x, player_y}, angle);
 			createProjectile(renderer, {player_x + offset * cos(angle), player_y + offset * sin(angle)}, angle);
 			weapon_component->can_fire = false;
 			weapon_component->elapsed_last_shot_time_ms = 0.f;
 			break;
-		default:
-			throw(std::runtime_error("Error: Shuriken level not supported (level: " + std::to_string(weapon_level[active_weapon_type]) + ")"));
 	}
 }
 
@@ -99,11 +96,9 @@ void WeaponsSystem::fireShotgun(float player_x, float player_y, float angle) {
 		case 0:
 			num_bullets = 5;
 			break;
-		case 1:
+		default: // default case is max level
 			num_bullets = 12;
 			break;
-		default:
-			throw(std::runtime_error("Error: Shotgun level not supported (level: " + std::to_string(weapon_level[active_weapon_type]) + ")"));
 	}
 
 	for (int i=0; i < num_bullets; i++){
@@ -122,11 +117,9 @@ void WeaponsSystem::fireMachineGun(float player_x, float player_y, float angle) 
 		case 0:
 			max_recoil_angle = 0.261799f; // 15 degrees
 			break;
-		case 1:
+		default: // default case is max level
 			max_recoil_angle = 0.174533f; // 10 degrees
 			break;
-		default:
-			throw(std::runtime_error("Error: Machine gun level not supported (level: " + std::to_string(weapon_level[active_weapon_type]) + ")"));
 	}
 	float stddev = max_recoil_angle/2;
 	float range_min = angle - max_recoil_angle;
@@ -186,14 +179,16 @@ Entity WeaponsSystem::createProjectile(RenderSystem* renderer, vec2 pos, float a
 	motion.position = pos;
 	// printf("player x: %f, player y: %f \n", pos.x, pos.y);
 
+
+	// Initialize the collider (MUST BE DONE AFTER MOTION COMPONENT)
+	createCollider(entity);
+
 	// Add this projectile to the projectiles registry
 	auto& projectile = registry.projectiles.emplace(entity);
 	projectile.weapon = active_weapon_entity;
 	projectile.damage = weapon_damage_map[active_weapon_type];
 
-	
-
-	// For shotgun pellets, we use the PEBBLE effect/geometry, not an actual texture
+	// For shotgun/machine gun pellets, we use the PEBBLE effect/geometry, not an actual texture
 	if (active_weapon_type == ITEM_TYPE::WEAPON_SHOTGUN || active_weapon_type == ITEM_TYPE::WEAPON_MACHINEGUN) {
 		registry.renderRequests.insert(
 			entity,

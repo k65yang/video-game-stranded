@@ -152,12 +152,4 @@ private:
 	/// </summary>
 	void update_camera_follow();
 	bool keyDown[KEYS];    // Uses InputKeyIndex values as index
-
-	/// <summary>
-	/// Creates a weapon and adds it to the weapons registry. Auto-equips the created weapon.
-	/// NOTE: Does not check if the weapon exists already. 
-	///       (If we do not limit weapon spawns we can be create/equip the same weapon multiple times)
-	/// </summary>
-	/// <param name="weapon_type"> The type of weapon to be created</param>
-	// Entity createAndEquipWeapon(ITEM_TYPE weapon_type);
 };

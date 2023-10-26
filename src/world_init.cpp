@@ -417,7 +417,7 @@ void createBoundingBox(std::vector<vec2>& points, vec2 scale) {
 
 }
 
-
+// NIT: this might be better suited in the physics system. Weapons system imports world_init.hpp to create colliders for projectiles.
 // reference:: https://gamedev.stackexchange.com/questions/105296/calculation-correct-position-of-object-after-collision-2d
 
 /// <summary>

@@ -6,6 +6,7 @@
 #include "components.hpp"
 #include "tiny_ecs_registry.hpp"
 #include "render_system.hpp"
+#include "world_init.hpp"
 
 //  A weapons system class that handles everything weapons related
 class WeaponsSystem
@@ -44,8 +45,13 @@ class WeaponsSystem
         /// @param mob Entity to apply the effects to
         void applyWeaponEffects(Entity projectile, Entity mob);
 
+        /// @brief Increases the current weapon level by 1
+        void upgradeCurrentWeapon(){
+            weapon_level[active_weapon_type]++;
+        };
+
         // TODO
-        /// @brief When the game restarts, we must clean the weapons system
+        /// @brief When the game restarts (without exiting), we must clean the weapons system
         // void cleanWeaponsSystem();
 
     private:
