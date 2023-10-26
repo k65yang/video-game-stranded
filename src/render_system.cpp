@@ -187,6 +187,91 @@ void RenderSystem::drawToScreen()
 	gl_has_errors();
 }
 
+/// Totally not a blatant copy of the template code.
+void RenderSystem::drawTerrain(const mat3& view_2D, const mat3& projection_2D)
+{
+	GLuint program = effects[(GLuint)EFFECT_ASSET_ID::TERRAIN];
+	glUseProgram(program);
+
+	const GLuint vbo = vertex_buffers[(GLuint)GEOMETRY_BUFFER_ID::TERRAIN];
+	const GLuint ibo = index_buffers[(GLuint)GEOMETRY_BUFFER_ID::TERRAIN];
+
+	// Load vertex and index buffers from GPU memory from GPU "address" vbo and ibo
+	glBindBuffer(GL_ARRAY_BUFFER, vbo);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
+	gl_has_errors();
+
+	// Get the position of each attributes and uniforms inside the shader
+	// The asserts are to make sure they exist within the shader files.
+	GLint viewMatrix_uloc = glGetUniformLocation(program, "viewMatrix");
+	assert(viewMatrix_uloc >= 0);
+	GLint projectionMatrix_uloc = glGetUniformLocation(program, "projectionMatrix");
+	assert(projectionMatrix_uloc >= 0);
+	GLint in_position_loc = glGetAttribLocation(program, "in_position");
+	assert(in_position_loc >= 0);
+	GLint in_texcoord_loc = glGetAttribLocation(program, "in_texcoord");
+	assert(in_texcoord_loc >= 0);
+	GLint in_tex_i_loc = glGetAttribLocation(program, "in_tex_i");
+	assert(in_tex_i_loc >= 0);
+	//GLint in_flags_loc = glGetAttribLocation(program, "in_flags");
+	//assert(in_flags_loc >= 0);
+
+	// Calculates the offsets of each field within BatchedVertex
+	// Thank you to: https://www.cs.ubc.ca/~rhodin/2023_2024_CPSC_427/resources/minimal_mesh_rendering.cpp
+	const auto SIZE_OF_EACH_VERTEX = sizeof(BatchedVertex);
+	const void* POSITION_OFFSET = reinterpret_cast<void*>(offsetof(BatchedVertex, position));
+	const void* UV_OFFSET = reinterpret_cast<void*>(offsetof(BatchedVertex, texCoords));
+	const void* TEX_INDEX_OFFSET = reinterpret_cast<void*>(offsetof(BatchedVertex, texIndex));
+
+	// Vertex position
+	glEnableVertexAttribArray(in_position_loc);
+	gl_has_errors();
+	glVertexAttribPointer(in_position_loc, 3, GL_FLOAT, GL_FALSE, SIZE_OF_EACH_VERTEX, POSITION_OFFSET);
+	gl_has_errors();
+
+	// Texture uv
+	glEnableVertexAttribArray(in_texcoord_loc);
+	gl_has_errors();
+	glVertexAttribPointer(in_texcoord_loc, 2, GL_FLOAT, GL_FALSE, SIZE_OF_EACH_VERTEX, UV_OFFSET);
+	gl_has_errors();
+
+	// Texture index used for the 2D texture array
+	glEnableVertexAttribArray(in_tex_i_loc);
+	gl_has_errors();
+	glVertexAttribIPointer(in_tex_i_loc, 1, GL_UNSIGNED_SHORT, SIZE_OF_EACH_VERTEX, TEX_INDEX_OFFSET);
+	gl_has_errors();
+
+	const vec3 color = vec3(0, 1, 0);
+
+	// Camera and projectiin matrices
+	glUniformMatrix3fv(viewMatrix_uloc, 1, GL_FALSE, (float*)&view_2D);
+	gl_has_errors();
+	glUniformMatrix3fv(projectionMatrix_uloc, 1, GL_FALSE, (float*)&projection_2D);
+	gl_has_errors();
+	//glUniform3fv(color_uloc, 1, (float*)&color);
+	//gl_has_errors();
+
+
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D_ARRAY, texture_array);
+	gl_has_errors();
+
+	// Get number of indices from index buffer, which has elements uint32_t
+	GLint size = 0;
+	glGetBufferParameteriv(GL_ELEMENT_ARRAY_BUFFER, GL_BUFFER_SIZE, &size);
+	gl_has_errors();
+	size /= sizeof(uint32_t);
+
+	// Draw!
+	// Recall that we're using GL_UNSIGNED_INT because the index buffer are int32_t's
+	glDrawElements(GL_TRIANGLES, size, GL_UNSIGNED_INT, nullptr);
+	gl_has_errors();
+
+	// Free up the buffers
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+}
+
 // Render our game world
 // http://www.opengl-tutorial.org/intermediate-tutorials/tutorial-14-render-to-texture/
 void RenderSystem::draw()
@@ -201,7 +286,7 @@ void RenderSystem::draw()
 	// Clearing backbuffer
 	glViewport(0, 0, w, h);
 	glDepthRange(0.00001, 10);
-	glClearColor(0, 0, 1, 1.0);
+	glClearColor(0, 0, 0, 1.0);
 	glClearDepth(10.f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glEnable(GL_BLEND);
@@ -254,7 +339,10 @@ void RenderSystem::draw()
 	}
 
 
-	// 	// Draw all textured meshes that have a position and size component in corresponded order to achieve layering. Could be optimize later
+	// Draw all textured meshes that have a position and size component in corresponded order to achieve layering. Could be optimize later
+
+	// Render terrain first
+	drawTerrain(view_2D, projection_2D);
 
 	for (Entity entity : layer_1_entities) {
 		drawTexturedMesh(entity, view_2D, projection_2D);
@@ -310,8 +398,7 @@ mat3 RenderSystem::createProjectionMatrix()
 	// Same code as the template since it scales with aspect ratio.
 	float left = -window_width_px / 2.f; // Modified these values so the middle of the screen is now 0,0
 	float top = -window_height_px / 2.f;
-
-	gl_has_errors();
+	
 	float right = window_width_px / 2.f;
 	float bottom = window_height_px /2.f;
 
@@ -321,5 +408,17 @@ mat3 RenderSystem::createProjectionMatrix()
 	float ty = -(top + bottom) / (top - bottom) * tile_size_px;
 
 	return {{sx, 0.f, 0.f}, {0.f, sy, 0.f}, {tx, ty, 1.f}};
+}
+
+void RenderSystem::changeTerrainData(Entity cell, unsigned int i, RenderRequest& data)
+{
+	glBindBuffer(GL_ARRAY_BUFFER, vertex_buffers[(GLuint)GEOMETRY_BUFFER_ID::TERRAIN]);
+	gl_has_errors();
+	std::vector<BatchedVertex> vertices;
+	mat3 transform = createModelMatrix(cell);
+	makeQuadVertices(transform, data.used_texture, vertices);
+
+	glBufferSubData(GL_ARRAY_BUFFER, i * sizeof(BatchedVertex) * 4, sizeof(BatchedVertex) * 4, vertices.data());
+	gl_has_errors();
 }
 

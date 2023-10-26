@@ -31,7 +31,9 @@ public:
 	ComponentContainer<ScreenState> screenStates;
 	ComponentContainer<DebugComponent> debugComponents;
 	ComponentContainer<vec3> colors;
-	ComponentContainer<TerrainCollider> terrainColliders;
+	ComponentContainer<Collider> colliders;
+
+	ComponentContainer<BoundaryBlock> boundaries;
 
 
 	// Terrain-related
@@ -62,7 +64,8 @@ public:
 		
 		registry_list.push_back(&debugComponents);
 		registry_list.push_back(&colors);
-		registry_list.push_back(&terrainColliders);
+		registry_list.push_back(&colliders);
+		registry_list.push_back(&boundaries);
 
 
 		registry_list.push_back(&cameras);

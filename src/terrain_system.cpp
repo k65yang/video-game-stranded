@@ -100,6 +100,8 @@ void TerrainSystem::get_accessible_neighbours(Entity cell, std::vector<Entity>& 
 
 unsigned int TerrainSystem::to_array_index(int x, int y)
 {
+	assert(abs(x) <= size_x / 2);
+	assert(abs(y) <= size_y / 2);
 	x = size_x / 2 + x;
 	y = size_y / 2 + y;
 	return (y * size_x + x);
@@ -107,6 +109,7 @@ unsigned int TerrainSystem::to_array_index(int x, int y)
 
 vec2 TerrainSystem::to_world_coordinates(const int index)
 {
+	assert(index >= 0 && index < size_x * size_y);
 	return {(index % size_x) - size_x / 2,
 			index / size_x - size_y / 2 };
 }
@@ -120,9 +123,10 @@ RenderRequest TerrainSystem::make_render_request(TerrainCell& cell) {
 	};
 }
 
-
-void TerrainSystem::init(const unsigned int x, const unsigned int y, const RenderSystem* renderer)
+void TerrainSystem::init(const unsigned int x, const unsigned int y, RenderSystem* renderer)
 {
+	this->renderer = renderer;
+
 	if (grid != nullptr) {		// if grid is allocated, deallocate
 		delete[] grid;
 		grid = nullptr;
@@ -136,16 +140,13 @@ void TerrainSystem::init(const unsigned int x, const unsigned int y, const Rende
 
 	for (int i = 0; i < x * y; i++) {
 		Entity& entity = grid[i].entity;
-		registry.terrainCells.emplace(entity);
-		registry.motions.emplace(entity);
-		Motion& motion = registry.motions.get(entity);
-
+		TerrainCell& cell = registry.terrainCells.emplace(entity, TERRAIN_TYPE::AIR, grid[i].flags);
+		Motion& motion = registry.motions.emplace(entity);
 		motion.position = to_world_coordinates(i);
-
-		TerrainCell& cell = registry.terrainCells.get(entity);
 
 		// TODO: Insert to 'terrainRenderRequests' to make rendering much more optimized
 		// by only rendering the entire terrain in 1 draw call.
-		registry.renderRequests.insert(entity, make_render_request(cell));
+		//registry.renderRequests.insert(entity, make_render_request(cell));
+		registry.terrainRenderRequests.insert(entity, make_render_request(cell));
 	}
 }
