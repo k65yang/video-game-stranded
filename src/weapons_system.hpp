@@ -63,6 +63,8 @@ class WeaponsSystem
             {ITEM_TYPE::WEAPON_NONE, 0.f},
             {ITEM_TYPE::WEAPON_SHURIKEN, 250.f},
             {ITEM_TYPE::WEAPON_CROSSBOW, 750.f},
+            {ITEM_TYPE::WEAPON_SHOTGUN, 500.f},
+            {ITEM_TYPE::WEAPON_MACHINEGUN, 100.f},
         };
 
         // Projectile velocities for each weapon
@@ -70,6 +72,8 @@ class WeaponsSystem
             {ITEM_TYPE::WEAPON_NONE, 0.f},
             {ITEM_TYPE::WEAPON_SHURIKEN, 10.f},
             {ITEM_TYPE::WEAPON_CROSSBOW, 10.f},
+            {ITEM_TYPE::WEAPON_SHOTGUN, 15.f},
+            {ITEM_TYPE::WEAPON_MACHINEGUN, 15.f},
         };
 
         // Weapon damages
@@ -77,6 +81,8 @@ class WeaponsSystem
             {ITEM_TYPE::WEAPON_NONE, 0},
             {ITEM_TYPE::WEAPON_SHURIKEN, 10},
             {ITEM_TYPE::WEAPON_CROSSBOW, 15},
+            {ITEM_TYPE::WEAPON_SHOTGUN, 7},
+            {ITEM_TYPE::WEAPON_MACHINEGUN, 5},
         };
 
         // Weapon projectile textures
@@ -88,21 +94,35 @@ class WeaponsSystem
         // Current weapon upgrade levels
         std::map<ITEM_TYPE, int> weapon_level {
             {ITEM_TYPE::WEAPON_NONE, 0},
-            {ITEM_TYPE::WEAPON_SHURIKEN, 1},
-            {ITEM_TYPE::WEAPON_CROSSBOW, 1},
+            {ITEM_TYPE::WEAPON_SHURIKEN, 0},
+            {ITEM_TYPE::WEAPON_CROSSBOW, 0},
+            {ITEM_TYPE::WEAPON_SHOTGUN, 0},
+            {ITEM_TYPE::WEAPON_MACHINEGUN, 0},
         };
 
         /// @brief Fires the shuriken based on upgrade level
         /// @param player_x The x coordinate of the player
         /// @param player_y The y coordinate of the player
-        /// @param angle The angle of the player
+        /// @param angle The angle of the projectile
         void fireShuriken(float player_x, float player_y, float player_angle);
 
         /// @brief Fires the crossbow based on upgrade level
         /// @param player_x The x coordinate of the player
         /// @param player_y The y coordinate of the player
-        /// @param angle The angle of the player
+        /// @param angle The angle of the projectile
         void fireCrossbow(float player_x, float player_y, float player_angle);
+
+        /// @brief Fires the shotgun based on upgrade level
+        /// @param player_x The x coordinate of the player
+        /// @param player_y The y coordinate of the player
+        /// @param angle The angle of the projectile
+        void fireShotgun(float player_x, float player_y, float player_angle);
+
+        /// @brief  Fires the machine gun based on upgrade level
+        /// @param player_x The x coordinate of the player
+        /// @param player_y The y coordinate of the player
+        /// @param angle The angle of the projectile
+        void fireMachineGun(float player_x, float player_y, float angle);
 
         /// @brief Applies a slow to the mob
         /// @param mob Entity to apply the slow to

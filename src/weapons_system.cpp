@@ -1,4 +1,6 @@
 #include <string> 
+#include <stdexcept>
+#include <random>
 
 #include "weapons_system.hpp"
 
@@ -48,38 +50,100 @@ void WeaponsSystem::fireWeapon(float player_x, float player_y, float player_angl
 		case ITEM_TYPE::WEAPON_CROSSBOW:
 			fireCrossbow(player_x, player_y, player_angle);
 			break;
+		case ITEM_TYPE::WEAPON_SHOTGUN:
+			fireShotgun(player_x, player_y, player_angle);
+			break;
+
+		case ITEM_TYPE::WEAPON_MACHINEGUN:
+			fireMachineGun(player_x, player_y, player_angle);
+			break;
 		default:
-			throw("Error: Filed to fire weapon because unknown weapon equipped");
+			throw(std::runtime_error("Error: Filed to fire weapon because unknown weapon equipped"));
 	}
 		
 }
 
-void WeaponsSystem::fireShuriken(float player_x, float player_y, float player_angle) {
+void WeaponsSystem::fireShuriken(float player_x, float player_y, float angle) {
 	// one of the upgrades is "double-shot", but we cannot easily throw one after another
 	// instead we offset the second shuriken so it looks like we threw one after another
 	float offset = 0.5f;
 
 	switch(weapon_level[active_weapon_type]) {
 		case 0:
-			createProjectile(renderer, {player_x, player_y}, player_angle);
+			createProjectile(renderer, {player_x, player_y}, angle);
 			weapon_component->can_fire = false;
 			weapon_component->elapsed_last_shot_time_ms = 0.f;
 			break;
 		case 1:
-			createProjectile(renderer, {player_x, player_y}, player_angle);
-			createProjectile(renderer, {player_x + offset * cos(player_angle), player_y + offset * sin(player_angle)}, player_angle);
+			createProjectile(renderer, {player_x, player_y}, angle);
+			createProjectile(renderer, {player_x + offset * cos(angle), player_y + offset * sin(angle)}, angle);
 			weapon_component->can_fire = false;
 			weapon_component->elapsed_last_shot_time_ms = 0.f;
 			break;
 		default:
-			throw("Error: Shuriken level not supported (level: " + std::to_string(weapon_level[active_weapon_type]) + ")");
+			throw(std::runtime_error("Error: Shuriken level not supported (level: " + std::to_string(weapon_level[active_weapon_type]) + ")"));
 	}
 }
 
-void WeaponsSystem::fireCrossbow(float player_x, float player_y, float player_angle) {
-	createProjectile(renderer, {player_x, player_y}, player_angle);
+void WeaponsSystem::fireCrossbow(float player_x, float player_y, float angle) {
+	createProjectile(renderer, {player_x, player_y}, angle);
 	weapon_component->can_fire = false;
 	weapon_component->elapsed_last_shot_time_ms = 0.f;
+}
+
+void WeaponsSystem::fireShotgun(float player_x, float player_y, float angle) {
+	// determine how many shotgun pellets to fire
+	int num_bullets;
+	float max_spread_angle = 0.523599f; // 30 degrees
+	switch(weapon_level[active_weapon_type]) {
+		case 0:
+			num_bullets = 5;
+			break;
+		case 1:
+			num_bullets = 12;
+			break;
+		default:
+			throw(std::runtime_error("Error: Shotgun level not supported (level: " + std::to_string(weapon_level[active_weapon_type]) + ")"));
+	}
+
+	for (int i=0; i < num_bullets; i++){
+		float bullet_angle = angle -(max_spread_angle/2) + (max_spread_angle/num_bullets)*i;
+		createProjectile(renderer, {player_x, player_y}, bullet_angle);
+	}
+
+	weapon_component->can_fire = false;
+	weapon_component->elapsed_last_shot_time_ms = 0.f;
+}
+
+void WeaponsSystem::fireMachineGun(float player_x, float player_y, float angle) {
+	// This is the max angle from player direction. Double for total range.
+	float max_recoil_angle;
+	switch(weapon_level[active_weapon_type]) {
+		case 0:
+			max_recoil_angle = 0.261799f; // 15 degrees
+			break;
+		case 1:
+			max_recoil_angle = 0.174533f; // 10 degrees
+			break;
+		default:
+			throw(std::runtime_error("Error: Machine gun level not supported (level: " + std::to_string(weapon_level[active_weapon_type]) + ")"));
+	}
+	float stddev = max_recoil_angle/2;
+	float range_min = angle - max_recoil_angle;
+	float range_max = angle + max_recoil_angle;
+
+	// The following approximates recoil for the machine gun.
+	// It is based on a gaussian distribution about the current angle
+	std::random_device rd;
+	std::mt19937 gen(rd());
+	std::normal_distribution<float> distribution(angle, stddev);
+
+	float angle_with_recoil;
+	do {
+        angle_with_recoil = distribution(gen);
+    } while (angle_with_recoil < range_min || angle_with_recoil > range_max);
+
+	createProjectile(renderer, {player_x, player_y}, angle_with_recoil);
 }
 
 void WeaponsSystem::applyWeaponEffects(Entity proj, Entity mob) {
@@ -106,29 +170,46 @@ Entity WeaponsSystem::createProjectile(RenderSystem* renderer, vec2 pos, float a
 	auto entity = Entity();
 
 	// Store a reference to the potentially re-used mesh object
-	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
-	registry.meshPtrs.emplace(entity, &mesh);
-
+	if (active_weapon_type == ITEM_TYPE::WEAPON_SHOTGUN || active_weapon_type == ITEM_TYPE::WEAPON_MACHINEGUN) {
+		Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::PEBBLE);
+		registry.meshPtrs.emplace(entity, &mesh);
+	}
+	else {
+		Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+		registry.meshPtrs.emplace(entity, &mesh);
+	}
+	
 	// Initialize the position, scale, and physics components
 	auto& motion = registry.motions.emplace(entity);
 	motion.angle = angle;
 	motion.velocity = weapon_projectile_velocity_map[active_weapon_type] * vec2(cos(angle), sin(angle));;
 	motion.position = pos;
+	// printf("player x: %f, player y: %f \n", pos.x, pos.y);
 
 	// Add this projectile to the projectiles registry
 	auto& projectile = registry.projectiles.emplace(entity);
 	projectile.weapon = active_weapon_entity;
 	projectile.damage = weapon_damage_map[active_weapon_type];
 
-	// TODO: Change this later
-	TEXTURE_ASSET_ID texture = projectile_textures_map[active_weapon_type];
+	
 
-	registry.renderRequests.insert(
-		entity,
-		{ texture,
-			EFFECT_ASSET_ID::TEXTURED,
-			GEOMETRY_BUFFER_ID::SPRITE,
-			RENDER_LAYER_ID::LAYER_1 });
+	// For shotgun pellets, we use the PEBBLE effect/geometry, not an actual texture
+	if (active_weapon_type == ITEM_TYPE::WEAPON_SHOTGUN || active_weapon_type == ITEM_TYPE::WEAPON_MACHINEGUN) {
+		registry.renderRequests.insert(
+			entity,
+			{ TEXTURE_ASSET_ID::TEXTURE_COUNT, // won't be used, but we still need something here
+				EFFECT_ASSET_ID::PEBBLE,
+				GEOMETRY_BUFFER_ID::PEBBLE,
+				RENDER_LAYER_ID::LAYER_1 });
+	} else {
+		TEXTURE_ASSET_ID texture = projectile_textures_map[active_weapon_type];
+		registry.renderRequests.insert(
+			entity,
+			{ texture,
+				EFFECT_ASSET_ID::TEXTURED,
+				GEOMETRY_BUFFER_ID::SPRITE,
+				RENDER_LAYER_ID::LAYER_1 });
+	}
 
 	return entity;
 }
@@ -138,6 +219,8 @@ bool WeaponsSystem::isValidWeapon(ITEM_TYPE test) {
 		ITEM_TYPE::WEAPON_NONE,
 		ITEM_TYPE::WEAPON_SHURIKEN,
 		ITEM_TYPE::WEAPON_CROSSBOW,
+		ITEM_TYPE::WEAPON_SHOTGUN,
+		ITEM_TYPE::WEAPON_MACHINEGUN,
 	};
 	return weapons_list.count(test);
 }

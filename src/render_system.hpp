@@ -39,6 +39,8 @@ class RenderSystem {
 			textures_path("weapon_shuriken.png"),
 			textures_path("weapon_crossbow.png"),
 			textures_path("weapon_arrow.jpg"),
+			textures_path("weapon_shotgun.png"),
+			textures_path("weapon_machine_gun.png"),
 			terrain_texture_path("0.png"),
 			terrain_texture_path("1.png"),
 			terrain_texture_path("2.png"),

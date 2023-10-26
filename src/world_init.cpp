@@ -63,6 +63,12 @@ Entity createItem(RenderSystem* renderer, vec2 position, ITEM_TYPE type)
 	case ITEM_TYPE::WEAPON_CROSSBOW:
 		texture = TEXTURE_ASSET_ID::WEAPON_CROSSBOW;
 		break;
+	case ITEM_TYPE::WEAPON_SHOTGUN:
+		texture = TEXTURE_ASSET_ID::WEAPON_SHOTGUN;
+		break;
+	case ITEM_TYPE::WEAPON_MACHINEGUN:
+		texture = TEXTURE_ASSET_ID::WEAPON_MACHINEGUN;
+		break;
 	}
 
 	registry.renderRequests.insert(

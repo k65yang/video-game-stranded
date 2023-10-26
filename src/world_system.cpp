@@ -497,6 +497,12 @@ void WorldSystem::handle_collisions() {
 				case ITEM_TYPE::WEAPON_CROSSBOW:
 					player_equipped_weapon = weapons_system->createWeapon(ITEM_TYPE::WEAPON_CROSSBOW);
 					break;
+				case ITEM_TYPE::WEAPON_SHOTGUN:
+					player_equipped_weapon = weapons_system->createWeapon(ITEM_TYPE::WEAPON_SHOTGUN);
+					break;
+				case ITEM_TYPE::WEAPON_MACHINEGUN:
+					player_equipped_weapon = weapons_system->createWeapon(ITEM_TYPE::WEAPON_MACHINEGUN);
+					break;
 				case ITEM_TYPE::UPGRADE:
 					// Just add to inventory
 					break;
@@ -705,6 +711,7 @@ void WorldSystem::on_mouse_move(vec2 mouse_position) {
 void WorldSystem::on_mouse_click(int button, int action, int mods) {
 	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
 		Motion& player_motion = registry.motions.get(player_salmon);
+		// printf("player x: %f, player y: %f \n", player_motion.position.x, player_motion.position.y);
 		weapons_system->fireWeapon(player_motion.position.x, player_motion.position.y, player_motion.angle);
 	}
 }
@@ -771,6 +778,8 @@ void WorldSystem::spawn_items() {
 	// TESTING: Force one spawn of each weapon.
 	createItem(renderer, get_random_spawn_location(), ITEM_TYPE::WEAPON_SHURIKEN);
 	createItem(renderer, get_random_spawn_location(), ITEM_TYPE::WEAPON_CROSSBOW);
+	createItem(renderer, get_random_spawn_location(), ITEM_TYPE::WEAPON_SHOTGUN);
+	createItem(renderer, get_random_spawn_location(), ITEM_TYPE::WEAPON_MACHINEGUN);
 };
 
 void WorldSystem::spawn_mobs() {
