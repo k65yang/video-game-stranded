@@ -28,6 +28,9 @@ struct Player
 	int decrease_food_to = PLAYER_MAX_FOOD;
 	float iframes_timer = 0; // in ms
 	int food = PLAYER_MAX_FOOD;
+	int framex = 0; 
+	int framey = 1; 
+
 };
 
 // Generic weapon for now

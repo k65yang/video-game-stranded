@@ -13,8 +13,7 @@ const float IFRAMES = 1500;
 const int FOOD_PICKUP_AMOUNT = 20;
 float PLAYER_TOTAL_DISTANCE = 0;
 const float FOOD_DECREASE_THRESHOLD  = 5.0f; // Adjust this value as needed
-
-
+float elapsed_time = 0;
 // Create the fish world
 WorldSystem::WorldSystem()
 	: points(0)
@@ -244,6 +243,51 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	Motion& f = registry.motions.get(fow);
 	f.position = m.position;
 
+	// rendering spritesheet with movement 
+	elapsed_time += elapsed_ms_since_last_update;
+	if (keyDown[LEFT]) {
+		registry.players.components[0].framey = 3;
+		if (elapsed_time > 500) {
+			registry.players.components[0].framex = (registry.players.components[0].framex + 1) % 4;
+			elapsed_time = 0.0f; // Reset the timer
+		}
+	}
+
+	if (keyDown[DOWN]) {
+		registry.players.components[0].framey = 2;
+
+		if (elapsed_time > 500) {
+			registry.players.components[0].framex = (registry.players.components[0].framex + 1) % 4;
+			elapsed_time = 0.0f; // Reset the timer
+			}
+		}
+
+	if (keyDown[UP]) {
+		registry.players.components[0].framey = 0;
+
+		if (elapsed_time > 500) {
+			registry.players.components[0].framex = (registry.players.components[0].framex + 1) % 4;
+			elapsed_time = 0.0f; // Reset the timer
+			}
+		}
+
+	if (keyDown[RIGHT]) {
+		registry.players.components[0].framey = 1;
+		if (elapsed_time > 500) {
+			registry.players.components[0].framex = (registry.players.components[0].framex + 1) % 4;
+			elapsed_time = 0.0f; // Reset the timer
+			}
+		}
+
+
+/*
+	elapsed_time += elapsed_ms_since_last_update;
+	if (elapsed_time > 1000) {
+		registry.players.components[0].framex = (registry.players.components[0].framex + 1) % 3;
+		elapsed_time = 0.0f; // Reset the timer
+		}
+		*/
+
 
 
 	// Movement code, build the velocity resulting from player moment
@@ -301,7 +345,7 @@ void WorldSystem::handle_movement(Motion& motion, InputKeyIndex indexStart, bool
 	vec2 moveVelocity = { 0, 0 };
 	if (keyDown[indexStart])
 		moveVelocity.x += -1;    // If LEFT is pressed then obviously add a left component
-	if (keyDown[indexStart + 1])
+	if (keyDown[indexStart + 1]) 
 		moveVelocity.x += 1;    // If RIGHT is pressed then obviously add a right component
 	if (keyDown[indexStart + 2])
 		moveVelocity.y += -1;    // If UP is pressed then obviously add an up component
@@ -664,7 +708,7 @@ void WorldSystem::on_mouse_move(vec2 mouse_position) {
 		float screen_centre_y = window_height_px/2;
 
 		Motion& motion = registry.motions.get(player_salmon);
-		motion.angle = atan2(mouse_position.y - screen_centre_y, mouse_position.x - screen_centre_x);
+		//motion.angle = atan2(mouse_position.y - screen_centre_y, mouse_position.x - screen_centre_x);
 		// printf("View direction: %f \n", motion.angle);
 	}
 }

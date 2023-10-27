@@ -67,9 +67,11 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 		if (render_request.used_texture == TEXTURE_ASSET_ID::PLAYER)
 		{
 			// set the frame for shader 
-			GLint frame_uloc = glGetUniformLocation(program, "frame");
-			int frame = 0; 
-			glUniform1i(frame_uloc, frame); 
+			GLint framex_uloc = glGetUniformLocation(program, "framex");
+			GLint framey_uloc = glGetUniformLocation(program, "framey");
+
+			glUniform1i(framex_uloc, registry.players.components[0].framex);
+			glUniform1i(framey_uloc, registry.players.components[0].framey);
 
 			// Light up?
 			GLint light_up_uloc = glGetUniformLocation(program, "light_up");
@@ -77,6 +79,7 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 
 			// Should only be one player.
 			if (registry.players.components[0].iframes_timer != 0) {
+
 				glUniform1i(light_up_uloc, 1);
 			}
 			else {
