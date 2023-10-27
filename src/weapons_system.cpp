@@ -161,8 +161,6 @@ void WeaponsSystem::applySlow(Entity mob, float duration_ms, float slow_ratio) {
 	mobSlowEffect.duration_ms = duration_ms;
 	mobSlowEffect.elapsed_slow_time_ms = 0.f;
 	mobSlowEffect.slow_ratio = slow_ratio;
-
-	printf("size of mobSlowEffect registry: %i\n", registry.mobSlowEffects.components.size());
 }
 
 Entity WeaponsSystem::createProjectile(RenderSystem* renderer, vec2 pos, float angle) {

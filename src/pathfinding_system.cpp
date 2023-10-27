@@ -19,8 +19,8 @@ void PathfindingSystem::step(float elapsed_ms)
         Mob& mob_mob = registry.mobs.get(mob);
 
         // if mob is slowed, do not update. Let mob move in current direction.
-        if (registry.mobSlowEffects.has(mob))
-            continue;
+        // if (registry.mobSlowEffects.has(mob))
+        //     continue;
 
         // printf("size of mobSlowEffect registry: %i\n", registry.mobSlowEffects.components.size());
         // printf("Mob: %d\n", mob);
