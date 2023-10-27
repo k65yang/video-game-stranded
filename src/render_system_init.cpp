@@ -74,11 +74,11 @@ bool RenderSystem::init(GLFWwindow* window_arg)
 /// <param name="indicies"></param>
 template <class T>
 void RenderSystem::make_quad(mat3 modelMatrix,
-	TEXTURE_ASSET_ID texture,
+	uint16_t texture_id,
 	std::vector<BatchedVertex>& vertices,
 	std::vector<T>& indicies) {
 
-	makeQuadVertices(modelMatrix, texture, vertices);
+	makeQuadVertices(modelMatrix, texture_id, vertices);
 
 	int i = vertices.size() / 4 - 1;
 	for (uint x : { 0, 3, 1, 1, 3, 2 }) {
@@ -86,7 +86,7 @@ void RenderSystem::make_quad(mat3 modelMatrix,
 	}
 }
 
-void RenderSystem::makeQuadVertices(glm::mat3& modelMatrix, TEXTURE_ASSET_ID texture, std::vector<BatchedVertex>& vertices)
+void RenderSystem::makeQuadVertices(glm::mat3& modelMatrix, uint16_t texture_id, std::vector<BatchedVertex>& vertices)
 {
 	BatchedVertex quad[4];
 	quad[0].position = { -0.5f, 0.5f, 1.f };
@@ -103,7 +103,7 @@ void RenderSystem::makeQuadVertices(glm::mat3& modelMatrix, TEXTURE_ASSET_ID tex
 
 	for (BatchedVertex& v : quad) {
 		v.position = modelMatrix * v.position;
-		v.texIndex = (uint16_t)texture;
+		v.texIndex = texture_id;
 		vertices.push_back(v);
 	}
 }
@@ -116,15 +116,17 @@ void RenderSystem::initializeTerrainBuffers()
 	// The new maximum should be ~26,754 x 26,754.
 	std::vector<uint32_t> indices;
 
-	for (Entity e : registry.terrainRenderRequests.entities) {
+	for (uint i = 0; i < registry.terrainCells.entities.size(); i++) {
+		Entity e = registry.terrainCells.entities[i];
+		TerrainCell& cell = registry.terrainCells.components[i];
 		mat3 modelMatrix = createModelMatrix(e);	// preprocess transform matrices because
-		RenderRequest r = registry.terrainRenderRequests.get(e);
 
 		// we can't really have per-mesh transforms so let's just bake them in!
-		make_quad(modelMatrix, r.used_texture, vertices, indices);
+		make_quad(modelMatrix, cell.terrain_type, vertices, indices);
 	}
 
 	bindVBOandIBO(GEOMETRY_BUFFER_ID::TERRAIN, vertices, indices);
+	is_terrain_mesh_loaded = true;
 }
 
 void RenderSystem::initializeGlTextures()

@@ -152,27 +152,42 @@ struct Camera
 	bool mode_follow;
 };
 
-enum class TERRAIN_TYPE {
+
+enum TERRAIN_TYPE : uint16_t {
 	AIR = 0,
 	GRASS = AIR + 1,
-	ROCK = GRASS + 1
+	ROCK = GRASS + 1,
+	TERRAIN_COUNT = ROCK + 1
 };
 
-enum TERRAIN_FLAGS {
+enum TERRAIN_FLAGS : uint32_t {
 	COLLIDABLE = 0b1,
 	DISABLE_PATHFIND = 0b10,
 };
 
-// Data structure that supports 
+/// <summary>
+/// Struct representation of TerrainSystem->Cell's integers.
+/// Mainly for reading purposes.
+/// Make sure you call TerrainSystem->update_cell if you want to update the cell.
+/// </summary>
 struct TerrainCell 
 {
 	TERRAIN_TYPE terrain_type;
-	int flag; 
+	uint16_t flag; 
 
 	TerrainCell(TERRAIN_TYPE terrain_type, int flag) {
-	this->terrain_type = terrain_type;
-	this->flag = flag;
+		this->terrain_type = terrain_type;
+		this->flag = flag;
 	};
+
+	TerrainCell(uint32_t terrain_cell) {
+		this->flag = (uint16_t)terrain_cell;
+		this->terrain_type = static_cast<TERRAIN_TYPE>((uint16_t)(terrain_cell >> 16));
+	}
+
+	operator unsigned int() {
+		return ((uint32_t)terrain_type << 16) | (uint32_t)flag;
+	}
 };
 
 // component for entity that have collision, size is the width/height of bounding box
@@ -226,11 +241,7 @@ enum class TEXTURE_ASSET_ID {
 	WEAPON_ARROW = WEAPON_CROSSBOW + 1,
 	WEAPON_SHOTGUN = WEAPON_ARROW + 1,
 	WEAPON_MACHINEGUN = WEAPON_SHOTGUN + 1,
-	TERRAIN_AIR = WEAPON_MACHINEGUN + 1,
-	TERRAIN_GRASS = TERRAIN_AIR + 1,
-	TERRAIN_STONE = TERRAIN_GRASS + 1,
-	//TEXTURE_COUNT = TERRAIN_STONE + 1
-	SPACESHIP = TERRAIN_STONE + 1,
+	SPACESHIP = WEAPON_MACHINEGUN + 1,
 	BLUEBLOCK = SPACESHIP + 1,
 	TEXTURE_COUNT = BLUEBLOCK + 1
 };
