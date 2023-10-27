@@ -316,7 +316,7 @@ void RenderSystem::initializeGlGeometryBuffers()
 	for (int i = 0; i < NUM_TRIANGLES; i++) {
 		const float t = float(i) * M_PI * 2.f / float(NUM_TRIANGLES - 1);
 		pebble_vertices.push_back({});
-		pebble_vertices.back().position = { 0.5 * cos(t), 0.5 * sin(t), z };
+		pebble_vertices.back().position = { 0.1 * cos(t), 0.1 * sin(t), z };
 		pebble_vertices.back().color = { 0.8, 0.8, 0.8 };
 	}
 	pebble_vertices.push_back({});

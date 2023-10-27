@@ -37,39 +37,6 @@ Entity createPlayer(RenderSystem* renderer, vec2 pos)
 	return entity;
 }
 
-Entity createProjectile(RenderSystem* renderer, vec2 pos) {
-	// Reserve an entity
-	auto entity = Entity();
-
-	// Store a reference to the potentially re-used mesh object
-	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
-	registry.meshPtrs.emplace(entity, &mesh);
-
-	// Initialize the position, scale, and physics components
-	auto& motion = registry.motions.emplace(entity);
-	motion.angle = 0.f;
-	motion.velocity = { 0.f, 0.f };
-	motion.position = pos;
-
-	// Add this projectile to the projectiles registry
-	registry.projectiles.emplace(entity);
-
-	// Initialize the collider
-	createCollider(entity);
-
-	// TODO: Change this later
-	TEXTURE_ASSET_ID texture = TEXTURE_ASSET_ID::WEAPON;
-
-	registry.renderRequests.insert(
-		entity,
-		{ texture,
-			EFFECT_ASSET_ID::TEXTURED,
-			GEOMETRY_BUFFER_ID::SPRITE,
-			RENDER_LAYER_ID::LAYER_1 });
-
-	return entity;
-}
-
 Entity createItem(RenderSystem* renderer, vec2 position, ITEM_TYPE type)
 {
 	// Reserve en entity
@@ -103,8 +70,17 @@ Entity createItem(RenderSystem* renderer, vec2 position, ITEM_TYPE type)
 	case ITEM_TYPE::FOOD:
 		texture = TEXTURE_ASSET_ID::FOOD;
 		break;
-	case ITEM_TYPE::WEAPON_GENERIC:
-		texture = TEXTURE_ASSET_ID::WEAPON;
+	case ITEM_TYPE::WEAPON_SHURIKEN:
+		texture = TEXTURE_ASSET_ID::WEAPON_SHURIKEN;
+		break;
+	case ITEM_TYPE::WEAPON_CROSSBOW:
+		texture = TEXTURE_ASSET_ID::WEAPON_CROSSBOW;
+		break;
+	case ITEM_TYPE::WEAPON_SHOTGUN:
+		texture = TEXTURE_ASSET_ID::WEAPON_SHOTGUN;
+		break;
+	case ITEM_TYPE::WEAPON_MACHINEGUN:
+		texture = TEXTURE_ASSET_ID::WEAPON_MACHINEGUN;
 		break;
 	}
 
@@ -440,7 +416,7 @@ void createBoundingBox(std::vector<vec2>& points, vec2 scale) {
 
 }
 
-
+// NIT: this might be better suited in the physics system. Weapons system imports world_init.hpp to create colliders for projectiles.
 // reference:: https://gamedev.stackexchange.com/questions/105296/calculation-correct-position-of-object-after-collision-2d
 
 /// <summary>

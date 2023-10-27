@@ -12,10 +12,13 @@ const int PLAYER_MAX_HEALTH = 100;
 
 enum class ITEM_TYPE {
 	QUEST = 0,
-	WEAPON_NONE = 1,
-	WEAPON_GENERIC = 2,
-	FOOD = 3,
-	UPGRADE = 4,
+	WEAPON_NONE = QUEST + 1,
+	WEAPON_SHURIKEN = WEAPON_NONE + 1,
+	WEAPON_CROSSBOW = WEAPON_SHURIKEN + 1,
+	WEAPON_SHOTGUN = WEAPON_CROSSBOW + 1,
+	WEAPON_MACHINEGUN = WEAPON_SHOTGUN + 1,
+	FOOD = WEAPON_MACHINEGUN + 1,
+	UPGRADE = FOOD + 1,
 };
 
 // TODO: cool idea for later is to have a customizable difficulty that adjusts food and health.
@@ -30,8 +33,7 @@ struct Player
 	int food = PLAYER_MAX_FOOD;
 };
 
-// Generic weapon for now
-// TODO: needs more efficient way to determine if a weapon is allowed to fire
+// The weapon
 struct Weapon {
 	ITEM_TYPE weapon_type;
 	bool can_fire;
@@ -41,24 +43,32 @@ struct Weapon {
 	int projectile_damage;               // weapon damage
 };
 
-// Generic projectile for now
+// The projectile
 struct Projectile {
-	int damage = 100;
+	int damage;
+	Entity weapon; // link the projectile to the weapon
 };
 
 // Mob component
 struct Mob {
 	bool is_tracking_player = false;
 	int damage;
-	int health = 1;
+	int health = 100000;
+};
+
+// Slowing effect for mobs from weapons
+struct MobSlowEffect {
+	bool applied;
+	vec2 initial_velocity;
+	float duration_ms;				// how long effect lasts
+	float elapsed_slow_time_ms;		// how long effect has been active
+	float slow_ratio;				// how much slowing
 };
 
 // Structure to store the path for a mob
 struct Path {
 	std::deque<Entity> path;
 };
-
-
 
 struct Item {
 	ITEM_TYPE data;
@@ -225,8 +235,12 @@ enum class TEXTURE_ASSET_ID {
 	FOW = REDBLOCK + 1,
 	ITEM = FOW + 1,
 	FOOD = ITEM + 1,
-	WEAPON = FOOD + 1,
-	SPACESHIP = WEAPON + 1,
+	WEAPON_SHURIKEN = FOOD + 1,
+	WEAPON_CROSSBOW = WEAPON_SHURIKEN + 1,
+	WEAPON_ARROW = WEAPON_CROSSBOW + 1,
+	WEAPON_SHOTGUN = WEAPON_ARROW + 1,
+	WEAPON_MACHINEGUN = WEAPON_SHOTGUN + 1,
+	SPACESHIP = WEAPON_MACHINEGUN + 1,
 	BLUEBLOCK = SPACESHIP + 1,
 	TEXTURE_COUNT = BLUEBLOCK + 1
 };

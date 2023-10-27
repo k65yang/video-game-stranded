@@ -36,7 +36,11 @@ class RenderSystem {
 			textures_path("fow mask.png"),
 			textures_path("item.png"),
 			textures_path("food.png"),
-			textures_path("weapon.png"),
+			textures_path("weapon_shuriken.png"),
+			textures_path("weapon_crossbow.png"),
+			textures_path("weapon_arrow.jpg"),
+			textures_path("weapon_shotgun.png"),
+			textures_path("weapon_machine_gun.png"),
 			textures_path("spaceship.png"), 
 			textures_path("blueblock.png")
 	};

@@ -119,9 +119,10 @@ GLFWwindow* WorldSystem::create_window() {
 	return window;
 }
 
-void WorldSystem::init(RenderSystem* renderer_arg, TerrainSystem* terrain_arg) {
+void WorldSystem::init(RenderSystem* renderer_arg, TerrainSystem* terrain_arg, WeaponsSystem* weapons_system_arg) {
 	this->renderer = renderer_arg;
 	this->terrain = terrain_arg;
+	this->weapons_system = weapons_system_arg;
 	// Playing background music indefinitely
 	Mix_PlayMusic(background_music, -1);
 	fprintf(stderr, "Loaded music\n");
@@ -250,9 +251,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 	// Movement code, build the velocity resulting from player moment
 	// We'll consider moveVelocity existing in player space
-	// Allow movment if player is not dead 
-
-	
+	// Allow movement if player is not dead 
 	if (!registry.deathTimers.has(player_salmon)) {
 		m.velocity = { 0, 0 };
 		handle_movement(m, LEFT);
@@ -283,15 +282,36 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	health.position = { -8.f + camera_motion.position.x, 7.f + camera_motion.position.y };
 	food.position = { 8.f + camera_motion.position.x, 7.f + camera_motion.position.y };
 
-	// Update weapons cooldowns
-	for (Entity entity: registry.weapons.entities) {
-		Weapon& weapon = registry.weapons.get(entity);
-		if (weapon.can_fire)
-			continue;
+	// Mob updates
+	for (Entity entity : registry.mobs.entities) {
+		// slow updates
+		if (registry.mobSlowEffects.has(entity)) {
+			Motion& motion = registry.motions.get(entity);
+			MobSlowEffect& mobSlowEffect = registry.mobSlowEffects.get(entity);
 
-		weapon.elapsed_last_shot_time_ms += elapsed_ms_since_last_update;
-		if (weapon.fire_rate < weapon.elapsed_last_shot_time_ms)
-			weapon.can_fire = true;
+			// Apply slow effect if not yet applied
+			if (!mobSlowEffect.applied) {
+				mobSlowEffect.initial_velocity = motion.velocity;
+				motion.velocity = motion.velocity * mobSlowEffect.slow_ratio;
+				mobSlowEffect.applied = true;
+			}
+			
+			// Increment duration
+			mobSlowEffect.elapsed_slow_time_ms += elapsed_ms_since_last_update;
+			// printf("total slow time: %f\n", mobSlowEffect.elapsed_slow_time_ms);
+			
+			// Return mob to normal speed if slow duration is over. 
+			// Remove the MobSlowEffect component only.
+			if (mobSlowEffect.duration_ms < mobSlowEffect.elapsed_slow_time_ms) {
+				motion.velocity = mobSlowEffect.initial_velocity;
+				registry.mobSlowEffects.remove(entity);
+
+				// We need to force path finding to restart. 
+				// If not, the mob might continue in the current direction forever.
+				Mob& mob = registry.mobs.get(entity);
+				mob.is_tracking_player = false;
+			}
+		}
 	}
 
 	return true;
@@ -337,7 +357,7 @@ void WorldSystem::restart_game() {
 	printf("Restarting\n");
 
 	// Reset the game speed
-	current_speed = 1.f;
+	current_speed = 5.f;
 
 	// Remove all entities that we created
 	// All that have a motion, we could also iterate over all fish, turtles, ... but that would be more cumbersome
@@ -359,7 +379,7 @@ void WorldSystem::restart_game() {
 
 	// Equip the player weapon. Player starts with no weapon for now.
 	// TODO: do we want to give the player a starting weapon?
-	player_equipped_weapon = createAndEquipWeapon(ITEM_TYPE::WEAPON_NONE);
+	player_equipped_weapon = weapons_system->createWeapon(ITEM_TYPE::WEAPON_NONE);
 
 	// Create the main camera
 	main_camera = createCamera({ 0,0 });
@@ -466,9 +486,21 @@ void WorldSystem::handle_collisions() {
 						player.food = PLAYER_MAX_FOOD;
 					}
 					break;
-				case ITEM_TYPE::WEAPON_GENERIC:
-					player_equipped_weapon = createAndEquipWeapon(ITEM_TYPE::WEAPON_GENERIC);
+				case ITEM_TYPE::WEAPON_NONE:
+					// Do nothing
+					break;
+				case ITEM_TYPE::WEAPON_SHURIKEN:
+					player_equipped_weapon = weapons_system->createWeapon(ITEM_TYPE::WEAPON_SHURIKEN);
 					// TODO: some sort of UI update
+					break;
+				case ITEM_TYPE::WEAPON_CROSSBOW:
+					player_equipped_weapon = weapons_system->createWeapon(ITEM_TYPE::WEAPON_CROSSBOW);
+					break;
+				case ITEM_TYPE::WEAPON_SHOTGUN:
+					player_equipped_weapon = weapons_system->createWeapon(ITEM_TYPE::WEAPON_SHOTGUN);
+					break;
+				case ITEM_TYPE::WEAPON_MACHINEGUN:
+					player_equipped_weapon = weapons_system->createWeapon(ITEM_TYPE::WEAPON_MACHINEGUN);
 					break;
 				case ITEM_TYPE::UPGRADE:
 					// Just add to inventory
@@ -490,13 +522,17 @@ void WorldSystem::handle_collisions() {
 			if (registry.mobs.has(entity_other)) {
 				Mob& mob = registry.mobs.get(entity_other);
 
-				// Mob takes damage.
+				// Mob takes damage. Kill if no hp left.
 				mob.health -= projectile.damage;
-
-				// If mob has no hp, it is killed.
+				// printf("mob health: %i", mob.health);
 				if (mob.health <= 0) {
 					registry.remove_all_components_of(entity_other);
 				}
+
+				// Add weapon effects to the mob
+				weapons_system->applyWeaponEffects(entity, entity_other);
+
+				// Remove projectile
 				registry.remove_all_components_of(entity);
 			} 
 			// Checking Projectile - non passable terrain cell
@@ -641,8 +677,6 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		debugging.in_debug_mode = !debugging.in_debug_mode;
 	}
 
-
-
 	// Control the current speed with `<` `>`
 	if (action == GLFW_RELEASE && (mod & GLFW_MOD_SHIFT) && key == GLFW_KEY_COMMA) {
 		current_speed -= 0.1f;
@@ -654,7 +688,24 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	}
 	current_speed = fmax(0.f, current_speed);
 
-	
+	// TESTING: hotkeys to equip weapons
+	if (key == GLFW_KEY_1 && action == GLFW_PRESS) {
+		player_equipped_weapon = weapons_system->createWeapon(ITEM_TYPE::WEAPON_SHURIKEN);
+	}
+	if (key == GLFW_KEY_2 && action == GLFW_PRESS) {
+		player_equipped_weapon = weapons_system->createWeapon(ITEM_TYPE::WEAPON_CROSSBOW);
+	}
+	if (key == GLFW_KEY_3 && action == GLFW_PRESS) {
+		player_equipped_weapon = weapons_system->createWeapon(ITEM_TYPE::WEAPON_SHOTGUN);
+	}
+	if (key == GLFW_KEY_4 && action == GLFW_PRESS) {
+		player_equipped_weapon = weapons_system->createWeapon(ITEM_TYPE::WEAPON_MACHINEGUN);
+	}
+
+	// TESING: hotkey to upgrade weapon
+	if (key == GLFW_KEY_U && action == GLFW_PRESS) {
+		weapons_system->upgradeCurrentWeapon();
+	}
 }
 
 /// <summary>
@@ -680,30 +731,15 @@ void WorldSystem::on_mouse_move(vec2 mouse_position) {
 /// Function to handle mouse click (weapon fire)
 /// </summary>
 void WorldSystem::on_mouse_click(int button, int action, int mods) {
-	Weapon& weapon = registry.weapons.get(player_equipped_weapon);
-	if (weapon.weapon_type != ITEM_TYPE::WEAPON_NONE && weapon.can_fire) {
-		if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
-			Motion& player_motion = registry.motions.get(player_salmon);
-
-			// Create the projectile
-			// TODO: offset projectile location a little so it doesn't get created on top of player
-			Entity entity = createProjectile(renderer, {player_motion.position.x, player_motion.position.y});
-
-			// Set projectile direction
-			Motion& projectile_motion = registry.motions.get(entity);
-			projectile_motion.angle = player_motion.angle;
-			projectile_motion.velocity = weapon.projectile_velocity * vec2(cos(projectile_motion.angle), sin(projectile_motion.angle));
-
-			// Control weapon fire rate
-			weapon.can_fire = false;
-			weapon.elapsed_last_shot_time_ms = 0.f;
-		}
+	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
+		Motion& player_motion = registry.motions.get(player_salmon);
+		// printf("player x: %f, player y: %f \n", player_motion.position.x, player_motion.position.y);
+		weapons_system->fireWeapon(player_motion.position.x, player_motion.position.y, player_motion.angle);
 	}
-
 }
 
 void WorldSystem::spawn_items() {
-	const int NUM_ITEM_TYPES = 4;
+	const int NUM_ITEM_TYPES = 3;
 
 	for (int i = 0; i < ITEM_LIMIT; i++) {
 		// Get random spawn location
@@ -720,16 +756,16 @@ void WorldSystem::spawn_items() {
 				createItem(renderer, spawn_location, ITEM_TYPE::FOOD);
 				break;
 			case 2:
-				createItem(renderer, spawn_location, ITEM_TYPE::WEAPON_GENERIC);
-				break;
-			case 3:
 				createItem(renderer, spawn_location, ITEM_TYPE::UPGRADE);
 				break;
 		}
 	}
 
-	// TESTING: spawning a generic item
-	createItem(renderer, get_random_spawn_location(), ITEM_TYPE::WEAPON_GENERIC);
+	// TESTING: Force one spawn of each weapon.
+	// createItem(renderer, get_random_spawn_location(), ITEM_TYPE::WEAPON_SHURIKEN);
+	// createItem(renderer, get_random_spawn_location(), ITEM_TYPE::WEAPON_CROSSBOW);
+	// createItem(renderer, get_random_spawn_location(), ITEM_TYPE::WEAPON_SHOTGUN);
+	// createItem(renderer, get_random_spawn_location(), ITEM_TYPE::WEAPON_MACHINEGUN);
 };
 
 void WorldSystem::spawn_mobs() {
@@ -775,36 +811,3 @@ bool WorldSystem::is_spawn_location_used(vec2 position) {
 
 	return false;
 };
-
-Entity WorldSystem::createAndEquipWeapon(ITEM_TYPE weapon_type) {
-	// Reserve an entity
-	auto entity = Entity();
-
-	// Initialize the weapon
-	auto& weapon = registry.weapons.emplace(entity);
-	weapon.weapon_type = weapon_type;
-	weapon.can_fire = true;
-	weapon.elapsed_last_shot_time_ms = 0.f;
-
-	switch (weapon_type) {
-		case ITEM_TYPE::WEAPON_NONE:
-			weapon.fire_rate = 0;
-			weapon.projectile_velocity = 0.f;
-			weapon.projectile_damage = 0;
-			break;
-
-		case ITEM_TYPE::WEAPON_GENERIC:
-			weapon.fire_rate = 1000.f;
-			weapon.projectile_velocity = 10.f;
-			weapon.projectile_damage = 100;
-			break;
-	
-		default:
-			// TODO: better way of handling this
-			printf("Debug info: Item is not a weapon. Ignoring.");
-			break;
-		}
-	
-
-	return entity;
-}

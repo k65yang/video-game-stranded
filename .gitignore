@@ -33,6 +33,7 @@
 
 # Directories
 /.vs
+/.vscode
 /out
 /ext/project_path.hpp
 /build
