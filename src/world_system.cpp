@@ -364,6 +364,10 @@ void WorldSystem::restart_game() {
 	while (registry.motions.entities.size() > 0)
 		registry.remove_all_components_of(registry.motions.entities.back());
 
+	// These weapons don't have a motions so let's kill them all!
+	while (registry.weapons.entities.size() > 0)
+		registry.remove_all_components_of(registry.weapons.entities.back());
+
 	// Debugging for memory/component leaks
 	registry.list_all_components();
 
@@ -408,6 +412,8 @@ void WorldSystem::restart_game() {
 	createTerrainCollider(renderer, terrain, { -3.f, 3.f });  
 	createTerrainCollider(renderer, terrain, { -3.f, -3.f });
 	
+	// clear all used spawn locations
+	used_spawn_locations.clear();
 
 	// FOR DEMO - to show different types of items being created.	
 	spawn_items();
@@ -780,16 +786,20 @@ void WorldSystem::spawn_mobs() {
 vec2 WorldSystem::get_random_spawn_location() {
 	vec2 position;
 
-	// Get unused spawn location within [-terrain->size_x/2, terrain->size_x/2] for x and 
-	// [-terrain->size_y/2, terrain->size_y/2] for y
+	// Get unused spawn location within [-terrain->size_x/2 + 1, terrain->size_x/2 - 1] for x and 
+	// [-terrain->size_y/2 + 1, terrain->size_y/2 - 1] for y
 	while (true) {
-		position.x = abs((int) rng()) % terrain->size_x + (-(terrain->size_x / 2));
-		position.y = abs((int) rng()) % terrain->size_y + (-(terrain->size_y / 2));
+		position.x = abs((int) rng()) % (terrain->size_x - 2) + (-((terrain->size_x) / 2)) + 1;
+		position.y = abs((int) rng()) % (terrain->size_y - 2) + (-((terrain->size_y) / 2)) + 1;
 
 		// Skip locations that are covered by spaceship
 		if (position.x <= 1 && position.x >= -1 && position.y <= 2 && position.y >= -2) {
 			continue;
 		}
+
+		// Skip locations that are not accessible
+		if (terrain->isImpassable(position))
+			continue;
 
 		if (!is_spawn_location_used(position)) {
 			break;

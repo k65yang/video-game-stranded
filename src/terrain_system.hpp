@@ -89,7 +89,7 @@ public:
 		assert(registry.terrainCells.has(tile));
 		return grid[tile - entityStart].flags & TERRAIN_FLAGS::COLLIDABLE; 
 	}
-	bool isImpassable(vec2 position) { isImpassable((int)position.x, (int)position.y); };
+	bool isImpassable(vec2 position) { return isImpassable((int)std::round(position.x), (int)std::round(position.y)); };
 	bool isImpassable(int x, int y) { return grid[to_array_index(x, y)].flags & TERRAIN_FLAGS::COLLIDABLE; }
 
 	/// <summary>
