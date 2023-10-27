@@ -193,7 +193,12 @@ bool PathfindingSystem::has_player_moved(Entity player, Entity mob)
 
 void PathfindingSystem::stop_tracking_player(Entity mob) 
 {
-    
+    Motion& mob_motion = registry.motions.get(mob);
+    Mob& mob_mob = registry.mobs.get(mob);
+    Path& mob_path = registry.paths.get(mob);
+    mob_motion.velocity = {0.f, 0.f};
+    mob_mob.is_tracking_player = false;
+    mob_path.path.clear();
 }
 
 bool PathfindingSystem::is_player_in_mob_aggro_range(Entity player, Entity mob) {
@@ -214,9 +219,7 @@ void PathfindingSystem::update_velocity_to_next_cell(Entity mob, float elapsed_m
 
     // Stop mob from tracking the player if there are no more cells in its path
     if (mob_path.path.empty()) {
-        Mob& mob_mob = registry.mobs.get(mob);
-        mob_mob.is_tracking_player = false;
-        mob_motion.velocity = {0.f, 0.f};
+        stop_tracking_player(mob);
         return;
     }
 
