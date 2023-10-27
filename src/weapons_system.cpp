@@ -146,13 +146,18 @@ void WeaponsSystem::applyWeaponEffects(Entity proj, Entity mob) {
 
 	// Apply the weapon effects to the mob if necessary
 	if (weapon.weapon_type == ITEM_TYPE::WEAPON_CROSSBOW && weapon_level[weapon.weapon_type] == 1) {
-		applySlow(mob, 10.f, 0.1);
+		applySlow(mob, 10000.f, 0.1);
 	}
 }
 
 void WeaponsSystem::applySlow(Entity mob, float duration_ms, float slow_ratio) {
-	MobSlowEffect& mobSlowEffect = registry.mobSlowEffects.emplace(mob);
-	mobSlowEffect.applied = false;
+	// If the slow effect exists, assume that it is already applied.
+	// Valid assumption because of slow fire rate, there is enough time to apply the slow
+	bool already_slowed = registry.mobSlowEffects.has(mob) ? true : false;
+
+	// Create mobSlowEffect component only if it does not exist already
+	MobSlowEffect& mobSlowEffect = already_slowed ? registry.mobSlowEffects.get(mob) : registry.mobSlowEffects.emplace(mob);
+	mobSlowEffect.applied = already_slowed ? true : false;
 	mobSlowEffect.duration_ms = duration_ms;
 	mobSlowEffect.elapsed_slow_time_ms = 0.f;
 	mobSlowEffect.slow_ratio = slow_ratio;

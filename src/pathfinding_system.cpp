@@ -18,6 +18,10 @@ void PathfindingSystem::step(float elapsed_ms)
     for (Entity mob : registry.mobs.entities) {
         Mob& mob_mob = registry.mobs.get(mob);
 
+        // if mob is slowed, do not update. Let mob move in current direction.
+        if (registry.mobSlowEffects.has(mob))
+            continue;
+
         // printf("Mob: %d\n", mob);
         // printf("Mob cell index: %d\n", terrain->get_cell_index(terrain->get_cell(registry.motions.get(mob).position)));
         // printf("Mob position before (x): %f\n", registry.motions.get(mob).position[0]);
