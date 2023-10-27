@@ -17,7 +17,7 @@ Entity createPlayer(RenderSystem* renderer, vec2 pos)
 	motion.position = pos;
 	motion.angle = 0.f;
 	motion.velocity = { 0.f, 0.f };
-	motion.scale = vec2({ 2, 2 });
+	motion.scale = vec2({ 1, 1 });
 
 	// Initialize the collider
 	createCollider(entity);
