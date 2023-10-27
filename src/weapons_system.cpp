@@ -145,7 +145,7 @@ void WeaponsSystem::applyWeaponEffects(Entity proj, Entity mob) {
 	Weapon& weapon = registry.weapons.get(projectile.weapon);
 
 	// Apply the weapon effects to the mob if necessary
-	if (weapon.weapon_type == ITEM_TYPE::WEAPON_CROSSBOW && weapon_level[weapon.weapon_type] == 1) {
+	if (weapon.weapon_type == ITEM_TYPE::WEAPON_CROSSBOW && weapon_level[weapon.weapon_type] >= 1) {
 		applySlow(mob, 10000.f, 0.1);
 	}
 }
@@ -161,6 +161,8 @@ void WeaponsSystem::applySlow(Entity mob, float duration_ms, float slow_ratio) {
 	mobSlowEffect.duration_ms = duration_ms;
 	mobSlowEffect.elapsed_slow_time_ms = 0.f;
 	mobSlowEffect.slow_ratio = slow_ratio;
+
+	printf("size of mobSlowEffect registry: %i\n", registry.mobSlowEffects.components.size());
 }
 
 Entity WeaponsSystem::createProjectile(RenderSystem* renderer, vec2 pos, float angle) {

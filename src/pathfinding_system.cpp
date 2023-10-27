@@ -22,6 +22,7 @@ void PathfindingSystem::step(float elapsed_ms)
         if (registry.mobSlowEffects.has(mob))
             continue;
 
+        // printf("size of mobSlowEffect registry: %i\n", registry.mobSlowEffects.components.size());
         // printf("Mob: %d\n", mob);
         // printf("Mob cell index: %d\n", terrain->get_cell_index(terrain->get_cell(registry.motions.get(mob).position)));
         // printf("Mob position before (x): %f\n", registry.motions.get(mob).position[0]);
