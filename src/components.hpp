@@ -156,7 +156,8 @@ struct Camera
 enum TERRAIN_TYPE : uint16_t {
 	AIR = 0,
 	GRASS = AIR + 1,
-	ROCK = GRASS + 1
+	ROCK = GRASS + 1,
+	TERRAIN_COUNT = ROCK + 1
 };
 
 enum TERRAIN_FLAGS : uint32_t {

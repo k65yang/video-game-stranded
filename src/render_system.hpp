@@ -47,7 +47,7 @@ class RenderSystem {
 
 	// This is used for generating the texture array for batched renders
 	// NOTE: all images must have the same dimensions.
-	const std::array<std::string, 3> terrain_texture_paths = {
+	const std::array<std::string, TERRAIN_TYPE::TERRAIN_COUNT> terrain_texture_paths = {
 		terrain_texture_path("0.png"),
 		terrain_texture_path("1.png"),
 		terrain_texture_path("2.png"),
