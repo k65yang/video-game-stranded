@@ -13,6 +13,7 @@ const float IFRAMES = 1500;
 const int FOOD_PICKUP_AMOUNT = 20;
 float PLAYER_TOTAL_DISTANCE = 0;
 const float FOOD_DECREASE_THRESHOLD  = 5.0f; // Adjust this value as needed
+const float FOOD_DECREASE_RATE = 10.f;	// Decreases by 10 units per second (when moving)
 
 
 
@@ -257,7 +258,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 		// If any keys are pressed resulting movement then add to total travel distance. 
 		if (keyDown[LEFT] || keyDown[RIGHT] || keyDown[UP] || keyDown[DOWN]) {
-			PLAYER_TOTAL_DISTANCE += 0.1;
+			PLAYER_TOTAL_DISTANCE += FOOD_DECREASE_RATE * elapsed_ms_since_last_update / 1000.f;
 		}
 	}
 	else {
@@ -363,6 +364,10 @@ void WorldSystem::restart_game() {
 	while (registry.motions.entities.size() > 0)
 		registry.remove_all_components_of(registry.motions.entities.back());
 
+	// These weapons don't have a motions so let's kill them all!
+	while (registry.weapons.entities.size() > 0)
+		registry.remove_all_components_of(registry.weapons.entities.back());
+
 	// Debugging for memory/component leaks
 	registry.list_all_components();
 
@@ -392,15 +397,23 @@ void WorldSystem::restart_game() {
 	// Create food bars 
 	food_bar = createFoodBar(renderer, { 8.f, 7.f });
 
-	// Create boundary
-	boundaryInitialize(renderer, { 15.f,15.f }, { 0,0 });
+	// Add wall of stone around the map
+	for (unsigned int i = 0; i < registry.terrainCells.entities.size(); i++) {
+		Entity e = registry.terrainCells.entities[i];
+		TerrainCell& cell = registry.terrainCells.components[i];
+
+		if (cell.flag & TERRAIN_FLAGS::COLLIDABLE)
+			createCollider(e);
+	}
 
 	//FOR DEMO, CAN REMOVE LATER
 	createTerrainCollider(renderer, terrain, { 3.f, -3.f });  
 	createTerrainCollider(renderer, terrain, { 3.f, 3.f });   
 	createTerrainCollider(renderer, terrain, { -3.f, 3.f });  
 	createTerrainCollider(renderer, terrain, { -3.f, -3.f });
-	 
+	
+	// clear all used spawn locations
+	used_spawn_locations.clear();
 
 	// FOR DEMO - to show different types of items being created.	
 	spawn_items();
@@ -628,9 +641,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		Entity tile = terrain->get_cell(player.position);
 		TerrainCell& cell = registry.terrainCells.get(tile);
 		cell.terrain_type = TERRAIN_TYPE::ROCK;
-		RenderRequest& req = registry.terrainRenderRequests.get(tile);
-		req.used_texture = TEXTURE_ASSET_ID::TERRAIN_STONE;
-		terrain->update_tile(tile);
+		terrain->update_tile(tile, cell);
 	}
 
 	if (action == GLFW_PRESS && key == GLFW_KEY_V) {
@@ -640,11 +651,10 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		std::vector<Entity> entities;
 		terrain->get_accessible_neighbours(tile, entities);
 		for (Entity e : entities) {
-			RenderRequest& req = registry.terrainRenderRequests.get(e);
-			TerrainCell& cell = registry.terrainCells.get(tile);
+			TerrainCell& cell = registry.terrainCells.get(e);
 			cell.terrain_type = TERRAIN_TYPE::ROCK;
-			req.used_texture = TEXTURE_ASSET_ID::TERRAIN_STONE;
-			terrain->update_tile(e);
+			cell.flag |= TERRAIN_FLAGS::COLLIDABLE;
+			terrain->update_tile(e, cell);
 		}
 	}
 
@@ -776,16 +786,20 @@ void WorldSystem::spawn_mobs() {
 vec2 WorldSystem::get_random_spawn_location() {
 	vec2 position;
 
-	// Get unused spawn location within [-terrain->size_x/2, terrain->size_x/2] for x and 
-	// [-terrain->size_y/2, terrain->size_y/2] for y
+	// Get unused spawn location within [-terrain->size_x/2 + 1, terrain->size_x/2 - 1] for x and 
+	// [-terrain->size_y/2 + 1, terrain->size_y/2 - 1] for y
 	while (true) {
-		position.x = abs((int) rng()) % terrain->size_x + (-(terrain->size_x / 2));
-		position.y = abs((int) rng()) % terrain->size_y + (-(terrain->size_y / 2));
+		position.x = abs((int) rng()) % (terrain->size_x - 2) + (-((terrain->size_x) / 2)) + 1;
+		position.y = abs((int) rng()) % (terrain->size_y - 2) + (-((terrain->size_y) / 2)) + 1;
 
 		// Skip locations that are covered by spaceship
 		if (position.x <= 1 && position.x >= -1 && position.y <= 2 && position.y >= -2) {
 			continue;
 		}
+
+		// Skip locations that are not accessible
+		if (terrain->isImpassable(position))
+			continue;
 
 		if (!is_spawn_location_used(position)) {
 			break;

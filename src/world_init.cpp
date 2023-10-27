@@ -316,20 +316,19 @@ Entity createTestDummy(RenderSystem* renderer, vec2 position)
 /// <returns>The terrain cell entity</returns>
 Entity createTerrainCollider(RenderSystem* renderer, TerrainSystem* terrain, vec2 position)
 {
-	auto entity = terrain->get_cell(position.x, position.y);
+	Entity entity = terrain->get_cell(position);
 	TerrainCell& tCell = registry.terrainCells.get(entity);
-	Motion& motion = registry.motions.get(entity);
-	motion.position = position;
 
 	// set the cell to collidable
-	tCell.flag = uint(1) | TERRAIN_FLAGS::COLLIDABLE;
+	tCell.flag |= TERRAIN_FLAGS::COLLIDABLE;
+	tCell.terrain_type = TERRAIN_TYPE::ROCK;
 
 	// attach collider
-	createCollider(entity);
+	if (!registry.colliders.has(entity))
+		createCollider(entity);
 
 	// change sprite to redblock  TEMPORARY FOR NOW
-	RenderRequest& rr = registry.terrainRenderRequests.get(entity);
-	rr.used_texture = TEXTURE_ASSET_ID::TERRAIN_STONE;
+	terrain->update_tile(entity, tCell);
 
 	return entity;
 }
