@@ -92,7 +92,7 @@ void TerrainSystem::get_accessible_neighbours(Entity cell, std::vector<Entity>& 
 		Cell& cell = grid[index];
 
 		// If a cell is not collidable and pathfinding is not disabled, add to buffer
-		if (!cell.flags & filter) {	
+		if (!(cell.flags & filter)) {	
 			buffer.push_back(cell.entity);
 		}
 	}
@@ -114,15 +114,6 @@ vec2 TerrainSystem::to_world_coordinates(const int index)
 			index / size_x - size_y / 2 };
 }
 
-RenderRequest TerrainSystem::make_render_request(TerrainCell& cell) {
-	return {
-		TEXTURE_ASSET_ID::TERRAIN_GRASS,
-		EFFECT_ASSET_ID::TEXTURED,
-		GEOMETRY_BUFFER_ID::SPRITE,
-		RENDER_LAYER_ID::LAYER_1,
-	};
-}
-
 void TerrainSystem::init(const unsigned int x, const unsigned int y, RenderSystem* renderer)
 {
 	this->renderer = renderer;
@@ -140,13 +131,13 @@ void TerrainSystem::init(const unsigned int x, const unsigned int y, RenderSyste
 
 	for (int i = 0; i < x * y; i++) {
 		Entity& entity = grid[i].entity;
-		TerrainCell& cell = registry.terrainCells.emplace(entity, TERRAIN_TYPE::AIR, grid[i].flags);
 		Motion& motion = registry.motions.emplace(entity);
 		motion.position = to_world_coordinates(i);
+		if (i % x == 0 || i % x == x - 1 ||
+			i / y == 0 || i / y == y - 1) {
+			grid[i].flags |= ((uint32)TERRAIN_TYPE::ROCK << 16) | TERRAIN_FLAGS::COLLIDABLE;
+		}
 
-		// TODO: Insert to 'terrainRenderRequests' to make rendering much more optimized
-		// by only rendering the entire terrain in 1 draw call.
-		//registry.renderRequests.insert(entity, make_render_request(cell));
-		registry.terrainRenderRequests.insert(entity, make_render_request(cell));
+		TerrainCell& cell = registry.terrainCells.emplace(entity, grid[i].flags);
 	}
 }
