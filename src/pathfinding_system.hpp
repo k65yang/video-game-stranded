@@ -81,6 +81,20 @@ private:
     /// <returns>Returns true if the player has moved, false otherwise</returns>
 	bool has_player_moved(Entity player, Entity mob);
 
+	/// <summary>
+	/// Stops a mob from tracking the player
+	/// </summary>
+	/// <param name="mob">The mob entity</param>
+    void stop_tracking_player(Entity mob);
+
+	/// <summary>
+	/// Checks if the player is in aggro range of the mob
+	/// </summary>
+	/// <param name="player">The player entity</param>
+	/// <param name="mob">The mob entity</param>
+    /// <returns>Returns true if the player is in aggro range of the player, false otherwise</returns>
+    bool is_player_in_mob_aggro_range(Entity player, Entity mob);
+
     /// <summary>
 	/// Updates a mob’s velocity to move to the next cell in its path
 	/// </summary>

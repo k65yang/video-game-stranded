@@ -191,6 +191,15 @@ bool PathfindingSystem::has_player_moved(Entity player, Entity mob)
     return curr_cell_of_player != expected_cell_of_player;
 }
 
+void PathfindingSystem::stop_tracking_player(Entity mob) 
+{
+    
+}
+
+bool PathfindingSystem::is_player_in_mob_aggro_range(Entity player, Entity mob) {
+    return false;
+}
+
 void PathfindingSystem::update_velocity_to_next_cell(Entity mob, float elapsed_ms)
 {
     // Get and remove previous cell in the path
