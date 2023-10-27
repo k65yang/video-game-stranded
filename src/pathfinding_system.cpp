@@ -92,10 +92,10 @@ std::deque<Entity> PathfindingSystem::find_shortest_path(Entity player, Entity m
     // Get shortest path by backtracking through predecessors
     std::deque<Entity> path;
     path.push_front(player_cell);
-    int crawl = terrain->get_cell_index(player_cell);
-    while (predecessor.at(crawl) != -1) {
-        path.push_front(terrain->get_cell(predecessor.at(crawl)));
-        crawl = predecessor.at(crawl);
+    int index = terrain->get_cell_index(player_cell);
+    while (predecessor.at(index) != -1) {
+        path.push_front(terrain->get_cell(predecessor.at(index)));
+        index = predecessor.at(index);
     }
 
     return path;
@@ -156,12 +156,14 @@ bool PathfindingSystem::BFS(Entity player_cell, Entity mob_cell, std::vector<int
 
 bool PathfindingSystem::same_cell(Entity player, Entity mob)
 {
-    // Get player and mob motion
+    // Get cells the player and mob are in
     Motion& player_motion = registry.motions.get(player);
     Motion& mob_motion = registry.motions.get(mob);
+    Entity player_cell = terrain->get_cell(player_motion.position);
+    Entity mob_cell = terrain->get_cell(mob_motion.position);
 
     // Check if player is in the same cell as the mob
-    return terrain->get_cell(player_motion.position) == terrain->get_cell(mob_motion.position);
+    return player_cell == mob_cell;
 };
 
 
@@ -211,7 +213,7 @@ void PathfindingSystem::stop_tracking_player(Entity mob)
 }
 
 bool PathfindingSystem::is_player_in_mob_aggro_range(Entity player, Entity mob) {
-    // Get the position of the player and mob and aggro range of the mob
+    // Get the player and mob motion and aggro range of the mob
     Motion& player_motion = registry.motions.get(player);
     Motion& mob_motion = registry.motions.get(mob);
     Mob& mob_mob = registry.mobs.get(mob);
