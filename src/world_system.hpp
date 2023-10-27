@@ -13,6 +13,7 @@
 
 #include "render_system.hpp"
 #include "terrain_system.hpp"
+#include "weapons_system.hpp"
 
 // Container for all our entities and game logic. Individual rendering / update is
 // deferred to the relative update() methods
@@ -38,7 +39,7 @@ public:
 	GLFWwindow* create_window();
 
 	// starts the game
-	void init(RenderSystem* renderer, TerrainSystem* terrain_arg);
+	void init(RenderSystem* renderer, TerrainSystem* terrain_arg, WeaponsSystem* weapons_system_arg);
 
 	// Releases all associated resources
 	~WorldSystem();
@@ -84,6 +85,7 @@ private:
 	// Game state
 	RenderSystem* renderer;
 	TerrainSystem* terrain;
+	WeaponsSystem* weapons_system;
 	float current_speed;
 	float next_turtle_spawn;
 	float next_fish_spawn;
@@ -153,13 +155,4 @@ private:
 	/// </summary>
 	void update_camera_follow();
 	bool keyDown[KEYS];    // Uses InputKeyIndex values as index
-
-	/// <summary>
-	/// Creates a weapon and adds it to the weapons registry. Auto-equips the created weapon.
-	/// NOTE: Does not check if the weapon exists already. 
-	///       (If we do not limit weapon spawns we can be create/equip the same weapon multiple times)
-	/// </summary>
-	/// <param name="weapon_type"> The type of weapon to be created</param>
-	Entity createAndEquipWeapon(ITEM_TYPE weapon_type);
-
 };
