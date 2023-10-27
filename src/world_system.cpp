@@ -248,14 +248,14 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	elapsed_time += elapsed_ms_since_last_update;
 	if (keyDown[LEFT]|| keyDown[LEFT] && keyDown[DOWN]|| keyDown[LEFT] && keyDown[UP]) {
 		registry.players.components[0].framey = 3;
-		if (elapsed_time > 500) {
+		if (elapsed_time > 100) {
 			registry.players.components[0].framex = (registry.players.components[0].framex + 1) % 4;
 			elapsed_time = 0.0f; // Reset the timer
 		}
 	}
 	else if (keyDown[RIGHT] || keyDown[RIGHT] && keyDown[DOWN] || keyDown[RIGHT] && keyDown[UP]) {
 		registry.players.components[0].framey = 1;
-		if (elapsed_time > 500) {
+		if (elapsed_time > 100) {
 			registry.players.components[0].framex = (registry.players.components[0].framex + 1) % 4;
 			elapsed_time = 0.0f; // Reset the timer
 			}
@@ -264,7 +264,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	else if (keyDown[DOWN]) {
 		registry.players.components[0].framey = 2;
 
-		if (elapsed_time > 250) {
+		if (elapsed_time > 100) {
 			registry.players.components[0].framex = (registry.players.components[0].framex + 1) % 4;
 			elapsed_time = 0.0f; // Reset the timer
 			}
@@ -273,7 +273,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	else if (keyDown[UP]) {
 		registry.players.components[0].framey = 0;
 
-		if (elapsed_time > 250) {
+		if (elapsed_time > 100) {
 			registry.players.components[0].framex = (registry.players.components[0].framex + 1) % 4;
 			elapsed_time = 0.0f; // Reset the timer
 			}
@@ -284,16 +284,6 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		registry.players.components[0].framex = 0;
 
 		}
-
-
-/*
-	elapsed_time += elapsed_ms_since_last_update;
-	if (elapsed_time > 1000) {
-		registry.players.components[0].framex = (registry.players.components[0].framex + 1) % 3;
-		elapsed_time = 0.0f; // Reset the timer
-		}
-		*/
-
 
 
 	// Movement code, build the velocity resulting from player moment
