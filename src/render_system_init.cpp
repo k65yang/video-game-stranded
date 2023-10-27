@@ -223,6 +223,25 @@ void RenderSystem::initializeGlGeometryBuffers()
 	// Counterclockwise as it's the default opengl front winding direction.
 	const std::vector<uint16_t> screen_indices = { 0, 1, 2 };
 	bindVBOandIBO(GEOMETRY_BUFFER_ID::SCREEN_TRIANGLE, screen_vertices, screen_indices);
+
+
+	//////////////////////////
+// Initialize player sprite
+// The position corresponds to the center of the texture.
+	std::vector<TexturedVertex> player_vertices(4);
+	player_vertices[0].position = { -1.f / 2, +1.f / 2, 0.f };
+	player_vertices[1].position = { +1.f / 2, +1.f / 2, 0.f };
+	player_vertices[2].position = { +1.f / 2, -1.f / 2, 0.f };
+	player_vertices[3].position = { -1.f / 2, -1.f / 2, 0.f };
+	player_vertices[0].texcoord = { 0.f, 0.f };
+	player_vertices[1].texcoord = { 0.143f, 0.f };
+	player_vertices[2].texcoord = { 0.143f, 0.33f };
+	player_vertices[3].texcoord = { 0.f, 0.33f };
+
+	// Counterclockwise as it's the default opengl front winding direction.
+	const std::vector<uint16_t> player_indices = { 0, 3, 1, 1, 3, 2 };
+	bindVBOandIBO(GEOMETRY_BUFFER_ID::PLAYER_SPRITE, player_vertices, player_indices);
+	
 }
 
 RenderSystem::~RenderSystem()

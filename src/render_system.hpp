@@ -22,6 +22,7 @@ class RenderSystem {
 
 	// Make sure these paths remain in sync with the associated enumerators.
 	// Associated id with .obj path
+
 	const std::vector < std::pair<GEOMETRY_BUFFER_ID, std::string>> mesh_paths =
 	{
 		  std::pair<GEOMETRY_BUFFER_ID, std::string>(GEOMETRY_BUFFER_ID::SALMON, mesh_path("salmon.obj"))
@@ -30,7 +31,8 @@ class RenderSystem {
 
 	// Make sure these paths remain in sync with the associated enumerators.
 	const std::array<std::string, texture_count> texture_paths = {
-			textures_path("player.png"),
+			//textures_path("player.png"),
+			textures_path("player_spritesheet.png"),
 			textures_path("alien.png"),
 			textures_path("redblock.png"),
 			textures_path("fow mask.png"),
@@ -41,7 +43,7 @@ class RenderSystem {
 			terrain_texture_path("1.png"),
 			terrain_texture_path("2.png"),
 			textures_path("spaceship.png"), 
-			textures_path("blueblock.png")
+			textures_path("blueblock.png"),
 	};
 
 	std::array<GLuint, effect_count> effects;
@@ -49,6 +51,7 @@ class RenderSystem {
 	const std::array<std::string, effect_count> effect_paths = {
 		shader_path("coloured"),
 		shader_path("pebble"),
+		shader_path("player"), 
 		shader_path("salmon"),
 		shader_path("textured"),
 		shader_path("water") };
@@ -86,12 +89,16 @@ public:
 	mat3 createModelMatrix(Entity entity);
 	mat3 createProjectionMatrix();
 
+	//to render sprtiesheet
+	//void update(float ms);
+	//void render();
+
 private:
 	// Internal drawing functions for each entity type
 	void drawTexturedMesh(Entity entity, const mat3& view_matrix, const mat3& projection);
 	void drawToScreen();
 	// void drawFOW();
-
+	//void load(); 
 	// Window handle
 	GLFWwindow* window;
 

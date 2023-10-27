@@ -15,7 +15,6 @@ float PLAYER_TOTAL_DISTANCE = 0;
 const float FOOD_DECREASE_THRESHOLD  = 5.0f; // Adjust this value as needed
 
 
-
 // Create the fish world
 WorldSystem::WorldSystem()
 	: points(0)
@@ -516,7 +515,6 @@ void WorldSystem::handle_collisions() {
 	// Remove all collisions from this simulation step
 	registry.collisions.clear();
 }
-
 // PARAM IS TIME IN OUR EXAMPLE, BETWEEN 0 AND 1
 vec2 WorldSystem::interpolate(vec2 p1, vec2 p2, float param) {
 	float new_x = p1[0] + ((p2[0] - p1[0]) * param);

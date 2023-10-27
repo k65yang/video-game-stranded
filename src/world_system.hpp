@@ -67,6 +67,9 @@ private:
 	void on_mouse_click(int button, int action, int mods);
 	vec2 interpolate(vec2 p1, vec2 p2, float param);
 
+
+
+
 	// restart level
 	void restart_game();
 
