@@ -26,9 +26,9 @@ void PathfindingSystem::step(float elapsed_ms)
         // printf("Mob velocity before (dy): %f\n", registry.motions.get(mob).velocity[1]);
 
         // Find new path from mob to player if:
-        // 1) mob is not tracking the player and not in the same cell as the player already, or
+        // 1) mob is not tracking the player and player is within aggro range of mob and mob is not in the same cell as the player already, or
         // 2) mob is tracking the player and has reached the next cell in their path and the player has moved
-        if ((!mob_mob.is_tracking_player && !same_cell(player, mob)) ||
+        if ((!mob_mob.is_tracking_player && is_player_in_mob_aggro_range(player, mob) && !same_cell(player, mob)) ||
             (mob_mob.is_tracking_player && reached_next_cell(mob) && has_player_moved(player, mob))
         ) {
             if (!mob_mob.is_tracking_player) {
@@ -48,6 +48,12 @@ void PathfindingSystem::step(float elapsed_ms)
         //     path_copy.pop_front();
         // }
         // printf("\n");
+
+        // Stop mob from tracking the player if they are tracking the player and reached the next cell in its path but the player is not in the 
+        // aggro range of the mob
+        if (mob_mob.is_tracking_player && reached_next_cell(mob) && !is_player_in_mob_aggro_range(player, mob)) {
+            stop_tracking_player(mob);
+        }
 
         // Update velocity of mob if they are tracking the player and reached the next cell in their path
         if (mob_mob.is_tracking_player && reached_next_cell(mob)) {
@@ -214,8 +220,8 @@ bool PathfindingSystem::is_player_in_mob_aggro_range(Entity player, Entity mob) 
     // Calculate the distance between the player and mob
     float dist = distance(mob_motion.position, player_motion.position);
 
-    printf("Distance between player and mob %d: %f\n", mob, dist);
-    printf("Player is in aggro range of mob? %d\n", dist <= mob_aggro_range);
+    // printf("Distance between player and mob %d: %f\n", mob, dist);
+    // printf("Player is in aggro range of mob? %d\n", dist <= mob_aggro_range);
 
     // Check if the player is within the aggro range of the mob
     return dist <= mob_aggro_range;
