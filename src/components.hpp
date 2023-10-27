@@ -51,7 +51,7 @@ struct Mob {
 	bool is_tracking_player = false;
 	int damage;
 	int health = 1;
-	int aggro_range = 5;
+	float aggro_range = 5.f;
 };
 
 // Structure to store the path for a mob

@@ -193,16 +193,32 @@ bool PathfindingSystem::has_player_moved(Entity player, Entity mob)
 
 void PathfindingSystem::stop_tracking_player(Entity mob) 
 {
+    // Get the motion, mob, and path of the mob
     Motion& mob_motion = registry.motions.get(mob);
     Mob& mob_mob = registry.mobs.get(mob);
     Path& mob_path = registry.paths.get(mob);
+
+    // Set mob's velocity to 0, tracking player flag to false, and clear the path 
     mob_motion.velocity = {0.f, 0.f};
     mob_mob.is_tracking_player = false;
     mob_path.path.clear();
 }
 
 bool PathfindingSystem::is_player_in_mob_aggro_range(Entity player, Entity mob) {
-    return false;
+    // Get the position of the player and mob and aggro range of the mob
+    Motion& player_motion = registry.motions.get(player);
+    Motion& mob_motion = registry.motions.get(mob);
+    Mob& mob_mob = registry.mobs.get(mob);
+    float mob_aggro_range = mob_mob.aggro_range;
+
+    // Calculate the distance between the player and mob
+    float dist = distance(mob_motion.position, player_motion.position);
+
+    printf("Distance between player and mob %d: %f\n", mob, dist);
+    printf("Player is in aggro range of mob? %d\n", dist <= mob_aggro_range);
+
+    // Check if the player is within the aggro range of the mob
+    return dist <= mob_aggro_range;
 }
 
 void PathfindingSystem::update_velocity_to_next_cell(Entity mob, float elapsed_ms)
