@@ -34,7 +34,7 @@ public:
 		// 
 		// We're using unsigned int flags because it is the largest data structure that
 		// remains aligned with Entity
-		unsigned int flags;
+		uint32_t flags = (uint32_t)TERRAIN_TYPE::GRASS << 16;
 	};
 
 	
