@@ -245,38 +245,43 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 	// rendering spritesheet with movement 
 	elapsed_time += elapsed_ms_since_last_update;
-	if (keyDown[LEFT]) {
+	if (keyDown[LEFT]|| keyDown[LEFT] && keyDown[DOWN]|| keyDown[LEFT] && keyDown[UP]) {
 		registry.players.components[0].framey = 3;
 		if (elapsed_time > 500) {
 			registry.players.components[0].framex = (registry.players.components[0].framex + 1) % 4;
 			elapsed_time = 0.0f; // Reset the timer
 		}
 	}
-
-	if (keyDown[DOWN]) {
-		registry.players.components[0].framey = 2;
-
-		if (elapsed_time > 500) {
-			registry.players.components[0].framex = (registry.players.components[0].framex + 1) % 4;
-			elapsed_time = 0.0f; // Reset the timer
-			}
-		}
-
-	if (keyDown[UP]) {
-		registry.players.components[0].framey = 0;
-
-		if (elapsed_time > 500) {
-			registry.players.components[0].framex = (registry.players.components[0].framex + 1) % 4;
-			elapsed_time = 0.0f; // Reset the timer
-			}
-		}
-
-	if (keyDown[RIGHT]) {
+	else if (keyDown[RIGHT] || keyDown[RIGHT] && keyDown[DOWN] || keyDown[RIGHT] && keyDown[UP]) {
 		registry.players.components[0].framey = 1;
 		if (elapsed_time > 500) {
 			registry.players.components[0].framex = (registry.players.components[0].framex + 1) % 4;
 			elapsed_time = 0.0f; // Reset the timer
 			}
+		}
+
+	else if (keyDown[DOWN]) {
+		registry.players.components[0].framey = 2;
+
+		if (elapsed_time > 250) {
+			registry.players.components[0].framex = (registry.players.components[0].framex + 1) % 4;
+			elapsed_time = 0.0f; // Reset the timer
+			}
+		}
+
+	else if (keyDown[UP]) {
+		registry.players.components[0].framey = 0;
+
+		if (elapsed_time > 250) {
+			registry.players.components[0].framex = (registry.players.components[0].framex + 1) % 4;
+			elapsed_time = 0.0f; // Reset the timer
+			}
+		}
+	//No keys pressed 
+	else {
+		registry.players.components[0].framey = 2;
+		registry.players.components[0].framex = 0;
+
 		}
 
 
