@@ -57,10 +57,74 @@ bool RenderSystem::init(GLFWwindow* window_arg)
 
 	initScreenTexture();
     initializeGlTextures();
+	initializeGl3DTextures();
 	initializeGlEffects();
 	initializeGlGeometryBuffers();
 
 	return true;
+}
+
+/// <summary>
+/// Adds a new quad and places it in the vertex and index buffer.
+/// Used for batch rendering.
+/// </summary>
+/// <param name="modelMatrix"></param>
+/// <param name="texture"></param>
+/// <param name="vertices"></param>
+/// <param name="indicies"></param>
+template <class T>
+void RenderSystem::make_quad(mat3 modelMatrix,
+	TEXTURE_ASSET_ID texture,
+	std::vector<BatchedVertex>& vertices,
+	std::vector<T>& indicies) {
+
+	makeQuadVertices(modelMatrix, texture, vertices);
+
+	int i = vertices.size() / 4 - 1;
+	for (uint x : { 0, 3, 1, 1, 3, 2 }) {
+		indicies.push_back(i * 4 + x);
+	}
+}
+
+void RenderSystem::makeQuadVertices(glm::mat3& modelMatrix, TEXTURE_ASSET_ID texture, std::vector<BatchedVertex>& vertices)
+{
+	BatchedVertex quad[4];
+	quad[0].position = { -0.5f, 0.5f, 1.f };
+	quad[0].texCoords = { 0.f, 1.f };
+
+	quad[1].position = { 0.5f, 0.5f, 1.f };
+	quad[1].texCoords = { 1.f, 1.f };
+
+	quad[2].position = { 0.5f, -0.5f, 1.f };
+	quad[2].texCoords = { 1.f, 0.f };
+
+	quad[3].position = { -0.5f, -0.5f, 1.f };
+	quad[3].texCoords = { 0.f, 0.f };
+
+	for (BatchedVertex& v : quad) {
+		v.position = modelMatrix * v.position;
+		v.texIndex = (uint16_t)texture;
+		vertices.push_back(v);
+	}
+}
+
+void RenderSystem::initializeTerrainBuffers()
+{
+	std::vector<BatchedVertex> vertices;
+	// We need 32-bit indices because 16-bit indices limits us to 
+	// sqrt[2^16 / (number of indices per quad = 6)] = ~104 x 104 grid
+	// The new maximum should be ~26,754 x 26,754.
+	std::vector<uint32_t> indices;
+
+	for (Entity e : registry.terrainRenderRequests.entities) {
+		mat3 modelMatrix = createModelMatrix(e);	// preprocess transform matrices because
+		RenderRequest r = registry.terrainRenderRequests.get(e);
+
+		// we can't really have per-mesh transforms so let's just bake them in!
+		make_quad(modelMatrix, r.used_texture, vertices, indices);
+	}
+
+	bindVBOandIBO(GEOMETRY_BUFFER_ID::TERRAIN, vertices, indices);
 }
 
 void RenderSystem::initializeGlTextures()
@@ -91,6 +155,83 @@ void RenderSystem::initializeGlTextures()
 	gl_has_errors();
 }
 
+// Holy hell thank you to these:
+// https://www.khronos.org/opengl/wiki/Array_Texture
+// https://stackoverflow.com/questions/72390151/how-to-use-a-2d-texture-array-in-opengl
+void RenderSystem::initializeGl3DTextures() {
+	glGenTextures(1, &texture_array);
+	gl_has_errors();
+	glBindTexture(GL_TEXTURE_2D_ARRAY, texture_array);
+	gl_has_errors();
+
+	uint n = terrain_texture_paths.size();
+	if (n == 0) {
+		std::cout << "There are no terrain textures loaded! Please fill in 'terrain_texture_paths'." << std::endl;
+		assert(n > 0);	// no textures!!
+	}
+
+	// Since we don't know how big our textures are going to be, we have to
+	// read the first texture.
+	ivec2 dimensions;
+	stbi_uc* data;
+	data = stbi_load(terrain_texture_paths[0].c_str(), &dimensions.x, &dimensions.y, NULL, 4);
+	
+	// Can't load the first texture
+	if (data == NULL)
+	{
+		const std::string message = "Could not load the file " + terrain_texture_paths[0] + ".";
+		fprintf(stderr, "%s", message.c_str());
+		assert(false);
+	}
+
+	// Tell GPU to allocate the 3d texture
+	// We are now officially limited to OpenGL 4.2+ LMAO
+	glTexStorage3D(GL_TEXTURE_2D_ARRAY, 1, GL_RGBA8, dimensions.x, dimensions.y, n);
+	gl_has_errors();
+
+
+	// Put the actual texture data at the 0th depth
+
+	// The numbers Mason, what do they mean?:
+	// The 4 zeroes: 
+	// The first zero: the "layer" of this element (complicated stuff I don't want to get into)
+	// The next two zeros: The x,y offset inside the uv space where the data is placed
+	// The zero after: Specifies that this texture is the i-th element in the array	
+	// 
+	// The reason why we're using glTexSubImage3D is because we've already "allocated" the space for the texture.
+	// We're just modifying that space, hence the 'Sub' in 'SubImage'.
+	glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, 0, 0, 0, dimensions.x, dimensions.y, 1, GL_RGBA, GL_UNSIGNED_BYTE, data);
+	gl_has_errors();
+
+	// Free the data pointer since it allocated to heap.
+	// It will be reassigned in the loop.
+	stbi_image_free(data);
+	data = nullptr;
+
+	for (uint i = 1; i < n; i++)
+	{
+		const std::string& path = terrain_texture_paths[i];
+		data = stbi_load(path.c_str(), &dimensions.x, &dimensions.y, NULL, 4);
+
+		if (data == NULL)
+		{
+			const std::string message = "Could not load the file " + path + ".";
+			fprintf(stderr, "%s", message.c_str());
+			assert(false);
+		}
+
+		// Assign the i-th texture
+		glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, 0, 0, i, dimensions.x, dimensions.y, 1, GL_RGBA, GL_UNSIGNED_BYTE, data);
+		gl_has_errors();
+		stbi_image_free(data);
+		data = nullptr;
+	}
+	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	gl_has_errors();
+	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	gl_has_errors();
+}
+
 void RenderSystem::initializeGlEffects()
 {
 	for(uint i = 0; i < effect_paths.size(); i++)
@@ -104,8 +245,8 @@ void RenderSystem::initializeGlEffects()
 }
 
 // One could merge the following two functions as a template function...
-template <class T>
-void RenderSystem::bindVBOandIBO(GEOMETRY_BUFFER_ID gid, std::vector<T> vertices, std::vector<uint16_t> indices)
+template <class T, class U>
+void RenderSystem::bindVBOandIBO(GEOMETRY_BUFFER_ID gid, std::vector<T> vertices, std::vector<U> indices)
 {
 	glBindBuffer(GL_ARRAY_BUFFER, vertex_buffers[(uint)gid]);
 	glBufferData(GL_ARRAY_BUFFER,
@@ -252,6 +393,7 @@ RenderSystem::~RenderSystem()
 	glDeleteBuffers((GLsizei)index_buffers.size(), index_buffers.data());
 	glDeleteTextures((GLsizei)texture_gl_handles.size(), texture_gl_handles.data());
 	glDeleteTextures(1, &off_screen_render_buffer_color);
+	glDeleteTextures(1, &texture_array);
 	glDeleteRenderbuffers(1, &off_screen_render_buffer_depth);
 	gl_has_errors();
 

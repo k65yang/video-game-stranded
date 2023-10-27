@@ -77,7 +77,15 @@ struct Collision
 {
 	// Note, the first object is stored in the ECS container.entities
 	Entity other_entity; // the second object involved in the collision
-	Collision(Entity& other_entity) { this->other_entity = other_entity; };
+	vec2 MTV; // minimal translation vector for collision resolution
+	float overlap; // magnitude of collision depth
+
+	Collision(Entity& other_entity, float overlap, vec2 MTV) { 
+		this->other_entity = other_entity;
+		this->overlap = overlap;
+		this->MTV = MTV;
+		};
+
 };
 
 // Data structure for toggling debug mode
@@ -141,23 +149,36 @@ enum class TERRAIN_TYPE {
 	ROCK = GRASS + 1
 };
 
+enum TERRAIN_FLAGS {
+	COLLIDABLE = 0b1,
+	DISABLE_PATHFIND = 0b10,
+};
+
 // Data structure that supports 
 struct TerrainCell 
 {
-	TERRAIN_TYPE terrain_type = TERRAIN_TYPE::AIR;
-	//bool collide;
+	TERRAIN_TYPE terrain_type;
+	int flag; 
+
+	TerrainCell(TERRAIN_TYPE terrain_type, int flag) {
+	this->terrain_type = terrain_type;
+	this->flag = flag;
+	};
 };
 
-struct TerrainCollider
+// component for entity that have collision, size is the width/height of bounding box
+struct Collider
 {
-	// collider component for non-passable terrain cells, will be used to stop player movement during handle_collision
+	vec2 position;  //position in world coord, used in collision detection. This needs to be updated by physics::step
+	std::vector<vec2> points;  // in local coord
+	std::vector<vec2> normals; 
+	mat2 rotation;	// might need for later when we have entity(mobs) that can rotate its sprites
+	vec2 scale; // used for AABB broad phase detection
+	int flag;  // for filtering 
+};
 
-	// since current version of collision check requires entity with motion component
-	// will later on load all non-passable terrain cells location in world
-	// 
-	// for each cells
-	// either take the terrain cell position, with a scale of 50,50 pixel and create terrain collider with respected motion component here 
-	// or directly associate motion component with terrain cell component if possible
+struct BoundaryBlock {
+
 };
 
 /**
@@ -210,7 +231,8 @@ enum class EFFECT_ASSET_ID {
 	SALMON = PLAYER + 1,
 	TEXTURED = SALMON + 1,
 	WATER = TEXTURED + 1,
-	EFFECT_COUNT = WATER + 1
+	TERRAIN = WATER + 1,
+	EFFECT_COUNT = TERRAIN + 1
 };
 const int effect_count = (int)EFFECT_ASSET_ID::EFFECT_COUNT;
 
@@ -222,7 +244,8 @@ enum class GEOMETRY_BUFFER_ID {
 	SCREEN_TRIANGLE = DEBUG_LINE + 1,
 	// adding player geometry_buffer_ID
 	PLAYER_SPRITE = SCREEN_TRIANGLE +1, 
-	GEOMETRY_COUNT = PLAYER_SPRITE + 1
+	TERRAIN = PLAYER_SPRITE + 1,
+	GEOMETRY_COUNT = TERRAIN + 1
 };
 
 enum class RENDER_LAYER_ID {

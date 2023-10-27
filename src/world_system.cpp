@@ -360,19 +360,26 @@ void WorldSystem::restart_game() {
 	player_equipped_weapon = createAndEquipWeapon(ITEM_TYPE::WEAPON_NONE);
 
 	// Create the main camera
-	main_camera = createCamera({0,0});
+	main_camera = createCamera({ 0,0 });
 
 	// Create fow
 	fow = createFOW(renderer, { 0,0 });
 
 	// Create health bars 
-	health_bar = createHealthBar(renderer, {-8.f, 7.f });
+	health_bar = createHealthBar(renderer, { -8.f, 7.f });
 
 	// Create food bars 
 	food_bar = createFoodBar(renderer, { 8.f, 7.f });
 
-	createBoxBoundary(renderer, { 15, 15 }, { 0,0 });
+	// Create boundary
+	boundaryInitialize(renderer, { 15.f,15.f }, { 0,0 });
 
+	//FOR DEMO, CAN REMOVE LATER
+	createTerrainCollider(renderer, terrain, { 3.f, -3.f });  
+	createTerrainCollider(renderer, terrain, { 3.f, 3.f });   
+	createTerrainCollider(renderer, terrain, { -3.f, 3.f });  
+	createTerrainCollider(renderer, terrain, { -3.f, -3.f });
+	 
 
 	// FOR DEMO - to show different types of items being created.	
 	spawn_items();
@@ -425,34 +432,13 @@ void WorldSystem::handle_collisions() {
 			}
 
 			// Checking Player - Terrain
-			if (registry.terrainColliders.has(entity_other)) {
+			
 
-				Motion& motion = registry.motions.get(player_salmon);
+			if (registry.terrainCells.has(entity_other) || registry.boundaries.has(entity_other)) {
 
-				// resetting key press and respected velocity
-				
-				if (keyDown[UP] == true) {
-					motion.velocity.y = 0;
-				}
-
-				if (keyDown[DOWN] == true) {
-					motion.velocity.y = 0;
-				}
-
-				if (keyDown[LEFT] == true) {
-					motion.velocity.x = 0;
-				}
-
-				if (keyDown[RIGHT] == true) {
-					motion.velocity.x = 0;
-				}
-
-				// correct player position. Will need to improve for later milestone
-				motion.position.x = positionCorrection(motion.position.x);
-				motion.position.y = positionCorrection(motion.position.y);
-
-				// remove handled collision, not needed apparently
-				// collisionsRegistry.remove(entity_other);
+				Motion& motion = registry.motions.get(player_salmon); 
+				vec2 correctionVec = registry.collisions.components[i].MTV * registry.collisions.components[i].overlap;
+				motion.position = motion.position + correctionVec;
 			}
 
 			// Checking Player - Items
@@ -505,8 +491,15 @@ void WorldSystem::handle_collisions() {
 				}
 				registry.remove_all_components_of(entity);
 			} 
-			// Checking Projectile - Terrain Colliders
-			else if (registry.terrainColliders.has(entity_other)) {
+			// Checking Projectile - non passable terrain cell
+			else if ((registry.terrainCells.has(entity_other) && (registry.terrainCells.get(entity_other).flag & TERRAIN_FLAGS::COLLIDABLE)))
+			{
+				registry.remove_all_components_of(entity);
+			}
+			
+			// Checking Projectile - Boundary 
+			else if (registry.boundaries.has(entity_other))
+			{
 				registry.remove_all_components_of(entity);
 			}
 		}
@@ -597,8 +590,9 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		Entity tile = terrain->get_cell(player.position);
 		TerrainCell& cell = registry.terrainCells.get(tile);
 		cell.terrain_type = TERRAIN_TYPE::ROCK;
-		RenderRequest& req = registry.renderRequests.get(tile);
+		RenderRequest& req = registry.terrainRenderRequests.get(tile);
 		req.used_texture = TEXTURE_ASSET_ID::TERRAIN_STONE;
+		terrain->update_tile(tile);
 	}
 
 	if (action == GLFW_PRESS && key == GLFW_KEY_V) {
@@ -608,10 +602,11 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		std::vector<Entity> entities;
 		terrain->get_accessible_neighbours(tile, entities);
 		for (Entity e : entities) {
-			RenderRequest& req = registry.renderRequests.get(e);
+			RenderRequest& req = registry.terrainRenderRequests.get(e);
 			TerrainCell& cell = registry.terrainCells.get(tile);
 			cell.terrain_type = TERRAIN_TYPE::ROCK;
 			req.used_texture = TEXTURE_ASSET_ID::TERRAIN_STONE;
+			terrain->update_tile(e);
 		}
 	}
 
@@ -674,6 +669,7 @@ void WorldSystem::on_mouse_move(vec2 mouse_position) {
 	}
 }
 
+
 /// <summary>
 /// Function to handle mouse click (weapon fire)
 /// </summary>
@@ -698,42 +694,6 @@ void WorldSystem::on_mouse_click(int button, int action, int mods) {
 		}
 	}
 
-}
-
-	/// <summary>
-	/// helper function for terrain collision response, calculates the corrected player position
-	/// </summary>
-	/// <param name="position"> pass in either player.position.x or y</param>
-float WorldSystem::positionCorrection(float position) {
-	// only correct the position when the difference is between 0.05 to 0.
-	// this is to account for case where left and down are both pressed when player is colliding wall to the left
-	// in this case we would only want to correct the x position
-
-	float whole = 0;
-
-	if (position >= 0) {
-		whole = floor(position);
-		}
-	else {
-		whole = ceil(position);
-		}
-	
-	float fraction = mod(position, whole);
-	float offset = 0.02;
-
-	// determine round up or down, adding offset to prevent continuous triggering
-	if (position >= 0 && fraction <= 0.05) {
-		position = floor(position) - offset;
-		}
-	else if (position < 0 && fraction >= -0.05) {
-		position = ceil(position) + offset;
-		}
-	else {
-		//no correction
-		// 
-		}
-
-	return position;
 }
 
 void WorldSystem::spawn_items() {
