@@ -92,7 +92,7 @@ void TerrainSystem::get_accessible_neighbours(Entity cell, std::vector<Entity>& 
 		Cell& cell = grid[index];
 
 		// If a cell is not collidable and pathfinding is not disabled, add to buffer
-		if (!cell.flags & filter) {	
+		if (!(cell.flags & filter)) {	
 			buffer.push_back(cell.entity);
 		}
 	}
@@ -131,8 +131,13 @@ void TerrainSystem::init(const unsigned int x, const unsigned int y, RenderSyste
 
 	for (int i = 0; i < x * y; i++) {
 		Entity& entity = grid[i].entity;
-		TerrainCell& cell = registry.terrainCells.emplace(entity, TERRAIN_TYPE::GRASS, grid[i].flags);
 		Motion& motion = registry.motions.emplace(entity);
 		motion.position = to_world_coordinates(i);
+		if (i % x == 0 || i % x == x - 1 ||
+			i / y == 0 || i / y == y - 1) {
+			grid[i].flags |= ((uint32)TERRAIN_TYPE::ROCK << 16) | TERRAIN_FLAGS::COLLIDABLE;
+		}
+
+		TerrainCell& cell = registry.terrainCells.emplace(entity, grid[i].flags);
 	}
 }
