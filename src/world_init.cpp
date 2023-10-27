@@ -348,7 +348,8 @@ Entity createTerrainCollider(RenderSystem* renderer, TerrainSystem* terrain, vec
 	tCell.terrain_type = TERRAIN_TYPE::ROCK;
 
 	// attach collider
-	createCollider(entity);
+	if (!registry.colliders.has(entity))
+		createCollider(entity);
 
 	// change sprite to redblock  TEMPORARY FOR NOW
 	terrain->update_tile(entity, tCell);

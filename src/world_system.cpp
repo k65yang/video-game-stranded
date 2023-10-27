@@ -13,6 +13,7 @@ const float IFRAMES = 1500;
 const int FOOD_PICKUP_AMOUNT = 20;
 float PLAYER_TOTAL_DISTANCE = 0;
 const float FOOD_DECREASE_THRESHOLD  = 5.0f; // Adjust this value as needed
+const float FOOD_DECREASE_RATE = 10.f;	// Decreases by 10 units per second (when moving)
 
 
 
@@ -258,7 +259,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 		// If any keys are pressed resulting movement then add to total travel distance. 
 		if (keyDown[LEFT] || keyDown[RIGHT] || keyDown[UP] || keyDown[DOWN]) {
-			PLAYER_TOTAL_DISTANCE += 0.1;
+			PLAYER_TOTAL_DISTANCE += FOOD_DECREASE_RATE * elapsed_ms_since_last_update / 1000.f;
 		}
 	}
 	else {
@@ -372,15 +373,21 @@ void WorldSystem::restart_game() {
 	// Create food bars 
 	food_bar = createFoodBar(renderer, { 8.f, 7.f });
 
-	// Create boundary
-	boundaryInitialize(renderer, { 15.f,15.f }, { 0,0 });
+	// Add wall of stone around the map
+	for (unsigned int i = 0; i < registry.terrainCells.entities.size(); i++) {
+		Entity e = registry.terrainCells.entities[i];
+		TerrainCell& cell = registry.terrainCells.components[i];
+
+		if (cell.flag & TERRAIN_FLAGS::COLLIDABLE)
+			createCollider(e);
+	}
 
 	//FOR DEMO, CAN REMOVE LATER
 	createTerrainCollider(renderer, terrain, { 3.f, -3.f });  
 	createTerrainCollider(renderer, terrain, { 3.f, 3.f });   
 	createTerrainCollider(renderer, terrain, { -3.f, 3.f });  
 	createTerrainCollider(renderer, terrain, { -3.f, -3.f });
-	 
+	
 
 	// FOR DEMO - to show different types of items being created.	
 	spawn_items();
