@@ -31,6 +31,9 @@ struct Player
 	int decrease_food_to = PLAYER_MAX_FOOD;
 	float iframes_timer = 0; // in ms
 	int food = PLAYER_MAX_FOOD;
+	int framex = 0; 
+	int framey = 1; 
+
 };
 
 // The weapon
@@ -245,14 +248,16 @@ enum class TEXTURE_ASSET_ID {
 	WEAPON_MACHINEGUN = WEAPON_SHOTGUN + 1,
 	SPACESHIP = WEAPON_MACHINEGUN + 1,
 	BLUEBLOCK = SPACESHIP + 1,
-	TEXTURE_COUNT = BLUEBLOCK + 1
+	TEXTURE_COUNT = BLUEBLOCK + 1,
+	//PLAYER_SPRITE_SHEET = TEXTURE_COUNT +1
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 
 enum class EFFECT_ASSET_ID {
 	COLOURED = 0,
 	PEBBLE = COLOURED + 1,
-	SALMON = PEBBLE + 1,
+	PLAYER = PEBBLE + 1,
+	SALMON = PLAYER + 1,
 	TEXTURED = SALMON + 1,
 	WATER = TEXTURED + 1,
 	TERRAIN = WATER + 1,
@@ -266,7 +271,9 @@ enum class GEOMETRY_BUFFER_ID {
 	PEBBLE = SPRITE + 1,
 	DEBUG_LINE = PEBBLE + 1,
 	SCREEN_TRIANGLE = DEBUG_LINE + 1,
-	TERRAIN = SCREEN_TRIANGLE + 1,
+	// adding player geometry_buffer_ID
+	PLAYER_SPRITE = SCREEN_TRIANGLE +1, 
+	TERRAIN = PLAYER_SPRITE + 1,
 	GEOMETRY_COUNT = TERRAIN + 1
 };
 

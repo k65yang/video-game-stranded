@@ -4,6 +4,8 @@
 
 #include "tiny_ecs_registry.hpp"
 
+
+
 void RenderSystem::drawTexturedMesh(Entity entity,
 									const mat3& view_matrix,
 									const mat3& projection)
@@ -34,7 +36,7 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 	gl_has_errors();
 
 	// Input data location as in the vertex buffer
-	if (render_request.used_effect == EFFECT_ASSET_ID::TEXTURED)
+	if (render_request.used_effect == EFFECT_ASSET_ID::TEXTURED ||render_request.used_effect == EFFECT_ASSET_ID::PLAYER)
 	{
 		GLint in_position_loc = glGetAttribLocation(program, "in_position");
 		GLint in_texcoord_loc = glGetAttribLocation(program, "in_texcoord");
@@ -55,7 +57,6 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 		// Enabling and binding texture to slot 0
 		glActiveTexture(GL_TEXTURE0);
 		gl_has_errors();
-
 		assert(registry.renderRequests.has(entity));
 		GLuint texture_id =
 			texture_gl_handles[(GLuint)registry.renderRequests.get(entity).used_texture];
@@ -65,12 +66,20 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 
 		if (render_request.used_texture == TEXTURE_ASSET_ID::PLAYER)
 		{
+			// set the frame for shader 
+			GLint framex_uloc = glGetUniformLocation(program, "framex");
+			GLint framey_uloc = glGetUniformLocation(program, "framey");
+
+			glUniform1i(framex_uloc, registry.players.components[0].framex);
+			glUniform1i(framey_uloc, registry.players.components[0].framey);
+
 			// Light up?
 			GLint light_up_uloc = glGetUniformLocation(program, "light_up");
 			assert(light_up_uloc >= 0);
 
 			// Should only be one player.
 			if (registry.players.components[0].iframes_timer != 0) {
+
 				glUniform1i(light_up_uloc, 1);
 			}
 			else {
@@ -128,6 +137,8 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 	glDrawElements(GL_TRIANGLES, num_indices, GL_UNSIGNED_SHORT, nullptr);
 	gl_has_errors();
 }
+
+// make step funtion 
 
 // draw the intermediate texture to the screen, with some distortion to simulate
 // water
