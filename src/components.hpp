@@ -55,6 +55,7 @@ struct Mob {
 	int damage;
 	float aggro_range = 5.f;
 	int health = 100000;
+	float speed_ratio = 0.5f;
 };
 
 // Slowing effect for mobs from weapons

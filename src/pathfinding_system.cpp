@@ -18,17 +18,13 @@ void PathfindingSystem::step(float elapsed_ms)
     for (Entity mob : registry.mobs.entities) {
         Mob& mob_mob = registry.mobs.get(mob);
 
-        // if mob is slowed, do not update. Let mob move in current direction.
-        if (registry.mobSlowEffects.has(mob))
-            continue;
-
         // printf("size of mobSlowEffect registry: %i\n", registry.mobSlowEffects.components.size());
         // printf("Mob: %d\n", mob);
         // printf("Mob cell index: %d\n", terrain->get_cell_index(terrain->get_cell(registry.motions.get(mob).position)));
         // printf("Mob position before (x): %f\n", registry.motions.get(mob).position[0]);
         // printf("Mob position before (y): %f\n", registry.motions.get(mob).position[1]);
-        // printf("Mob velocity before (dx): %f\n", registry.motions.get(mob).velocity[0]);
-        // printf("Mob velocity before (dy): %f\n", registry.motions.get(mob).velocity[1]);
+        printf("Mob velocity before (dx): %f\n", registry.motions.get(mob).velocity[0]);
+        printf("Mob velocity before (dy): %f\n", registry.motions.get(mob).velocity[1]);
 
         // Find new path from mob to player if:
         // 1) mob is not tracking the player and player is within aggro range of mob and mob is not in the same cell as the player already, or
@@ -252,10 +248,24 @@ void PathfindingSystem::update_velocity_to_next_cell(Entity mob, float elapsed_m
         return;
     }
 
-    // Get next cell in the path and update the velocity of the mob
+    // Get angle to next cell in the path 
     Entity next_cell = mob_path.path.front();
     Motion& next_cell_motion = registry.motions.get(next_cell);
     float angle = atan2(next_cell_motion.position.y - mob_motion.position.y, next_cell_motion.position.x - mob_motion.position.x);
-    mob_motion.velocity[0] = cos(angle) * 0.5;
-    mob_motion.velocity[1] = sin(angle) * 0.5;
+
+    // Update the velocity of the mob based on angle. If mob is slowed, apply the slow effect to the velocity
+    Mob& mob_mob = registry.mobs.get(mob);
+    float mob_speed_ratio = mob_mob.speed_ratio;
+    mob_motion.velocity[0] = cos(angle) * mob_speed_ratio;
+    mob_motion.velocity[1] = sin(angle) * mob_speed_ratio;
+
+    if (registry.mobSlowEffects.has(mob)) {
+        MobSlowEffect& mob_mobSlowEffect = registry.mobSlowEffects.get(mob);
+        float mob_slow_ratio = mob_mobSlowEffect.slow_ratio;
+
+        if (mob_mobSlowEffect.applied) {
+            mob_mobSlowEffect.initial_velocity = mob_motion.velocity;
+            mob_motion.velocity = mob_motion.velocity * mob_slow_ratio;
+        }
+    }
 };
