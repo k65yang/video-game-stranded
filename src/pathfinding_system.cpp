@@ -171,12 +171,12 @@ bool PathfindingSystem::A_star(Entity player_cell, Entity mob_cell, std::vector<
 
             // Calculate costs
             Motion& neighbor_motion = registry.motions.get(neighbor);
-            float neighbor_g = g[curr_cell_index] + 1.0f; // TODO: include terrain type cost
+            float neighbor_g = g[curr_cell_index] + (1.0f * (1/get_terrain_slow_ratio(neighbor)));
             float neighbor_h = distance(neighbor_motion.position, player_cell_motion.position);
             float neighbor_f = neighbor_g + neighbor_h;
 
             // Do not add neighbor to open if it is already in open and came from a path with lower cost
-            if (g[neighbor_cell_index] != -1 && g[neighbor_cell_index] >= neighbor_g) {
+            if (g[neighbor_cell_index] != -1 && g[neighbor_cell_index] < neighbor_g) {
                 continue;
             }
 
@@ -188,6 +188,14 @@ bool PathfindingSystem::A_star(Entity player_cell, Entity mob_cell, std::vector<
     }
 
     return false;
+}
+
+float PathfindingSystem::get_terrain_slow_ratio(Entity cell)
+{
+    // Get terrain type of cell
+    TERRAIN_TYPE terrain_type = registry.terrainCells.get(cell).terrain_type;
+
+    return terrain_type_to_slow_ratio.find(terrain_type)->second;
 }
 
 bool PathfindingSystem::same_cell(Entity player, Entity mob)
