@@ -305,11 +305,6 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			if (mobSlowEffect.duration_ms < mobSlowEffect.elapsed_slow_time_ms) {
 				motion.velocity = mobSlowEffect.initial_velocity;
 				registry.mobSlowEffects.remove(entity);
-
-				// We need to force path finding to restart. 
-				// If not, the mob might continue in the current direction forever.
-				Mob& mob = registry.mobs.get(entity);
-				mob.is_tracking_player = false;
 			}
 		}
 	}
