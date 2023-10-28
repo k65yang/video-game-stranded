@@ -23,8 +23,15 @@ void PathfindingSystem::step(float elapsed_ms)
         // printf("Mob cell index: %d\n", terrain->get_cell_index(terrain->get_cell(registry.motions.get(mob).position)));
         // printf("Mob position before (x): %f\n", registry.motions.get(mob).position[0]);
         // printf("Mob position before (y): %f\n", registry.motions.get(mob).position[1]);
-        printf("Mob velocity before (dx): %f\n", registry.motions.get(mob).velocity[0]);
-        printf("Mob velocity before (dy): %f\n", registry.motions.get(mob).velocity[1]);
+        // printf("Mob velocity before (dx): %f\n", registry.motions.get(mob).velocity[0]);
+        // printf("Mob velocity before (dy): %f\n", registry.motions.get(mob).velocity[1]);
+
+        // Stop mob from tracking the player if mob is tracking the player and has reached the next cell in their path and:
+        // 1) player is not in the aggro range of the mob, or
+        // 2) mob is in the same cell as the player
+        if (mob_mob.is_tracking_player && reached_next_cell(mob) && (!is_player_in_mob_aggro_range(player, mob) || same_cell(player, mob))) {
+            stop_tracking_player(mob);
+        }
 
         // Find new path from mob to player if:
         // 1) mob is not tracking the player and player is within aggro range of mob and mob is not in the same cell as the player already, or
@@ -49,12 +56,6 @@ void PathfindingSystem::step(float elapsed_ms)
         //     path_copy.pop_front();
         // }
         // printf("\n");
-
-        // Stop mob from tracking the player if they are tracking the player and reached the next cell in its path but the player is not in the 
-        // aggro range of the mob
-        if (mob_mob.is_tracking_player && reached_next_cell(mob) && !is_player_in_mob_aggro_range(player, mob)) {
-            stop_tracking_player(mob);
-        }
 
         // Update velocity of mob if they are tracking the player and reached the next cell in their path
         if (mob_mob.is_tracking_player && reached_next_cell(mob)) {
