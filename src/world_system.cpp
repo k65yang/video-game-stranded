@@ -15,6 +15,8 @@ float PLAYER_TOTAL_DISTANCE = 0;
 const float FOOD_DECREASE_THRESHOLD  = 5.0f; // Adjust this value as needed
 const float FOOD_DECREASE_RATE = 10.f;	// Decreases by 10 units per second (when moving)
 float cursor_angle = 0;
+int newFrameY = 2;  // Default to facing up
+
 
 
 float elapsed_time = 0;
@@ -251,71 +253,33 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	elapsed_time += elapsed_ms_since_last_update;
 	// rendering spritesheet with curser 
 	// change player direction based on aiming direction 
-	// Todo: do not allow movement if the aiming direction is not alligned with the character. 
+	// Determine the player's facing direction based on the cursor angle
 	if (cursor_angle >= -M_PI / 4 && cursor_angle < M_PI / 4) {
-		// Set the player to face right
-		registry.players.components[0].framey = 1;
-		//registry.players.components[0].framex = 0;
-		if (keyDown[RIGHT] || keyDown[RIGHT] && keyDown[DOWN] || keyDown[RIGHT] && keyDown[UP]) {
-			if (elapsed_time > 100) {
-				// Update walking right animation 
-				registry.players.components[0].framex = (registry.players.components[0].framex + 1) % 4;
-				elapsed_time = 0.0f; // Reset the timer
-				}
-			}
-		else {
-			registry.players.components[0].framex = 0;
-			}
-		}
-	else if (cursor_angle >= M_PI / 4 && cursor_angle < 3 * M_PI / 4) {
-		// Set the player to face down
-		registry.players.components[0].framey = 2;
-		//registry.players.components[0].framex = 0;
-		if (keyDown[DOWN]) {
-			if (elapsed_time > 100) {
-				// Update walking down animation 
-				registry.players.components[0].framex = (registry.players.components[0].framex + 1) % 4;
-				elapsed_time = 0.0f; // Reset the timer
-				}
-			}
-		else {
-			registry.players.components[0].framex = 0;
-			}
-		}
-	else if (cursor_angle >= -3 * M_PI / 4 && cursor_angle < -M_PI / 4) {
-		// Set the player to face up
-		registry.players.components[0].framey = 0;
-		//registry.players.components[0].framex = 0;
-		if (keyDown[UP]) {
-			if (elapsed_time > 100) {
-				// Update walking up animation
-				registry.players.components[0].framex = (registry.players.components[0].framex + 1) % 4;
-				elapsed_time = 0.0f; // Reset the timer
-				}
-			}
-		else {
-			registry.players.components[0].framex = 0;
-			}
+		newFrameY = 1;  // Right
+	} else if (cursor_angle >= M_PI / 4 && cursor_angle < 3 * M_PI / 4) {
+		newFrameY = 2;  // Down
+	} else if (cursor_angle >= -3 * M_PI / 4 && cursor_angle < -M_PI / 4) {
+		newFrameY = 0;  // Up
+	} else {
+		newFrameY = 3;  // Left
+	}
 
+	// Update player's direction
+	registry.players.components[0].framey = newFrameY;
+
+	// Check if any movement keys are pressed
+	bool anyMovementKeysPressed = keyDown[LEFT] || keyDown[RIGHT] || keyDown[UP] || keyDown[DOWN];
+
+	if (anyMovementKeysPressed) {
+		if (elapsed_time > 100) {
+			// Update walking animation
+			registry.players.components[0].framex = (registry.players.components[0].framex + 1) % 4;
+			elapsed_time = 0.0f; // Reset the timer
 		}
-	else {
-		// Set the player to Face left
-		registry.players.components[0].framey = 3;
-		if (keyDown[LEFT] || keyDown[LEFT] && keyDown[DOWN] || keyDown[LEFT] && keyDown[UP]) {
-			//registry.players.components[0].framey = 3;
-			if (elapsed_time > 100) {
-				// Update walking left animation
-				registry.players.components[0].framex = (registry.players.components[0].framex + 1) % 4;
-				elapsed_time = 0.0f; // Reset the timer
-				}
-			}
-		else {
-			registry.players.components[0].framex = 0;
-
-			}
-
-		}
-
+	} else {
+		// No movement keys pressed, set back to the first frame
+		registry.players.components[0].framex = 0;
+	}
 
 	// Movement code, build the velocity resulting from player moment
 	// We'll consider moveVelocity existing in player space
