@@ -14,7 +14,7 @@ const int FOOD_PICKUP_AMOUNT = 20;
 float PLAYER_TOTAL_DISTANCE = 0;
 const float FOOD_DECREASE_THRESHOLD  = 5.0f; // Adjust this value as needed
 const float FOOD_DECREASE_RATE = 10.f;	// Decreases by 10 units per second (when moving)
-
+float cursor_angle = 0;
 
 
 float elapsed_time = 0;
@@ -248,44 +248,71 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	Motion& f = registry.motions.get(fow);
 	f.position = m.position;
 
-	// rendering spritesheet with movement 
 	elapsed_time += elapsed_ms_since_last_update;
-	if (keyDown[LEFT]|| keyDown[LEFT] && keyDown[DOWN]|| keyDown[LEFT] && keyDown[UP]) {
-		registry.players.components[0].framey = 3;
-		if (elapsed_time > 100) {
-			registry.players.components[0].framex = (registry.players.components[0].framex + 1) % 4;
-			elapsed_time = 0.0f; // Reset the timer
-		}
-	}
-	else if (keyDown[RIGHT] || keyDown[RIGHT] && keyDown[DOWN] || keyDown[RIGHT] && keyDown[UP]) {
+	// rendering spritesheet with curser 
+	// change player direction based on aiming direction 
+	// Todo: do not allow movement if the aiming direction is not alligned with the character. 
+	if (cursor_angle >= -M_PI / 4 && cursor_angle < M_PI / 4) {
+		// Set the player to face right
 		registry.players.components[0].framey = 1;
-		if (elapsed_time > 100) {
-			registry.players.components[0].framex = (registry.players.components[0].framex + 1) % 4;
-			elapsed_time = 0.0f; // Reset the timer
+		//registry.players.components[0].framex = 0;
+		if (keyDown[RIGHT] || keyDown[RIGHT] && keyDown[DOWN] || keyDown[RIGHT] && keyDown[UP]) {
+			if (elapsed_time > 100) {
+				// Update walking right animation 
+				registry.players.components[0].framex = (registry.players.components[0].framex + 1) % 4;
+				elapsed_time = 0.0f; // Reset the timer
+				}
+			}
+		else {
+			registry.players.components[0].framex = 0;
 			}
 		}
-
-	else if (keyDown[DOWN]) {
+	else if (cursor_angle >= M_PI / 4 && cursor_angle < 3 * M_PI / 4) {
+		// Set the player to face down
 		registry.players.components[0].framey = 2;
-
-		if (elapsed_time > 100) {
-			registry.players.components[0].framex = (registry.players.components[0].framex + 1) % 4;
-			elapsed_time = 0.0f; // Reset the timer
+		//registry.players.components[0].framex = 0;
+		if (keyDown[DOWN]) {
+			if (elapsed_time > 100) {
+				// Update walking down animation 
+				registry.players.components[0].framex = (registry.players.components[0].framex + 1) % 4;
+				elapsed_time = 0.0f; // Reset the timer
+				}
+			}
+		else {
+			registry.players.components[0].framex = 0;
 			}
 		}
-
-	else if (keyDown[UP]) {
+	else if (cursor_angle >= -3 * M_PI / 4 && cursor_angle < -M_PI / 4) {
+		// Set the player to face up
 		registry.players.components[0].framey = 0;
-
-		if (elapsed_time > 100) {
-			registry.players.components[0].framex = (registry.players.components[0].framex + 1) % 4;
-			elapsed_time = 0.0f; // Reset the timer
+		//registry.players.components[0].framex = 0;
+		if (keyDown[UP]) {
+			if (elapsed_time > 100) {
+				// Update walking up animation
+				registry.players.components[0].framex = (registry.players.components[0].framex + 1) % 4;
+				elapsed_time = 0.0f; // Reset the timer
+				}
 			}
+		else {
+			registry.players.components[0].framex = 0;
+			}
+
 		}
-	//No keys pressed 
 	else {
-		registry.players.components[0].framey = 2;
-		registry.players.components[0].framex = 0;
+		// Set the player to Face left
+		registry.players.components[0].framey = 3;
+		if (keyDown[LEFT] || keyDown[LEFT] && keyDown[DOWN] || keyDown[LEFT] && keyDown[UP]) {
+			//registry.players.components[0].framey = 3;
+			if (elapsed_time > 100) {
+				// Update walking left animation
+				registry.players.components[0].framex = (registry.players.components[0].framex + 1) % 4;
+				elapsed_time = 0.0f; // Reset the timer
+				}
+			}
+		else {
+			registry.players.components[0].framex = 0;
+
+			}
 
 		}
 
@@ -295,6 +322,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	// Allow movement if player is not dead 
 	if (!registry.deathTimers.has(player_salmon)) {
 		m.velocity = { 0, 0 };
+		
 		handle_movement(m, LEFT);
 
 		// If any keys are pressed resulting movement then add to total travel distance. 
@@ -753,7 +781,6 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		weapons_system->upgradeCurrentWeapon();
 	}
 }
-
 /// <summary>
 /// Rotates player to follow mouse movement
 /// </summary>
@@ -767,8 +794,8 @@ void WorldSystem::on_mouse_move(vec2 mouse_position) {
 		float screen_centre_y = window_height_px/2;
 
 		Motion& motion = registry.motions.get(player_salmon);
-		//motion.angle = atan2(mouse_position.y - screen_centre_y, mouse_position.x - screen_centre_x);
-		// printf("View direction: %f \n", motion.angle);
+		cursor_angle = atan2(mouse_position.y - screen_centre_y, mouse_position.x - screen_centre_x);
+		//printf("View direction: %f \n", cursor_angle);
 	}
 }
 
@@ -780,7 +807,7 @@ void WorldSystem::on_mouse_click(int button, int action, int mods) {
 	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
 		Motion& player_motion = registry.motions.get(player_salmon);
 		// printf("player x: %f, player y: %f \n", player_motion.position.x, player_motion.position.y);
-		weapons_system->fireWeapon(player_motion.position.x, player_motion.position.y, player_motion.angle);
+		weapons_system->fireWeapon(player_motion.position.x, player_motion.position.y, cursor_angle);
 	}
 }
 
