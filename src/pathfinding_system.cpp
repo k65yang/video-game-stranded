@@ -85,8 +85,8 @@ std::deque<Entity> PathfindingSystem::find_shortest_path(Entity player, Entity m
     // represents the immediate predecessor of the cell at index i in the world grid found during the BFS
     std::vector<int> predecessor;
 
-    // Execute BFS
-    if (!BFS(player_cell, mob_cell, predecessor)) {
+    // Execute A*
+    if (!A_star(player_cell, mob_cell, predecessor)) {
         printf("Path from mob in cell %d to player in cell %d could not be found\n", mob_cell, player_cell);
         assert(false);
     }
@@ -103,34 +103,59 @@ std::deque<Entity> PathfindingSystem::find_shortest_path(Entity player, Entity m
     return path;
 };
 
-
-bool PathfindingSystem::BFS(Entity player_cell, Entity mob_cell, std::vector<int>& predecessor)
+bool PathfindingSystem::A_star(Entity player_cell, Entity mob_cell, std::vector<int>& predecessor)
 {
-    // Initialize queue for BFS
-    std::queue<Entity> bfs_queue;
+    // Resusable values
+    Motion& player_cell_motion = registry.motions.get(player_cell);
 
-    // Initialize visited array for BFS
-    // visited is an array of booleans where visited[i] indicates whether the cell at index i in the world grid
-    // has been visited during the BFS
-    std::vector<bool> visited;
+    // Initialize open priority queue for A*
+    // Open is a min priority queue of pairs (x, y) ordered by x, where y = the index of a cell and x = f (f = g + h, 
+    // the total cost of the cell)
+    std::priority_queue<
+        std::pair<float, int>, 
+        std::vector<std::pair<float, int>>, 
+        std::greater<std::pair<float, int>>
+    > open;
 
-    // Initialize values in visited false as all cells start out unvisited
+    // Initialize closed array for A*
+    // closed is an array of booleans where closed[i] indicates whether the cell at index i in the world grid
+    // has been processed during A*
+    std::vector<bool> closed;
+
+    // Initialize g array for A*
+    // g is an array of floats where g[i] indicates the cost to move from the mob cell (i.e. the starting cell) to
+    // the cell at index i in the world grid
+    std::vector<float> g;
+
+    // Initialize values in closed to false as all cells start out as open
     // Initialize values in predecessor to -1 as predecessors for cells start out unknown
+    // Initialize values in g to -1 as cost for cells start out unknown
     for (int i = 0; i < terrain->size_x * terrain->size_y; i++) {
-        visited.push_back(false);
+        closed.push_back(false);
         predecessor.push_back(-1);
+        g.push_back(-1);
     }  
 
-    // Start BFS from mob cell so mark it as visited and add to BFS queue
-    visited[terrain->get_cell_index(mob_cell)] = true;
-    bfs_queue.push(mob_cell);
+    // Start A* from the mob cell so add it to open and set its g to 0
+    int mob_cell_index = terrain->get_cell_index(mob_cell);
+    open.push(std::make_pair(0, mob_cell_index));
+    g[mob_cell_index] = 0;
 
-    // BFS algorithm
-    while (!bfs_queue.empty()) {
-        // Get and remove first cell from queue
-        Entity curr = bfs_queue.front();
-        int curr_cell_index = terrain->get_cell_index(curr);
-        bfs_queue.pop();
+    // A* algorithm
+    while (!open.empty()) {
+        // Get and remove top cell (i.e. cell with min total cost) from open
+        std::pair<float, int> p = open.top();
+        open.pop();
+        int curr_cell_index = p.second;
+        Entity curr = terrain->get_cell(curr_cell_index);
+
+        // Set cell to closed
+        closed.at(curr_cell_index) = true;
+
+        // Stop A* if the cell is the one the player is in
+        if (curr == player_cell) {
+            return true;
+        }
 
         // Get neighbors of cell
         std::vector<Entity> neighbors;
@@ -139,22 +164,31 @@ bool PathfindingSystem::BFS(Entity player_cell, Entity mob_cell, std::vector<int
         for (Entity neighbor : neighbors) {
             int neighbor_cell_index = terrain->get_cell_index(neighbor);
 
-            // Set cell as visited, save its predecessor, and add it to the BFS queue if cell has not been visited yet
-            if (!visited[neighbor_cell_index]) {
-                visited.at(neighbor_cell_index) = true;
-                predecessor.at(neighbor_cell_index) = curr_cell_index;
-                bfs_queue.push(neighbor);
-
-                // Stop BFS if the cell is the one the player is in
-                if (player_cell == neighbor) {
-                    return true;
-                }
+            // Skip neighbor if it is closed
+            if (closed[neighbor_cell_index]) {
+                continue;
             }
+
+            // Calculate costs
+            Motion& neighbor_motion = registry.motions.get(neighbor);
+            float neighbor_g = g[curr_cell_index] + 1.0f; // TODO: include terrain type cost
+            float neighbor_h = distance(neighbor_motion.position, player_cell_motion.position);
+            float neighbor_f = neighbor_g + neighbor_h;
+
+            // Do not add neighbor to open if it is already in open and came from a path with lower cost
+            if (g[neighbor_cell_index] != -1 && g[neighbor_cell_index] >= neighbor_g) {
+                continue;
+            }
+
+            // Add neighbor to open and set predecessor and g
+            open.push(std::make_pair(neighbor_f, neighbor_cell_index));
+            predecessor.at(neighbor_cell_index) = curr_cell_index;
+            g.at(neighbor_cell_index) = neighbor_g;
         }
     }
 
     return false;
-};
+}
 
 bool PathfindingSystem::same_cell(Entity player, Entity mob)
 {

@@ -2,6 +2,8 @@
 #include <queue>
 #include <vector>
 #include <deque>
+#include <functional>
+#include <utility>
 
 #include "tiny_ecs.hpp"
 #include "components.hpp"
@@ -43,18 +45,18 @@ private:
     /// </returns>
     std::deque<Entity> find_shortest_path(Entity player, Entity mob);
 
-    /// <summary>
-	/// Conducts a BFS over the world grid cells, starting from the cell the mob is in, to find the shortest path 
-    /// to the cell the player is in
-    /// Reference: https://www.geeksforgeeks.org/shortest-path-unweighted-graph/
+	/// <summary>
+	/// Performs A* over the world grid cells, starting from the cell the mob is in, to find the shortest path to the 
+	/// cell the player is in. Since euclidean distance is used as the heuristic, the heuristic is admissible and A* 
+	/// will always find the shortest path. 
 	/// </summary>
 	/// <param name="player_cell">The cell the player is in</param>
 	/// <param name="mob_cell">The cell the mob is in</param>
 	/// <param name="predecessor">
     /// An array of ints which correspond to indices of cells in the world grid. predecessor[i] represents the immediate 
-    /// predecessor of the cell at index i in the world grid found during the BFS
+    /// predecessor of the cell at index i in the world grid found during A*
     /// </param>
-    bool BFS(Entity player_cell, Entity mob_cell, std::vector<int>& predecessor);
+    bool A_star(Entity player_cell, Entity mob_cell, std::vector<int>& predecessor);
 
     /// <summary>
 	/// Checks if the player and a mob are in the same cell
