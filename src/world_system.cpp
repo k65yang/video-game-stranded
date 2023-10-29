@@ -773,6 +773,8 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 			}
 			std::cout << "Tile: " << std::to_string(editor_terrain) << std::endl;
 		}
+		if (key == GLFW_KEY_KP_DECIMAL)
+			terrain->save_grid("test");
 	}
 
 	// Press B to toggle debug mode

@@ -14,10 +14,11 @@ public:
 	// size of each respective axes (absolute)
 	int size_x, size_y;
 	
-	TerrainSystem() { grid = nullptr; }
+	TerrainSystem() { entity_grid = nullptr; terraincell_grid = nullptr; }
 
 	~TerrainSystem() {
-		delete[] grid;
+		delete[] entity_grid;
+		delete[] terraincell_grid;
 	}
 
 	/// <summary>
@@ -87,10 +88,10 @@ public:
 	/// </summary>
 	bool isImpassable(Entity tile) {
 		assert(registry.terrainCells.has(tile));
-		return grid[tile - entityStart].flags & TERRAIN_FLAGS::COLLIDABLE; 
+		return terraincell_grid[tile - entityStart] & TERRAIN_FLAGS::COLLIDABLE; 
 	}
 	bool isImpassable(vec2 position) { return isImpassable((int)std::round(position.x), (int)std::round(position.y)); };
-	bool isImpassable(int x, int y) { return grid[to_array_index(x, y)].flags & TERRAIN_FLAGS::COLLIDABLE; }
+	bool isImpassable(int x, int y) { return terraincell_grid[to_array_index(x, y)] & TERRAIN_FLAGS::COLLIDABLE; }
 
 	/// <summary>
 	/// Returns valid, non-collidable neighbours.
@@ -114,14 +115,20 @@ public:
 	/// <param name="tile">The tile's entity</param>
 	/// <param name="cell">The tile's TerrainCell component</param>
 	void update_tile(Entity tile, TerrainCell& cell) {
-		grid[tile - entityStart].flags = cell;
+		terraincell_grid[tile - entityStart] = cell;
 		// We may have tiles changed during world_system.init() at startup so we need to check!
 		if (renderer->is_terrain_mesh_loaded)
 			renderer->changeTerrainData(tile, tile - entityStart, cell);
 	}
 
+	void save_grid(const std::string& name);
+	void load_grid(const std::string& name);
+
 private:
-	Cell* grid;	// PLEASE DO NOT EXPOSE THIS UNLESS YOU KNOW WHAT YOU ARE DOING
+	// PLEASE DO NOT EXPOSE THESE UNLESS YOU KNOW WHAT YOU ARE DOING
+	Entity* entity_grid;
+	uint32_t* terraincell_grid;
+
 	RenderSystem* renderer;
 
 	// The id of the first entity made in this iteration

@@ -24,6 +24,10 @@ using namespace glm;
 // audio_path("audio.ogg") -> data/audio/audio.ogg
 // Get defintion of PROJECT_SOURCE_DIR from:
 #include "../ext/project_path.hpp"
+
+const std::string map_ext = "smap";
+const unsigned int savefile_version = 1;
+
 inline std::string data_path() { return std::string(PROJECT_SOURCE_DIR) + "data"; };
 inline std::string shader_path(const std::string& name) {return std::string(PROJECT_SOURCE_DIR) + "/shaders/" + name;};
 inline std::string textures_path(const std::string& name) {return data_path() + "/textures/" + std::string(name);};
@@ -31,6 +35,9 @@ inline std::string audio_path(const std::string& name) {return data_path() + "/a
 inline std::string mesh_path(const std::string& name) {return data_path() + "/meshes/" + std::string(name);};
 inline std::string terrain_texture_path(const std::string& name) { return data_path() + "/textures/terrain/" + std::string(name);};
 
+inline std::string map_path_builder(const std::string& name) {
+	return data_path() + "/maps/" + std::string(name) + '.' + std::string(map_ext);
+};
 const int window_width_px = 1200;
 const int window_height_px = 800;
 const int tile_size_px = 50;		// Represents how many pixels a tile occupies in a row or column
@@ -59,3 +66,12 @@ struct Transform {
 };
 
 bool gl_has_errors();
+
+template <typename T>
+void write_to_file(std::ofstream& file, T& data, uint32_t num = 1);
+
+template<typename T>
+inline void write_to_file(std::ofstream& file, T& data, uint32_t num)
+{
+	file.write((char*)&data, sizeof(T) * num);
+}
