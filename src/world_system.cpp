@@ -385,6 +385,21 @@ void WorldSystem::handle_movement(Motion& motion, InputKeyIndex indexStart, bool
 {
 	float invert = invertDirection ? -1 : 1;	// shorthand that inverts the results if invertDirection.
 	vec2 moveVelocity = { 0, 0 };
+
+	Player& player = registry.players.components[0];
+	Entity actual_player_cell = terrain->get_cell(motion.position);
+
+	// If player has moved cells, adjust player's velocity based on the terrain type of the new cell
+	if (player.curr_cell != actual_player_cell) {
+		TerrainCell& prev_terrain_cell = registry.terrainCells.get(player.curr_cell);
+		TerrainCell& new_terrain_cell = registry.terrainCells.get(actual_player_cell);
+
+		motion.velocity /= terrain->terrain_type_to_speed_ratio.find(prev_terrain_cell.terrain_type)->second; // unapply speed effect from previous terrain
+		motion.velocity *= terrain->terrain_type_to_speed_ratio.find(new_terrain_cell.terrain_type)->second;  // apply speed effect from new terrain	
+
+		player.curr_cell = actual_player_cell;
+	}
+
 	if (keyDown[indexStart])
 		moveVelocity.x += -1;    // If LEFT is pressed then obviously add a left component
 	if (keyDown[indexStart + 1]) 
@@ -410,7 +425,11 @@ void WorldSystem::handle_movement(Motion& motion, InputKeyIndex indexStart, bool
 			moveVelocity = (rotate * moveVelocity);
 		}
 
-		motion.velocity = moveVelocity * current_speed * invert;
+		// Get speed effect of terrain player is on 
+		TerrainCell& curr_terrain_cell = registry.terrainCells.get(player.curr_cell);
+		float terrain_speed_ratio = terrain->terrain_type_to_speed_ratio.find(curr_terrain_cell.terrain_type)->second;
+
+		motion.velocity = moveVelocity * current_speed * invert * terrain_speed_ratio;
 	}
 }
 
@@ -442,7 +461,7 @@ void WorldSystem::restart_game() {
 	createSpaceship(renderer, { 0,0 });
 
 	// Create a new salmon
-	player_salmon = createPlayer(renderer, { 0, 0 });
+	player_salmon = createPlayer(renderer, terrain, { 0, 0 });
 	registry.colors.insert(player_salmon, { 1, 0.8f, 0.8f });
 
 	// Equip the player weapon. Player starts with no weapon for now.

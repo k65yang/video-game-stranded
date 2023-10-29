@@ -33,7 +33,7 @@ struct Player
 	int food = PLAYER_MAX_FOOD;
 	int framex = 0; 
 	int framey = 1; 
-
+	Entity curr_cell; // cell the player is currently in
 };
 
 // The weapon
