@@ -344,12 +344,14 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	else {
 		handle_movement(camera_motion, CAMERA_LEFT);
 	}
-	// bars movement 
+	// UI Movement
 	Motion& health = registry.motions.get(health_bar);
 	Motion& food = registry.motions.get(food_bar);
+	Motion& weapon_ui = registry.motions.get(weapon_indicator);
 
 	health.position = { -8.f + camera_motion.position.x, 7.f + camera_motion.position.y };
 	food.position = { 8.f + camera_motion.position.x, 7.f + camera_motion.position.y };
+	weapon_ui.position = { -10.f + camera_motion.position.x, -6.f + camera_motion.position.y };
 
 	// Mob updates
 	for (Entity entity : registry.mobs.entities) {
@@ -432,6 +434,9 @@ void WorldSystem::restart_game() {
 	while (registry.weapons.entities.size() > 0)
 		registry.remove_all_components_of(registry.weapons.entities.back());
 
+	// Reset the weapons system
+	weapons_system->resetWeaponsSystem();
+
 	// Debugging for memory/component leaks
 	registry.list_all_components();
 
@@ -455,11 +460,10 @@ void WorldSystem::restart_game() {
 	// Create fow
 	fow = createFOW(renderer, { 0,0 });
 
-	// Create health bars 
+	// Create UI elements
 	health_bar = createHealthBar(renderer, { -8.f, 7.f });
-
-	// Create food bars 
 	food_bar = createFoodBar(renderer, { 8.f, 7.f });
+	weapon_indicator = createWeaponIndicator(renderer, {-10.f, -6.f}, TEXTURE_ASSET_ID::ICON_NO_WEAPON);
 
 	// Add wall of stone around the map
 	for (unsigned int i = 0; i < registry.terrainCells.entities.size(); i++) {
@@ -481,7 +485,7 @@ void WorldSystem::restart_game() {
 
 	// FOR DEMO - to show different types of items being created.	
 	spawn_items();
-	spawn_mobs();
+	// spawn_mobs();
 
 	// for movement velocity
 	for (int i = 0; i < KEYS; i++)
@@ -561,16 +565,31 @@ void WorldSystem::handle_collisions() {
 					break;
 				case ITEM_TYPE::WEAPON_SHURIKEN:
 					player_equipped_weapon = weapons_system->createWeapon(ITEM_TYPE::WEAPON_SHURIKEN);
-					// TODO: some sort of UI update
+					
+					// Remove the current weapon_indicator and add a new one for the equipped weapon
+					registry.remove_all_components_of(weapon_indicator);
+					weapon_indicator = createWeaponIndicator(renderer, {-10.f, -6.f}, TEXTURE_ASSET_ID::ICON_SHURIKEN);
 					break;
 				case ITEM_TYPE::WEAPON_CROSSBOW:
 					player_equipped_weapon = weapons_system->createWeapon(ITEM_TYPE::WEAPON_CROSSBOW);
+
+					// Remove the current weapon_indicator and add a new one for the equipped weapon
+					registry.remove_all_components_of(weapon_indicator);
+					weapon_indicator = createWeaponIndicator(renderer, {-10.f, -6.f}, TEXTURE_ASSET_ID::ICON_CROSSBOW);
 					break;
 				case ITEM_TYPE::WEAPON_SHOTGUN:
 					player_equipped_weapon = weapons_system->createWeapon(ITEM_TYPE::WEAPON_SHOTGUN);
+
+					// Remove the current weapon_indicator and add a new one for the equipped weapon
+					registry.remove_all_components_of(weapon_indicator);
+					weapon_indicator = createWeaponIndicator(renderer, {-10.f, -6.f}, TEXTURE_ASSET_ID::ICON_SHOTGUN);
 					break;
 				case ITEM_TYPE::WEAPON_MACHINEGUN:
 					player_equipped_weapon = weapons_system->createWeapon(ITEM_TYPE::WEAPON_MACHINEGUN);
+
+					// Remove the current weapon_indicator and add a new one for the equipped weapon
+					registry.remove_all_components_of(weapon_indicator);
+					weapon_indicator = createWeaponIndicator(renderer, {-10.f, -6.f}, TEXTURE_ASSET_ID::ICON_MACHINE_GUN);
 					break;
 				case ITEM_TYPE::UPGRADE:
 					// Just add to inventory
@@ -760,15 +779,35 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	// TESTING: hotkeys to equip weapons
 	if (key == GLFW_KEY_1 && action == GLFW_PRESS) {
 		player_equipped_weapon = weapons_system->createWeapon(ITEM_TYPE::WEAPON_SHURIKEN);
+
+		// Remove the current weapon_indicator and add a new one for the equipped weapon
+		registry.remove_all_components_of(weapon_indicator);
+		weapon_indicator = createWeaponIndicator(renderer, {-10.f, -6.f}, TEXTURE_ASSET_ID::ICON_SHURIKEN);
+
 	}
 	if (key == GLFW_KEY_2 && action == GLFW_PRESS) {
 		player_equipped_weapon = weapons_system->createWeapon(ITEM_TYPE::WEAPON_CROSSBOW);
+
+		// Remove the current weapon_indicator and add a new one for the equipped weapon
+		registry.remove_all_components_of(weapon_indicator);
+		weapon_indicator = createWeaponIndicator(renderer, {-10.f, -6.f}, TEXTURE_ASSET_ID::ICON_CROSSBOW);
+
 	}
 	if (key == GLFW_KEY_3 && action == GLFW_PRESS) {
 		player_equipped_weapon = weapons_system->createWeapon(ITEM_TYPE::WEAPON_SHOTGUN);
+
+		// Remove the current weapon_indicator and add a new one for the equipped weapon
+		registry.remove_all_components_of(weapon_indicator);
+		weapon_indicator = createWeaponIndicator(renderer, {-10.f, -6.f}, TEXTURE_ASSET_ID::ICON_SHOTGUN);
+
 	}
 	if (key == GLFW_KEY_4 && action == GLFW_PRESS) {
 		player_equipped_weapon = weapons_system->createWeapon(ITEM_TYPE::WEAPON_MACHINEGUN);
+
+		// Remove the current weapon_indicator and add a new one for the equipped weapon
+		registry.remove_all_components_of(weapon_indicator);
+		weapon_indicator = createWeaponIndicator(renderer, {-10.f, -6.f}, TEXTURE_ASSET_ID::ICON_MACHINE_GUN);
+
 	}
 
 	// TESING: hotkey to upgrade weapon
