@@ -1,6 +1,7 @@
 #pragma once
 #include <cmath>
 #include <random>
+#include <map>
 
 #include "common.hpp"
 #include "tiny_ecs.hpp"
@@ -20,6 +21,12 @@ public:
 	~TerrainSystem() {
 		delete[] grid;
 	}
+
+	// Look-up table for terrain type slow ratios
+	std::map<TERRAIN_TYPE, float> terrain_type_to_speed_ratio = {
+		{TERRAIN_TYPE::AIR, 0.5f},
+		{TERRAIN_TYPE::GRASS, 1.f}
+	};
 
 	/// <summary>
 	/// Represents one cell in the grid, internal uses for now. Exposed to public

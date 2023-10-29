@@ -4,7 +4,6 @@
 #include <deque>
 #include <functional>
 #include <utility>
-#include <map>
 
 #include "tiny_ecs.hpp"
 #include "components.hpp"
@@ -33,12 +32,6 @@ private:
 	/// Terrain system pointer
 	TerrainSystem* terrain;
 
-	// Look-up table for terrain type slow ratios
-	std::map<TERRAIN_TYPE, float> terrain_type_to_slow_ratio = {
-		{TERRAIN_TYPE::AIR, 0.5f},
-		{TERRAIN_TYPE::GRASS, 1.f}
-	};
-
     /// <summary>
 	/// Finds the shortest path between a mob and the player
     /// Reference: https://www.geeksforgeeks.org/shortest-path-unweighted-graph/
@@ -66,11 +59,11 @@ private:
     bool A_star(Entity player_cell, Entity mob_cell, std::vector<int>& predecessor);
 
 	/// <summary>
-	/// Gets the slow ratio of the terrain of a cell
+	/// Gets the speed ratio of the terrain of a cell
 	/// </summary>
 	/// <param name="cell">The cell entity</param>
-    /// <returns>Returns the terrain slow ratio of the cell</returns>
-    float get_terrain_slow_ratio(Entity cell);
+    /// <returns>Returns the terrain speed ratio of the cell</returns>
+    float get_terrain_speed_ratio(Entity cell);
 
     /// <summary>
 	/// Checks if the player and a mob are in the same cell
