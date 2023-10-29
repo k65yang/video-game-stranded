@@ -436,7 +436,7 @@ void WorldSystem::restart_game() {
 	registry.list_all_components();
 
 	// Re-initialize the terrain
-	terrain->init(world_size_x, world_size_y, renderer);
+	terrain->init("test", renderer);
 
 	// Create a Spaceship 
 	createSpaceship(renderer, { 0,0 });
@@ -775,6 +775,8 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		}
 		if (key == GLFW_KEY_KP_DECIMAL)
 			terrain->save_grid("test");
+		if (key == GLFW_KEY_KP_0)
+			terrain->load_grid("test");
 	}
 
 	// Press B to toggle debug mode

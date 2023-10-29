@@ -1,5 +1,77 @@
 #include "terrain_system.hpp"
 
+void TerrainSystem::init(const unsigned int x, const unsigned int y, RenderSystem* renderer)
+{
+	this->renderer = renderer;
+
+	if (terraincell_grid != nullptr) {		// if grid is allocated, deallocate
+		registry.terrainCells.clear();
+		delete[] terraincell_grid;
+		terraincell_grid = nullptr;
+	}
+
+	if (entity_grid != nullptr) {			// if grid is allocated, deallocate
+		for (uint i = 0; i < size_x * size_y; i++) {
+			registry.remove_all_components_of(entity_grid[i]);
+		}
+		delete[] entity_grid;
+		entity_grid = nullptr;
+	}
+
+	size_x = x;
+	size_y = y;
+
+	entity_grid = new Entity[x * y]();			// 1D 2-dimensional array so we can guarantee that
+	terraincell_grid = new uint32_t[x * y];	// the entire world is in the same memory block.
+	entityStart = entity_grid[0];
+
+	for (int i = 0; i < x * y; i++) {
+		Entity& entity = entity_grid[i];
+		Motion& motion = registry.motions.emplace(entity);
+		motion.position = to_world_coordinates(i);
+		if (i % x == 0 || i % x == x - 1 ||
+			i / y == 0 || i / y == y - 1) {
+			terraincell_grid[i] = ((uint32)TERRAIN_TYPE::ROCK << 16) | TERRAIN_FLAGS::COLLIDABLE;
+		}
+		else {
+			terraincell_grid[i] = ((uint32_t)TERRAIN_TYPE::GRASS) << 16;
+		}
+
+		TerrainCell& cell = registry.terrainCells.emplace(entity, terraincell_grid[i]);
+	}
+}
+
+void TerrainSystem::init(const std::string& map_name, RenderSystem* renderer)
+{
+	this->renderer = renderer;
+
+	if (terraincell_grid != nullptr) {		// if grid is allocated, deallocate
+		registry.terrainCells.clear();
+		delete[] terraincell_grid;
+		terraincell_grid = nullptr;
+	}
+
+	if (entity_grid != nullptr) {			// if grid is allocated, deallocate
+		for (uint i = 0; i < size_x * size_y; i++) {
+			registry.remove_all_components_of(entity_grid[i]);
+		}
+		delete[] entity_grid;
+		entity_grid = nullptr;
+	}
+
+	load_grid(map_name);	// Load map from file
+	entity_grid = new Entity[size_x * size_y]();
+	entityStart = entity_grid[0];
+
+	// Bind entities to respective TerrainCell
+	for (int i = 0; i < size_x * size_y; i++) {
+		Entity& entity = entity_grid[i];
+		Motion& motion = registry.motions.emplace(entity);
+		motion.position = to_world_coordinates(i);
+		TerrainCell& cell = registry.terrainCells.emplace(entity, terraincell_grid[i]);
+	}
+}
+
 void TerrainSystem::step(float delta_time)
 {
 }
@@ -102,26 +174,38 @@ void TerrainSystem::get_accessible_neighbours(Entity cell, std::vector<Entity>& 
 
 void TerrainSystem::save_grid(const std::string& name)
 {
-	std::string path = map_path_builder(name);
-	const uint64_t padding = 0;
-
-	std::ofstream file(path.c_str(), std::ios::binary | std::ios::out);
+	std::ofstream file(map_path_builder(name).c_str(), std::ios::binary | std::ios::out);
 	file.write(map_ext.c_str(), size(map_ext));
 	write_to_file(file, savefile_version);
 	write_to_file(file, size_x);
 	write_to_file(file, size_y);
 
 	// Add 32 bytes of padding
-	for (uint i = 0; i < 4; i++)
-		write_to_file(file, padding);
+	file.seekp(SMAP_PADDING_BYTES, std::ios::cur);
 
-
+	file.write((char*)terraincell_grid, sizeof(uint32_t) * size_x * size_y);
 
 	file.close();
 }
 
 void TerrainSystem::load_grid(const std::string& name)
 {
+	std::ifstream file(map_path_builder(name).c_str(), std::ios::binary);
+	char ext[4];
+	unsigned int save_version;
+	file.read((char*)&ext, 4);
+	read_from_file(file, save_version);
+	read_from_file(file, size_x);
+	read_from_file(file, size_y);
+
+	// Read past 32 bytes of padding
+	file.seekg(SMAP_PADDING_BYTES, std::ios::cur);
+	if (terraincell_grid == nullptr) {
+		terraincell_grid = new uint32_t[size_x * size_y];
+	}
+
+	file.read((char*)terraincell_grid, sizeof(uint32_t) * size_x * size_y);
+	file.close();
 }
 
 unsigned int TerrainSystem::to_array_index(int x, int y)
@@ -138,41 +222,4 @@ vec2 TerrainSystem::to_world_coordinates(const int index)
 	assert(index >= 0 && index < size_x * size_y);
 	return {(index % size_x) - size_x / 2,
 			index / size_x - size_y / 2 };
-}
-
-void TerrainSystem::init(const unsigned int x, const unsigned int y, RenderSystem* renderer)
-{
-	this->renderer = renderer;
-
-	if (entity_grid != nullptr) {		// if grid is allocated, deallocate
-		delete[] entity_grid;
-		entity_grid = nullptr;
-	}
-
-	if (terraincell_grid != nullptr) {		// if grid is allocated, deallocate
-		delete[] terraincell_grid;
-		terraincell_grid = nullptr;
-	}
-
-	size_x = x;
-	size_y = y;
-
-	entity_grid = new Entity[x * y]();			// 1D 2-dimensional array so we can guarantee that
-	terraincell_grid = new uint32_t[x * y];	// the entire world is in the same memory block.
-	entityStart = entity_grid[0];
-
-	for (int i = 0; i < x * y; i++) {
-		Entity& entity = entity_grid[i];
-		Motion& motion = registry.motions.emplace(entity);
-		motion.position = to_world_coordinates(i);
-		if (i % x == 0 || i % x == x - 1 ||
-			i / y == 0 || i / y == y - 1) {
-			terraincell_grid[i] |= ((uint32)TERRAIN_TYPE::ROCK << 16) | TERRAIN_FLAGS::COLLIDABLE;
-		}
-		else {
-			terraincell_grid[i] = ((uint32_t)TERRAIN_TYPE::GRASS) << 16;
-		}
-
-		TerrainCell& cell = registry.terrainCells.emplace(entity, terraincell_grid[i]);
-	}
 }

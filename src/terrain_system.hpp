@@ -49,6 +49,13 @@ public:
 	void init(const unsigned int x, const unsigned int y, RenderSystem* renderer);
 
 	/// <summary>
+	/// Initializes the world grid with the given a map name. Map must exist.
+	/// </summary>
+	/// <param name="map_name">The name of the map to be read in PROJECT_SOURCE_DIR/data/maps/</param>
+	/// <param name="renderer">The main renderer</param>
+	void init(const std::string& map_name, RenderSystem* renderer);
+
+	/// <summary>
 	/// Used for cells that may have ticking logic. futureproofing.
 	/// </summary>
 	/// <param name="delta_time">The time since the last frame in milliseconds</param>

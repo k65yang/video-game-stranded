@@ -42,8 +42,8 @@ const int window_width_px = 1200;
 const int window_height_px = 800;
 const int tile_size_px = 50;		// Represents how many pixels a tile occupies in a row or column
 
-const unsigned short world_size_x = 13;
-const unsigned short world_size_y = 13;
+const unsigned short world_size_x = 64;
+const unsigned short world_size_y = 64;
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846f
@@ -52,6 +52,12 @@ const unsigned short world_size_y = 13;
 #ifndef TWO_PI
 #define TWO_PI 2 * M_PI
 #endif	TWO_PI
+
+#define SMAP_PADDING_BYTES 32
+const uint64_t PAD8 = 0;
+const uint32_t PAD4 = 0;
+const uint16_t PAD2 = 0;
+const uint8_t PAD = 0;
 
 // The 'Transform' component handles transformations passed to the Vertex shader
 // (similar to the gl Immediate mode equivalent, e.g., glTranslate()...)
@@ -68,10 +74,21 @@ struct Transform {
 bool gl_has_errors();
 
 template <typename T>
-void write_to_file(std::ofstream& file, T& data, uint32_t num = 1);
+void write_to_file(std::ofstream& file, T& data);
+
+template <typename T>
+void read_from_file(std::ofstream& file, T& data);
+
 
 template<typename T>
-inline void write_to_file(std::ofstream& file, T& data, uint32_t num)
+inline void write_to_file(std::ofstream& file, T& data)
 {
-	file.write((char*)&data, sizeof(T) * num);
+	file.write((char*)&data, sizeof(T));
 }
+
+template<typename T>
+inline void read_from_file(std::ifstream& file, T& data)
+{
+	file.read((char*)&data, sizeof(T));
+}
+
