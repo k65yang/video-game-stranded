@@ -741,6 +741,40 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 			debugging.in_debug_mode = true;
 	}*/
 
+	// Level editor controls
+	if (debugging.in_debug_mode && action == GLFW_PRESS) {
+		if (key == GLFW_KEY_KP_1) {	// numpad 1
+			editor_flag ^= TERRAIN_FLAGS::COLLIDABLE;	// Toggle collidable flag;
+			if (editor_flag & TERRAIN_FLAGS::COLLIDABLE)
+				std::cout << "New terrain are now collidable" << std::endl;
+			else
+				std::cout << "New terrain are now non-collidable" << std::endl;
+		}
+		if (key == GLFW_KEY_KP_2) {	// numpad 2
+			editor_flag ^= TERRAIN_FLAGS::DISABLE_PATHFIND;
+			if (editor_flag & TERRAIN_FLAGS::DISABLE_PATHFIND)
+				std::cout << "New terrain are now inaccessible to mobs" << std::endl;
+			else
+				std::cout << "New terrain are now accessible for mobs" << std::endl;
+		}
+		if (key == GLFW_KEY_KP_SUBTRACT) {	// numpad -
+			if (editor_terrain == 0) {
+				editor_terrain = static_cast<TERRAIN_TYPE>(TERRAIN_COUNT - 1);
+			}
+			else {
+				editor_terrain = static_cast<TERRAIN_TYPE>(editor_terrain - 1);
+			}
+			std::cout << "Tile: " << std::to_string(editor_terrain) << std::endl;
+		}
+		if (key == GLFW_KEY_KP_ADD) {	// numpad +
+			editor_terrain = static_cast<TERRAIN_TYPE>(editor_terrain + 1);
+			if (editor_terrain == TERRAIN_COUNT) {
+				editor_terrain = static_cast<TERRAIN_TYPE>(0);
+			}
+			std::cout << "Tile: " << std::to_string(editor_terrain) << std::endl;
+		}
+	}
+
 	// Press B to toggle debug mode
 	if (key == GLFW_KEY_B && action == GLFW_PRESS) {
 		debugging.in_debug_mode = !debugging.in_debug_mode;
@@ -803,6 +837,31 @@ void WorldSystem::on_mouse_click(int button, int action, int mods) {
 		Motion& player_motion = registry.motions.get(player_salmon);
 		// printf("player x: %f, player y: %f \n", player_motion.position.x, player_motion.position.y);
 		weapons_system->fireWeapon(player_motion.position.x, player_motion.position.y, cursor_angle);
+	}
+
+	if (debugging.in_debug_mode && button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS) {
+		mat3 view_ = renderer->createModelMatrix(main_camera);
+
+		// You can cache this to save performance.
+		mat3 proj_ = inverse(renderer->createProjectionMatrix());
+
+		double xpos, ypos;
+		glfwGetCursorPos(window, &xpos, &ypos);	// For some reason it only supports doubles!
+
+		// Recall that valid clip coordinates are between [-1, 1]. 
+		// First, we need to turn screen (pixel) coordinates into clip coordinates:
+		vec3 mouse_pos = {
+			(xpos / window_width_px) * 2 - 1,		// Get the fraction of the x pos in the screen, multiply 2 to map range to [0, 2], 
+													// then offset so the range is now [-1, 1].
+			-(ypos / window_height_px) * 2 + 1,		// Same thing, but recall that the y direction is opposite in glfw.
+			1.0 };									// Denote that this is a point.
+		mouse_pos = view_ * proj_ * mouse_pos;
+
+		Entity tile = terrain->get_cell(mouse_pos);
+		TerrainCell& cell = registry.terrainCells.get(tile);
+		cell.terrain_type = editor_terrain;
+		cell.flag = editor_flag;
+		terrain->update_tile(tile, cell);
 	}
 }
 
