@@ -347,9 +347,11 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	// bars movement 
 	Motion& health = registry.motions.get(health_bar);
 	Motion& food = registry.motions.get(food_bar);
+	Motion& help = registry.motions.get(help_bar);
 
 	health.position = { -8.f + camera_motion.position.x, 7.f + camera_motion.position.y };
 	food.position = { 8.f + camera_motion.position.x, 7.f + camera_motion.position.y };
+	help.position = { camera_motion.position.x, -7.f + camera_motion.position.y };
 
 	// Mob updates
 	for (Entity entity : registry.mobs.entities) {
@@ -455,11 +457,14 @@ void WorldSystem::restart_game() {
 	// Create fow
 	fow = createFOW(renderer, { 0,0 });
 
-	// Create health bars 
+	// Create health bar
 	health_bar = createHealthBar(renderer, { -8.f, 7.f });
 
-	// Create food bars 
+	// Create food bar
 	food_bar = createFoodBar(renderer, { 8.f, 7.f });
+
+	// A function that handles the help/tutorial (some tool tips at the top of the screen)
+	help_bar = createHelp(renderer, { 0.f, -7.f });
 
 	// Add wall of stone around the map
 	for (unsigned int i = 0; i < registry.terrainCells.entities.size(); i++) {

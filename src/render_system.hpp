@@ -45,6 +45,7 @@ class RenderSystem {
 			textures_path("weapon_machine_gun.png"),
 			textures_path("spaceship.png"), 
 			textures_path("blueblock.png"),
+			textures_path("help1.png"),
 	};
 
 	// This is used for generating the texture array for batched renders

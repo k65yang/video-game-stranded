@@ -224,8 +224,32 @@ Entity createFoodBar(RenderSystem* renderer, vec2 position) {
 			RENDER_LAYER_ID::LAYER_3 });
 
 	return entity;
-	}
+}
 
+Entity createHelp(RenderSystem* renderer, vec2 position) {
+	auto entity = Entity();
+
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Initialize the position, scale, and physics components
+	auto& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.velocity = { 0.f, 0.f };
+	motion.position = position;
+	motion.scale = vec2({ 20.f, 6.f });
+
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::HELP_ONE,
+			EFFECT_ASSET_ID::TEXTURED,
+			GEOMETRY_BUFFER_ID::SPRITE,
+			RENDER_LAYER_ID::LAYER_3 });
+
+	// TODO: LAYER 4 FOR UI
+
+	return entity;
+}
 
 /// <summary>
 /// Creates a camera centred on a position
