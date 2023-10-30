@@ -97,6 +97,9 @@ private:
 	Entity food_bar;
 	Entity help_bar;
 
+	int current_tooltip = 0;
+	std::vector<TEXTURE_ASSET_ID> tooltips = { TEXTURE_ASSET_ID::HELP_ONE, TEXTURE_ASSET_ID::HELP_TWO, TEXTURE_ASSET_ID::HELP_THREE, TEXTURE_ASSET_ID::HELP_FOUR };
+
 	// music references
 	Mix_Music* background_music;
 	Mix_Chunk* salmon_dead_sound;

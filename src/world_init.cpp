@@ -94,6 +94,8 @@ Entity createItem(RenderSystem* renderer, vec2 position, ITEM_TYPE type)
 	return entity;
 }
 
+// TODO: CLEAN UP ALL THIS CREATE INTO ONE GENERALISED FN
+
 Entity createBasicMob(RenderSystem* renderer, vec2 position)
 {
 	auto entity = Entity();
@@ -226,7 +228,7 @@ Entity createFoodBar(RenderSystem* renderer, vec2 position) {
 	return entity;
 }
 
-Entity createHelp(RenderSystem* renderer, vec2 position) {
+Entity createHelp(RenderSystem* renderer, vec2 position, TEXTURE_ASSET_ID texture) {
 	auto entity = Entity();
 
 	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
@@ -239,9 +241,11 @@ Entity createHelp(RenderSystem* renderer, vec2 position) {
 	motion.position = position;
 	motion.scale = vec2({ 20.f, 6.f });
 
+	registry.tips.emplace(entity);
+
 	registry.renderRequests.insert(
 		entity,
-		{ TEXTURE_ASSET_ID::HELP_ONE,
+		{ texture,
 			EFFECT_ASSET_ID::TEXTURED,
 			GEOMETRY_BUFFER_ID::SPRITE,
 			RENDER_LAYER_ID::LAYER_3 });

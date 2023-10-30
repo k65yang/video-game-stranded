@@ -128,6 +128,10 @@ struct DeathTimer
 	float timer_ms = 3000.f;
 };
 
+struct ToolTip {
+	float timer = 3000.f;
+};
+
 // Single Vertex Buffer element for non-textured meshes (coloured.vs.glsl & salmon.vs.glsl)
 struct ColoredVertex
 {
@@ -249,7 +253,10 @@ enum class TEXTURE_ASSET_ID {
 	SPACESHIP = WEAPON_MACHINEGUN + 1,
 	BLUEBLOCK = SPACESHIP + 1,
 	HELP_ONE = BLUEBLOCK + 1,
-	TEXTURE_COUNT = HELP_ONE + 1,
+	HELP_TWO = HELP_ONE + 1,
+	HELP_THREE = HELP_TWO + 1,
+	HELP_FOUR = HELP_THREE + 1,
+	TEXTURE_COUNT = HELP_FOUR + 1,
 	//PLAYER_SPRITE_SHEET = TEXTURE_COUNT +1
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;

@@ -169,6 +169,25 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		}
 	}
 
+	// TODO: CLEAN UP THESE LOOPS they are surely not optimized
+	// Tick down tooltip timer
+	for (Entity entity : registry.tips.entities) {
+		ToolTip& tip = registry.tips.get(entity);
+		tip.timer -= elapsed_ms_since_last_update;
+		
+		// TODO: Make the tooltip fade after it has been a certain period of time (when we have opacity)
+
+		if (tip.timer < 0) {
+			registry.renderRequests.remove(entity);
+			registry.tips.remove(entity);
+		}
+	}
+
+	if (current_tooltip != tooltips.size() && registry.tips.size() == 0) {
+		help_bar = createHelp(renderer, { 0.f, -7.f }, tooltips[current_tooltip]);
+		current_tooltip++;
+	}
+
 	// Tick down iframes timer and health decrease timer
 	for (Entity entity : registry.players.entities) {
 		Player& player = registry.players.get(entity);
@@ -464,7 +483,8 @@ void WorldSystem::restart_game() {
 	food_bar = createFoodBar(renderer, { 8.f, 7.f });
 
 	// A function that handles the help/tutorial (some tool tips at the top of the screen)
-	help_bar = createHelp(renderer, { 0.f, -7.f });
+	help_bar = createHelp(renderer, { 0.f, -7.f }, tooltips[0]);
+	current_tooltip = 1;
 
 	// Add wall of stone around the map
 	for (unsigned int i = 0; i < registry.terrainCells.entities.size(); i++) {
@@ -566,7 +586,6 @@ void WorldSystem::handle_collisions() {
 					break;
 				case ITEM_TYPE::WEAPON_SHURIKEN:
 					player_equipped_weapon = weapons_system->createWeapon(ITEM_TYPE::WEAPON_SHURIKEN);
-					// TODO: some sort of UI update
 					break;
 				case ITEM_TYPE::WEAPON_CROSSBOW:
 					player_equipped_weapon = weapons_system->createWeapon(ITEM_TYPE::WEAPON_CROSSBOW);
