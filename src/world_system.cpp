@@ -536,7 +536,11 @@ void WorldSystem::handle_collisions() {
 
 			if (registry.terrainCells.has(entity_other) || registry.boundaries.has(entity_other)) {
 
-				Motion& motion = registry.motions.get(player_salmon); 
+				Motion& motion = registry.motions.get(player_salmon);
+				/*
+				std::cout << "MTV x" << registry.collisions.components[i].MTV.x << "  MTV Y: " << registry.collisions.components[i].MTV.y << std::endl;
+				std::cout << "MTV x" << "overlap " << registry.collisions.components[i].overlap << std::endl;
+				*/
 				vec2 correctionVec = registry.collisions.components[i].MTV * registry.collisions.components[i].overlap;
 				motion.position = motion.position + correctionVec;
 			}

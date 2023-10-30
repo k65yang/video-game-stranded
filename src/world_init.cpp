@@ -511,6 +511,7 @@ void createMeshCollider(Entity entity, GEOMETRY_BUFFER_ID geom_id, RenderSystem*
 
 }
 
+// use a given scale instead since changing motion.scale interfer with the texture rendering
 void createProjectileCollider(Entity entity, vec2 scale) {
 
 	auto& motion = registry.motions.get(entity);
