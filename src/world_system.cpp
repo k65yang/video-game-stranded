@@ -14,7 +14,9 @@ const int FOOD_PICKUP_AMOUNT = 20;
 float PLAYER_TOTAL_DISTANCE = 0;
 const float FOOD_DECREASE_THRESHOLD  = 5.0f; // Adjust this value as needed
 const float FOOD_DECREASE_RATE = 10.f;	// Decreases by 10 units per second (when moving)
-float cursor_angle = 0;
+float CURSOR_ANGLE = 0;
+int PLAYER_DIRECTION = 2;  // Default to facing up
+
 
 
 float elapsed_time = 0;
@@ -270,71 +272,22 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	elapsed_time += elapsed_ms_since_last_update;
 	// rendering spritesheet with curser 
 	// change player direction based on aiming direction 
-	// Todo: do not allow movement if the aiming direction is not alligned with the character. 
-	if (cursor_angle >= -M_PI / 4 && cursor_angle < M_PI / 4) {
-		// Set the player to face right
-		registry.players.components[0].framey = 1;
-		//registry.players.components[0].framex = 0;
-		if (keyDown[RIGHT] || keyDown[RIGHT] && keyDown[DOWN] || keyDown[RIGHT] && keyDown[UP]) {
-			if (elapsed_time > 100) {
-				// Update walking right animation 
-				registry.players.components[0].framex = (registry.players.components[0].framex + 1) % 4;
-				elapsed_time = 0.0f; // Reset the timer
-				}
-			}
-		else {
-			registry.players.components[0].framex = 0;
-			}
-		}
-	else if (cursor_angle >= M_PI / 4 && cursor_angle < 3 * M_PI / 4) {
-		// Set the player to face down
-		registry.players.components[0].framey = 2;
-		//registry.players.components[0].framex = 0;
-		if (keyDown[DOWN]) {
-			if (elapsed_time > 100) {
-				// Update walking down animation 
-				registry.players.components[0].framex = (registry.players.components[0].framex + 1) % 4;
-				elapsed_time = 0.0f; // Reset the timer
-				}
-			}
-		else {
-			registry.players.components[0].framex = 0;
-			}
-		}
-	else if (cursor_angle >= -3 * M_PI / 4 && cursor_angle < -M_PI / 4) {
-		// Set the player to face up
-		registry.players.components[0].framey = 0;
-		//registry.players.components[0].framex = 0;
-		if (keyDown[UP]) {
-			if (elapsed_time > 100) {
-				// Update walking up animation
-				registry.players.components[0].framex = (registry.players.components[0].framex + 1) % 4;
-				elapsed_time = 0.0f; // Reset the timer
-				}
-			}
-		else {
-			registry.players.components[0].framex = 0;
-			}
+	// Determine the player's facing direction based on the cursor angle
+	if (CURSOR_ANGLE >= -M_PI / 4 && CURSOR_ANGLE < M_PI / 4) {
+		PLAYER_DIRECTION = 1;  // Right
+	} else if (CURSOR_ANGLE >= M_PI / 4 && CURSOR_ANGLE < 3 * M_PI / 4) {
+		PLAYER_DIRECTION = 2;  // Down
+	} else if (CURSOR_ANGLE >= -3 * M_PI / 4 && CURSOR_ANGLE < -M_PI / 4) {
+		PLAYER_DIRECTION = 0;  // Up
+	} else {
+		PLAYER_DIRECTION = 3;  // Left
+	}
 
-		}
-	else {
-		// Set the player to Face left
-		registry.players.components[0].framey = 3;
-		if (keyDown[LEFT] || keyDown[LEFT] && keyDown[DOWN] || keyDown[LEFT] && keyDown[UP]) {
-			//registry.players.components[0].framey = 3;
-			if (elapsed_time > 100) {
-				// Update walking left animation
-				registry.players.components[0].framex = (registry.players.components[0].framex + 1) % 4;
-				elapsed_time = 0.0f; // Reset the timer
-				}
-			}
-		else {
-			registry.players.components[0].framex = 0;
+	// Update player's direction
+	registry.players.components[0].framey = PLAYER_DIRECTION;
 
-			}
-
-		}
-
+	// Check if any movement keys are pressed and if player is not dead 
+	bool anyMovementKeysPressed = keyDown[LEFT] || keyDown[RIGHT] || keyDown[UP] || keyDown[DOWN];
 
 	// Movement code, build the velocity resulting from player moment
 	// We'll consider moveVelocity existing in player space
@@ -344,10 +297,19 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		
 		handle_movement(m, LEFT);
 
-		// If any keys are pressed resulting movement then add to total travel distance. 
-		if (keyDown[LEFT] || keyDown[RIGHT] || keyDown[UP] || keyDown[DOWN]) {
+		if (anyMovementKeysPressed) {
+			// If any keys are pressed resulting movement then add to total travel distance. 
 			PLAYER_TOTAL_DISTANCE += FOOD_DECREASE_RATE * elapsed_ms_since_last_update / 1000.f;
-		}
+			if (elapsed_time > 100) {
+				// Update walking animation
+				registry.players.components[0].framex = (registry.players.components[0].framex + 1) % 4;
+				elapsed_time = 0.0f; // Reset the timer
+				}
+			}
+		else {
+			// No movement keys pressed, set back to the first frame
+			registry.players.components[0].framex = 0;
+			}
 	}
 	else {
 		// Player is dead, do not allow movement
@@ -363,13 +325,15 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	else {
 		handle_movement(camera_motion, CAMERA_LEFT);
 	}
-	// bars movement 
+	// UI Movement
 	Motion& health = registry.motions.get(health_bar);
 	Motion& food = registry.motions.get(food_bar);
+	Motion& weapon_ui = registry.motions.get(weapon_indicator);
 	Motion& help = registry.motions.get(help_bar);
 
 	health.position = { -8.f + camera_motion.position.x, 7.f + camera_motion.position.y };
 	food.position = { 8.f + camera_motion.position.x, 7.f + camera_motion.position.y };
+	weapon_ui.position = { -10.f + camera_motion.position.x, -6.f + camera_motion.position.y };
 	help.position = { camera_motion.position.x, -7.f + camera_motion.position.y };
 
 	// Mob updates
@@ -453,6 +417,9 @@ void WorldSystem::restart_game() {
 	while (registry.weapons.entities.size() > 0)
 		registry.remove_all_components_of(registry.weapons.entities.back());
 
+	// Reset the weapons system
+	weapons_system->resetWeaponsSystem();
+
 	// Debugging for memory/component leaks
 	registry.list_all_components();
 
@@ -476,11 +443,12 @@ void WorldSystem::restart_game() {
 	// Create fow
 	fow = createFOW(renderer, { 0,0 });
 
-	// Create health bar
+	// Create health bars 
 	health_bar = createHealthBar(renderer, { -8.f, 7.f });
 
-	// Create food bar
+	// Create food bars 
 	food_bar = createFoodBar(renderer, { 8.f, 7.f });
+	weapon_indicator = createWeaponIndicator(renderer, {-10.f, -6.f}, TEXTURE_ASSET_ID::ICON_NO_WEAPON);
 
 	// A function that handles the help/tutorial (some tool tips at the top of the screen)
 	help_bar = createHelp(renderer, { 0.f, -7.f }, tooltips[0]);
@@ -492,7 +460,7 @@ void WorldSystem::restart_game() {
 		TerrainCell& cell = registry.terrainCells.components[i];
 
 		if (cell.flag & TERRAIN_FLAGS::COLLIDABLE)
-			createCollider(e);
+			createDefaultCollider(e);
 	}
 
 	//FOR DEMO, CAN REMOVE LATER
@@ -511,6 +479,8 @@ void WorldSystem::restart_game() {
 	// for movement velocity
 	for (int i = 0; i < KEYS; i++)
 	  keyDown[i] = false;
+
+	
 }
 
 // Compute collisions between entities
@@ -559,7 +529,11 @@ void WorldSystem::handle_collisions() {
 
 			if (registry.terrainCells.has(entity_other) || registry.boundaries.has(entity_other)) {
 
-				Motion& motion = registry.motions.get(player_salmon); 
+				Motion& motion = registry.motions.get(player_salmon);
+				/*
+				std::cout << "MTV x" << registry.collisions.components[i].MTV.x << "  MTV Y: " << registry.collisions.components[i].MTV.y << std::endl;
+				std::cout << "MTV x" << "overlap " << registry.collisions.components[i].overlap << std::endl;
+				*/
 				vec2 correctionVec = registry.collisions.components[i].MTV * registry.collisions.components[i].overlap;
 				motion.position = motion.position + correctionVec;
 			}
@@ -586,15 +560,28 @@ void WorldSystem::handle_collisions() {
 					break;
 				case ITEM_TYPE::WEAPON_SHURIKEN:
 					player_equipped_weapon = weapons_system->createWeapon(ITEM_TYPE::WEAPON_SHURIKEN);
+					// TODO: some sort of UI update
 					break;
 				case ITEM_TYPE::WEAPON_CROSSBOW:
 					player_equipped_weapon = weapons_system->createWeapon(ITEM_TYPE::WEAPON_CROSSBOW);
+
+					// Remove the current weapon_indicator and add a new one for the equipped weapon
+					registry.remove_all_components_of(weapon_indicator);
+					weapon_indicator = createWeaponIndicator(renderer, {-10.f, -6.f}, TEXTURE_ASSET_ID::ICON_CROSSBOW);
 					break;
 				case ITEM_TYPE::WEAPON_SHOTGUN:
 					player_equipped_weapon = weapons_system->createWeapon(ITEM_TYPE::WEAPON_SHOTGUN);
+
+					// Remove the current weapon_indicator and add a new one for the equipped weapon
+					registry.remove_all_components_of(weapon_indicator);
+					weapon_indicator = createWeaponIndicator(renderer, {-10.f, -6.f}, TEXTURE_ASSET_ID::ICON_SHOTGUN);
 					break;
 				case ITEM_TYPE::WEAPON_MACHINEGUN:
 					player_equipped_weapon = weapons_system->createWeapon(ITEM_TYPE::WEAPON_MACHINEGUN);
+
+					// Remove the current weapon_indicator and add a new one for the equipped weapon
+					registry.remove_all_components_of(weapon_indicator);
+					weapon_indicator = createWeaponIndicator(renderer, {-10.f, -6.f}, TEXTURE_ASSET_ID::ICON_MACHINE_GUN);
 					break;
 				case ITEM_TYPE::UPGRADE:
 					// Just add to inventory
@@ -784,15 +771,35 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	// TESTING: hotkeys to equip weapons
 	if (key == GLFW_KEY_1 && action == GLFW_PRESS) {
 		player_equipped_weapon = weapons_system->createWeapon(ITEM_TYPE::WEAPON_SHURIKEN);
+
+		// Remove the current weapon_indicator and add a new one for the equipped weapon
+		registry.remove_all_components_of(weapon_indicator);
+		weapon_indicator = createWeaponIndicator(renderer, {-10.f, -6.f}, TEXTURE_ASSET_ID::ICON_SHURIKEN);
+
 	}
 	if (key == GLFW_KEY_2 && action == GLFW_PRESS) {
 		player_equipped_weapon = weapons_system->createWeapon(ITEM_TYPE::WEAPON_CROSSBOW);
+
+		// Remove the current weapon_indicator and add a new one for the equipped weapon
+		registry.remove_all_components_of(weapon_indicator);
+		weapon_indicator = createWeaponIndicator(renderer, {-10.f, -6.f}, TEXTURE_ASSET_ID::ICON_CROSSBOW);
+
 	}
 	if (key == GLFW_KEY_3 && action == GLFW_PRESS) {
 		player_equipped_weapon = weapons_system->createWeapon(ITEM_TYPE::WEAPON_SHOTGUN);
+
+		// Remove the current weapon_indicator and add a new one for the equipped weapon
+		registry.remove_all_components_of(weapon_indicator);
+		weapon_indicator = createWeaponIndicator(renderer, {-10.f, -6.f}, TEXTURE_ASSET_ID::ICON_SHOTGUN);
+
 	}
 	if (key == GLFW_KEY_4 && action == GLFW_PRESS) {
 		player_equipped_weapon = weapons_system->createWeapon(ITEM_TYPE::WEAPON_MACHINEGUN);
+
+		// Remove the current weapon_indicator and add a new one for the equipped weapon
+		registry.remove_all_components_of(weapon_indicator);
+		weapon_indicator = createWeaponIndicator(renderer, {-10.f, -6.f}, TEXTURE_ASSET_ID::ICON_MACHINE_GUN);
+
 	}
 
 	// TESING: hotkey to upgrade weapon
@@ -813,7 +820,7 @@ void WorldSystem::on_mouse_move(vec2 mouse_position) {
 		float screen_centre_y = window_height_px/2;
 
 		Motion& motion = registry.motions.get(player_salmon);
-		cursor_angle = atan2(mouse_position.y - screen_centre_y, mouse_position.x - screen_centre_x);
+		CURSOR_ANGLE = atan2(mouse_position.y - screen_centre_y, mouse_position.x - screen_centre_x);
 		//printf("View direction: %f \n", cursor_angle);
 	}
 }
@@ -824,9 +831,11 @@ void WorldSystem::on_mouse_move(vec2 mouse_position) {
 /// </summary>
 void WorldSystem::on_mouse_click(int button, int action, int mods) {
 	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
-		Motion& player_motion = registry.motions.get(player_salmon);
-		// printf("player x: %f, player y: %f \n", player_motion.position.x, player_motion.position.y);
-		weapons_system->fireWeapon(player_motion.position.x, player_motion.position.y, cursor_angle);
+		if (!registry.deathTimers.has(player_salmon)) {
+			Motion& player_motion = registry.motions.get(player_salmon);
+			// printf("player x: %f, player y: %f \n", player_motion.position.x, player_motion.position.y);
+			weapons_system->fireWeapon(player_motion.position.x, player_motion.position.y, CURSOR_ANGLE);
+		}
 	}
 }
 
