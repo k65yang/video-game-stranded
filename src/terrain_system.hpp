@@ -81,12 +81,44 @@ public:
 	/// <summary>
 	/// Return true if the tile should have a collider
 	/// </summary>
-	bool isImpassable(Entity tile) {
+	bool is_impassable(Entity tile) {
 		assert(registry.terrainCells.has(tile));
 		return terraincell_grid[tile - entityStart] & TERRAIN_FLAGS::COLLIDABLE; 
 	}
-	bool isImpassable(vec2 position) { return isImpassable((int)std::round(position.x), (int)std::round(position.y)); };
-	bool isImpassable(int x, int y) { return terraincell_grid[to_array_index(x, y)] & TERRAIN_FLAGS::COLLIDABLE; }
+	bool is_impassable(vec2 position) { return is_impassable((int)std::round(position.x), (int)std::round(position.y)); };
+	bool is_impassable(int x, int y) { return terraincell_grid[to_array_index(x, y)] & TERRAIN_FLAGS::COLLIDABLE; }
+
+	/// <summary>
+	/// Returns true if the tile should not be spawnable to items or mobs
+	/// </summary>
+	/// <param name="tile">The tile entity</param>
+	bool is_invalid_spawn(Entity tile) {
+		assert(registry.terrainCells.has(tile));
+		uint32_t flag = terraincell_grid[tile - entityStart] & (COLLIDABLE | ALLOW_SPAWNS);
+		if (flag & TERRAIN_FLAGS::COLLIDABLE)
+			return true;
+		return flag ^ TERRAIN_FLAGS::ALLOW_SPAWNS;
+	}
+
+	/// <summary>
+	/// Returns true if the tile should not be spawnable to items or mobs
+	/// </summary>
+	/// <param name="x">An x position in world space</param>
+	/// <param name="y">An y position in world space</param>
+	bool is_invalid_spawn(int x, int y) {
+		uint32_t flag = terraincell_grid[to_array_index(x, y)] & (COLLIDABLE | ALLOW_SPAWNS);
+		if (flag & TERRAIN_FLAGS::COLLIDABLE)
+			return true;
+		return flag ^ TERRAIN_FLAGS::ALLOW_SPAWNS;
+	}
+
+	/// <summary>
+	/// Returns true if the tile should not be spawnable to items or mobs
+	/// </summary>
+	/// <param name="position">A position</param>
+	/// <returns></returns>
+	bool is_invalid_spawn(vec2 position) { return is_invalid_spawn((int)std::round(position.x), (int)std::round(position.y)); }
+
 
 	/// <summary>
 	/// Returns valid, non-collidable neighbours.

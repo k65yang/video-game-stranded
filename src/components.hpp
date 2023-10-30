@@ -171,8 +171,9 @@ enum TERRAIN_TYPE : uint16_t {
 };
 
 enum TERRAIN_FLAGS : uint32_t {
-	COLLIDABLE = 0b1,
-	DISABLE_PATHFIND = 0b10,
+	COLLIDABLE =			0b1,
+	DISABLE_PATHFIND =		0b10,
+	ALLOW_SPAWNS =			0b100,
 };
 
 // Look-up table for terrain type slow ratios

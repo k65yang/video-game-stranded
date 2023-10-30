@@ -725,6 +725,14 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 			else
 				std::cout << "New terrain are now accessible for mobs" << std::endl;
 		}
+		if (key == GLFW_KEY_KP_3) {	// numpad 3
+			// Toggles pathfindable flag
+			editor_flag ^= TERRAIN_FLAGS::ALLOW_SPAWNS;
+			if (editor_flag & TERRAIN_FLAGS::ALLOW_SPAWNS)
+				std::cout << "New terrain can now be spawned by items and mobs (if no collision)" << std::endl;
+			else
+				std::cout << "New terrain are now removed from the spawning pool" << std::endl;
+		}
 		if (key == GLFW_KEY_KP_SUBTRACT) {	// numpad -
 			// Goes down a TERRAIN_TYPE
 			if (editor_terrain == 0) {
@@ -895,7 +903,7 @@ vec2 WorldSystem::get_random_spawn_location() {
 		}
 
 		// Skip locations that are not accessible
-		if (terrain->isImpassable(position))
+		if (terrain->is_invalid_spawn(position))
 			continue;
 
 		if (!is_spawn_location_used(position)) {
