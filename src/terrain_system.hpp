@@ -1,5 +1,6 @@
 #pragma once
 #include <cmath>
+#include <random>
 
 #include "common.hpp"
 #include "tiny_ecs.hpp"
