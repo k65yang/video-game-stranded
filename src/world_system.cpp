@@ -447,7 +447,7 @@ void WorldSystem::restart_game() {
 
 	// FOR DEMO - to show different types of items being created.	
 	spawn_items();
-	// spawn_mobs();
+	spawn_mobs();
 
 	// for movement velocity
 	for (int i = 0; i < KEYS; i++)
