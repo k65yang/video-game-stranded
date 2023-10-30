@@ -251,9 +251,7 @@ Entity createHelp(RenderSystem* renderer, vec2 position, TEXTURE_ASSET_ID textur
 		{ texture,
 			EFFECT_ASSET_ID::TEXTURED,
 			GEOMETRY_BUFFER_ID::SPRITE,
-			RENDER_LAYER_ID::LAYER_3 });
-
-	// TODO: LAYER 4 FOR UI
+			RENDER_LAYER_ID::LAYER_4 });
 
 	return entity;
 }
