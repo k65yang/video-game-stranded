@@ -182,11 +182,16 @@ Entity WeaponsSystem::createProjectile(RenderSystem* renderer, vec2 pos, float a
 	motion.angle = angle;
 	motion.velocity = weapon_projectile_velocity_map[active_weapon_type] * vec2(cos(angle), sin(angle));;
 	motion.position = pos;
+	
 	// printf("player x: %f, player y: %f \n", pos.x, pos.y);
 
 
 	// Initialize the collider (MUST BE DONE AFTER MOTION COMPONENT)
-	createCollider(entity);
+	
+	// Set projectile to use a hard coded smaller box collider instead of scale from motion. 
+	// Will change when projectile texture are filalized.
+
+	createProjectileCollider(entity, vec2{0.2f,0.2f});
 
 	// Add this projectile to the projectiles registry
 	auto& projectile = registry.projectiles.emplace(entity);
