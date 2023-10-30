@@ -61,6 +61,7 @@ class RenderSystem {
 			textures_path("help2.png"),
 			textures_path("help3.png"),
 			textures_path("help4.png"),
+			textures_path("help_weapon.png"),
 	};
 
 	// This is used for generating the texture array for batched renders

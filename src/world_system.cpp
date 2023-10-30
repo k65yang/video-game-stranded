@@ -566,7 +566,9 @@ void WorldSystem::handle_collisions() {
 					if (user_has_first_weapon) {
 						registry.remove_all_components_of(weapon_indicator);
 					} else {
+						// Has just picked up the first weapon
 						user_has_first_weapon = true;
+						help_bar = createHelp(renderer, { 0.f, -7.f }, TEXTURE_ASSET_ID::HELP_WEAPON);
 					}
 					weapon_indicator = createWeaponIndicator(renderer, { -10.f, -6.f }, TEXTURE_ASSET_ID::ICON_SHURIKEN);
 					break;
@@ -577,7 +579,9 @@ void WorldSystem::handle_collisions() {
 					if (user_has_first_weapon) {
 						registry.remove_all_components_of(weapon_indicator);
 					} else {
+						// Has just picked up the first weapon
 						user_has_first_weapon = true;
+						help_bar = createHelp(renderer, { 0.f, -7.f }, TEXTURE_ASSET_ID::HELP_WEAPON);
 					}
 					weapon_indicator = createWeaponIndicator(renderer, {-10.f, -6.f}, TEXTURE_ASSET_ID::ICON_CROSSBOW);
 					break;
@@ -588,7 +592,9 @@ void WorldSystem::handle_collisions() {
 					if (user_has_first_weapon) {
 						registry.remove_all_components_of(weapon_indicator);
 					} else {
+						// Has just picked up the first weapon
 						user_has_first_weapon = true;
+						help_bar = createHelp(renderer, { 0.f, -7.f }, TEXTURE_ASSET_ID::HELP_WEAPON);
 					}
 					weapon_indicator = createWeaponIndicator(renderer, {-10.f, -6.f}, TEXTURE_ASSET_ID::ICON_SHOTGUN);
 					break;
@@ -599,7 +605,9 @@ void WorldSystem::handle_collisions() {
 					if (user_has_first_weapon) {
 						registry.remove_all_components_of(weapon_indicator);
 					} else {
+						// Has just picked up the first weapon
 						user_has_first_weapon = true;
+						help_bar = createHelp(renderer, { 0.f, -7.f }, TEXTURE_ASSET_ID::HELP_WEAPON);
 					}
 					weapon_indicator = createWeaponIndicator(renderer, {-10.f, -6.f}, TEXTURE_ASSET_ID::ICON_MACHINE_GUN);
 					break;
