@@ -116,6 +116,9 @@ vec2 TerrainSystem::to_world_coordinates(const int index)
 
 void TerrainSystem::init(const unsigned int x, const unsigned int y, RenderSystem* renderer)
 {
+	std::default_random_engine rng;
+	rng = std::default_random_engine(std::random_device()());
+
 	this->renderer = renderer;
 
 	if (grid != nullptr) {		// if grid is allocated, deallocate
@@ -136,6 +139,8 @@ void TerrainSystem::init(const unsigned int x, const unsigned int y, RenderSyste
 		if (i % x == 0 || i % x == x - 1 ||
 			i / y == 0 || i / y == y - 1) {
 			grid[i].flags |= ((uint32)TERRAIN_TYPE::ROCK << 16) | TERRAIN_FLAGS::COLLIDABLE;
+		} else if (rng() % 2 == 1) {	// randomly make some cells AIR terrain type
+			grid[i].flags = (uint32)TERRAIN_TYPE::AIR << 16;
 		}
 
 		TerrainCell& cell = registry.terrainCells.emplace(entity, grid[i].flags);
