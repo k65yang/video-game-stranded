@@ -79,7 +79,7 @@ void TerrainSystem::step(float delta_time)
 Entity TerrainSystem::get_cell(vec2 position)
 {
 	// round x and y value before casting for more accurate mapping of position to cell
-	return get_cell((int) std::round(position.x), (int) std::round(position.y)); 
+	return get_cell((int)std::round(position.x), (int)std::round(position.y));
 }
 
 Entity TerrainSystem::get_cell(int x, int y)
@@ -98,7 +98,7 @@ Entity TerrainSystem::get_cell(int index)
 	return entity_grid[index];
 }
 
-int TerrainSystem::get_cell_index(Entity cell) 
+int TerrainSystem::get_cell_index(Entity cell)
 {
 	int cell_index = cell - entityStart;
 	assert(cell_index >= 0);
@@ -117,7 +117,7 @@ void TerrainSystem::get_accessible_neighbours(Entity cell, std::vector<Entity>& 
 	if (checkPathfind)
 		filter |= TERRAIN_FLAGS::DISABLE_PATHFIND;	// check if tile has pathfinding disabled
 
-	int indices[8] = { 
+	int indices[8] = {
 		cell_index - size_x,		// Top cell
 		cell_index + 1,				// Right cell
 		cell_index + size_x,		// Bottom cell
@@ -166,7 +166,7 @@ void TerrainSystem::get_accessible_neighbours(Entity cell, std::vector<Entity>& 
 		unsigned int cell = terraincell_grid[index];
 
 		// If a cell is not collidable and pathfinding is not disabled, add to buffer
-		if (!(cell & filter)) {	
+		if (!(cell & filter)) {
 			buffer.push_back(tile);
 		}
 	}
@@ -174,8 +174,10 @@ void TerrainSystem::get_accessible_neighbours(Entity cell, std::vector<Entity>& 
 
 void TerrainSystem::save_grid(const std::string& name)
 {
-	std::ofstream file(map_path_builder(name).c_str(), std::ios::binary | std::ios::out);
+	const std::string path = map_path_builder(name);
+	std::ofstream file(path.c_str(), std::ios::binary | std::ios::out);
 	file.write(map_ext.c_str(), size(map_ext));
+	assert(file.is_open() && "Map file cannot be created or modified.");
 	write_to_file(file, savefile_version);
 	write_to_file(file, size_x);
 	write_to_file(file, size_y);
@@ -190,10 +192,18 @@ void TerrainSystem::save_grid(const std::string& name)
 
 void TerrainSystem::load_grid(const std::string& name)
 {
-	std::ifstream file(map_path_builder(name).c_str(), std::ios::binary);
-	char ext[4];
+	const std::string path = map_path_builder(name);
+	std::ifstream file(path.c_str(), std::ios::binary);
+	assert(file.is_open() && "Map file cannot be found.");
+	char ext[5] = "";
 	unsigned int save_version;
+
 	file.read((char*)&ext, 4);
+
+	if (strcmp(ext, map_ext.c_str()) != 0) {
+		assert(false && "Map file header does not match with expected file format.");
+	}
+
 	read_from_file(file, save_version);
 	read_from_file(file, size_x);
 	read_from_file(file, size_y);
@@ -220,6 +230,6 @@ unsigned int TerrainSystem::to_array_index(int x, int y)
 vec2 TerrainSystem::to_world_coordinates(const int index)
 {
 	assert(index >= 0 && index < size_x * size_y);
-	return {(index % size_x) - size_x / 2,
+	return { (index % size_x) - size_x / 2,
 			index / size_x - size_y / 2 };
 }
