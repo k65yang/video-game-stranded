@@ -345,23 +345,22 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 void WorldSystem::handle_movement(Motion& motion, InputKeyIndex indexStart, bool invertDirection, bool useAbsoluteVelocity)
 {
-	float invert = invertDirection ? -1 : 1;	// shorthand that inverts the results if invertDirection.
-	vec2 moveVelocity = { 0, 0 };
-
 	Player& player = registry.players.components[0];
 	Entity actual_player_cell = terrain->get_cell(motion.position);
 
 	// If player has moved cells, adjust player's velocity based on the terrain type of the new cell
 	if (player.curr_cell != actual_player_cell) {
-		TerrainCell& prev_terrain_cell = registry.terrainCells.get(player.curr_cell);
-		TerrainCell& new_terrain_cell = registry.terrainCells.get(actual_player_cell);
+		float prev_terrain_speed_ratio = terrain->get_terrain_speed_ratio(player.curr_cell);
+		float new_terrain_speed_ratio = terrain->get_terrain_speed_ratio(actual_player_cell);
 
-		motion.velocity /= terrain->terrain_type_to_speed_ratio.find(prev_terrain_cell.terrain_type)->second; // unapply speed effect from previous terrain
-		motion.velocity *= terrain->terrain_type_to_speed_ratio.find(new_terrain_cell.terrain_type)->second;  // apply speed effect from new terrain	
+		motion.velocity /= prev_terrain_speed_ratio; // remove speed effect from previous terrain
+		motion.velocity *= new_terrain_speed_ratio;  // apply speed effect from new terrain	
 
 		player.curr_cell = actual_player_cell;
 	}
 
+	float invert = invertDirection ? -1 : 1;	// shorthand that inverts the results if invertDirection.
+	vec2 moveVelocity = { 0, 0 };
 	if (keyDown[indexStart])
 		moveVelocity.x += -1;    // If LEFT is pressed then obviously add a left component
 	if (keyDown[indexStart + 1]) 
