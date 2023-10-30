@@ -564,7 +564,7 @@ void WorldSystem::handle_collisions() {
 					}
 					break;
 				case ITEM_TYPE::QUEST_TWO:
-					registry.remove_all_components_of(quest_items[1],first);
+					registry.remove_all_components_of(quest_items[1].first);
 					quest_items[1].first = createQuestItem(renderer, {10.f, 2.f}, TEXTURE_ASSET_ID::QUEST_2_FOUND);
 					quest_items[1].second = true;
 
