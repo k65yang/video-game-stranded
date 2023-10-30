@@ -14,8 +14,8 @@ const int FOOD_PICKUP_AMOUNT = 20;
 float PLAYER_TOTAL_DISTANCE = 0;
 const float FOOD_DECREASE_THRESHOLD  = 5.0f; // Adjust this value as needed
 const float FOOD_DECREASE_RATE = 10.f;	// Decreases by 10 units per second (when moving)
-float cursor_angle = 0;
-int newFrameY = 2;  // Default to facing up
+float CURSOR_ANGLE = 0;
+int PLAYER_DIRECTION = 2;  // Default to facing up
 
 
 
@@ -254,32 +254,21 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	// rendering spritesheet with curser 
 	// change player direction based on aiming direction 
 	// Determine the player's facing direction based on the cursor angle
-	if (cursor_angle >= -M_PI / 4 && cursor_angle < M_PI / 4) {
-		newFrameY = 1;  // Right
-	} else if (cursor_angle >= M_PI / 4 && cursor_angle < 3 * M_PI / 4) {
-		newFrameY = 2;  // Down
-	} else if (cursor_angle >= -3 * M_PI / 4 && cursor_angle < -M_PI / 4) {
-		newFrameY = 0;  // Up
+	if (CURSOR_ANGLE >= -M_PI / 4 && CURSOR_ANGLE < M_PI / 4) {
+		PLAYER_DIRECTION = 1;  // Right
+	} else if (CURSOR_ANGLE >= M_PI / 4 && CURSOR_ANGLE < 3 * M_PI / 4) {
+		PLAYER_DIRECTION = 2;  // Down
+	} else if (CURSOR_ANGLE >= -3 * M_PI / 4 && CURSOR_ANGLE < -M_PI / 4) {
+		PLAYER_DIRECTION = 0;  // Up
 	} else {
-		newFrameY = 3;  // Left
+		PLAYER_DIRECTION = 3;  // Left
 	}
 
 	// Update player's direction
-	registry.players.components[0].framey = newFrameY;
+	registry.players.components[0].framey = PLAYER_DIRECTION;
 
-	// Check if any movement keys are pressed
+	// Check if any movement keys are pressed and if player is not dead 
 	bool anyMovementKeysPressed = keyDown[LEFT] || keyDown[RIGHT] || keyDown[UP] || keyDown[DOWN];
-
-	if (anyMovementKeysPressed) {
-		if (elapsed_time > 100) {
-			// Update walking animation
-			registry.players.components[0].framex = (registry.players.components[0].framex + 1) % 4;
-			elapsed_time = 0.0f; // Reset the timer
-		}
-	} else {
-		// No movement keys pressed, set back to the first frame
-		registry.players.components[0].framex = 0;
-	}
 
 	// Movement code, build the velocity resulting from player moment
 	// We'll consider moveVelocity existing in player space
@@ -289,10 +278,19 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		
 		handle_movement(m, LEFT);
 
-		// If any keys are pressed resulting movement then add to total travel distance. 
-		if (keyDown[LEFT] || keyDown[RIGHT] || keyDown[UP] || keyDown[DOWN]) {
+		if (anyMovementKeysPressed) {
+			// If any keys are pressed resulting movement then add to total travel distance. 
 			PLAYER_TOTAL_DISTANCE += FOOD_DECREASE_RATE * elapsed_ms_since_last_update / 1000.f;
-		}
+			if (elapsed_time > 100) {
+				// Update walking animation
+				registry.players.components[0].framex = (registry.players.components[0].framex + 1) % 4;
+				elapsed_time = 0.0f; // Reset the timer
+				}
+			}
+		else {
+			// No movement keys pressed, set back to the first frame
+			registry.players.components[0].framex = 0;
+			}
 	}
 	else {
 		// Player is dead, do not allow movement
@@ -753,7 +751,7 @@ void WorldSystem::on_mouse_move(vec2 mouse_position) {
 		float screen_centre_y = window_height_px/2;
 
 		Motion& motion = registry.motions.get(player_salmon);
-		cursor_angle = atan2(mouse_position.y - screen_centre_y, mouse_position.x - screen_centre_x);
+		CURSOR_ANGLE = atan2(mouse_position.y - screen_centre_y, mouse_position.x - screen_centre_x);
 		//printf("View direction: %f \n", cursor_angle);
 	}
 }
@@ -764,9 +762,11 @@ void WorldSystem::on_mouse_move(vec2 mouse_position) {
 /// </summary>
 void WorldSystem::on_mouse_click(int button, int action, int mods) {
 	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
-		Motion& player_motion = registry.motions.get(player_salmon);
-		// printf("player x: %f, player y: %f \n", player_motion.position.x, player_motion.position.y);
-		weapons_system->fireWeapon(player_motion.position.x, player_motion.position.y, cursor_angle);
+		if (!registry.deathTimers.has(player_salmon)) {
+			Motion& player_motion = registry.motions.get(player_salmon);
+			// printf("player x: %f, player y: %f \n", player_motion.position.x, player_motion.position.y);
+			weapons_system->fireWeapon(player_motion.position.x, player_motion.position.y, CURSOR_ANGLE);
+		}
 	}
 }
 
