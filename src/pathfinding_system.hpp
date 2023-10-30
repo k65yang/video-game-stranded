@@ -35,9 +35,13 @@ private:
 
 	// Look-up table for terrain type slow ratios
 	std::map<TERRAIN_TYPE, float> terrain_type_to_slow_ratio = {
-		{TERRAIN_TYPE::AIR, 0.5f},
+		{TERRAIN_TYPE::AIR, 1.f},
 		{TERRAIN_TYPE::GRASS, 1.f},
-		{TERRAIN_TYPE::ROCK, 1.f}
+		{TERRAIN_TYPE::ROCK, 1.f},
+		{TERRAIN_TYPE::SAND, 0.5f},
+		{TERRAIN_TYPE::MUD, 0.3f},
+		{TERRAIN_TYPE::SHALLOW_WATER, 0.25f},
+		{TERRAIN_TYPE::DEEP_WATER, 0.0625f}
 	};
 
     /// <summary>
