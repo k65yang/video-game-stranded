@@ -35,9 +35,10 @@ Entity createLine(vec2 position, vec2 size);
 /// <returns>The fow entity</returns>
 Entity createFOW(RenderSystem* renderer, vec2 pos);
 
-// health and food bars
+// UI Elements
 Entity createHealthBar(RenderSystem* renderer, vec2 position);
 Entity createFoodBar(RenderSystem* renderer, vec2 position);
+Entity createWeaponIndicator(RenderSystem* renderer, vec2 position, TEXTURE_ASSET_ID weapon_texture);
 
 // test only
 Entity createTestDummy(RenderSystem* renderer, vec2 position);
@@ -77,14 +78,17 @@ void boundaryInitialize(RenderSystem* renderer, vec2 size, vec2 center);
 /// <returns>void</returns>
 void createBoundingBox(std::vector<vec2>& points, vec2 scale);
 
+
 /// <summary>
 /// Create a convex hull collider based on polygon given. 
 //	The shape is hard coded to be box shape with entity's scale for now 
 /// </summary>
 /// <param name="entity">entity to attach this collider</param>
 /// <returns>void</returns>
-void createCollider(Entity entity);
+void createDefaultCollider(Entity entity);
 
+void createMeshCollider(Entity entity, GEOMETRY_BUFFER_ID geom_id, RenderSystem* renderer);
+void createProjectileCollider(Entity entity, vec2 scale);
 
 /// <summary>
 /// Creates a camera pointed at the given spot.

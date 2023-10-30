@@ -276,6 +276,25 @@ void RenderSystem::initializeGlMeshes()
 		bindVBOandIBO(geom_index,
 			meshes[(int)geom_index].vertices, 
 			meshes[(int)geom_index].vertex_indices);
+
+		// adjustment for player mesh vertices (invert y and some offset)
+		if (geom_index == GEOMETRY_BUFFER_ID::PLAYER_MESH) {
+			
+			for (int j = 0; j < meshes[(int)geom_index].vertices.size(); j++)
+			{
+				meshes[(int)geom_index].vertices[j].position.y = (meshes[(int)geom_index].vertices[j].position.y * -1.f) - 0.5f;
+			}
+		}
+
+		// adjustment for mob mesh
+		if (geom_index == GEOMETRY_BUFFER_ID::MOB001_MESH) {
+
+			for (int j = 0; j < meshes[(int)geom_index].vertices.size(); j++)
+			{
+				meshes[(int)geom_index].vertices[j].position.y = (meshes[(int)geom_index].vertices[j].position.y * -1.f);
+			}
+		}
+
 	}
 }
 

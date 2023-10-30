@@ -17,6 +17,12 @@ class WeaponsSystem
         {
         }
 
+        /// @brief When the game restarts (without exiting), we must clean the weapons system
+        ///        For now, this is setting weapon_component back to nullptr
+        void resetWeaponsSystem() {
+            weapon_component = nullptr;
+        }
+
         /// @brief  Initializes the render system that the weapon system needs to draw projectiles
         /// @param renderer_arg Pointer to the render system
         void init(RenderSystem* renderer_arg) {
@@ -49,10 +55,6 @@ class WeaponsSystem
         void upgradeCurrentWeapon(){
             weapon_level[active_weapon_type]++;
         };
-
-        // TODO
-        /// @brief When the game restarts (without exiting), we must clean the weapons system
-        // void cleanWeaponsSystem();
 
     private:
         // Keeps track of the weapon

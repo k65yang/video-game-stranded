@@ -110,9 +110,13 @@ bool Mesh::loadFromOBJFile(std::string obj_path, std::vector<ColoredVertex>& out
 	vec3 size3d = max_position - min_position;
 	out_size = size3d;
 
+	// DISABLE normalization for now since mesh is not used for rendering and normalization is not need for generating collider
+
+	/*
 	// Normalize mesh to range -0.5 ... 0.5
 	for (ColoredVertex& pos : out_vertices)
 		pos.position = ((pos.position - min_position) / size3d) - vec3(0.5f, 0.5f, 0.5f);
+		*/
 
 	return true;
 }

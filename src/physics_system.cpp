@@ -81,7 +81,7 @@ std::tuple <bool, float, vec2> SATcollides(const Collider& collider1, const Coll
 	std::vector<vec2> collider2_worldNormals;
 	int c2_numOfNormals = collider2.normals.size();
 
-	for (int i = 0; i < c1_numOfNormals; i++) {
+	for (int i = 0; i < c2_numOfNormals; i++) {
 		collider2_worldNormals.push_back(collider2.rotation * collider2.normals[i]);
 	}
 
@@ -285,11 +285,14 @@ void PhysicsSystem::step(float elapsed_ms)
 		// note starting j at i+1 to compare all (i,j) pairs only once (and to not compare with itself)
 		for (uint j = i + 1; j < collider_container.components.size(); j++)
 			{
+
 			Collider& collider_j = collider_container.components[j];
 
 			// Broad phase collision detection with AABB first
-			if (AABBCollides(collider_i, collider_j))
+			
+			if (AABBCollides(collider_i, collider_j)) 
 				{
+
 				bool isCollide;
 				float overlap;
 				vec2 MTV;
@@ -309,8 +312,9 @@ void PhysicsSystem::step(float elapsed_ms)
 					// inverting correction vector for other entites
 					registry.collisions.emplace_with_duplicates(entity_j, entity_i, overlap, invertHelper(MTV));
 					}
+			
 				}
-		
+				
 			}
 			
 		}

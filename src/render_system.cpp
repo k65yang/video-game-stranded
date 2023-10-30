@@ -324,8 +324,7 @@ void RenderSystem::draw()
 	std::vector<Entity> layer_1_entities;
 	std::vector<Entity> layer_2_entities;
 	std::vector<Entity> layer_3_entities;
-
-
+	std::vector<Entity> layer_4_entities;
 
 	for (Entity entity : registry.renderRequests.entities)
 	{
@@ -343,6 +342,9 @@ void RenderSystem::draw()
 		}
 		else if (registry.renderRequests.get(entity).layer_id == RENDER_LAYER_ID::LAYER_3) {
 			layer_3_entities.push_back(entity);
+		}
+		else if (registry.renderRequests.get(entity).layer_id == RENDER_LAYER_ID::LAYER_4) {
+			layer_4_entities.push_back(entity);
 		}
 		else {
 			assert(registry.renderRequests.get(entity).layer_id != RENDER_LAYER_ID::LAYER_COUNT && "entity render request with incorrect layer ID (LAYER_COUNT)");
@@ -368,6 +370,11 @@ void RenderSystem::draw()
 		if (debugging.in_debug_mode == false) {
 			drawTexturedMesh(entity, view_2D, projection_2D);
 		}
+	}
+
+	// TODO: for UI elements, have new projection matrices that use screen coordinates instead of map coordinates
+	for (Entity entity : layer_4_entities) {
+		drawTexturedMesh(entity, view_2D, projection_2D);
 	}
 
 

@@ -95,6 +95,7 @@ private:
 	Entity fow;
 	Entity health_bar;
 	Entity food_bar;
+	Entity weapon_indicator;
 
 	// music references
 	Mix_Music* background_music;
