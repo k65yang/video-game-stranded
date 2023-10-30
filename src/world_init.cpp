@@ -62,8 +62,11 @@ Entity createItem(RenderSystem* renderer, vec2 position, ITEM_TYPE type)
 
 	TEXTURE_ASSET_ID texture = TEXTURE_ASSET_ID::PLAYER;
 	switch (type) {
-	case ITEM_TYPE::QUEST:
-		texture = TEXTURE_ASSET_ID::ITEM;
+	case ITEM_TYPE::QUEST_ONE:
+		texture = TEXTURE_ASSET_ID::QUEST_1_ITEM;
+		break;
+	case ITEM_TYPE::QUEST_TWO:
+		texture = TEXTURE_ASSET_ID::QUEST_2_ITEM;
 		break;
 	case ITEM_TYPE::UPGRADE:
 		texture = TEXTURE_ASSET_ID::ITEM;
@@ -255,6 +258,30 @@ Entity createHelp(RenderSystem* renderer, vec2 position, TEXTURE_ASSET_ID textur
 
 	return entity;
 }
+
+Entity createQuestItem(RenderSystem* renderer, vec2 position, TEXTURE_ASSET_ID texture) {
+	auto entity = Entity();
+
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Initialize the position, scale, and physics components
+	auto& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.velocity = { 0.f, 0.f };
+	motion.position = position;
+	motion.scale = vec2({ 3.f, 3.f });
+
+	registry.renderRequests.insert(
+		entity,
+		{ texture,
+			EFFECT_ASSET_ID::TEXTURED,
+			GEOMETRY_BUFFER_ID::SPRITE,
+			RENDER_LAYER_ID::LAYER_4 });
+
+	return entity;
+}
+
 Entity createWeaponIndicator(RenderSystem* renderer, vec2 position, TEXTURE_ASSET_ID weapon_texture) {
 	auto entity = Entity();
 

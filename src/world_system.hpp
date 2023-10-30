@@ -97,6 +97,7 @@ private:
 	Entity food_bar;
 	Entity weapon_indicator;
 	Entity help_bar;
+	std::vector<std::pair<Entity, bool>> quest_items;
 
 	bool user_has_first_weapon = false;
 

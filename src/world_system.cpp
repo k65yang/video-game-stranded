@@ -329,10 +329,14 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	Motion& health = registry.motions.get(health_bar);
 	Motion& food = registry.motions.get(food_bar);
 	Motion& help = registry.motions.get(help_bar);
+	Motion& q1 = registry.motions.get(quest_items[0].first);
+	Motion& q2 = registry.motions.get(quest_items[1].first);
 
 	health.position = { -8.f + camera_motion.position.x, 7.f + camera_motion.position.y };
 	food.position = { 8.f + camera_motion.position.x, 7.f + camera_motion.position.y };
 	help.position = { camera_motion.position.x, -7.f + camera_motion.position.y };
+	q1.position = { 10.f + camera_motion.position.x, -2.f + camera_motion.position.y };
+	q2.position = { 10.f + camera_motion.position.x, 2.f + camera_motion.position.y };
 
 	if (user_has_first_weapon) {
 		Motion& weapon_ui = registry.motions.get(weapon_indicator);
@@ -455,6 +459,9 @@ void WorldSystem::restart_game() {
 	help_bar = createHelp(renderer, { 0.f, -7.f }, tooltips[0]);
 	current_tooltip = 1;
 
+	quest_items.push_back({ createQuestItem(renderer, {10.f, -2.f}, TEXTURE_ASSET_ID::QUEST_1_NOT_FOUND), false });
+	quest_items.push_back({ createQuestItem(renderer, {10.f, 2.f}, TEXTURE_ASSET_ID::QUEST_2_NOT_FOUND), false });
+
 	// Add wall of stone around the map
 	for (unsigned int i = 0; i < registry.terrainCells.entities.size(); i++) {
 		Entity e = registry.terrainCells.entities[i];
@@ -546,8 +553,25 @@ void WorldSystem::handle_collisions() {
 
 				// Handle the item based on its function
 				switch (item.data) {
-				case ITEM_TYPE::QUEST:
-					// Display a quest item as having been fetched, and update this on the screen?
+				case ITEM_TYPE::QUEST_ONE:
+					registry.remove_all_components_of(quest_items[0].first);
+					quest_items[0].first = createQuestItem(renderer, {10.f, -2.f}, TEXTURE_ASSET_ID::QUEST_1_FOUND);
+					quest_items[0].second = true;
+
+					for (auto& item : quest_items) {
+						if (!item.second) break;
+						// end game
+					}
+					break;
+				case ITEM_TYPE::QUEST_TWO:
+					registry.remove_all_components_of(quest_items[1],first);
+					quest_items[1].first = createQuestItem(renderer, {10.f, 2.f}, TEXTURE_ASSET_ID::QUEST_2_FOUND);
+					quest_items[1].second = true;
+
+					for (auto& item : quest_items) {
+						if (!item.second) break;
+						// end game
+					}
 					break;
 				case ITEM_TYPE::FOOD:
 					// Add to food bar
@@ -879,7 +903,7 @@ void WorldSystem::spawn_items() {
 
 		switch (item_type) {
 			case 0:
-				createItem(renderer, spawn_location, ITEM_TYPE::QUEST);
+				createItem(renderer, spawn_location, ITEM_TYPE::UPGRADE);
 				break;
 			case 1:
 				createItem(renderer, spawn_location, ITEM_TYPE::FOOD);
@@ -895,6 +919,10 @@ void WorldSystem::spawn_items() {
 	 createItem(renderer, get_random_spawn_location(), ITEM_TYPE::WEAPON_CROSSBOW);
 	 createItem(renderer, get_random_spawn_location(), ITEM_TYPE::WEAPON_SHOTGUN);
 	 createItem(renderer, get_random_spawn_location(), ITEM_TYPE::WEAPON_MACHINEGUN);
+
+	 // TESTING: Force spawn quest items once
+	 createItem(renderer, get_random_spawn_location(), ITEM_TYPE::QUEST_ONE);
+	 createItem(renderer, get_random_spawn_location(), ITEM_TYPE::QUEST_TWO);
 };
 
 void WorldSystem::spawn_mobs() {
