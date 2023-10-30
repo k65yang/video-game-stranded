@@ -32,6 +32,7 @@
 *project_path.hpp
 
 # Directories
+/.personal
 /.vs
 /.vscode
 /out
