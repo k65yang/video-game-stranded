@@ -560,7 +560,10 @@ void WorldSystem::handle_collisions() {
 					break;
 				case ITEM_TYPE::WEAPON_SHURIKEN:
 					player_equipped_weapon = weapons_system->createWeapon(ITEM_TYPE::WEAPON_SHURIKEN);
-					// TODO: some sort of UI update
+					
+					// Remove the current weapon_indicator and add a new one for the equipped weapon
+					registry.remove_all_components_of(weapon_indicator);
+					weapon_indicator = createWeaponIndicator(renderer, { -10.f, -6.f }, TEXTURE_ASSET_ID::ICON_SHURIKEN);
 					break;
 				case ITEM_TYPE::WEAPON_CROSSBOW:
 					player_equipped_weapon = weapons_system->createWeapon(ITEM_TYPE::WEAPON_CROSSBOW);
