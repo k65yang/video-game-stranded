@@ -347,20 +347,6 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 void WorldSystem::handle_movement(Motion& motion, InputKeyIndex indexStart, bool invertDirection, bool useAbsoluteVelocity)
 {
-	Player& player = registry.players.components[0];
-	Entity actual_player_cell = terrain->get_cell(motion.position);
-
-	// If player has moved cells, adjust player's velocity based on the terrain type of the new cell
-	if (player.curr_cell != actual_player_cell) {
-		float prev_terrain_speed_ratio = terrain->get_terrain_speed_ratio(player.curr_cell);
-		float new_terrain_speed_ratio = terrain->get_terrain_speed_ratio(actual_player_cell);
-
-		motion.velocity /= prev_terrain_speed_ratio; // remove speed effect from previous terrain
-		motion.velocity *= new_terrain_speed_ratio;  // apply speed effect from new terrain	
-
-		player.curr_cell = actual_player_cell;
-	}
-
 	float invert = invertDirection ? -1 : 1;	// shorthand that inverts the results if invertDirection.
 	vec2 moveVelocity = { 0, 0 };
 	if (keyDown[indexStart])
@@ -388,11 +374,7 @@ void WorldSystem::handle_movement(Motion& motion, InputKeyIndex indexStart, bool
 			moveVelocity = (rotate * moveVelocity);
 		}
 
-		// Get speed effect of terrain player is on 
-		TerrainCell& curr_terrain_cell = registry.terrainCells.get(player.curr_cell);
-		float terrain_speed_ratio = terrain->terrain_type_to_speed_ratio.find(curr_terrain_cell.terrain_type)->second;
-
-		motion.velocity = moveVelocity * current_speed * invert * terrain_speed_ratio;
+		motion.velocity = moveVelocity * current_speed * invert;
 	}
 }
 
@@ -427,7 +409,7 @@ void WorldSystem::restart_game() {
 	createSpaceship(renderer, { 0,0 });
 
 	// Create a new salmon
-	player_salmon = createPlayer(renderer, terrain, { 0, 0 });
+	player_salmon = createPlayer(renderer, { 0, 0 });
 	registry.colors.insert(player_salmon, { 1, 0.8f, 0.8f });
 
 	// Equip the player weapon. Player starts with no weapon for now.

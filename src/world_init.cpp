@@ -4,7 +4,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
-Entity createPlayer(RenderSystem* renderer, TerrainSystem* terrain, vec2 pos)
+Entity createPlayer(RenderSystem* renderer, vec2 pos)
 	{
 	auto entity = Entity();
 
@@ -25,9 +25,6 @@ Entity createPlayer(RenderSystem* renderer, TerrainSystem* terrain, vec2 pos)
 
 	// Add the player to the players registry
 	Player& player = registry.players.emplace(entity);
-
-	// Set cell player is in
-	player.curr_cell = terrain->get_cell(motion.position);
 
 	registry.renderRequests.insert(
 		entity,
