@@ -201,10 +201,11 @@ Entity createHealthBar(RenderSystem* renderer, vec2 position) {
 		{ TEXTURE_ASSET_ID::REDBLOCK,
 			EFFECT_ASSET_ID::TEXTURED,
 			GEOMETRY_BUFFER_ID::SPRITE,
-			RENDER_LAYER_ID::LAYER_3 });
+			RENDER_LAYER_ID::LAYER_4 });
 
 	return entity;
 }
+
 Entity createFoodBar(RenderSystem* renderer, vec2 position) {
 	auto entity = Entity();
 
@@ -223,11 +224,33 @@ Entity createFoodBar(RenderSystem* renderer, vec2 position) {
 		{ TEXTURE_ASSET_ID::BLUEBLOCK,
 			EFFECT_ASSET_ID::TEXTURED,
 			GEOMETRY_BUFFER_ID::SPRITE,
-			RENDER_LAYER_ID::LAYER_3 });
+			RENDER_LAYER_ID::LAYER_4 });
 
 	return entity;
 	}
 
+Entity createWeaponIndicator(RenderSystem* renderer, vec2 position, TEXTURE_ASSET_ID weapon_texture) {
+	auto entity = Entity();
+
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Initialize the position, scale, and physics components
+	auto& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.velocity = { 0.f, 0.f };
+	motion.position = position;
+	motion.scale = vec2({ 2.5, 2.5 });
+
+	registry.renderRequests.insert(
+		entity,
+		{ weapon_texture,
+			EFFECT_ASSET_ID::TEXTURED,
+			GEOMETRY_BUFFER_ID::SPRITE,
+			RENDER_LAYER_ID::LAYER_4 });
+
+	return entity;
+}
 
 /// <summary>
 /// Creates a camera centred on a position

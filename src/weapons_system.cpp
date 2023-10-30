@@ -5,7 +5,7 @@
 #include "weapons_system.hpp"
 
 void WeaponsSystem::step(float elapsed_ms) {
-	if (weapon_component->can_fire)
+	if (!weapon_component || weapon_component->can_fire)
 		return;
 
 	weapon_component->elapsed_last_shot_time_ms += elapsed_ms;
@@ -39,7 +39,7 @@ Entity WeaponsSystem::createWeapon(ITEM_TYPE weapon_type) {
 void WeaponsSystem::fireWeapon(float player_x, float player_y, float player_angle) {
 	if (active_weapon_type == ITEM_TYPE::WEAPON_NONE)
 		return;
-	if (!weapon_component->can_fire)
+	if (!weapon_component || !weapon_component->can_fire)
 		return;
 
 	// TODO: offset projectile location a little so it doesn't get created on top of player
