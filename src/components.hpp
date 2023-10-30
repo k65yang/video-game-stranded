@@ -4,6 +4,7 @@
 #include <unordered_map>
 #include <deque>
 #include "../ext/stb_image/stb_image.h"
+#include <map>
 
 // Player component
 
@@ -172,6 +173,17 @@ enum TERRAIN_TYPE : uint16_t {
 enum TERRAIN_FLAGS : uint32_t {
 	COLLIDABLE = 0b1,
 	DISABLE_PATHFIND = 0b10,
+};
+
+// Look-up table for terrain type slow ratios
+static std::map<TERRAIN_TYPE, float> terrain_type_to_slow_ratio = {
+	{TERRAIN_TYPE::AIR, 1.f},
+	{TERRAIN_TYPE::GRASS, 1.f},
+	{TERRAIN_TYPE::ROCK, 1.f},
+	{TERRAIN_TYPE::SAND, 0.5f},
+	{TERRAIN_TYPE::MUD, 0.3f},
+	{TERRAIN_TYPE::SHALLOW_WATER, 0.25f},
+	{TERRAIN_TYPE::DEEP_WATER, 0.0625f}
 };
 
 /// <summary>

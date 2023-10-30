@@ -277,6 +277,10 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		m.velocity = { 0, 0 };
 		
 		handle_movement(m, LEFT);
+		if (length(m.velocity) > 0) {
+			TerrainCell& cell = registry.terrainCells.get(terrain->get_cell(m.position));
+			m.velocity *= terrain_type_to_slow_ratio[cell.terrain_type];
+		}
 
 		if (anyMovementKeysPressed) {
 			// If any keys are pressed resulting movement then add to total travel distance. 
