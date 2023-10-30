@@ -98,6 +98,8 @@ private:
 	Entity weapon_indicator;
 	Entity help_bar;
 
+	bool user_has_first_weapon = false;
+
 	int current_tooltip = 0;
 	std::vector<TEXTURE_ASSET_ID> tooltips = { TEXTURE_ASSET_ID::HELP_ONE, TEXTURE_ASSET_ID::HELP_TWO, TEXTURE_ASSET_ID::HELP_THREE, TEXTURE_ASSET_ID::HELP_FOUR };
 
