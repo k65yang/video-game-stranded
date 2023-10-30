@@ -459,6 +459,7 @@ void WorldSystem::restart_game() {
 	help_bar = createHelp(renderer, { 0.f, -7.f }, tooltips[0]);
 	current_tooltip = 1;
 
+	quest_items.clear();
 	quest_items.push_back({ createQuestItem(renderer, {10.f, -2.f}, TEXTURE_ASSET_ID::QUEST_1_NOT_FOUND), false });
 	quest_items.push_back({ createQuestItem(renderer, {10.f, 2.f}, TEXTURE_ASSET_ID::QUEST_2_NOT_FOUND), false });
 
