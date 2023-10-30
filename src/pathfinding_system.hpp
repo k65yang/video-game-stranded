@@ -58,13 +58,6 @@ private:
     /// </param>
     bool A_star(Entity player_cell, Entity mob_cell, std::vector<int>& predecessor);
 
-	/// <summary>
-	/// Gets the speed ratio of the terrain of a cell
-	/// </summary>
-	/// <param name="cell">The cell entity</param>
-    /// <returns>Returns the terrain speed ratio of the cell</returns>
-    float get_terrain_speed_ratio(Entity cell);
-
     /// <summary>
 	/// Checks if the player and a mob are in the same cell
 	/// </summary>

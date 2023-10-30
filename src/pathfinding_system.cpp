@@ -185,7 +185,7 @@ bool PathfindingSystem::A_star(Entity player_cell, Entity mob_cell, std::vector<
 
             // Calculate costs
             Motion& neighbor_motion = registry.motions.get(neighbor);
-            float neighbor_g = g[curr_cell_index] + (1.0f * (1/get_terrain_speed_ratio(neighbor)));
+            float neighbor_g = g[curr_cell_index] + (1.0f * (1/terrain->get_terrain_speed_ratio(neighbor)));
             float neighbor_h = distance(neighbor_motion.position, player_cell_motion.position);
             float neighbor_f = neighbor_g + neighbor_h;
 
@@ -202,14 +202,6 @@ bool PathfindingSystem::A_star(Entity player_cell, Entity mob_cell, std::vector<
     }
 
     return false;
-}
-
-float PathfindingSystem::get_terrain_speed_ratio(Entity cell)
-{
-    // Get terrain type of cell
-    TERRAIN_TYPE terrain_type = registry.terrainCells.get(cell).terrain_type;
-
-    return terrain->terrain_type_to_speed_ratio.find(terrain_type)->second;
 }
 
 bool PathfindingSystem::same_cell(Entity player, Entity mob)
@@ -302,8 +294,8 @@ bool PathfindingSystem::entered_new_cell(Entity mob)
 void PathfindingSystem::apply_new_terrain_speed_effect(Entity mob, Entity prev_cell, Entity new_cell)
 {
     // Get previous and new terrain speed ratios
-    float prev_terrain_speed_ratio = get_terrain_speed_ratio(prev_cell);
-    float new_terrain_speed_ratio = get_terrain_speed_ratio(new_cell);
+    float prev_terrain_speed_ratio = terrain->get_terrain_speed_ratio(prev_cell);
+    float new_terrain_speed_ratio = terrain->get_terrain_speed_ratio(new_cell);
 
     // Remove previous terrain speed effect and apply new terrain speed effect
     Motion& mob_motion = registry.motions.get(mob);
@@ -348,7 +340,7 @@ void PathfindingSystem::update_velocity_to_next_cell(Entity mob, float elapsed_m
     // Update the velocity of the mob based on angle, the mob's speed ratio, and the terrain's speed ratio
     Mob& mob_mob = registry.mobs.get(mob);
     float mob_speed_ratio = mob_mob.speed_ratio;
-    float terrain_speed_ratio = get_terrain_speed_ratio(prev_cell);
+    float terrain_speed_ratio = terrain->get_terrain_speed_ratio(prev_cell);
     mob_motion.velocity[0] = cos(angle) * mob_speed_ratio * terrain_speed_ratio;
     mob_motion.velocity[1] = sin(angle) * mob_speed_ratio * terrain_speed_ratio;
 

@@ -45,8 +45,6 @@ public:
 		uint32_t flags = (uint32_t)TERRAIN_TYPE::GRASS << 16;
 	};
 
-	
-
 	/// <summary>
 	/// Initializes the world grid with the given size. Each axis should preferably be odd.
 	/// </summary>
@@ -89,6 +87,13 @@ public:
 	/// <param name="cell">The cell</param>
 	/// <returns>The index of the cell in the grid</returns>
 	int get_cell_index(Entity cell);
+
+	/// <summary>
+	/// Gets the speed ratio of the terrain of a cell
+	/// </summary>
+	/// <param name="cell">The cell entity</param>
+    /// <returns>Returns the terrain speed ratio of the cell</returns>
+    float get_terrain_speed_ratio(Entity cell);
 
 	/// <summary>
 	/// Return true if the tile should have a collider
