@@ -15,11 +15,10 @@ float PLAYER_TOTAL_DISTANCE = 0;
 const float FOOD_DECREASE_THRESHOLD  = 5.0f; // Adjust this value as needed
 const float FOOD_DECREASE_RATE = 10.f;	// Decreases by 10 units per second (when moving)
 float CURSOR_ANGLE = 0;
-int PLAYER_DIRECTION = 2;  // Default to facing up
+int PLAYER_DIRECTION = 4;  // Default to facing up
+float ELAPSED_TIME = 0;
 
 
-
-float elapsed_time = 0;
 // Create the fish world
 WorldSystem::WorldSystem()
 	: points(0)
@@ -250,14 +249,14 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	Motion& f = registry.motions.get(fow);
 	f.position = m.position;
 
-	elapsed_time += elapsed_ms_since_last_update;
+	ELAPSED_TIME += elapsed_ms_since_last_update;
 	// rendering spritesheet with curser 
 	// change player direction based on aiming direction 
 	// Determine the player's facing direction based on the cursor angle
 	if (CURSOR_ANGLE >= -M_PI / 4 && CURSOR_ANGLE < M_PI / 4) {
-		PLAYER_DIRECTION = 1;  // Right
+		PLAYER_DIRECTION = 2;  // Right
 	} else if (CURSOR_ANGLE >= M_PI / 4 && CURSOR_ANGLE < 3 * M_PI / 4) {
-		PLAYER_DIRECTION = 2;  // Down
+		PLAYER_DIRECTION = 4;  // Down
 	} else if (CURSOR_ANGLE >= -3 * M_PI / 4 && CURSOR_ANGLE < -M_PI / 4) {
 		PLAYER_DIRECTION = 0;  // Up
 	} else {
@@ -281,10 +280,10 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		if (anyMovementKeysPressed) {
 			// If any keys are pressed resulting movement then add to total travel distance. 
 			PLAYER_TOTAL_DISTANCE += FOOD_DECREASE_RATE * elapsed_ms_since_last_update / 1000.f;
-			if (elapsed_time > 100) {
+			if (ELAPSED_TIME > 100) {
 				// Update walking animation
 				registry.players.components[0].framex = (registry.players.components[0].framex + 1) % 4;
-				elapsed_time = 0.0f; // Reset the timer
+				ELAPSED_TIME = 0.0f; // Reset the timer
 				}
 			}
 		else {
@@ -295,6 +294,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	else {
 		// Player is dead, do not allow movement
 		m.velocity = { 0, 0 };
+		registry.players.components[0].framey = 1; 
 	}
 
 	// Camera movement mode
@@ -314,8 +314,10 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	food.position = { 8.f + camera_motion.position.x, 7.f + camera_motion.position.y };
 
 	// Mob updates
+	
 	for (Entity entity : registry.mobs.entities) {
 		// slow updates
+
 		if (registry.mobSlowEffects.has(entity)) {
 			Motion& motion = registry.motions.get(entity);
 			MobSlowEffect& mobSlowEffect = registry.mobSlowEffects.get(entity);
@@ -326,6 +328,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 				motion.velocity = motion.velocity * mobSlowEffect.slow_ratio;
 				mobSlowEffect.applied = true;
 			}
+
 			
 			// Increment duration
 			mobSlowEffect.elapsed_slow_time_ms += elapsed_ms_since_last_update;
@@ -338,7 +341,9 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 				registry.mobSlowEffects.remove(entity);
 			}
 		}
+
 	}
+	
 
 	return true;
 }

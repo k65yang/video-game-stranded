@@ -1,5 +1,7 @@
 #include "pathfinding_system.hpp"
 
+float ELAPSED = 0;
+
 void PathfindingSystem::init(TerrainSystem* terrain_arg)
 {
     this->terrain = terrain_arg;
@@ -57,9 +59,19 @@ void PathfindingSystem::step(float elapsed_ms)
         // }
         // printf("\n");
 
+        ELAPSED += elapsed_ms;
+
+        if (ELAPSED > 100) {
+            // Update walking animation
+            mob_mob.mframex = (mob_mob.mframex + 1) % 7;
+            ELAPSED = 0.0f; // Reset the timer
+            }
         // Update velocity of mob if they are tracking the player and reached the next cell in their path
         if (mob_mob.is_tracking_player && reached_next_cell(mob)) {
             update_velocity_to_next_cell(mob, elapsed_ms);
+            
+                    
+            
         }
 
         // printf("Mob position after (x): %f\n", registry.motions.get(mob).position[0]);
@@ -248,6 +260,7 @@ void PathfindingSystem::update_velocity_to_next_cell(Entity mob, float elapsed_m
         stop_tracking_player(mob);
         return;
     }
+
 
     // Get angle to next cell in the path 
     Entity next_cell = mob_path.path.front();

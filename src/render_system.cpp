@@ -36,7 +36,7 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 	gl_has_errors();
 
 	// Input data location as in the vertex buffer
-	if (render_request.used_effect == EFFECT_ASSET_ID::TEXTURED ||render_request.used_effect == EFFECT_ASSET_ID::PLAYER)
+	if (render_request.used_effect == EFFECT_ASSET_ID::TEXTURED ||render_request.used_effect == EFFECT_ASSET_ID::PLAYER || render_request.used_effect == EFFECT_ASSET_ID::MOB)
 	{
 		GLint in_position_loc = glGetAttribLocation(program, "in_position");
 		GLint in_texcoord_loc = glGetAttribLocation(program, "in_texcoord");
@@ -73,21 +73,24 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 			glUniform1i(framex_uloc, registry.players.components[0].framex);
 			glUniform1i(framey_uloc, registry.players.components[0].framey);
 
-			// Light up?
-			GLint light_up_uloc = glGetUniformLocation(program, "light_up");
-			assert(light_up_uloc >= 0);
-
-			// Should only be one player.
-			if (registry.players.components[0].iframes_timer != 0) {
-
-				glUniform1i(light_up_uloc, 1);
-			}
-			else {
-				glUniform1i(light_up_uloc, 0);
-			}
 			gl_has_errors();
 		}
+		if (render_request.used_texture == TEXTURE_ASSET_ID::MOB) {
+			registry.mobs.get(entity).mframex;
+			// set the frame for shader 
+			GLint framex_uloc = glGetUniformLocation(program, "mframex");
+			GLint framey_uloc = glGetUniformLocation(program, "mframey");
+
+			glUniform1i(framex_uloc, registry.mobs.get(entity).mframex);
+			glUniform1i(framey_uloc, registry.mobs.get(entity).mframey);
+			//printf("printing in mob i framey %d \n", registry.mobs.get(entity).mframey);
+			gl_has_errors();
+
+			}
+
+			
 	}
+
 	else if (render_request.used_effect == EFFECT_ASSET_ID::SALMON || render_request.used_effect == EFFECT_ASSET_ID::PEBBLE)
 	{
 		GLint in_position_loc = glGetAttribLocation(program, "in_position");

@@ -31,9 +31,8 @@ class RenderSystem {
 
 	// Make sure these paths remain in sync with the associated enumerators.
 	const std::array<std::string, texture_count> texture_paths = {
-			//textures_path("player.png"),
 			textures_path("player_spritesheet.png"),
-			textures_path("alien.png"),
+			textures_path("mob_spritesheet.png"),
 			textures_path("redblock.png"),
 			textures_path("fow mask.png"),
 			textures_path("item.png"),
@@ -59,6 +58,7 @@ class RenderSystem {
 	// Make sure these paths remain in sync with the associated enumerators.
 	const std::array<std::string, effect_count> effect_paths = {
 		shader_path("coloured"),
+		shader_path("mob"),
 		shader_path("pebble"),
 		shader_path("player"), 
 		shader_path("salmon"),

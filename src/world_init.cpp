@@ -99,7 +99,7 @@ Entity createBasicMob(RenderSystem* renderer, vec2 position)
 	auto entity = Entity();
 
 	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
-	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::MOB_SPRITE);
 	registry.meshPtrs.emplace(entity, &mesh);
 
 	// Initialize the motion
@@ -124,8 +124,8 @@ Entity createBasicMob(RenderSystem* renderer, vec2 position)
 	registry.renderRequests.insert(
 		entity,
 		{ TEXTURE_ASSET_ID::MOB,
-		 EFFECT_ASSET_ID::TEXTURED,
-		 GEOMETRY_BUFFER_ID::SPRITE,
+		 EFFECT_ASSET_ID::MOB,
+		 GEOMETRY_BUFFER_ID::MOB_SPRITE,
 			RENDER_LAYER_ID::LAYER_1 });
 
 	return entity;
