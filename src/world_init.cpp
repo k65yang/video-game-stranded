@@ -95,7 +95,7 @@ Entity createItem(RenderSystem* renderer, vec2 position, ITEM_TYPE type)
 	return entity;
 }
 
-Entity createBasicMob(RenderSystem* renderer, vec2 position)
+Entity createBasicMob(RenderSystem* renderer, TerrainSystem* terrain, vec2 position)
 {
 	auto entity = Entity();
 
@@ -118,6 +118,7 @@ Entity createBasicMob(RenderSystem* renderer, vec2 position)
 	// Classify this entity as a mob.
 	auto& mob_info = registry.mobs.emplace(entity);
 	mob_info.damage = 50;
+	mob_info.curr_cell = terrain->get_cell(motion.position);
 
 	// Initialize the collider
 	createCollider(entity);
