@@ -35,9 +35,10 @@ Entity createLine(vec2 position, vec2 size);
 /// <returns>The fow entity</returns>
 Entity createFOW(RenderSystem* renderer, vec2 pos);
 
-// health and food bars
+// UI Elements
 Entity createHealthBar(RenderSystem* renderer, vec2 position);
 Entity createFoodBar(RenderSystem* renderer, vec2 position);
+Entity createWeaponIndicator(RenderSystem* renderer, vec2 position, TEXTURE_ASSET_ID weapon_texture);
 
 // test only
 Entity createTestDummy(RenderSystem* renderer, vec2 position);
