@@ -17,28 +17,15 @@ public:
 	TerrainSystem() { entity_grid = nullptr; terraincell_grid = nullptr; }
 
 	~TerrainSystem() {
-		delete[] entity_grid;
+		registry.terrainCells.clear();
 		delete[] terraincell_grid;
-	}
 
-	/// <summary>
-	/// Represents one cell in the grid, internal uses for now. Exposed to public
-	/// in case you have some use for it.
-	/// </summary>
-	class Cell {
-	public:
-		Entity entity;
+		for (uint i = 0; i < size_x * size_y; i++) {
+			registry.remove_all_components_of(entity_grid[i]);
+		}
 
-		// STRUCTURE:
-		// [ TERRAIN_TYPE, bits 14-2 are reserved , disable pathfind, collidable]
-		//	  bits 31-15								1st bit		    0th bit
-		// 
-		// We're using unsigned int flags because it is the largest data structure that
-		// remains aligned with Entity
-		uint32_t flags = (uint32_t)TERRAIN_TYPE::GRASS << 16;
-	};
-
-	
+		delete[] entity_grid;
+	}	
 
 	/// <summary>
 	/// Initializes the world grid with the given size. Each axis should preferably be odd.
@@ -128,12 +115,25 @@ public:
 			renderer->changeTerrainData(tile, tile - entityStart, cell);
 	}
 
+	/// <summary>
+	/// Saves the current contents of terraincell_grid into a .smap file.
+	/// </summary>
+	/// <param name="name">The name of the map</param>
 	void save_grid(const std::string& name);
+
+	/// <summary>
+	/// Loads the named map from PROJECT_SOURCE_DIR/data/maps.
+	/// </summary>
+	/// <param name="name">The name of the map to be loaded</param>
 	void load_grid(const std::string& name);
 
 private:
 	// PLEASE DO NOT EXPOSE THESE UNLESS YOU KNOW WHAT YOU ARE DOING
+
+	// Massive bag of entities that will hold every tile.
 	Entity* entity_grid;
+
+	// Compressed data of every TerrainCell instance. Used for backend calculations.
 	uint32_t* terraincell_grid;
 
 	RenderSystem* renderer;

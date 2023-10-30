@@ -26,6 +26,7 @@ using namespace glm;
 #include "../ext/project_path.hpp"
 
 const std::string map_ext = "smap";
+const std::string loaded_map_name = "test";
 const unsigned int savefile_version = 1;
 
 inline std::string data_path() { return std::string(PROJECT_SOURCE_DIR) + "data"; };
@@ -38,6 +39,9 @@ inline std::string terrain_texture_path(const std::string& name) { return data_p
 inline std::string map_path_builder(const std::string& name) {
 	return data_path() + "/maps/" + std::string(name) + '.' + std::string(map_ext);
 };
+
+#define SMAP_PADDING_BYTES 32
+
 const int window_width_px = 1200;
 const int window_height_px = 800;
 const int tile_size_px = 50;		// Represents how many pixels a tile occupies in a row or column
@@ -52,12 +56,6 @@ const unsigned short world_size_y = 64;
 #ifndef TWO_PI
 #define TWO_PI 2 * M_PI
 #endif	TWO_PI
-
-#define SMAP_PADDING_BYTES 32
-const uint64_t PAD8 = 0;
-const uint32_t PAD4 = 0;
-const uint16_t PAD2 = 0;
-const uint8_t PAD = 0;
 
 // The 'Transform' component handles transformations passed to the Vertex shader
 // (similar to the gl Immediate mode equivalent, e.g., glTranslate()...)

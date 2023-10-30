@@ -436,7 +436,7 @@ void WorldSystem::restart_game() {
 	registry.list_all_components();
 
 	// Re-initialize the terrain
-	terrain->init("test", renderer);
+	terrain->init(loaded_map_name, renderer);
 
 	// Create a Spaceship 
 	createSpaceship(renderer, { 0,0 });
@@ -744,13 +744,15 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	// Level editor controls
 	if (debugging.in_debug_mode && action == GLFW_PRESS) {
 		if (key == GLFW_KEY_KP_1) {	// numpad 1
-			editor_flag ^= TERRAIN_FLAGS::COLLIDABLE;	// Toggle collidable flag;
+			// Toggle collidable flag
+			editor_flag ^= TERRAIN_FLAGS::COLLIDABLE;
 			if (editor_flag & TERRAIN_FLAGS::COLLIDABLE)
 				std::cout << "New terrain are now collidable" << std::endl;
 			else
 				std::cout << "New terrain are now non-collidable" << std::endl;
 		}
 		if (key == GLFW_KEY_KP_2) {	// numpad 2
+			// Toggles pathfindable flag
 			editor_flag ^= TERRAIN_FLAGS::DISABLE_PATHFIND;
 			if (editor_flag & TERRAIN_FLAGS::DISABLE_PATHFIND)
 				std::cout << "New terrain are now inaccessible to mobs" << std::endl;
@@ -758,6 +760,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 				std::cout << "New terrain are now accessible for mobs" << std::endl;
 		}
 		if (key == GLFW_KEY_KP_SUBTRACT) {	// numpad -
+			// Goes down a TERRAIN_TYPE
 			if (editor_terrain == 0) {
 				editor_terrain = static_cast<TERRAIN_TYPE>(TERRAIN_COUNT - 1);
 			}
@@ -766,17 +769,18 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 			}
 			std::cout << "Tile: " << std::to_string(editor_terrain) << std::endl;
 		}
-		if (key == GLFW_KEY_KP_ADD) {	// numpad +
+		if (key == GLFW_KEY_KP_ADD) {	// numpad '+'
+			// Goes up a TERRAIN_TYPE
+
 			editor_terrain = static_cast<TERRAIN_TYPE>(editor_terrain + 1);
 			if (editor_terrain == TERRAIN_COUNT) {
 				editor_terrain = static_cast<TERRAIN_TYPE>(0);
 			}
 			std::cout << "Tile: " << std::to_string(editor_terrain) << std::endl;
 		}
-		if (key == GLFW_KEY_KP_DECIMAL)
-			terrain->save_grid("test");
-		if (key == GLFW_KEY_KP_0)
-			terrain->load_grid("test");
+		if (key == GLFW_KEY_KP_DECIMAL)	// numpad '.'
+			// Saves map data
+			terrain->save_grid(loaded_map_name);	
 	}
 
 	// Press B to toggle debug mode
