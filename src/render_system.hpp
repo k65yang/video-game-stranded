@@ -25,7 +25,14 @@ class RenderSystem {
 
 	const std::vector < std::pair<GEOMETRY_BUFFER_ID, std::string>> mesh_paths =
 	{
-		  std::pair<GEOMETRY_BUFFER_ID, std::string>(GEOMETRY_BUFFER_ID::SALMON, mesh_path("salmon.obj"))
+		  std::pair<GEOMETRY_BUFFER_ID, std::string>(GEOMETRY_BUFFER_ID::SALMON, mesh_path("salmon.obj")),
+
+		  // mesh for player collider
+		  std::pair<GEOMETRY_BUFFER_ID, std::string>(GEOMETRY_BUFFER_ID::PLAYER_MESH, mesh_path("player_standing_V9.obj")),
+
+		  // mesh for player collider
+		  std::pair<GEOMETRY_BUFFER_ID, std::string>(GEOMETRY_BUFFER_ID::MOB001_MESH, mesh_path("MOB001.obj"))
+
 		  // specify meshes of other assets here
 	};
 
@@ -33,14 +40,14 @@ class RenderSystem {
 	const std::array<std::string, texture_count> texture_paths = {
 			//textures_path("player.png"),
 			textures_path("player_spritesheet.png"),
-			textures_path("alien.png"),
+			textures_path("MOB001_front.png"),
 			textures_path("redblock.png"),
 			textures_path("fow mask.png"),
 			textures_path("item.png"),
 			textures_path("food.png"),
 			textures_path("weapon_shuriken.png"),
 			textures_path("weapon_crossbow.png"),
-			textures_path("weapon_arrow.jpg"),
+			textures_path("crossbow_arrow.png"),
 			textures_path("weapon_shotgun.png"),
 			textures_path("weapon_machine_gun.png"),
 			textures_path("spaceship.png"), 

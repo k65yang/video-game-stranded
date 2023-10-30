@@ -467,7 +467,7 @@ void WorldSystem::restart_game() {
 		TerrainCell& cell = registry.terrainCells.components[i];
 
 		if (cell.flag & TERRAIN_FLAGS::COLLIDABLE)
-			createCollider(e);
+			createDefaultCollider(e);
 	}
 
 	//FOR DEMO, CAN REMOVE LATER
@@ -486,6 +486,8 @@ void WorldSystem::restart_game() {
 	// for movement velocity
 	for (int i = 0; i < KEYS; i++)
 	  keyDown[i] = false;
+
+	
 }
 
 // Compute collisions between entities
