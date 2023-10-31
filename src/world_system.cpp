@@ -1019,8 +1019,19 @@ void WorldSystem::spawn_mobs() {
 	for (int i = 0; i < MOB_LIMIT; i++) {
 		// Get random spawn location
 		vec2 spawn_location = get_random_spawn_location();
+
+		// Randomly choose mob type
+		int item_type = rng() % 2;
+
+		switch (item_type) {
+		case 0:
+			createBasicMob(renderer, terrain, spawn_location, MOB_TYPE::SLIME);
+			break;
+		case 1:
+			createBasicMob(renderer, terrain, spawn_location, MOB_TYPE::GHOST);;
+			break;
+		}
 		
-		createBasicMob(renderer, terrain, spawn_location);
 	}
 };
 

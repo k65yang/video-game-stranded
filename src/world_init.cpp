@@ -97,7 +97,7 @@ Entity createItem(RenderSystem* renderer, vec2 position, ITEM_TYPE type)
 }
 
 // TODO: CLEAN UP ALL THIS CREATE INTO ONE GENERALISED FN
-Entity createBasicMob(RenderSystem* renderer, TerrainSystem* terrain, vec2 position)
+Entity createBasicMob(RenderSystem* renderer, TerrainSystem* terrain, vec2 position, MOB_TYPE type)
 {
 	auto entity = Entity();
 
@@ -122,13 +122,22 @@ Entity createBasicMob(RenderSystem* renderer, TerrainSystem* terrain, vec2 posit
 	mob_info.damage = 50;
 	mob_info.curr_cell = terrain->get_cell(motion.position);
 
-	// Initialize the collider
+	// Initialize the collider, if it has a colliding mesh
 	createMeshCollider(entity, GEOMETRY_BUFFER_ID::MOB001_MESH, renderer);
 
+	TEXTURE_ASSET_ID texture = TEXTURE_ASSET_ID::MOB;
+	switch (type) {
+	case MOB_TYPE::SLIME:
+		texture = TEXTURE_ASSET_ID::MOB;
+		break;
+	case MOB_TYPE::GHOST:
+		texture = TEXTURE_ASSET_ID::GHOST;
+		break;
+	}
 
 	registry.renderRequests.insert(
 		entity,
-		{ TEXTURE_ASSET_ID::MOB,
+		{ texture,
 		 EFFECT_ASSET_ID::TEXTURED,
 		 GEOMETRY_BUFFER_ID::SPRITE,
 			RENDER_LAYER_ID::LAYER_1 });

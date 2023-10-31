@@ -53,6 +53,11 @@ struct Projectile {
 	Entity weapon; // link the projectile to the weapon
 };
 
+enum class MOB_TYPE {
+	SLIME = 0,
+	GHOST = SLIME + 1,
+};
+
 // Mob component
 struct Mob {
 	bool is_tracking_player = false;
@@ -61,6 +66,7 @@ struct Mob {
 	int health = 100;
 	float speed_ratio = 0.5f;
 	Entity curr_cell; // cell the mob is currently in
+	MOB_TYPE type;
 };
 
 // Slowing effect for mobs from weapons
@@ -275,7 +281,8 @@ enum class TEXTURE_ASSET_ID {
 	QUEST_2_FOUND = QUEST_2_NOT_FOUND + 1,
 	QUEST_1_ITEM = QUEST_2_FOUND + 1,
 	QUEST_2_ITEM = QUEST_1_ITEM +1,
-	TEXTURE_COUNT = QUEST_2_ITEM + 1,
+	GHOST = QUEST_2_ITEM + 1,
+	TEXTURE_COUNT = GHOST + 1,
 	//PLAYER_SPRITE_SHEET = TEXTURE_COUNT +1
 
 

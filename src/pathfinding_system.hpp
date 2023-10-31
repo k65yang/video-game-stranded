@@ -58,6 +58,8 @@ private:
     /// </param>
     bool A_star(Entity player_cell, Entity mob_cell, std::vector<int>& predecessor);
 
+	bool BFS(Entity player_cell, Entity mob_cell, std::vector<int>& predecessor);
+
     /// <summary>
 	/// Checks if the player and a mob are in the same cell
 	/// </summary>
