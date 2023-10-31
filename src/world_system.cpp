@@ -78,8 +78,18 @@ GLFWwindow* WorldSystem::create_window() {
 #endif
 	glfwWindowHint(GLFW_RESIZABLE, 0);
 
+	// TODO: make a more elegant solution via manipulating the projection matrix instead of this hack
+	// so UI elements are aspect ratio and resolution independent in theory
+	// Build window size using screen dimensions
+	const GLFWvidmode* mode = glfwGetVideoMode(glfwGetPrimaryMonitor());
+	int y = mode->height;
+	int s = y / aspect_ratio.y;	// scale factor such that s * aspect_ratio = {mode->width, mode->height}. 
+	window_width_px = aspect_ratio.x * s;
+	window_height_px = y;
+	// Remember: aspect_ratio.y * s = y, aspect_ratio.x * s = x
+
 	// Create the main window (for rendering, keyboard, and mouse input)
-	window = glfwCreateWindow(window_width_px, window_height_px, "Stranded", nullptr, nullptr);
+	window = glfwCreateWindow(window_width_px, window_height_px, "Stranded", glfwGetPrimaryMonitor(), nullptr);
 	if (window == nullptr) {
 		fprintf(stderr, "Failed to glfwCreateWindow");
 		return nullptr;

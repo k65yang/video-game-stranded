@@ -42,8 +42,9 @@ inline std::string map_path_builder(const std::string& name) {
 
 #define SMAP_PADDING_BYTES 32
 
-const int window_width_px = 1200;
-const int window_height_px = 800;
+static int window_width_px = 1200;
+static int window_height_px = 800;
+const ivec2 aspect_ratio = { 12, 8 };
 const int tile_size_px = 50;		// Represents how many pixels a tile occupies in a row or column
 
 const unsigned short world_size_x = 64;
