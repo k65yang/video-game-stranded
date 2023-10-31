@@ -114,7 +114,7 @@ float TerrainSystem::get_terrain_speed_ratio(Entity cell)
 	return terrain_type_to_speed_ratio[c.terrain_type];
 }
 
-void TerrainSystem::get_accessible_neighbours(Entity cell, std::vector<Entity>& buffer, bool checkPathfind)
+void TerrainSystem::get_accessible_neighbours(Entity cell, std::vector<Entity>& buffer, bool ignoreColliders, bool checkPathfind)
 {
 	assert(entity_grid != nullptr);
 	assert(terraincell_grid != nullptr);
@@ -174,8 +174,13 @@ void TerrainSystem::get_accessible_neighbours(Entity cell, std::vector<Entity>& 
 		unsigned int cell = terraincell_grid[index];
 
 		// If a cell is not collidable and pathfinding is not disabled, add to buffer
-		if (!(cell & filter)) {
+		if (ignoreColliders) {
 			buffer.push_back(tile);
+		}
+		else {
+			if (!(cell & filter)) {
+				buffer.push_back(tile);
+			}
 		}
 	}
 }

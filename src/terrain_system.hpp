@@ -144,7 +144,7 @@ public:
 	/// </summary>
 	/// <param name="cell">The origin cell.</param>
 	/// <param name="buffer">A vector buffer</param>
-	void get_accessible_neighbours(Entity cell, std::vector<Entity>& buffer, bool checkPathfind = false);
+	void get_accessible_neighbours(Entity cell, std::vector<Entity>& buffer, bool ignoreColliders, bool checkPathfind = false);
 
 	/// <summary>
 	/// Updates the values for a tile. This includes rendering data and TerrainCell data.

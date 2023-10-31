@@ -75,7 +75,10 @@ void PathfindingSystem::step(float elapsed_ms)
 
 
         // Apply new terrain speed effect if the mob enters a new cell
-        if (entered_new_cell(mob)) {
+
+        Mob& mob_obj = registry.mobs.get(mob);
+
+        if (entered_new_cell(mob) && mob_obj.type != MOB_TYPE::GHOST) {
             // Get the cell the mob was previously in and the new cell the mob is in
             Mob& mob_mob = registry.mobs.get(mob);
             Entity prev_mob_cell = mob_mob.curr_cell;
@@ -170,10 +173,21 @@ std::deque<Entity> PathfindingSystem::find_shortest_path(Entity player, Entity m
     // represents the immediate predecessor of the cell at index i in the world grid found during the BFS
     std::vector<int> predecessor;
 
-    // Execute A*
-    if (!A_star(player_cell, mob_cell, predecessor)) {
-        printf("Path from mob in cell %d to player in cell %d could not be found\n", mob_cell, player_cell);
-        assert(false);
+    // Check what kind of mob it is, for example ghosts don't use A* since they can go over collidable cells
+    Mob& curr = registry.mobs.get(mob);
+    if (curr.type == MOB_TYPE::GHOST) {
+        // Execute BFS
+        if (!BFS(player_cell, mob_cell, predecessor)) {
+            printf("BFS PATH from mob in cell %d to player in cell %d could not be found\n", mob_cell, player_cell);
+            assert(false);
+        }
+    }
+    else {
+        // Has a collider, needs A*
+        if (!A_star(player_cell, mob_cell, predecessor)) {
+            printf("A* PATH from mob in cell %d to player in cell %d could not be found\n", mob_cell, player_cell);
+            assert(false);
+        }
     }
 
     // Get shortest path by backtracking through predecessors
@@ -186,6 +200,47 @@ std::deque<Entity> PathfindingSystem::find_shortest_path(Entity player, Entity m
     }
 
     return path;
+};
+
+bool PathfindingSystem::BFS(Entity player_cell, Entity mob_cell, std::vector<int>& predecessor)
+{
+    std::queue<Entity> bfs_queue;
+
+    std::vector<bool> visited;
+
+    for (int i = 0; i < terrain->size_x * terrain->size_y; i++) {
+        visited.push_back(false);
+        predecessor.push_back(-1);
+    }
+
+    visited[terrain->get_cell_index(mob_cell)] = true;
+    bfs_queue.push(mob_cell);
+
+    while (!bfs_queue.empty()) {
+        Entity curr = bfs_queue.front();
+        int curr_cell_index = terrain->get_cell_index(curr);
+        bfs_queue.pop();
+
+        std::vector<Entity> neighbors;
+        // BFS is only used by ghost, so we can ignore colliders here.
+        terrain->get_accessible_neighbours(curr, neighbors, true);
+
+        for (Entity neighbor : neighbors) {
+            int neighbor_cell_index = terrain->get_cell_index(neighbor);
+
+            if (!visited[neighbor_cell_index]) {
+                visited.at(neighbor_cell_index) = true;
+                predecessor.at(neighbor_cell_index) = curr_cell_index;
+                bfs_queue.push(neighbor);
+
+                if (player_cell == neighbor) {
+                    return true;
+                }
+            }
+        }
+    }
+
+    return false;
 };
 
 bool PathfindingSystem::A_star(Entity player_cell, Entity mob_cell, std::vector<int>& predecessor)
@@ -244,7 +299,7 @@ bool PathfindingSystem::A_star(Entity player_cell, Entity mob_cell, std::vector<
 
         // Get neighbors of cell
         std::vector<Entity> neighbors;
-        terrain->get_accessible_neighbours(curr, neighbors);
+        terrain->get_accessible_neighbours(curr, neighbors, false);
 
         for (Entity neighbor : neighbors) {
             int neighbor_cell_index = terrain->get_cell_index(neighbor);
