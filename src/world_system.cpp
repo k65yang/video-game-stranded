@@ -434,7 +434,7 @@ void WorldSystem::restart_game() {
 	terrain->init(world_size_x, world_size_y, renderer);
 
 	// Create a Spaceship 
-	createSpaceship(renderer, { 0,0 });
+	spaceship = createSpaceship(renderer, { 0,0 });
 
 	// Create a new salmon
 	player_salmon = createPlayer(renderer, { 0, 0 });
@@ -505,6 +505,17 @@ void WorldSystem::handle_collisions() {
 		if (registry.players.has(entity)) {
 			Player& player = registry.players.get(entity);
 
+			// Checking Player - Spaceship (For regen)
+			if (entity_other == spaceship) {
+				player.health = PLAYER_MAX_HEALTH;
+				player.food = PLAYER_MAX_FOOD;
+
+				Motion& health = registry.motions.get(health_bar);
+				Motion& food = registry.motions.get(food_bar);
+				health.scale = HEALTH_BAR_SCALE;
+				food.scale = FOOD_BAR_SCALE;
+			}
+
 			// Checking Player - Mobs
 			if (registry.mobs.has(entity_other)) {
 
@@ -534,8 +545,6 @@ void WorldSystem::handle_collisions() {
 			}
 
 			// Checking Player - Terrain
-			
-
 			if (registry.terrainCells.has(entity_other) || registry.boundaries.has(entity_other)) {
 
 				Motion& motion = registry.motions.get(player_salmon);
