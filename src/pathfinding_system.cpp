@@ -360,7 +360,7 @@ bool PathfindingSystem::reached_next_cell(Entity mob)
     // printf("Distance between mob and next cell: %f\n", dist);
 
     // Check if mob is close to the center of the next cell
-    return dist < 0.01;
+    return dist < 0.05;
 };
 
 bool PathfindingSystem::has_player_moved(Entity player, Entity mob) 
