@@ -1,6 +1,12 @@
 #include "pathfinding_system.hpp"
 
 float ELAPSED = 0;
+int MOB_DIRECTION = 1;  // Default to facing up
+int UP = 0; 
+int DOWN = 1; 
+int LEFT = 2;
+int RIGHT = 3; 
+int DIRECTION_CHANGE = 0;
 
 void PathfindingSystem::init(TerrainSystem* terrain_arg)
 {
@@ -49,7 +55,6 @@ void PathfindingSystem::step(float elapsed_ms)
             Path& mob_path = registry.paths.get(mob);
             mob_path.path = new_path;
         }
-
         // printf("Path for mob %d: ", mob);
         // Path& mob_path = registry.paths.get(mob);
         // std::deque<Entity> path_copy = mob_path.path;
@@ -59,13 +64,16 @@ void PathfindingSystem::step(float elapsed_ms)
         // }
         // printf("\n");
 
+
+        // Get the previous location of the mob 
+        float prev_loc_x = registry.motions.get(mob).position[0];
+        float prev_loc_y = registry.motions.get(mob).position[1];
+        // Update prev_mframex for the next step
+        int prev_mframex = DIRECTION_CHANGE;
+
+        // Adjust this for mob animation speed
         ELAPSED += elapsed_ms;
 
-        if (ELAPSED > 100) {
-            // Update walking animation
-            mob_mob.mframex = (mob_mob.mframex + 1) % 7;
-            ELAPSED = 0.0f; // Reset the timer
-            }
         // Update velocity of mob if they are tracking the player and reached the next cell in their path
         if (mob_mob.is_tracking_player && reached_next_cell(mob)) {
             update_velocity_to_next_cell(mob, elapsed_ms);
@@ -74,6 +82,83 @@ void PathfindingSystem::step(float elapsed_ms)
             
         }
 
+        // Get the current location of the mob
+        float curr_loc_x = registry.motions.get(mob).position[0]; 
+        float curr_loc_y = registry.motions.get(mob).position[1];
+
+        float dx = curr_loc_x - prev_loc_x;
+        float dy = curr_loc_y - prev_loc_y;
+
+
+        if (dx > 0 && dy == 0) {
+            // Mob is moving to the right
+            MOB_DIRECTION = RIGHT;
+            }
+        else if (dx < 0 && dy == 0) {
+            // Mob is moving to the left
+            MOB_DIRECTION = LEFT;
+            }
+
+        if (dy > 0 && dx == 0) {
+            // Mob is moving down
+            MOB_DIRECTION = DOWN;
+            }
+        else if (dy < 0 && dx == 0) {
+            // Mob is moving up
+            MOB_DIRECTION = UP;
+            }
+        if (dx > 0 && dy > 0) {
+            // Mob is moving down and to the right
+            MOB_DIRECTION = RIGHT;
+            }
+        else if (dx > 0 && dy < 0) {
+            // Mob is moving up and to the right
+            MOB_DIRECTION = UP;
+            }
+        else if (dx < 0 && dy > 0) {
+            // Mob is moving down and to the left
+            MOB_DIRECTION = LEFT;
+            }
+        else if (dx < 0 && dy < 0) {
+            // Mob is moving up and to the left
+            MOB_DIRECTION = UP;
+            }
+
+        // Calculate the direction based on the change in positions
+        if (prev_loc_x < curr_loc_x) {
+            // Mob moved right
+            DIRECTION_CHANGE = 1;
+            }
+        else if (prev_loc_x > curr_loc_x) {
+            // Mob moved left
+            DIRECTION_CHANGE = 2;
+            }
+        else if (prev_loc_y < curr_loc_y) {
+            // Mob moved down
+            DIRECTION_CHANGE = 3;
+            }
+        else if (prev_loc_y > curr_loc_y) {
+            // Mob moved up
+            DIRECTION_CHANGE = 4;
+            }
+
+        // Check for a change in direction
+        if (DIRECTION_CHANGE != prev_mframex) {
+            // Direction changed, so reset frame x
+            DIRECTION_CHANGE = 0;
+            mob_mob.mframex = 0; 
+            }
+
+
+        // Update mobs's direction
+        mob_mob.mframey = MOB_DIRECTION;
+        
+        if (ELAPSED > 50) {
+            // Update walking animation
+            mob_mob.mframex = (mob_mob.mframex + 1) % 7;
+            ELAPSED = 0.0f; // Reset the timer
+            }
+            
         // printf("Mob position after (x): %f\n", registry.motions.get(mob).position[0]);
         // printf("Mob position after (y): %f\n", registry.motions.get(mob).position[1]);
         // printf("Mob velocity after (dx): %f\n", registry.motions.get(mob).velocity[0]);
