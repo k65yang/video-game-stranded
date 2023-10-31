@@ -57,7 +57,7 @@ struct Mob {
 	bool is_tracking_player = false;
 	int damage;
 	float aggro_range = 5.f;
-	int health = 100000;
+	int health = 50;
 	float speed_ratio = 0.5f;
 	int mframex = 0;
 	int mframey = 1;
