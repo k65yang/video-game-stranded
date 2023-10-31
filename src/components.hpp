@@ -34,7 +34,6 @@ struct Player
 	int food = PLAYER_MAX_FOOD;
 	int framex = 0; 
 	int framey = 1; 
-
 };
 
 // The weapon
@@ -60,6 +59,7 @@ struct Mob {
 	float aggro_range = 5.f;
 	int health = 100000;
 	float speed_ratio = 0.5f;
+	Entity curr_cell; // cell the mob is currently in
 };
 
 // Slowing effect for mobs from weapons

@@ -4,7 +4,6 @@
 #include <deque>
 #include <functional>
 #include <utility>
-#include <map>
 
 #include "tiny_ecs.hpp"
 #include "components.hpp"
@@ -33,12 +32,6 @@ private:
 	/// Terrain system pointer
 	TerrainSystem* terrain;
 
-	// Look-up table for terrain type slow ratios
-	std::map<TERRAIN_TYPE, float> terrain_type_to_slow_ratio = {
-		{TERRAIN_TYPE::AIR, 0.5f},
-		{TERRAIN_TYPE::GRASS, 1.f}
-	};
-
     /// <summary>
 	/// Finds the shortest path between a mob and the player
     /// Reference: https://www.geeksforgeeks.org/shortest-path-unweighted-graph/
@@ -64,13 +57,6 @@ private:
     /// predecessor of the cell at index i in the world grid found during A*
     /// </param>
     bool A_star(Entity player_cell, Entity mob_cell, std::vector<int>& predecessor);
-
-	/// <summary>
-	/// Gets the slow ratio of the terrain of a cell
-	/// </summary>
-	/// <param name="cell">The cell entity</param>
-    /// <returns>Returns the terrain slow ratio of the cell</returns>
-    float get_terrain_slow_ratio(Entity cell);
 
     /// <summary>
 	/// Checks if the player and a mob are in the same cell
@@ -110,6 +96,23 @@ private:
 	/// <param name="mob">The mob entity</param>
     /// <returns>Returns true if the player is in aggro range of the player, false otherwise</returns>
     bool is_player_in_mob_aggro_range(Entity player, Entity mob);
+
+	/// <summary>
+	/// Checks if a mob has entered a new cell
+	/// </summary>
+	/// <param name="mob">The mob entity</param>
+    /// <returns>Returns true if the mob has entered a new cell, false otherwise</returns>
+    bool entered_new_cell(Entity mob);
+
+	/// <summary>
+	/// Removes the terrain speed effect of the previous cell the mob was in and applies the terrain speed effect of the 
+	/// new cell the mob is in to the mob’s velocity
+	/// </summary>
+	/// <param name="mob">The mob entity</param>
+	/// <param name="prev_cell">The previous cell the mob was in</param>
+	/// <param name="new_cell">The new cell the mob is in</param>
+    /// <returns>Returns the terrain speed ratio of the cell</returns>
+    void apply_new_terrain_speed_effect(Entity mob, Entity prev_cell, Entity new_cell);
 
     /// <summary>
 	/// Updates a mob’s velocity to move to the next cell in its path

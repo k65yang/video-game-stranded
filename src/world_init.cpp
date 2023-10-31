@@ -24,9 +24,7 @@ Entity createPlayer(RenderSystem* renderer, vec2 pos)
 	createMeshCollider(entity, GEOMETRY_BUFFER_ID::PLAYER_MESH, renderer);
 
 	// Add the player to the players registry
-	registry.players.emplace(entity);
-
-
+	Player& player = registry.players.emplace(entity);
 
 	registry.renderRequests.insert(
 		entity,
@@ -99,8 +97,7 @@ Entity createItem(RenderSystem* renderer, vec2 position, ITEM_TYPE type)
 }
 
 // TODO: CLEAN UP ALL THIS CREATE INTO ONE GENERALISED FN
-
-Entity createBasicMob(RenderSystem* renderer, vec2 position)
+Entity createBasicMob(RenderSystem* renderer, TerrainSystem* terrain, vec2 position)
 {
 	auto entity = Entity();
 
@@ -123,6 +120,7 @@ Entity createBasicMob(RenderSystem* renderer, vec2 position)
 	// Classify this entity as a mob.
 	auto& mob_info = registry.mobs.emplace(entity);
 	mob_info.damage = 50;
+	mob_info.curr_cell = terrain->get_cell(motion.position);
 
 	// Initialize the collider
 	createMeshCollider(entity, GEOMETRY_BUFFER_ID::MOB001_MESH, renderer);

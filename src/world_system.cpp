@@ -931,7 +931,7 @@ void WorldSystem::spawn_mobs() {
 		// Get random spawn location
 		vec2 spawn_location = get_random_spawn_location();
 		
-		createBasicMob(renderer, spawn_location);
+		createBasicMob(renderer, terrain, spawn_location);
 	}
 };
 
