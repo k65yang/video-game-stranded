@@ -407,7 +407,23 @@ void RenderSystem::initializeGlGeometryBuffers()
 
 	bindVBOandIBO(GEOMETRY_BUFFER_ID::MOB_SPRITE, mob_vertices, mob_indices);
 
+	/*
+	GLuint program = effects[(GLuint)EFFECT_ASSET_ID::SPRITESHEET];
+		// set the frame for shader for player
+	GLint player_frame_w_uloc = glGetUniformLocation(program, "player_frame_w");
+	GLint player_frame_h_uloc = glGetUniformLocation(program, "player_frame_h");
 
+	GLint mob_frame_w_uloc = glGetUniformLocation(program, "mob_frame_w");
+	GLint mob_frame_h_uloc = glGetUniformLocation(program, "mob_frame_h");
+
+	glUniform1i(player_frame_w_uloc, player_frame_w);
+	glUniform1i(player_frame_h_uloc, player_frame_h);
+
+	glUniform1i(mob_frame_w_uloc, mob_frame_w);
+	glUniform1i(mob_frame_h_uloc, mob_frame_h);
+
+	gl_has_errors();
+	*/
 	
 }
 

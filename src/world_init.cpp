@@ -30,7 +30,7 @@ Entity createPlayer(RenderSystem* renderer, vec2 pos)
 	registry.renderRequests.insert(
 		entity,
 		{ TEXTURE_ASSET_ID::PLAYER,
-			EFFECT_ASSET_ID::PLAYER,
+			EFFECT_ASSET_ID::SPRITESHEET,
 			GEOMETRY_BUFFER_ID::PLAYER_SPRITE,
 			RENDER_LAYER_ID::LAYER_1 });
 
@@ -124,7 +124,7 @@ Entity createBasicMob(RenderSystem* renderer, vec2 position)
 	registry.renderRequests.insert(
 		entity,
 		{ TEXTURE_ASSET_ID::MOB,
-		 EFFECT_ASSET_ID::MOB,
+		 EFFECT_ASSET_ID::SPRITESHEET,
 		 GEOMETRY_BUFFER_ID::MOB_SPRITE,
 			RENDER_LAYER_ID::LAYER_1 });
 
