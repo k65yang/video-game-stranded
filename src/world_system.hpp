@@ -96,6 +96,7 @@ private:
 	Entity health_bar;
 	Entity food_bar;
 	Entity weapon_indicator;
+	Entity spaceship;
 	Entity help_bar;
 	std::vector<std::pair<Entity, bool>> quest_items;
 

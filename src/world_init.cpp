@@ -152,9 +152,11 @@ Entity createSpaceship(RenderSystem* renderer, vec2 position) {
 	motion.velocity = { 0.f, 0.f };
 	motion.position = position;
 
+	createDefaultCollider(entity);
+
 	// Setting initial values, scale is negative to make it face the opposite way
 	motion.scale = vec2({ 3, 4 });
-	//motion.scale = vec2({ 50.f, 50.f });
+
 	registry.renderRequests.insert(
 		entity,
 		{ TEXTURE_ASSET_ID::SPACESHIP,
@@ -163,7 +165,7 @@ Entity createSpaceship(RenderSystem* renderer, vec2 position) {
 			RENDER_LAYER_ID::LAYER_1 });
 
 	return entity;
-	}
+}
 
 
 Entity createLine(vec2 position, vec2 scale)
