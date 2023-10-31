@@ -19,7 +19,7 @@ Entity createPlayer(RenderSystem* renderer, vec2 pos);
 // the prey
 Entity createItem(RenderSystem* renderer, vec2 position, ITEM_TYPE type);
 // the enemy
-Entity createBasicMob(RenderSystem* renderer, vec2 position);
+Entity createBasicMob(RenderSystem* renderer, TerrainSystem* terrain, vec2 position);
 
 // the spaceship 
 Entity createSpaceship(RenderSystem* renderer, vec2 position);
@@ -39,6 +39,11 @@ Entity createFOW(RenderSystem* renderer, vec2 pos);
 Entity createHealthBar(RenderSystem* renderer, vec2 position);
 Entity createFoodBar(RenderSystem* renderer, vec2 position);
 Entity createWeaponIndicator(RenderSystem* renderer, vec2 position, TEXTURE_ASSET_ID weapon_texture);
+
+// Tool tips for ease of use 
+Entity createHelp(RenderSystem* renderer, vec2 position, TEXTURE_ASSET_ID texture);
+
+Entity createQuestItem(RenderSystem* renderer, vec2 position, TEXTURE_ASSET_ID texture);
 
 // test only
 Entity createTestDummy(RenderSystem* renderer, vec2 position);

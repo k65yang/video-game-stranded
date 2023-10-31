@@ -1,6 +1,7 @@
 #pragma once
 #include <cmath>
 #include <random>
+#include <map>
 
 #include "common.hpp"
 #include "tiny_ecs.hpp"
@@ -27,6 +28,17 @@ public:
 
 		delete[] entity_grid;
 	}	
+
+	// Look-up table for terrain type slow ratios
+	std::map<TERRAIN_TYPE, float> terrain_type_to_speed_ratio = {
+		{TERRAIN_TYPE::AIR, 1.f},
+		{TERRAIN_TYPE::GRASS, 1.f},
+		{TERRAIN_TYPE::ROCK, 1.f},
+		{TERRAIN_TYPE::SAND, 0.5f},
+		{TERRAIN_TYPE::MUD, 0.3f},
+		{TERRAIN_TYPE::SHALLOW_WATER, 0.25f},
+		{TERRAIN_TYPE::DEEP_WATER, 0.0625f}
+	};
 
 	/// <summary>
 	/// Initializes the world grid with the given size. Each axis should preferably be odd.
@@ -77,6 +89,13 @@ public:
 	/// <param name="cell">The cell</param>
 	/// <returns>The index of the cell in the grid</returns>
 	int get_cell_index(Entity cell);
+
+	/// <summary>
+	/// Gets the speed ratio of the terrain of a cell
+	/// </summary>
+	/// <param name="cell">The cell entity</param>
+    /// <returns>Returns the terrain speed ratio of the cell</returns>
+    float get_terrain_speed_ratio(Entity cell);
 
 	/// <summary>
 	/// Return true if the tile should have a collider

@@ -24,9 +24,7 @@ Entity createPlayer(RenderSystem* renderer, vec2 pos)
 	createMeshCollider(entity, GEOMETRY_BUFFER_ID::PLAYER_MESH, renderer);
 
 	// Add the player to the players registry
-	registry.players.emplace(entity);
-
-
+	Player& player = registry.players.emplace(entity);
 
 	registry.renderRequests.insert(
 		entity,
@@ -62,8 +60,11 @@ Entity createItem(RenderSystem* renderer, vec2 position, ITEM_TYPE type)
 
 	TEXTURE_ASSET_ID texture = TEXTURE_ASSET_ID::PLAYER;
 	switch (type) {
-	case ITEM_TYPE::QUEST:
-		texture = TEXTURE_ASSET_ID::ITEM;
+	case ITEM_TYPE::QUEST_ONE:
+		texture = TEXTURE_ASSET_ID::QUEST_1_ITEM;
+		break;
+	case ITEM_TYPE::QUEST_TWO:
+		texture = TEXTURE_ASSET_ID::QUEST_2_ITEM;
 		break;
 	case ITEM_TYPE::UPGRADE:
 		texture = TEXTURE_ASSET_ID::ITEM;
@@ -95,7 +96,8 @@ Entity createItem(RenderSystem* renderer, vec2 position, ITEM_TYPE type)
 	return entity;
 }
 
-Entity createBasicMob(RenderSystem* renderer, vec2 position)
+// TODO: CLEAN UP ALL THIS CREATE INTO ONE GENERALISED FN
+Entity createBasicMob(RenderSystem* renderer, TerrainSystem* terrain, vec2 position)
 {
 	auto entity = Entity();
 
@@ -118,6 +120,7 @@ Entity createBasicMob(RenderSystem* renderer, vec2 position)
 	// Classify this entity as a mob.
 	auto& mob_info = registry.mobs.emplace(entity);
 	mob_info.damage = 50;
+	mob_info.curr_cell = terrain->get_cell(motion.position);
 
 	// Initialize the collider
 	createMeshCollider(entity, GEOMETRY_BUFFER_ID::MOB001_MESH, renderer);
@@ -147,9 +150,11 @@ Entity createSpaceship(RenderSystem* renderer, vec2 position) {
 	motion.velocity = { 0.f, 0.f };
 	motion.position = position;
 
+	createDefaultCollider(entity);
+
 	// Setting initial values, scale is negative to make it face the opposite way
 	motion.scale = vec2({ 3, 4 });
-	//motion.scale = vec2({ 50.f, 50.f });
+
 	registry.renderRequests.insert(
 		entity,
 		{ TEXTURE_ASSET_ID::SPACESHIP,
@@ -158,7 +163,7 @@ Entity createSpaceship(RenderSystem* renderer, vec2 position) {
 			RENDER_LAYER_ID::LAYER_1 });
 
 	return entity;
-	}
+}
 
 
 Entity createLine(vec2 position, vec2 scale)
@@ -227,7 +232,55 @@ Entity createFoodBar(RenderSystem* renderer, vec2 position) {
 			RENDER_LAYER_ID::LAYER_4 });
 
 	return entity;
-	}
+}
+
+Entity createHelp(RenderSystem* renderer, vec2 position, TEXTURE_ASSET_ID texture) {
+	auto entity = Entity();
+
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Initialize the position, scale, and physics components
+	auto& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.velocity = { 0.f, 0.f };
+	motion.position = position;
+	motion.scale = vec2({ 20.f, 6.f });
+
+	registry.tips.emplace(entity);
+
+	registry.renderRequests.insert(
+		entity,
+		{ texture,
+			EFFECT_ASSET_ID::TEXTURED,
+			GEOMETRY_BUFFER_ID::SPRITE,
+			RENDER_LAYER_ID::LAYER_4 });
+
+	return entity;
+}
+
+Entity createQuestItem(RenderSystem* renderer, vec2 position, TEXTURE_ASSET_ID texture) {
+	auto entity = Entity();
+
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Initialize the position, scale, and physics components
+	auto& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.velocity = { 0.f, 0.f };
+	motion.position = position;
+	motion.scale = vec2({ 3.f, 3.f });
+
+	registry.renderRequests.insert(
+		entity,
+		{ texture,
+			EFFECT_ASSET_ID::TEXTURED,
+			GEOMETRY_BUFFER_ID::SPRITE,
+			RENDER_LAYER_ID::LAYER_4 });
+
+	return entity;
+}
 
 Entity createWeaponIndicator(RenderSystem* renderer, vec2 position, TEXTURE_ASSET_ID weapon_texture) {
 	auto entity = Entity();

@@ -12,8 +12,9 @@ const int PLAYER_MAX_FOOD = 100;
 const int PLAYER_MAX_HEALTH = 100;
 
 enum class ITEM_TYPE {
-	QUEST = 0,
-	WEAPON_NONE = QUEST + 1,
+	QUEST_ONE = 0,
+	QUEST_TWO = QUEST_ONE + 1,
+	WEAPON_NONE = QUEST_TWO + 1,
 	WEAPON_SHURIKEN = WEAPON_NONE + 1,
 	WEAPON_CROSSBOW = WEAPON_SHURIKEN + 1,
 	WEAPON_SHOTGUN = WEAPON_CROSSBOW + 1,
@@ -34,7 +35,6 @@ struct Player
 	int food = PLAYER_MAX_FOOD;
 	int framex = 0; 
 	int framey = 1; 
-
 };
 
 // The weapon
@@ -60,6 +60,7 @@ struct Mob {
 	float aggro_range = 5.f;
 	int health = 100;
 	float speed_ratio = 0.5f;
+	Entity curr_cell; // cell the mob is currently in
 };
 
 // Slowing effect for mobs from weapons
@@ -129,6 +130,10 @@ struct DeathTimer
 	float timer_ms = 3000.f;
 };
 
+struct ToolTip {
+	float timer = 3000.f;
+};
+
 // Single Vertex Buffer element for non-textured meshes (coloured.vs.glsl & salmon.vs.glsl)
 struct ColoredVertex
 {
@@ -174,17 +179,6 @@ enum TERRAIN_FLAGS : uint32_t {
 	COLLIDABLE =			0b1,
 	DISABLE_PATHFIND =		0b10,
 	ALLOW_SPAWNS =			0b100,
-};
-
-// Look-up table for terrain type slow ratios
-static std::map<TERRAIN_TYPE, float> terrain_type_to_slow_ratio = {
-	{TERRAIN_TYPE::AIR, 1.f},
-	{TERRAIN_TYPE::GRASS, 1.f},
-	{TERRAIN_TYPE::ROCK, 1.f},
-	{TERRAIN_TYPE::SAND, 0.5f},
-	{TERRAIN_TYPE::MUD, 0.3f},
-	{TERRAIN_TYPE::SHALLOW_WATER, 0.25f},
-	{TERRAIN_TYPE::DEEP_WATER, 0.0625f}
 };
 
 /// <summary>
@@ -270,7 +264,18 @@ enum class TEXTURE_ASSET_ID {
 	ICON_MACHINE_GUN = ICON_SHOTGUN + 1,
 	SPACESHIP = ICON_MACHINE_GUN + 1,
 	BLUEBLOCK = SPACESHIP + 1,
-	TEXTURE_COUNT = BLUEBLOCK + 1,
+	HELP_ONE = BLUEBLOCK + 1,
+	HELP_TWO = HELP_ONE + 1,
+	HELP_THREE = HELP_TWO + 1,
+	HELP_FOUR = HELP_THREE + 1,
+	HELP_WEAPON = HELP_FOUR + 1,
+	QUEST_1_NOT_FOUND = HELP_WEAPON + 1,
+	QUEST_1_FOUND = QUEST_1_NOT_FOUND + 1,
+	QUEST_2_NOT_FOUND = QUEST_1_FOUND + 1,
+	QUEST_2_FOUND = QUEST_2_NOT_FOUND + 1,
+	QUEST_1_ITEM = QUEST_2_FOUND + 1,
+	QUEST_2_ITEM = QUEST_1_ITEM +1,
+	TEXTURE_COUNT = QUEST_2_ITEM + 1,
 	//PLAYER_SPRITE_SHEET = TEXTURE_COUNT +1
 
 

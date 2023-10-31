@@ -106,6 +106,14 @@ int TerrainSystem::get_cell_index(Entity cell)
 	return cell_index;
 }
 
+float TerrainSystem::get_terrain_speed_ratio(Entity cell)
+{
+    // Get terrain type of cell
+	TerrainCell& c = registry.terrainCells.get(cell);
+
+	return terrain_type_to_speed_ratio[c.terrain_type];
+}
+
 void TerrainSystem::get_accessible_neighbours(Entity cell, std::vector<Entity>& buffer, bool checkPathfind)
 {
 	assert(entity_grid != nullptr);

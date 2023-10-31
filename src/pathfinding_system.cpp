@@ -57,6 +57,20 @@ void PathfindingSystem::step(float elapsed_ms)
         // }
         // printf("\n");
 
+        // Apply new terrain speed effect if the mob enters a new cell
+        if (entered_new_cell(mob)) {
+            // Get the cell the mob was previously in and the new cell the mob is in
+            Mob& mob_mob = registry.mobs.get(mob);
+            Entity prev_mob_cell = mob_mob.curr_cell;
+            Motion& mob_motion = registry.motions.get(mob);
+            Entity new_mob_cell = terrain->get_cell(mob_motion.position);
+            
+            // Update cell mob is currently in
+            mob_mob.curr_cell = new_mob_cell;
+
+            apply_new_terrain_speed_effect(mob, prev_mob_cell, new_mob_cell);
+        }
+
         // Update velocity of mob if they are tracking the player and reached the next cell in their path
         if (mob_mob.is_tracking_player && reached_next_cell(mob)) {
             update_velocity_to_next_cell(mob, elapsed_ms);
@@ -171,7 +185,7 @@ bool PathfindingSystem::A_star(Entity player_cell, Entity mob_cell, std::vector<
 
             // Calculate costs
             Motion& neighbor_motion = registry.motions.get(neighbor);
-            float neighbor_g = g[curr_cell_index] + (1.0f * (1/get_terrain_slow_ratio(neighbor)));
+            float neighbor_g = g[curr_cell_index] + (1.0f * (1/terrain->get_terrain_speed_ratio(neighbor)));
             float neighbor_h = distance(neighbor_motion.position, player_cell_motion.position);
             float neighbor_f = neighbor_g + neighbor_h;
 
@@ -188,14 +202,6 @@ bool PathfindingSystem::A_star(Entity player_cell, Entity mob_cell, std::vector<
     }
 
     return false;
-}
-
-float PathfindingSystem::get_terrain_slow_ratio(Entity cell)
-{
-    // Get terrain type of cell
-    TERRAIN_TYPE terrain_type = registry.terrainCells.get(cell).terrain_type;
-
-    return terrain_type_to_slow_ratio.find(terrain_type)->second;
 }
 
 bool PathfindingSystem::same_cell(Entity player, Entity mob)
@@ -273,6 +279,41 @@ bool PathfindingSystem::is_player_in_mob_aggro_range(Entity player, Entity mob) 
     return dist <= mob_aggro_range;
 }
 
+bool PathfindingSystem::entered_new_cell(Entity mob)
+{
+    // Get the cell the mob is expected to be in and the actual cell the mob is in 
+    Mob& mob_mob = registry.mobs.get(mob);
+    Entity expected_mob_cell = mob_mob.curr_cell;
+    Motion& mob_motion = registry.motions.get(mob);
+    Entity actual_mob_cell = terrain->get_cell(mob_motion.position);
+
+    // Check if mob has entered a new cell
+    return expected_mob_cell != actual_mob_cell;
+}
+
+void PathfindingSystem::apply_new_terrain_speed_effect(Entity mob, Entity prev_cell, Entity new_cell)
+{
+    // Get previous and new terrain speed ratios
+    float prev_terrain_speed_ratio = terrain->get_terrain_speed_ratio(prev_cell);
+    float new_terrain_speed_ratio = terrain->get_terrain_speed_ratio(new_cell);
+
+    // Remove previous terrain speed effect and apply new terrain speed effect
+    Motion& mob_motion = registry.motions.get(mob);
+    mob_motion.velocity /= prev_terrain_speed_ratio;
+    mob_motion.velocity *= new_terrain_speed_ratio;
+
+    // If mob is slowed by a weapon, update the initial velocity so mob moves at correct speed after weapon slow ends
+    if (registry.mobSlowEffects.has(mob)) {
+        MobSlowEffect& mob_mobSlowEffect = registry.mobSlowEffects.get(mob);
+        float mob_slow_ratio = mob_mobSlowEffect.slow_ratio;
+
+        if (mob_mobSlowEffect.applied) {
+            mob_mobSlowEffect.initial_velocity = mob_motion.velocity / mob_slow_ratio;
+        }
+    }
+
+}
+
 void PathfindingSystem::update_velocity_to_next_cell(Entity mob, float elapsed_ms)
 {
     // Get and remove previous cell in the path
@@ -296,12 +337,14 @@ void PathfindingSystem::update_velocity_to_next_cell(Entity mob, float elapsed_m
     Motion& next_cell_motion = registry.motions.get(next_cell);
     float angle = atan2(next_cell_motion.position.y - mob_motion.position.y, next_cell_motion.position.x - mob_motion.position.x);
 
-    // Update the velocity of the mob based on angle. If mob is slowed, apply the slow effect to the velocity
+    // Update the velocity of the mob based on angle, the mob's speed ratio, and the terrain's speed ratio
     Mob& mob_mob = registry.mobs.get(mob);
     float mob_speed_ratio = mob_mob.speed_ratio;
-    mob_motion.velocity[0] = cos(angle) * mob_speed_ratio;
-    mob_motion.velocity[1] = sin(angle) * mob_speed_ratio;
+    float terrain_speed_ratio = terrain->get_terrain_speed_ratio(prev_cell);
+    mob_motion.velocity[0] = cos(angle) * mob_speed_ratio * terrain_speed_ratio;
+    mob_motion.velocity[1] = sin(angle) * mob_speed_ratio * terrain_speed_ratio;
 
+    // If mob is slowed by a weapon, apply the slow effect to the velocity
     if (registry.mobSlowEffects.has(mob)) {
         MobSlowEffect& mob_mobSlowEffect = registry.mobSlowEffects.get(mob);
         float mob_slow_ratio = mob_mobSlowEffect.slow_ratio;
