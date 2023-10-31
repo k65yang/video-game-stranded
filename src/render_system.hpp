@@ -40,7 +40,7 @@ class RenderSystem {
 	const std::array<std::string, texture_count> texture_paths = {
 			//textures_path("player.png"),
 			textures_path("player_spritesheet.png"),
-			textures_path("MOB001_front.png"),
+			textures_path("mob_spritesheet.png"),
 			textures_path("redblock.png"),
 			textures_path("fow mask.png"),
 			textures_path("item.png"),
@@ -84,7 +84,7 @@ class RenderSystem {
 	const std::array<std::string, effect_count> effect_paths = {
 		shader_path("coloured"),
 		shader_path("pebble"),
-		shader_path("player"), 
+		shader_path("spritesheet"), 
 		shader_path("salmon"),
 		shader_path("textured"),
 		shader_path("water"),

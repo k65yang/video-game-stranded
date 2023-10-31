@@ -1,5 +1,11 @@
 #include "pathfinding_system.hpp"
-
+float ELAPSED = 0;
+int MOB_DIRECTION = 1;  // Default to facing up
+int UP = 0; 
+int DOWN = 1; 
+int LEFT = 2;
+int RIGHT = 3; 
+int DIRECTION_CHANGE = 0;
 void PathfindingSystem::init(TerrainSystem* terrain_arg)
 {
     this->terrain = terrain_arg;
@@ -57,6 +63,17 @@ void PathfindingSystem::step(float elapsed_ms)
         // }
         // printf("\n");
 
+
+        // Get the previous location of the mob 
+        float prev_loc_x = registry.motions.get(mob).position[0];
+        float prev_loc_y = registry.motions.get(mob).position[1];
+        // Update prev_mframex for the next step
+        int prev_mframex = DIRECTION_CHANGE;
+
+        // Adjust this for mob animation speed
+        ELAPSED += elapsed_ms;
+
+
         // Apply new terrain speed effect if the mob enters a new cell
         if (entered_new_cell(mob)) {
             // Get the cell the mob was previously in and the new cell the mob is in
@@ -82,6 +99,60 @@ void PathfindingSystem::step(float elapsed_ms)
         // printf("Mob velocity after (dy): %f\n", registry.motions.get(mob).velocity[1]);
 
         // printf("\n");
+                // Get the current location of the mob
+        float curr_loc_x = registry.motions.get(mob).position[0];
+        float curr_loc_y = registry.motions.get(mob).position[1];
+
+        float dx = curr_loc_x - prev_loc_x;
+        float dy = curr_loc_y - prev_loc_y;
+
+        // Check Mobs movement and update mob direction 
+        if (dx > 0 && dy == 0) 
+            MOB_DIRECTION = RIGHT; // Mob is moving to the right
+        else if (dx < 0 && dy == 0) 
+            MOB_DIRECTION = LEFT;// Mob is moving to the left
+        else if (dy > 0 && dx == 0) 
+            MOB_DIRECTION = DOWN;// Mob is moving down
+        else if (dy < 0 && dx == 0) 
+            MOB_DIRECTION = UP; // Mob is moving up
+
+        if (dx > 0 && dy > 0) 
+            MOB_DIRECTION = RIGHT;// Mob is moving down and to the right
+        else if (dx > 0 && dy < 0) 
+            MOB_DIRECTION = UP;// Mob is moving up and to the right
+        else if (dx < 0 && dy > 0) 
+            MOB_DIRECTION = LEFT;// Mob is moving down and to the left
+        else if (dx < 0 && dy < 0) 
+            MOB_DIRECTION = UP;// Mob is moving up and to the left
+
+        // Calculate the direction based on the change in positions
+        if (prev_loc_x < curr_loc_x) 
+            DIRECTION_CHANGE = 1;// Mob moved right
+        else if (prev_loc_x > curr_loc_x) 
+            DIRECTION_CHANGE = 2; // Mob moved left
+        else if (prev_loc_y < curr_loc_y) 
+            DIRECTION_CHANGE = 3;// Mob moved down
+        else if (prev_loc_y > curr_loc_y) 
+            DIRECTION_CHANGE = 4;// Mob moved up
+            
+
+        // Check for a change in direction
+        if (DIRECTION_CHANGE != prev_mframex) {
+            // Direction changed, so reset frame x
+            DIRECTION_CHANGE = 0;
+            mob_mob.mframex = 0;
+            }
+
+
+        // Update mobs's direction
+        mob_mob.mframey = MOB_DIRECTION;
+
+        if (ELAPSED > 50) {
+            // Update walking animation
+            mob_mob.mframex = (mob_mob.mframex + 1) % 7;
+            ELAPSED = 0.0f; // Reset the timer
+            }
+
     }
 };
 

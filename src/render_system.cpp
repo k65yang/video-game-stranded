@@ -36,7 +36,7 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 	gl_has_errors();
 
 	// Input data location as in the vertex buffer
-	if (render_request.used_effect == EFFECT_ASSET_ID::TEXTURED ||render_request.used_effect == EFFECT_ASSET_ID::PLAYER)
+	if (render_request.used_effect == EFFECT_ASSET_ID::TEXTURED ||render_request.used_effect == EFFECT_ASSET_ID::SPRITESHEET)
 	{
 		GLint in_position_loc = glGetAttribLocation(program, "in_position");
 		GLint in_texcoord_loc = glGetAttribLocation(program, "in_texcoord");
@@ -63,30 +63,37 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 
 		glBindTexture(GL_TEXTURE_2D, texture_id);
 		gl_has_errors();
+		GLint isPlayer_uloc = glGetUniformLocation(program, "isPlayer");
 
 		if (render_request.used_texture == TEXTURE_ASSET_ID::PLAYER)
 		{
 			// set the frame for shader 
+			glUniform1i(isPlayer_uloc, 1);
+
+			// set the frame for shader for player
 			GLint framex_uloc = glGetUniformLocation(program, "framex");
 			GLint framey_uloc = glGetUniformLocation(program, "framey");
 
 			glUniform1i(framex_uloc, registry.players.components[0].framex);
 			glUniform1i(framey_uloc, registry.players.components[0].framey);
 
-			// Light up?
-			GLint light_up_uloc = glGetUniformLocation(program, "light_up");
-			assert(light_up_uloc >= 0);
-
-			// Should only be one player.
-			if (registry.players.components[0].iframes_timer != 0) {
-
-				glUniform1i(light_up_uloc, 1);
-			}
-			else {
-				glUniform1i(light_up_uloc, 0);
-			}
 			gl_has_errors();
 		}
+		else if (render_request.used_texture == TEXTURE_ASSET_ID::MOB) {
+			glUniform1i(isPlayer_uloc, 0);
+
+			registry.mobs.get(entity).mframex;
+			// set the frame for shader for mob 
+			GLint mframex_uloc = glGetUniformLocation(program, "mframex");
+			GLint mframey_uloc = glGetUniformLocation(program, "mframey");
+
+			glUniform1i(mframex_uloc, registry.mobs.get(entity).mframex);
+			glUniform1i(mframey_uloc, registry.mobs.get(entity).mframey);
+			//printf("printing in mob i framey %d \n", registry.mobs.get(entity).mframey);
+			gl_has_errors();
+
+			}
+
 	}
 	else if (render_request.used_effect == EFFECT_ASSET_ID::SALMON || render_request.used_effect == EFFECT_ASSET_ID::PEBBLE)
 	{

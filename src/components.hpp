@@ -33,7 +33,7 @@ struct Player
 	float iframes_timer = 0; // in ms
 	int food = PLAYER_MAX_FOOD;
 	int framex = 0; 
-	int framey = 1; 
+	int framey = 4; 
 };
 
 // The weapon
@@ -59,6 +59,8 @@ struct Mob {
 	float aggro_range = 5.f;
 	int health = 100000;
 	float speed_ratio = 0.5f;
+	int mframex = 0;
+	int mframey = 1;
 	Entity curr_cell; // cell the mob is currently in
 };
 
@@ -279,8 +281,8 @@ const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 enum class EFFECT_ASSET_ID {
 	COLOURED = 0,
 	PEBBLE = COLOURED + 1,
-	PLAYER = PEBBLE + 1,
-	SALMON = PLAYER + 1,
+	SPRITESHEET = PEBBLE + 1,
+	SALMON = SPRITESHEET + 1,
 	TEXTURED = SALMON + 1,
 	WATER = TEXTURED + 1,
 	TERRAIN = WATER + 1,
@@ -296,7 +298,9 @@ enum class GEOMETRY_BUFFER_ID {
 	SCREEN_TRIANGLE = DEBUG_LINE + 1,
 	// adding player geometry_buffer_ID
 	PLAYER_SPRITE = SCREEN_TRIANGLE + 1,
-	TERRAIN = PLAYER_SPRITE + 1,
+	// adding mobs geo_buffer_ID 
+	MOB_SPRITE = PLAYER_SPRITE + 1,
+	TERRAIN = MOB_SPRITE + 1,
 	PLAYER_MESH = TERRAIN + 1,
 	MOB001_MESH = PLAYER_MESH + 1,
 	GEOMETRY_COUNT = MOB001_MESH + 1
