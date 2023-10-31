@@ -441,10 +441,10 @@ void WorldSystem::restart_game() {
 	}
 
 	//FOR DEMO, CAN REMOVE LATER
-	createTerrainCollider(renderer, terrain, { 3.f, -3.f });  
-	createTerrainCollider(renderer, terrain, { 3.f, 3.f });   
-	createTerrainCollider(renderer, terrain, { -3.f, 3.f });  
-	createTerrainCollider(renderer, terrain, { -3.f, -3.f });
+	//createTerrainCollider(renderer, terrain, { 3.f, -3.f });  
+	//createTerrainCollider(renderer, terrain, { 3.f, 3.f });   
+	//createTerrainCollider(renderer, terrain, { -3.f, 3.f });  
+	//createTerrainCollider(renderer, terrain, { -3.f, -3.f });
 	
 	// clear all used spawn locations
 	used_spawn_locations.clear();
@@ -690,6 +690,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	// Movement with velocity handled in step function  
 	update_key_presses(key, action);
 
+	/*
 	if (action == GLFW_PRESS && key == GLFW_KEY_G) {
 		Motion& player = registry.motions.get(player_salmon);
 		Entity tile = terrain->get_cell(player.position);
@@ -711,6 +712,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 			terrain->update_tile(e, cell);
 		}
 	}
+	*/
 
 	// Resetting game
 	if (action == GLFW_RELEASE && key == GLFW_KEY_R) {
