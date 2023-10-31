@@ -281,10 +281,15 @@ void PhysicsSystem::step(float elapsed_ms)
 
 		Collider& collider_i = collider_container.components[i];
 		Entity entity_i = collider_container.entities[i];
+		bool is_terrain = registry.terrainCells.has(entity_i);
 
 		// note starting j at i+1 to compare all (i,j) pairs only once (and to not compare with itself)
 		for (uint j = i + 1; j < collider_container.components.size(); j++)
 			{
+			Entity entity_j = collider_container.entities[j];
+
+			if (is_terrain && registry.terrainCells.has(entity_j))
+				continue;
 
 			Collider& collider_j = collider_container.components[j];
 
@@ -303,8 +308,6 @@ void PhysicsSystem::step(float elapsed_ms)
 
 				if (isCollide)
 					{
-					Entity entity_j = collider_container.entities[j];
-
 					// Create a collisions event
 					// We are abusing the ECS system a bit in that we potentially insert muliple collisions for the same entity
 					registry.collisions.emplace_with_duplicates(entity_i, entity_j, overlap, MTV);

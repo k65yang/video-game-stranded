@@ -296,6 +296,9 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		m.velocity = { 0, 0 };
 		
 		handle_movement(m, LEFT);
+		if (length(m.velocity) > 0) {
+			m.velocity *= terrain->get_terrain_speed_ratio(terrain->get_cell(m.position));
+		}
 
 		if (anyMovementKeysPressed) {
 			// If any keys are pressed resulting movement then add to total travel distance. 
@@ -434,7 +437,7 @@ void WorldSystem::restart_game() {
 	registry.list_all_components();
 
 	// Re-initialize the terrain
-	terrain->init(world_size_x, world_size_y, renderer);
+	terrain->init(loaded_map_name, renderer);
 
 	// Create a Spaceship 
 	spaceship = createSpaceship(renderer, { 0,0 });
@@ -476,10 +479,10 @@ void WorldSystem::restart_game() {
 	}
 
 	//FOR DEMO, CAN REMOVE LATER
-	createTerrainCollider(renderer, terrain, { 3.f, -3.f });  
-	createTerrainCollider(renderer, terrain, { 3.f, 3.f });   
-	createTerrainCollider(renderer, terrain, { -3.f, 3.f });  
-	createTerrainCollider(renderer, terrain, { -3.f, -3.f });
+	//createTerrainCollider(renderer, terrain, { 3.f, -3.f });  
+	//createTerrainCollider(renderer, terrain, { 3.f, 3.f });   
+	//createTerrainCollider(renderer, terrain, { -3.f, 3.f });  
+	//createTerrainCollider(renderer, terrain, { -3.f, -3.f });
 	
 	// clear all used spawn locations
 	used_spawn_locations.clear();
@@ -775,6 +778,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	// Movement with velocity handled in step function  
 	update_key_presses(key, action);
 
+	/*
 	if (action == GLFW_PRESS && key == GLFW_KEY_G) {
 		Motion& player = registry.motions.get(player_salmon);
 		Entity tile = terrain->get_cell(player.position);
@@ -796,6 +800,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 			terrain->update_tile(e, cell);
 		}
 	}
+	*/
 
 	// Resetting game
 	if (action == GLFW_RELEASE && key == GLFW_KEY_R) {
@@ -816,6 +821,56 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		else
 			debugging.in_debug_mode = true;
 	}*/
+
+	// Level editor controls
+	if (debugging.in_debug_mode && action == GLFW_PRESS) {
+		if (key == GLFW_KEY_KP_1) {	// numpad 1
+			// Toggle collidable flag
+			editor_flag ^= TERRAIN_FLAGS::COLLIDABLE;
+			if (editor_flag & TERRAIN_FLAGS::COLLIDABLE)
+				std::cout << "New terrain are now collidable" << std::endl;
+			else
+				std::cout << "New terrain are now non-collidable" << std::endl;
+		}
+		if (key == GLFW_KEY_KP_2) {	// numpad 2
+			// Toggles pathfindable flag
+			editor_flag ^= TERRAIN_FLAGS::DISABLE_PATHFIND;
+			if (editor_flag & TERRAIN_FLAGS::DISABLE_PATHFIND)
+				std::cout << "New terrain are now inaccessible to mobs" << std::endl;
+			else
+				std::cout << "New terrain are now accessible for mobs" << std::endl;
+		}
+		if (key == GLFW_KEY_KP_3) {	// numpad 3
+			// Toggles pathfindable flag
+			editor_flag ^= TERRAIN_FLAGS::ALLOW_SPAWNS;
+			if (editor_flag & TERRAIN_FLAGS::ALLOW_SPAWNS)
+				std::cout << "New terrain can now be spawned by items and mobs (if no collision)" << std::endl;
+			else
+				std::cout << "New terrain are now removed from the spawning pool" << std::endl;
+		}
+		if (key == GLFW_KEY_KP_SUBTRACT) {	// numpad -
+			// Goes down a TERRAIN_TYPE
+			if (editor_terrain == 0) {
+				editor_terrain = static_cast<TERRAIN_TYPE>(TERRAIN_COUNT - 1);
+			}
+			else {
+				editor_terrain = static_cast<TERRAIN_TYPE>(editor_terrain - 1);
+			}
+			std::cout << "Tile: " << std::to_string(editor_terrain) << std::endl;
+		}
+		if (key == GLFW_KEY_KP_ADD) {	// numpad '+'
+			// Goes up a TERRAIN_TYPE
+
+			editor_terrain = static_cast<TERRAIN_TYPE>(editor_terrain + 1);
+			if (editor_terrain == TERRAIN_COUNT) {
+				editor_terrain = static_cast<TERRAIN_TYPE>(0);
+			}
+			std::cout << "Tile: " << std::to_string(editor_terrain) << std::endl;
+		}
+		if (key == GLFW_KEY_KP_DECIMAL)	// numpad '.'
+			// Saves map data
+			terrain->save_grid(loaded_map_name);	
+	}
 
 	// Press B to toggle debug mode
 	if (key == GLFW_KEY_B && action == GLFW_PRESS) {
@@ -902,6 +957,31 @@ void WorldSystem::on_mouse_click(int button, int action, int mods) {
 			weapons_system->fireWeapon(player_motion.position.x, player_motion.position.y, CURSOR_ANGLE);
 		}
 	}
+
+	if (debugging.in_debug_mode && button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS) {
+		mat3 view_ = renderer->createModelMatrix(main_camera);
+
+		// You can cache this to save performance.
+		mat3 proj_ = inverse(renderer->createProjectionMatrix());
+
+		double xpos, ypos;
+		glfwGetCursorPos(window, &xpos, &ypos);	// For some reason it only supports doubles!
+
+		// Recall that valid clip coordinates are between [-1, 1]. 
+		// First, we need to turn screen (pixel) coordinates into clip coordinates:
+		vec3 mouse_pos = {
+			(xpos / window_width_px) * 2 - 1,		// Get the fraction of the x pos in the screen, multiply 2 to map range to [0, 2], 
+													// then offset so the range is now [-1, 1].
+			-(ypos / window_height_px) * 2 + 1,		// Same thing, but recall that the y direction is opposite in glfw.
+			1.0 };									// Denote that this is a point.
+		mouse_pos = view_ * proj_ * mouse_pos;
+
+		Entity tile = terrain->get_cell(mouse_pos);
+		TerrainCell& cell = registry.terrainCells.get(tile);
+		cell.terrain_type = editor_terrain;
+		cell.flag = editor_flag;
+		terrain->update_tile(tile, cell);
+	}
 }
 
 void WorldSystem::spawn_items() {
@@ -962,7 +1042,7 @@ vec2 WorldSystem::get_random_spawn_location() {
 		}
 
 		// Skip locations that are not accessible
-		if (terrain->isImpassable(position))
+		if (terrain->is_invalid_spawn(position))
 			continue;
 
 		if (!is_spawn_location_used(position)) {

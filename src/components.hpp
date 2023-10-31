@@ -4,6 +4,7 @@
 #include <unordered_map>
 #include <deque>
 #include "../ext/stb_image/stb_image.h"
+#include <map>
 
 // Player component
 
@@ -169,12 +170,17 @@ enum TERRAIN_TYPE : uint16_t {
 	AIR = 0,
 	GRASS = AIR + 1,
 	ROCK = GRASS + 1,
-	TERRAIN_COUNT = ROCK + 1
+	SAND = ROCK + 1,
+	MUD = SAND + 1,
+	SHALLOW_WATER = MUD + 1,
+	DEEP_WATER = SHALLOW_WATER + 1,
+	TERRAIN_COUNT = DEEP_WATER + 1
 };
 
 enum TERRAIN_FLAGS : uint32_t {
-	COLLIDABLE = 0b1,
-	DISABLE_PATHFIND = 0b10,
+	COLLIDABLE =			0b1,
+	DISABLE_PATHFIND =		0b10,
+	ALLOW_SPAWNS =			0b100,
 };
 
 /// <summary>
