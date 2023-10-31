@@ -29,7 +29,7 @@ Entity createPlayer(RenderSystem* renderer, vec2 pos)
 	registry.renderRequests.insert(
 		entity,
 		{ TEXTURE_ASSET_ID::PLAYER,
-			EFFECT_ASSET_ID::PLAYER,
+			EFFECT_ASSET_ID::SPRITESHEET,
 			GEOMETRY_BUFFER_ID::PLAYER_SPRITE,
 			RENDER_LAYER_ID::LAYER_1 });
 
@@ -102,7 +102,7 @@ Entity createBasicMob(RenderSystem* renderer, TerrainSystem* terrain, vec2 posit
 	auto entity = Entity();
 
 	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
-	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::MOB_SPRITE);
 	registry.meshPtrs.emplace(entity, &mesh);
 
 	// Initialize the motion
@@ -132,15 +132,22 @@ Entity createBasicMob(RenderSystem* renderer, TerrainSystem* terrain, vec2 posit
 		texture = TEXTURE_ASSET_ID::MOB;
 		break;
 	case MOB_TYPE::GHOST:
-		texture = TEXTURE_ASSET_ID::GHOST;
-		break;
+
+		// TODO: TEMPORARY!!! Make ghost spritesheet
+		registry.renderRequests.insert(
+			entity,
+			{	TEXTURE_ASSET_ID::GHOST,
+				EFFECT_ASSET_ID::TEXTURED,
+				GEOMETRY_BUFFER_ID::SPRITE,
+				RENDER_LAYER_ID::LAYER_1 });
+		return entity;
 	}
 
 	registry.renderRequests.insert(
 		entity,
-		{ texture,
-		 EFFECT_ASSET_ID::TEXTURED,
-		 GEOMETRY_BUFFER_ID::SPRITE,
+		{	texture,
+			EFFECT_ASSET_ID::SPRITESHEET,
+			GEOMETRY_BUFFER_ID::MOB_SPRITE,
 			RENDER_LAYER_ID::LAYER_1 });
 
 	return entity;
