@@ -121,6 +121,7 @@ Entity createBasicMob(RenderSystem* renderer, TerrainSystem* terrain, vec2 posit
 	auto& mob_info = registry.mobs.emplace(entity);
 	mob_info.damage = 50;
 	mob_info.curr_cell = terrain->get_cell(motion.position);
+	mob_info.type = type;
 
 	// Initialize the collider, if it has a colliding mesh
 	createMeshCollider(entity, GEOMETRY_BUFFER_ID::MOB001_MESH, renderer);
