@@ -77,6 +77,10 @@ class RenderSystem {
 		terrain_texture_path("0.png"),
 		terrain_texture_path("1.png"),
 		terrain_texture_path("2.png"),
+		terrain_texture_path("3.png"),
+		terrain_texture_path("4.png"),
+		terrain_texture_path("5.png"),
+		terrain_texture_path("6.png"),
 	};
 
 	std::array<GLuint, effect_count> effects;

@@ -116,11 +116,18 @@ private:
 
 	// Random item and mob spawning 
 	// Limits on the number of items and mobs
-	const int ITEM_LIMIT = 4;
-	const int MOB_LIMIT = 2;
+	const int ITEM_LIMIT = 32;
+	const int MOB_LIMIT = 16;
 
 	// Vector to keep track of locations where an item/mob has been spawned
 	std::vector<vec2> used_spawn_locations;
+
+	// Changes clicked tiles to this during debug mode
+	TERRAIN_TYPE editor_terrain = AIR;
+
+	// Changes clicked tiles' flags to the given value.
+	uint16_t editor_flag = 0;
+
 
 	/// <summary>
 	/// Spawns ITEM_LIMIT items randomly across the map
