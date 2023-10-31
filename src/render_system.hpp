@@ -48,7 +48,7 @@ class RenderSystem {
 			textures_path("weapon_shuriken.png"),
 			textures_path("weapon_crossbow.png"),
 			textures_path("crossbow_arrow.png"),
-      textures_path("weapon_shotgun.png"),
+			textures_path("weapon_shotgun.png"),
 			textures_path("weapon_machine_gun.png"),
 			textures_path("icon_no_weapon.png"),
 			textures_path("icon_shuriken.png"),
@@ -57,6 +57,18 @@ class RenderSystem {
 			textures_path("icon_machine_gun.png"),
 			textures_path("spaceship.png"), 
 			textures_path("blueblock.png"),
+			textures_path("help1.png"),
+			textures_path("help2.png"),
+			textures_path("help3.png"),
+			textures_path("help4.png"),
+			textures_path("help_weapon.png"),
+			textures_path("q1_not_found.png"),
+			textures_path("q1_found.png"),
+			textures_path("q2_not_found.png"),
+			textures_path("q2_found.png"),
+			textures_path("q1.png"),
+			textures_path("q2.png"),
+
 	};
 
 	// This is used for generating the texture array for batched renders

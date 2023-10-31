@@ -40,6 +40,11 @@ Entity createHealthBar(RenderSystem* renderer, vec2 position);
 Entity createFoodBar(RenderSystem* renderer, vec2 position);
 Entity createWeaponIndicator(RenderSystem* renderer, vec2 position, TEXTURE_ASSET_ID weapon_texture);
 
+// Tool tips for ease of use 
+Entity createHelp(RenderSystem* renderer, vec2 position, TEXTURE_ASSET_ID texture);
+
+Entity createQuestItem(RenderSystem* renderer, vec2 position, TEXTURE_ASSET_ID texture);
+
 // test only
 Entity createTestDummy(RenderSystem* renderer, vec2 position);
 
