@@ -75,12 +75,12 @@ class RenderSystem {
 	// NOTE: all images must have the same dimensions.
 	const std::array<std::string, TERRAIN_TYPE::TERRAIN_COUNT> terrain_texture_paths = {
 		terrain_texture_path("0.png"),
-		terrain_texture_path("1.png"),
-		terrain_texture_path("2.png"),
-		terrain_texture_path("3.png"),
-		terrain_texture_path("4.png"),
-		terrain_texture_path("5.png"),
-		terrain_texture_path("6.png"),
+		terrain_texture_path("grass_3.png"),
+		terrain_texture_path("stone_3.png"),
+		terrain_texture_path("sand_3.png"),
+		terrain_texture_path("mud_2.png"),
+		terrain_texture_path("shallow_water_1.png"),
+		terrain_texture_path("deep_water_1.png"),
 	};
 
 	std::array<GLuint, effect_count> effects;
