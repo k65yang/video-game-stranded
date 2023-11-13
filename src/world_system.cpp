@@ -84,12 +84,11 @@ GLFWwindow* WorldSystem::create_window() {
 	const GLFWvidmode* mode = glfwGetVideoMode(glfwGetPrimaryMonitor());
 	int y = mode->height;
 	int s = y / aspect_ratio.y;	// scale factor such that s * aspect_ratio = {mode->width, mode->height}. 
-	window_width_px = aspect_ratio.x * s;
-	window_height_px = y;
+	int x = aspect_ratio.x * s;
 	// Remember: aspect_ratio.y * s = y, aspect_ratio.x * s = x
 
 	// Create the main window (for rendering, keyboard, and mouse input)
-	window = glfwCreateWindow(window_width_px, window_height_px, "Stranded", glfwGetPrimaryMonitor(), nullptr);
+	window = glfwCreateWindow(x, y, "Stranded", glfwGetPrimaryMonitor(), nullptr);
 	if (window == nullptr) {
 		fprintf(stderr, "Failed to glfwCreateWindow");
 		return nullptr;
@@ -946,8 +945,10 @@ void WorldSystem::on_mouse_move(vec2 mouse_position) {
 	if (!registry.deathTimers.has(player_salmon)) {
 		// The player is always in the middle of the screen so we need to compute the 
 		// rotation angle w.r.t. the centre of the screen
-		float screen_centre_x = window_width_px/2;
-		float screen_centre_y = window_height_px/2;
+		ivec2 window_size = renderer->window_resolution;
+
+		float screen_centre_x = window_size.x/2;
+		float screen_centre_y = window_size.y/2;
 
 		Motion& motion = registry.motions.get(player_salmon);
 		CURSOR_ANGLE = atan2(mouse_position.y - screen_centre_y, mouse_position.x - screen_centre_x);
@@ -976,13 +977,14 @@ void WorldSystem::on_mouse_click(int button, int action, int mods) {
 
 		double xpos, ypos;
 		glfwGetCursorPos(window, &xpos, &ypos);	// For some reason it only supports doubles!
+		ivec2 window_size = renderer->window_resolution;
 
 		// Recall that valid clip coordinates are between [-1, 1]. 
 		// First, we need to turn screen (pixel) coordinates into clip coordinates:
 		vec3 mouse_pos = {
-			(xpos / window_width_px) * 2 - 1,		// Get the fraction of the x pos in the screen, multiply 2 to map range to [0, 2], 
+			(xpos / window_size.x) * 2 - 1,		// Get the fraction of the x pos in the screen, multiply 2 to map range to [0, 2], 
 													// then offset so the range is now [-1, 1].
-			-(ypos / window_height_px) * 2 + 1,		// Same thing, but recall that the y direction is opposite in glfw.
+			-(ypos / window_size.y) * 2 + 1,		// Same thing, but recall that the y direction is opposite in glfw.
 			1.0 };									// Denote that this is a point.
 		mouse_pos = view_ * proj_ * mouse_pos;
 
