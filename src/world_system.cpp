@@ -982,7 +982,7 @@ void WorldSystem::on_mouse_click(int button, int action, int mods) {
 		// Recall that valid clip coordinates are between [-1, 1]. 
 		// First, we need to turn screen (pixel) coordinates into clip coordinates:
 		vec3 mouse_pos = {
-			(xpos / window_size.x) * 2 - 1,		// Get the fraction of the x pos in the screen, multiply 2 to map range to [0, 2], 
+			(xpos / window_size.x) * 2 - 1,			// Get the fraction of the x pos in the screen, multiply 2 to map range to [0, 2], 
 													// then offset so the range is now [-1, 1].
 			-(ypos / window_size.y) * 2 + 1,		// Same thing, but recall that the y direction is opposite in glfw.
 			1.0 };									// Denote that this is a point.

@@ -44,9 +44,12 @@ inline std::string map_path_builder(const std::string& name) {
 
 //static int window_width_px;
 //static int window_height_px;
-const ivec2 aspect_ratio = { 3, 2 };
-const ivec2 target_resolution = { 1200, 800 };	// Actual screen resolution stores iniside render_system as window_resolution
-const int tile_size_px = 50;		// Represents how many pixels a tile occupies in a row or column
+// 
+// Actual screen resolution stores iniside render_system as window_resolution
+const ivec2 target_resolution = { 1200, 800 };	// alternative: { 1620, 1080 }
+const ivec2 aspect_ratio = { 3, 2 };			// Remember to reduce this to lowest form!
+
+const int tile_size_px = 50;		// Represents how many pixels a tile occupies in a row and column
 
 const unsigned short world_size_x = 64;
 const unsigned short world_size_y = 64;
