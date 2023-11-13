@@ -87,8 +87,16 @@ GLFWwindow* WorldSystem::create_window() {
 	int x = aspect_ratio.x * s;
 	// Remember: aspect_ratio.y * s = y, aspect_ratio.x * s = x
 
+	GLFWmonitor* monitor_ptr = glfwGetPrimaryMonitor();
+
+	if (windowed_mode) {
+		monitor_ptr = nullptr;
+		x = target_resolution.x;
+		y = target_resolution.y;
+	}
+
 	// Create the main window (for rendering, keyboard, and mouse input)
-	window = glfwCreateWindow(x, y, "Stranded", glfwGetPrimaryMonitor(), nullptr);
+	window = glfwCreateWindow(x, y, "Stranded", monitor_ptr, nullptr);
 	if (window == nullptr) {
 		fprintf(stderr, "Failed to glfwCreateWindow");
 		return nullptr;

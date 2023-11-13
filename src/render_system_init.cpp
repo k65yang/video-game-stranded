@@ -22,8 +22,13 @@ bool RenderSystem::init(GLFWwindow* window_arg)
 	glfwSwapInterval(1); // vsync
 
 	// Get window resolution
-	const GLFWvidmode* mode = glfwGetVideoMode(glfwGetPrimaryMonitor());
-	window_resolution = { mode->width, mode->height };
+	if (windowed_mode) {
+		window_resolution = target_resolution;
+	}
+	else {
+		const GLFWvidmode* mode = glfwGetVideoMode(glfwGetPrimaryMonitor());
+		window_resolution = { mode->width, mode->height };
+	}
 
 	// Load OpenGL function pointers
 	const int is_fine = gl3w_init();
