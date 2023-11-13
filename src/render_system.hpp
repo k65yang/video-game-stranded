@@ -68,19 +68,19 @@ class RenderSystem {
 			textures_path("q2_found.png"),
 			textures_path("q1.png"),
 			textures_path("q2.png"),
-
+			textures_path("ghost.png"),
 	};
 
 	// This is used for generating the texture array for batched renders
 	// NOTE: all images must have the same dimensions.
 	const std::array<std::string, TERRAIN_TYPE::TERRAIN_COUNT> terrain_texture_paths = {
 		terrain_texture_path("0.png"),
-		terrain_texture_path("1.png"),
-		terrain_texture_path("2.png"),
-		terrain_texture_path("3.png"),
-		terrain_texture_path("4.png"),
-		terrain_texture_path("5.png"),
-		terrain_texture_path("6.png"),
+		terrain_texture_path("grass_3.png"),
+		terrain_texture_path("stone_3.png"),
+		terrain_texture_path("sand_3.png"),
+		terrain_texture_path("mud_2.png"),
+		terrain_texture_path("shallow_water_1.png"),
+		terrain_texture_path("deep_water_1.png"),
 	};
 
 	std::array<GLuint, effect_count> effects;
