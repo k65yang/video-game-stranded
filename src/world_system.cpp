@@ -15,11 +15,11 @@ float PLAYER_TOTAL_DISTANCE = 0;
 const float FOOD_DECREASE_THRESHOLD  = 5.0f; // Adjust this value as needed
 const float FOOD_DECREASE_RATE = 10.f;	// Decreases by 10 units per second (when moving)
 float CURSOR_ANGLE = 0;
-int PLAYER_DIRECTION = 2;  // Default to facing up
+int PLAYER_DIRECTION = 4;  // Default to facing up
+float ELAPSED_TIME = 0;
 
 
 
-float elapsed_time = 0;
 // Create the fish world
 WorldSystem::WorldSystem()
 	: points(0)
@@ -269,14 +269,14 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	Motion& f = registry.motions.get(fow);
 	f.position = m.position;
 
-	elapsed_time += elapsed_ms_since_last_update;
+	ELAPSED_TIME += elapsed_ms_since_last_update;
 	// rendering spritesheet with curser 
 	// change player direction based on aiming direction 
 	// Determine the player's facing direction based on the cursor angle
 	if (CURSOR_ANGLE >= -M_PI / 4 && CURSOR_ANGLE < M_PI / 4) {
-		PLAYER_DIRECTION = 1;  // Right
+		PLAYER_DIRECTION = 2;  // Right
 	} else if (CURSOR_ANGLE >= M_PI / 4 && CURSOR_ANGLE < 3 * M_PI / 4) {
-		PLAYER_DIRECTION = 2;  // Down
+		PLAYER_DIRECTION = 4;  // Down
 	} else if (CURSOR_ANGLE >= -3 * M_PI / 4 && CURSOR_ANGLE < -M_PI / 4) {
 		PLAYER_DIRECTION = 0;  // Up
 	} else {
@@ -296,24 +296,30 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		m.velocity = { 0, 0 };
 		
 		handle_movement(m, LEFT);
+		if (length(m.velocity) > 0) {
+			m.velocity *= terrain->get_terrain_speed_ratio(terrain->get_cell(m.position));
+		}
 
 		if (anyMovementKeysPressed) {
 			// If any keys are pressed resulting movement then add to total travel distance. 
 			PLAYER_TOTAL_DISTANCE += FOOD_DECREASE_RATE * elapsed_ms_since_last_update / 1000.f;
-			if (elapsed_time > 100) {
+			if (ELAPSED_TIME > 100) {
 				// Update walking animation
 				registry.players.components[0].framex = (registry.players.components[0].framex + 1) % 4;
-				elapsed_time = 0.0f; // Reset the timer
+				ELAPSED_TIME = 0.0f; // Reset the timer
 				}
 			}
 		else {
 			// No movement keys pressed, set back to the first frame
 			registry.players.components[0].framex = 0;
+
 			}
 	}
 	else {
 		// Player is dead, do not allow movement
 		m.velocity = { 0, 0 };
+		registry.players.components[0].framey = 1;
+
 	}
 
 	// Camera movement mode
@@ -431,10 +437,10 @@ void WorldSystem::restart_game() {
 	registry.list_all_components();
 
 	// Re-initialize the terrain
-	terrain->init(world_size_x, world_size_y, renderer);
+	terrain->init(loaded_map_name, renderer);
 
 	// Create a Spaceship 
-	createSpaceship(renderer, { 0,0 });
+	spaceship = createSpaceship(renderer, { 0,0 });
 
 	// Create a new salmon
 	player_salmon = createPlayer(renderer, { 0, 0 });
@@ -473,10 +479,10 @@ void WorldSystem::restart_game() {
 	}
 
 	//FOR DEMO, CAN REMOVE LATER
-	createTerrainCollider(renderer, terrain, { 3.f, -3.f });  
-	createTerrainCollider(renderer, terrain, { 3.f, 3.f });   
-	createTerrainCollider(renderer, terrain, { -3.f, 3.f });  
-	createTerrainCollider(renderer, terrain, { -3.f, -3.f });
+	//createTerrainCollider(renderer, terrain, { 3.f, -3.f });  
+	//createTerrainCollider(renderer, terrain, { 3.f, 3.f });   
+	//createTerrainCollider(renderer, terrain, { -3.f, 3.f });  
+	//createTerrainCollider(renderer, terrain, { -3.f, -3.f });
 	
 	// clear all used spawn locations
 	used_spawn_locations.clear();
@@ -504,6 +510,17 @@ void WorldSystem::handle_collisions() {
 		// Collisions involving the player
 		if (registry.players.has(entity)) {
 			Player& player = registry.players.get(entity);
+
+			// Checking Player - Spaceship (For regen)
+			if (entity_other == spaceship) {
+				player.health = PLAYER_MAX_HEALTH;
+				player.food = PLAYER_MAX_FOOD;
+
+				Motion& health = registry.motions.get(health_bar);
+				Motion& food = registry.motions.get(food_bar);
+				health.scale = HEALTH_BAR_SCALE;
+				food.scale = FOOD_BAR_SCALE;
+			}
 
 			// Checking Player - Mobs
 			if (registry.mobs.has(entity_other)) {
@@ -534,8 +551,6 @@ void WorldSystem::handle_collisions() {
 			}
 
 			// Checking Player - Terrain
-			
-
 			if (registry.terrainCells.has(entity_other) || registry.boundaries.has(entity_other)) {
 
 				Motion& motion = registry.motions.get(player_salmon);
@@ -763,6 +778,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	// Movement with velocity handled in step function  
 	update_key_presses(key, action);
 
+	/*
 	if (action == GLFW_PRESS && key == GLFW_KEY_G) {
 		Motion& player = registry.motions.get(player_salmon);
 		Entity tile = terrain->get_cell(player.position);
@@ -784,6 +800,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 			terrain->update_tile(e, cell);
 		}
 	}
+	*/
 
 	// Resetting game
 	if (action == GLFW_RELEASE && key == GLFW_KEY_R) {
@@ -804,6 +821,56 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		else
 			debugging.in_debug_mode = true;
 	}*/
+
+	// Level editor controls
+	if (debugging.in_debug_mode && action == GLFW_PRESS) {
+		if (key == GLFW_KEY_KP_1) {	// numpad 1
+			// Toggle collidable flag
+			editor_flag ^= TERRAIN_FLAGS::COLLIDABLE;
+			if (editor_flag & TERRAIN_FLAGS::COLLIDABLE)
+				std::cout << "New terrain are now collidable" << std::endl;
+			else
+				std::cout << "New terrain are now non-collidable" << std::endl;
+		}
+		if (key == GLFW_KEY_KP_2) {	// numpad 2
+			// Toggles pathfindable flag
+			editor_flag ^= TERRAIN_FLAGS::DISABLE_PATHFIND;
+			if (editor_flag & TERRAIN_FLAGS::DISABLE_PATHFIND)
+				std::cout << "New terrain are now inaccessible to mobs" << std::endl;
+			else
+				std::cout << "New terrain are now accessible for mobs" << std::endl;
+		}
+		if (key == GLFW_KEY_KP_3) {	// numpad 3
+			// Toggles pathfindable flag
+			editor_flag ^= TERRAIN_FLAGS::ALLOW_SPAWNS;
+			if (editor_flag & TERRAIN_FLAGS::ALLOW_SPAWNS)
+				std::cout << "New terrain can now be spawned by items and mobs (if no collision)" << std::endl;
+			else
+				std::cout << "New terrain are now removed from the spawning pool" << std::endl;
+		}
+		if (key == GLFW_KEY_KP_SUBTRACT) {	// numpad -
+			// Goes down a TERRAIN_TYPE
+			if (editor_terrain == 0) {
+				editor_terrain = static_cast<TERRAIN_TYPE>(TERRAIN_COUNT - 1);
+			}
+			else {
+				editor_terrain = static_cast<TERRAIN_TYPE>(editor_terrain - 1);
+			}
+			std::cout << "Tile: " << std::to_string(editor_terrain) << std::endl;
+		}
+		if (key == GLFW_KEY_KP_ADD) {	// numpad '+'
+			// Goes up a TERRAIN_TYPE
+
+			editor_terrain = static_cast<TERRAIN_TYPE>(editor_terrain + 1);
+			if (editor_terrain == TERRAIN_COUNT) {
+				editor_terrain = static_cast<TERRAIN_TYPE>(0);
+			}
+			std::cout << "Tile: " << std::to_string(editor_terrain) << std::endl;
+		}
+		if (key == GLFW_KEY_KP_DECIMAL)	// numpad '.'
+			// Saves map data
+			terrain->save_grid(loaded_map_name);	
+	}
 
 	// Press B to toggle debug mode
 	if (key == GLFW_KEY_B && action == GLFW_PRESS) {
@@ -890,6 +957,31 @@ void WorldSystem::on_mouse_click(int button, int action, int mods) {
 			weapons_system->fireWeapon(player_motion.position.x, player_motion.position.y, CURSOR_ANGLE);
 		}
 	}
+
+	if (debugging.in_debug_mode && button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS) {
+		mat3 view_ = renderer->createModelMatrix(main_camera);
+
+		// You can cache this to save performance.
+		mat3 proj_ = inverse(renderer->createProjectionMatrix());
+
+		double xpos, ypos;
+		glfwGetCursorPos(window, &xpos, &ypos);	// For some reason it only supports doubles!
+
+		// Recall that valid clip coordinates are between [-1, 1]. 
+		// First, we need to turn screen (pixel) coordinates into clip coordinates:
+		vec3 mouse_pos = {
+			(xpos / window_width_px) * 2 - 1,		// Get the fraction of the x pos in the screen, multiply 2 to map range to [0, 2], 
+													// then offset so the range is now [-1, 1].
+			-(ypos / window_height_px) * 2 + 1,		// Same thing, but recall that the y direction is opposite in glfw.
+			1.0 };									// Denote that this is a point.
+		mouse_pos = view_ * proj_ * mouse_pos;
+
+		Entity tile = terrain->get_cell(mouse_pos);
+		TerrainCell& cell = registry.terrainCells.get(tile);
+		cell.terrain_type = editor_terrain;
+		cell.flag = editor_flag;
+		terrain->update_tile(tile, cell);
+	}
 }
 
 void WorldSystem::spawn_items() {
@@ -929,9 +1021,20 @@ void WorldSystem::spawn_items() {
 void WorldSystem::spawn_mobs() {
 	for (int i = 0; i < MOB_LIMIT; i++) {
 		// Get random spawn location
-		vec2 spawn_location = terrain->get_random_terrain_location();
+		vec2 spawn_location = get_random_spawn_location();
+
+		// Randomly choose mob type
+		int item_type = rng() % 2;
+
+		switch (item_type) {
+		case 0:
+			createBasicMob(renderer, terrain, spawn_location, MOB_TYPE::SLIME);
+			break;
+		case 1:
+			createBasicMob(renderer, terrain, spawn_location, MOB_TYPE::GHOST);;
+			break;
+		}
 		
-		createBasicMob(renderer, spawn_location);
 	}
 };
 

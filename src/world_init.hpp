@@ -19,7 +19,7 @@ Entity createPlayer(RenderSystem* renderer, vec2 pos);
 // the prey
 Entity createItem(RenderSystem* renderer, vec2 position, ITEM_TYPE type);
 // the enemy
-Entity createBasicMob(RenderSystem* renderer, vec2 position);
+Entity createBasicMob(RenderSystem* renderer, TerrainSystem* terrain, vec2 position, MOB_TYPE type);
 
 // the spaceship 
 Entity createSpaceship(RenderSystem* renderer, vec2 position);

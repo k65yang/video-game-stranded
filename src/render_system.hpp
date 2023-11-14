@@ -40,7 +40,7 @@ class RenderSystem {
 	const std::array<std::string, texture_count> texture_paths = {
 			//textures_path("player.png"),
 			textures_path("player_spritesheet.png"),
-			textures_path("MOB001_front.png"),
+			textures_path("mob_spritesheet.png"),
 			textures_path("redblock.png"),
 			textures_path("fow mask.png"),
 			textures_path("item.png"),
@@ -68,15 +68,19 @@ class RenderSystem {
 			textures_path("q2_found.png"),
 			textures_path("q1.png"),
 			textures_path("q2.png"),
-
+			textures_path("ghost.png"),
 	};
 
 	// This is used for generating the texture array for batched renders
 	// NOTE: all images must have the same dimensions.
 	const std::array<std::string, TERRAIN_TYPE::TERRAIN_COUNT> terrain_texture_paths = {
 		terrain_texture_path("0.png"),
-		terrain_texture_path("1.png"),
-		terrain_texture_path("2.png"),
+		terrain_texture_path("grass_3.png"),
+		terrain_texture_path("stone_3.png"),
+		terrain_texture_path("sand_3.png"),
+		terrain_texture_path("mud_2.png"),
+		terrain_texture_path("shallow_water_1.png"),
+		terrain_texture_path("deep_water_1.png"),
 	};
 
 	std::array<GLuint, effect_count> effects;
@@ -84,7 +88,7 @@ class RenderSystem {
 	const std::array<std::string, effect_count> effect_paths = {
 		shader_path("coloured"),
 		shader_path("pebble"),
-		shader_path("player"), 
+		shader_path("spritesheet"), 
 		shader_path("salmon"),
 		shader_path("textured"),
 		shader_path("water"),

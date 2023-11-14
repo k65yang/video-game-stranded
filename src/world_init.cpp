@@ -24,14 +24,12 @@ Entity createPlayer(RenderSystem* renderer, vec2 pos)
 	createMeshCollider(entity, GEOMETRY_BUFFER_ID::PLAYER_MESH, renderer);
 
 	// Add the player to the players registry
-	registry.players.emplace(entity);
-
-
+	Player& player = registry.players.emplace(entity);
 
 	registry.renderRequests.insert(
 		entity,
 		{ TEXTURE_ASSET_ID::PLAYER,
-			EFFECT_ASSET_ID::PLAYER,
+			EFFECT_ASSET_ID::SPRITESHEET,
 			GEOMETRY_BUFFER_ID::PLAYER_SPRITE,
 			RENDER_LAYER_ID::LAYER_1 });
 
@@ -99,13 +97,12 @@ Entity createItem(RenderSystem* renderer, vec2 position, ITEM_TYPE type)
 }
 
 // TODO: CLEAN UP ALL THIS CREATE INTO ONE GENERALISED FN
-
-Entity createBasicMob(RenderSystem* renderer, vec2 position)
+Entity createBasicMob(RenderSystem* renderer, TerrainSystem* terrain, vec2 position, MOB_TYPE type)
 {
 	auto entity = Entity();
 
 	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
-	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::MOB_SPRITE);
 	registry.meshPtrs.emplace(entity, &mesh);
 
 	// Initialize the motion
@@ -123,16 +120,34 @@ Entity createBasicMob(RenderSystem* renderer, vec2 position)
 	// Classify this entity as a mob.
 	auto& mob_info = registry.mobs.emplace(entity);
 	mob_info.damage = 50;
+	mob_info.curr_cell = terrain->get_cell(motion.position);
+	mob_info.type = type;
 
-	// Initialize the collider
+	// Initialize the collider, if it has a colliding mesh
 	createMeshCollider(entity, GEOMETRY_BUFFER_ID::MOB001_MESH, renderer);
 
+	TEXTURE_ASSET_ID texture = TEXTURE_ASSET_ID::MOB;
+	switch (type) {
+	case MOB_TYPE::SLIME:
+		texture = TEXTURE_ASSET_ID::MOB;
+		break;
+	case MOB_TYPE::GHOST:
+
+		// TODO: TEMPORARY!!! Make ghost spritesheet
+		registry.renderRequests.insert(
+			entity,
+			{	TEXTURE_ASSET_ID::GHOST,
+				EFFECT_ASSET_ID::TEXTURED,
+				GEOMETRY_BUFFER_ID::SPRITE,
+				RENDER_LAYER_ID::LAYER_1 });
+		return entity;
+	}
 
 	registry.renderRequests.insert(
 		entity,
-		{ TEXTURE_ASSET_ID::MOB,
-		 EFFECT_ASSET_ID::TEXTURED,
-		 GEOMETRY_BUFFER_ID::SPRITE,
+		{	texture,
+			EFFECT_ASSET_ID::SPRITESHEET,
+			GEOMETRY_BUFFER_ID::MOB_SPRITE,
 			RENDER_LAYER_ID::LAYER_1 });
 
 	return entity;
@@ -152,9 +167,11 @@ Entity createSpaceship(RenderSystem* renderer, vec2 position) {
 	motion.velocity = { 0.f, 0.f };
 	motion.position = position;
 
+	createDefaultCollider(entity);
+
 	// Setting initial values, scale is negative to make it face the opposite way
 	motion.scale = vec2({ 3, 4 });
-	//motion.scale = vec2({ 50.f, 50.f });
+
 	registry.renderRequests.insert(
 		entity,
 		{ TEXTURE_ASSET_ID::SPACESHIP,
@@ -163,7 +180,7 @@ Entity createSpaceship(RenderSystem* renderer, vec2 position) {
 			RENDER_LAYER_ID::LAYER_1 });
 
 	return entity;
-	}
+}
 
 
 Entity createLine(vec2 position, vec2 scale)

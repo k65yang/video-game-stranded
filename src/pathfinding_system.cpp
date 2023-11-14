@@ -1,5 +1,11 @@
 #include "pathfinding_system.hpp"
-
+float ELAPSED = 0;
+int MOB_DIRECTION = 1;  // Default to facing up
+int UP = 0; 
+int DOWN = 1; 
+int LEFT = 2;
+int RIGHT = 3; 
+int DIRECTION_CHANGE = 0;
 void PathfindingSystem::init(TerrainSystem* terrain_arg)
 {
     this->terrain = terrain_arg;
@@ -57,6 +63,34 @@ void PathfindingSystem::step(float elapsed_ms)
         // }
         // printf("\n");
 
+
+        // Get the previous location of the mob 
+        float prev_loc_x = registry.motions.get(mob).position[0];
+        float prev_loc_y = registry.motions.get(mob).position[1];
+        // Update prev_mframex for the next step
+        int prev_mframex = DIRECTION_CHANGE;
+
+        // Adjust this for mob animation speed
+        ELAPSED += elapsed_ms;
+
+
+        // Apply new terrain speed effect if the mob enters a new cell
+
+        Mob& mob_obj = registry.mobs.get(mob);
+
+        if (entered_new_cell(mob) && mob_obj.type != MOB_TYPE::GHOST) {
+            // Get the cell the mob was previously in and the new cell the mob is in
+            Mob& mob_mob = registry.mobs.get(mob);
+            Entity prev_mob_cell = mob_mob.curr_cell;
+            Motion& mob_motion = registry.motions.get(mob);
+            Entity new_mob_cell = terrain->get_cell(mob_motion.position);
+            
+            // Update cell mob is currently in
+            mob_mob.curr_cell = new_mob_cell;
+
+            apply_new_terrain_speed_effect(mob, prev_mob_cell, new_mob_cell);
+        }
+
         // Update velocity of mob if they are tracking the player and reached the next cell in their path
         if (mob_mob.is_tracking_player && reached_next_cell(mob)) {
             update_velocity_to_next_cell(mob, elapsed_ms);
@@ -68,6 +102,60 @@ void PathfindingSystem::step(float elapsed_ms)
         // printf("Mob velocity after (dy): %f\n", registry.motions.get(mob).velocity[1]);
 
         // printf("\n");
+                // Get the current location of the mob
+        float curr_loc_x = registry.motions.get(mob).position[0];
+        float curr_loc_y = registry.motions.get(mob).position[1];
+
+        float dx = curr_loc_x - prev_loc_x;
+        float dy = curr_loc_y - prev_loc_y;
+
+        // Check Mobs movement and update mob direction 
+        if (dx > 0 && dy == 0) 
+            MOB_DIRECTION = RIGHT; // Mob is moving to the right
+        else if (dx < 0 && dy == 0) 
+            MOB_DIRECTION = LEFT;// Mob is moving to the left
+        else if (dy > 0 && dx == 0) 
+            MOB_DIRECTION = DOWN;// Mob is moving down
+        else if (dy < 0 && dx == 0) 
+            MOB_DIRECTION = UP; // Mob is moving up
+
+        if (dx > 0 && dy > 0) 
+            MOB_DIRECTION = RIGHT;// Mob is moving down and to the right
+        else if (dx > 0 && dy < 0) 
+            MOB_DIRECTION = UP;// Mob is moving up and to the right
+        else if (dx < 0 && dy > 0) 
+            MOB_DIRECTION = LEFT;// Mob is moving down and to the left
+        else if (dx < 0 && dy < 0) 
+            MOB_DIRECTION = UP;// Mob is moving up and to the left
+
+        // Calculate the direction based on the change in positions
+        if (prev_loc_x < curr_loc_x) 
+            DIRECTION_CHANGE = 1;// Mob moved right
+        else if (prev_loc_x > curr_loc_x) 
+            DIRECTION_CHANGE = 2; // Mob moved left
+        else if (prev_loc_y < curr_loc_y) 
+            DIRECTION_CHANGE = 3;// Mob moved down
+        else if (prev_loc_y > curr_loc_y) 
+            DIRECTION_CHANGE = 4;// Mob moved up
+            
+
+        // Check for a change in direction
+        if (DIRECTION_CHANGE != prev_mframex) {
+            // Direction changed, so reset frame x
+            DIRECTION_CHANGE = 0;
+            mob_mob.mframex = 0;
+            }
+
+
+        // Update mobs's direction
+        mob_mob.mframey = MOB_DIRECTION;
+
+        if (ELAPSED > 50) {
+            // Update walking animation
+            mob_mob.mframex = (mob_mob.mframex + 1) % 7;
+            ELAPSED = 0.0f; // Reset the timer
+            }
+
     }
 };
 
@@ -85,10 +173,21 @@ std::deque<Entity> PathfindingSystem::find_shortest_path(Entity player, Entity m
     // represents the immediate predecessor of the cell at index i in the world grid found during the BFS
     std::vector<int> predecessor;
 
-    // Execute A*
-    if (!A_star(player_cell, mob_cell, predecessor)) {
-        printf("Path from mob in cell %d to player in cell %d could not be found\n", mob_cell, player_cell);
-        assert(false);
+    // Check what kind of mob it is, for example ghosts don't use A* since they can go over collidable cells
+    Mob& curr = registry.mobs.get(mob);
+    if (curr.type == MOB_TYPE::GHOST) {
+        // Execute BFS
+        if (!BFS(player_cell, mob_cell, predecessor)) {
+            printf("BFS PATH from mob in cell %d to player in cell %d could not be found\n", mob_cell, player_cell);
+            assert(false);
+        }
+    }
+    else {
+        // Has a collider, needs A*
+        if (!A_star(player_cell, mob_cell, predecessor)) {
+            printf("A* PATH from mob in cell %d to player in cell %d could not be found\n", mob_cell, player_cell);
+            assert(false);
+        }
     }
 
     // Get shortest path by backtracking through predecessors
@@ -101,6 +200,47 @@ std::deque<Entity> PathfindingSystem::find_shortest_path(Entity player, Entity m
     }
 
     return path;
+};
+
+bool PathfindingSystem::BFS(Entity player_cell, Entity mob_cell, std::vector<int>& predecessor)
+{
+    std::queue<Entity> bfs_queue;
+
+    std::vector<bool> visited;
+
+    for (int i = 0; i < terrain->size_x * terrain->size_y; i++) {
+        visited.push_back(false);
+        predecessor.push_back(-1);
+    }
+
+    visited[terrain->get_cell_index(mob_cell)] = true;
+    bfs_queue.push(mob_cell);
+
+    while (!bfs_queue.empty()) {
+        Entity curr = bfs_queue.front();
+        int curr_cell_index = terrain->get_cell_index(curr);
+        bfs_queue.pop();
+
+        std::vector<Entity> neighbors;
+        // BFS is only used by ghost, so we can ignore colliders here.
+        terrain->get_accessible_neighbours(curr, neighbors, true);
+
+        for (Entity neighbor : neighbors) {
+            int neighbor_cell_index = terrain->get_cell_index(neighbor);
+
+            if (!visited[neighbor_cell_index]) {
+                visited.at(neighbor_cell_index) = true;
+                predecessor.at(neighbor_cell_index) = curr_cell_index;
+                bfs_queue.push(neighbor);
+
+                if (player_cell == neighbor) {
+                    return true;
+                }
+            }
+        }
+    }
+
+    return false;
 };
 
 bool PathfindingSystem::A_star(Entity player_cell, Entity mob_cell, std::vector<int>& predecessor)
@@ -159,7 +299,7 @@ bool PathfindingSystem::A_star(Entity player_cell, Entity mob_cell, std::vector<
 
         // Get neighbors of cell
         std::vector<Entity> neighbors;
-        terrain->get_accessible_neighbours(curr, neighbors);
+        terrain->get_accessible_neighbours(curr, neighbors, false);
 
         for (Entity neighbor : neighbors) {
             int neighbor_cell_index = terrain->get_cell_index(neighbor);
@@ -171,7 +311,7 @@ bool PathfindingSystem::A_star(Entity player_cell, Entity mob_cell, std::vector<
 
             // Calculate costs
             Motion& neighbor_motion = registry.motions.get(neighbor);
-            float neighbor_g = g[curr_cell_index] + (1.0f * (1/get_terrain_slow_ratio(neighbor)));
+            float neighbor_g = g[curr_cell_index] + (1.0f * (1/terrain->get_terrain_speed_ratio(neighbor)));
             float neighbor_h = distance(neighbor_motion.position, player_cell_motion.position);
             float neighbor_f = neighbor_g + neighbor_h;
 
@@ -188,14 +328,6 @@ bool PathfindingSystem::A_star(Entity player_cell, Entity mob_cell, std::vector<
     }
 
     return false;
-}
-
-float PathfindingSystem::get_terrain_slow_ratio(Entity cell)
-{
-    // Get terrain type of cell
-    TERRAIN_TYPE terrain_type = registry.terrainCells.get(cell).terrain_type;
-
-    return terrain_type_to_slow_ratio.find(terrain_type)->second;
 }
 
 bool PathfindingSystem::same_cell(Entity player, Entity mob)
@@ -228,7 +360,7 @@ bool PathfindingSystem::reached_next_cell(Entity mob)
     // printf("Distance between mob and next cell: %f\n", dist);
 
     // Check if mob is close to the center of the next cell
-    return dist < 0.01;
+    return dist < 0.05;
 };
 
 bool PathfindingSystem::has_player_moved(Entity player, Entity mob) 
@@ -273,6 +405,41 @@ bool PathfindingSystem::is_player_in_mob_aggro_range(Entity player, Entity mob) 
     return dist <= mob_aggro_range;
 }
 
+bool PathfindingSystem::entered_new_cell(Entity mob)
+{
+    // Get the cell the mob is expected to be in and the actual cell the mob is in 
+    Mob& mob_mob = registry.mobs.get(mob);
+    Entity expected_mob_cell = mob_mob.curr_cell;
+    Motion& mob_motion = registry.motions.get(mob);
+    Entity actual_mob_cell = terrain->get_cell(mob_motion.position);
+
+    // Check if mob has entered a new cell
+    return expected_mob_cell != actual_mob_cell;
+}
+
+void PathfindingSystem::apply_new_terrain_speed_effect(Entity mob, Entity prev_cell, Entity new_cell)
+{
+    // Get previous and new terrain speed ratios
+    float prev_terrain_speed_ratio = terrain->get_terrain_speed_ratio(prev_cell);
+    float new_terrain_speed_ratio = terrain->get_terrain_speed_ratio(new_cell);
+
+    // Remove previous terrain speed effect and apply new terrain speed effect
+    Motion& mob_motion = registry.motions.get(mob);
+    mob_motion.velocity /= prev_terrain_speed_ratio;
+    mob_motion.velocity *= new_terrain_speed_ratio;
+
+    // If mob is slowed by a weapon, update the initial velocity so mob moves at correct speed after weapon slow ends
+    if (registry.mobSlowEffects.has(mob)) {
+        MobSlowEffect& mob_mobSlowEffect = registry.mobSlowEffects.get(mob);
+        float mob_slow_ratio = mob_mobSlowEffect.slow_ratio;
+
+        if (mob_mobSlowEffect.applied) {
+            mob_mobSlowEffect.initial_velocity = mob_motion.velocity / mob_slow_ratio;
+        }
+    }
+
+}
+
 void PathfindingSystem::update_velocity_to_next_cell(Entity mob, float elapsed_ms)
 {
     // Get and remove previous cell in the path
@@ -296,12 +463,14 @@ void PathfindingSystem::update_velocity_to_next_cell(Entity mob, float elapsed_m
     Motion& next_cell_motion = registry.motions.get(next_cell);
     float angle = atan2(next_cell_motion.position.y - mob_motion.position.y, next_cell_motion.position.x - mob_motion.position.x);
 
-    // Update the velocity of the mob based on angle. If mob is slowed, apply the slow effect to the velocity
+    // Update the velocity of the mob based on angle, the mob's speed ratio, and the terrain's speed ratio
     Mob& mob_mob = registry.mobs.get(mob);
     float mob_speed_ratio = mob_mob.speed_ratio;
-    mob_motion.velocity[0] = cos(angle) * mob_speed_ratio;
-    mob_motion.velocity[1] = sin(angle) * mob_speed_ratio;
+    float terrain_speed_ratio = terrain->get_terrain_speed_ratio(prev_cell);
+    mob_motion.velocity[0] = cos(angle) * mob_speed_ratio * terrain_speed_ratio;
+    mob_motion.velocity[1] = sin(angle) * mob_speed_ratio * terrain_speed_ratio;
 
+    // If mob is slowed by a weapon, apply the slow effect to the velocity
     if (registry.mobSlowEffects.has(mob)) {
         MobSlowEffect& mob_mobSlowEffect = registry.mobSlowEffects.get(mob);
         float mob_slow_ratio = mob_mobSlowEffect.slow_ratio;

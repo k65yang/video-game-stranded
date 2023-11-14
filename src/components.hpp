@@ -4,6 +4,7 @@
 #include <unordered_map>
 #include <deque>
 #include "../ext/stb_image/stb_image.h"
+#include <map>
 
 // Player component
 
@@ -33,8 +34,7 @@ struct Player
 	float iframes_timer = 0; // in ms
 	int food = PLAYER_MAX_FOOD;
 	int framex = 0; 
-	int framey = 1; 
-
+	int framey = 4; 
 };
 
 // The weapon
@@ -53,13 +53,22 @@ struct Projectile {
 	Entity weapon; // link the projectile to the weapon
 };
 
+enum class MOB_TYPE {
+	SLIME = 0,
+	GHOST = SLIME + 1,
+};
+
 // Mob component
 struct Mob {
 	bool is_tracking_player = false;
 	int damage;
 	float aggro_range = 5.f;
-	int health = 100000;
+	int health = 50;
 	float speed_ratio = 0.5f;
+	int mframex = 0;
+	int mframey = 1;
+	Entity curr_cell; // cell the mob is currently in
+	MOB_TYPE type;
 };
 
 // Slowing effect for mobs from weapons
@@ -167,12 +176,17 @@ enum TERRAIN_TYPE : uint16_t {
 	AIR = 0,
 	GRASS = AIR + 1,
 	ROCK = GRASS + 1,
-	TERRAIN_COUNT = ROCK + 1
+	SAND = ROCK + 1,
+	MUD = SAND + 1,
+	SHALLOW_WATER = MUD + 1,
+	DEEP_WATER = SHALLOW_WATER + 1,
+	TERRAIN_COUNT = DEEP_WATER + 1
 };
 
 enum TERRAIN_FLAGS : uint32_t {
-	COLLIDABLE = 0b1,
-	DISABLE_PATHFIND = 0b10,
+	COLLIDABLE =			0b1,
+	DISABLE_PATHFIND =		0b10,
+	ALLOW_SPAWNS =			0b100,
 };
 
 /// <summary>
@@ -269,7 +283,8 @@ enum class TEXTURE_ASSET_ID {
 	QUEST_2_FOUND = QUEST_2_NOT_FOUND + 1,
 	QUEST_1_ITEM = QUEST_2_FOUND + 1,
 	QUEST_2_ITEM = QUEST_1_ITEM +1,
-	TEXTURE_COUNT = QUEST_2_ITEM + 1,
+	GHOST = QUEST_2_ITEM + 1,
+	TEXTURE_COUNT = GHOST + 1,
 	//PLAYER_SPRITE_SHEET = TEXTURE_COUNT +1
 
 
@@ -279,8 +294,8 @@ const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 enum class EFFECT_ASSET_ID {
 	COLOURED = 0,
 	PEBBLE = COLOURED + 1,
-	PLAYER = PEBBLE + 1,
-	SALMON = PLAYER + 1,
+	SPRITESHEET = PEBBLE + 1,
+	SALMON = SPRITESHEET + 1,
 	TEXTURED = SALMON + 1,
 	WATER = TEXTURED + 1,
 	TERRAIN = WATER + 1,
@@ -296,7 +311,9 @@ enum class GEOMETRY_BUFFER_ID {
 	SCREEN_TRIANGLE = DEBUG_LINE + 1,
 	// adding player geometry_buffer_ID
 	PLAYER_SPRITE = SCREEN_TRIANGLE + 1,
-	TERRAIN = PLAYER_SPRITE + 1,
+	// adding mobs geo_buffer_ID 
+	MOB_SPRITE = PLAYER_SPRITE + 1,
+	TERRAIN = MOB_SPRITE + 1,
 	PLAYER_MESH = TERRAIN + 1,
 	MOB001_MESH = PLAYER_MESH + 1,
 	GEOMETRY_COUNT = MOB001_MESH + 1
