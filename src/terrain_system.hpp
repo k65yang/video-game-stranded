@@ -83,6 +83,10 @@ public:
 	/// <returns>The index of the cell in the grid</returns>
 	int get_cell_index(Entity cell);
 
+	vec2 get_random_terrain_location();
+
+	bool is_terrain_location_used(vec2 position);
+
 	/// <summary>
 	/// Return true if the tile should have a collider
 	/// </summary>
@@ -144,4 +148,7 @@ private:
 	/// <param name="index">The index to a cell in 'grid'</param>
 	/// <returns>The cell's world position</returns>
 	vec2 to_world_coordinates(const int index);
+
+	// Vector to keep track of locations where an item/mob has been spawned
+	std::vector<vec2> used_terrain_locations;
 };

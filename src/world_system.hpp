@@ -136,13 +136,13 @@ private:
 	///	</summary>
 	/// <param name="position">The position to check</param>
 	/// <returns>True if the position has been used as a spawn location, false otherwise</returns>
-	bool is_spawn_location_used(vec2 position);
+	// bool is_spawn_location_used(vec2 position);
 
 	/// <summary>
 	/// Gets a random position in the map that has not already been used as a spawn location	
 	///	</summary>
 	/// <returns>A position that </returns>
-	vec2 get_random_spawn_location();
+	// vec2 get_random_spawn_location();
 
 	/// <summary>
 	/// Maps the GLFW key into a InputKeyIndex as an int

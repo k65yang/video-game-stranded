@@ -146,3 +146,43 @@ void TerrainSystem::init(const unsigned int x, const unsigned int y, RenderSyste
 		TerrainCell& cell = registry.terrainCells.emplace(entity, grid[i].flags);
 	}
 }
+
+vec2 TerrainSystem::get_random_terrain_location() {
+	vec2 position;
+	std::default_random_engine rng;
+
+	// Get unused spawn location within [-terrain->size_x/2 + 1, terrain->size_x/2 - 1] for x and 
+	// [-terrain->size_y/2 + 1, terrain->size_y/2 - 1] for y
+	while (true) {
+		position.x = abs((int) rng()) % (size_x - 2) + (-((size_x) / 2)) + 1;
+		position.y = abs((int) rng()) % (size_y - 2) + (-((size_y) / 2)) + 1;
+
+		// Skip locations that are covered by spaceship
+		if (position.x <= 1 && position.x >= -1 && position.y <= 2 && position.y >= -2) {
+			continue;
+		}
+
+		// Skip locations that are not accessible
+		if (isImpassable(position))
+			continue;
+
+		if (!is_terrain_location_used(position)) {
+			break;
+		}
+	} 
+
+	// Add terrain location to used terrain locations
+	used_terrain_locations.push_back(position);
+
+	return position;
+}
+
+bool TerrainSystem::is_terrain_location_used(vec2 position) {
+		for (vec2 p : used_terrain_locations) {
+		if (p.x == position.x && p.y == position.y) {
+			return true;
+		}
+	}
+
+	return false;
+}
