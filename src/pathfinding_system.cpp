@@ -205,14 +205,9 @@ bool PathfindingSystem::BFS(Entity player_cell, Entity mob_cell, std::unordered_
     std::queue<Entity> bfs_queue;
 
     // Initialize visited array for BFS
-    // visited is an array of booleans where visited[i] indicates whether the cell at index i in the world grid
-    // has been visited during the BFS
-    std::vector<bool> visited;
-
-    // Initialize values in visited false as all cells start out unvisited
-    for (int i = 0; i < terrain->size_x * terrain->size_y; i++) {
-        visited.push_back(false);
-    }
+    // visited is a map of key, value pairs where the key corresponds to the index of a cell in the world grid
+    // and the value indicates whether the cell has been visited during the BFS
+    std::unordered_map<int, bool> visited;
 
     // Start BFS from mob cell so mark it as visited and add to BFS queue
     visited[terrain->get_cell_index(mob_cell)] = true;
@@ -233,8 +228,8 @@ bool PathfindingSystem::BFS(Entity player_cell, Entity mob_cell, std::unordered_
             int neighbor_cell_index = terrain->get_cell_index(neighbor);
 
             // Set cell as visited, save its predecessor, and add it to the BFS queue if cell has not been visited yet
-            if (!visited[neighbor_cell_index]) {
-                visited.at(neighbor_cell_index) = true;
+            if (visited.count(neighbor_cell_index) == 0) {
+                visited[neighbor_cell_index] = true;
                 predecessor[neighbor_cell_index] = curr_cell_index;
                 bfs_queue.push(neighbor);
 
