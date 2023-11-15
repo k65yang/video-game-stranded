@@ -40,6 +40,20 @@ public:
 		{TERRAIN_TYPE::DEEP_WATER, 0.0625f}
 	};
 
+	// Look-up table for zone boundaries. Zones are circular.
+	// Key is zone number. Value is the radius FROM THE SPACESHIP
+	std::map<int, int> zone_radius_map = {
+		{1, 5},			// Zone 1 extends radius of 5 from spaceship
+		{2, 10},		// Zone 2 extends radius from 10 from spaceship but only r= 5-10 is zone 2
+		{3, 40}
+	};
+
+	/// @brief Function to get randomized spawn locations per zone
+	/// @param num_per_zone Map specifying how many mobs to spawn per zone
+	/// @return List of spawn locations
+	std::vector<vec2> get_mob_spawn_locations(std::map<int,int> num_per_zone);
+
+
 	/// <summary>
 	/// Initializes the world grid with the given size. Each axis should preferably be odd.
 	/// </summary>
@@ -90,7 +104,12 @@ public:
 	/// <returns>The index of the cell in the grid</returns>
 	int get_cell_index(Entity cell);
 
-	vec2 get_random_terrain_location();
+	/// @brief Get a random terrain location based within the given range
+	///        If range is 0, then the size of the map is used
+	/// @param grid_size An int 0 or larger. 
+	///        I.e. if grid_size=5, then will get a random position ([-5,5], [-5,5])
+	/// @return A vec2 of the random position
+	vec2 get_random_terrain_location(int grid_size);
 
 	bool is_terrain_location_used(vec2 position);
 

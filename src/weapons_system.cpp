@@ -57,7 +57,7 @@ void WeaponsSystem::fireWeapon(float player_x, float player_y, float player_angl
 			fireMachineGun(player_x, player_y, player_angle);
 			break;
 		default:
-			throw(std::runtime_error("Error: Filed to fire weapon because unknown weapon equipped"));
+			throw(std::runtime_error("Error: Failed to fire weapon because unknown weapon equipped"));
 	}
 		
 }

@@ -1,4 +1,5 @@
 #include "terrain_system.hpp"
+#include "cstring"
 
 void TerrainSystem::init(const unsigned int x, const unsigned int y, RenderSystem* renderer)
 {
@@ -189,7 +190,7 @@ void TerrainSystem::save_grid(const std::string& name)
 {
 	const std::string path = map_path_builder(name);
 	std::ofstream file(path.c_str(), std::ios::binary | std::ios::out);
-	file.write(map_ext.c_str(), size(map_ext));
+	file.write(map_ext.c_str(), map_ext.size());
 	assert(file.is_open() && "Map file cannot be created or modified.");
 	write_to_file(file, savefile_version);
 	write_to_file(file, size_x);
@@ -247,48 +248,77 @@ vec2 TerrainSystem::to_world_coordinates(const int index)
 			index / size_x - size_y / 2 };
 }
 
-void TerrainSystem::init(const unsigned int x, const unsigned int y, RenderSystem* renderer)
-{
-	std::default_random_engine rng;
-	rng = std::default_random_engine(std::random_device()());
+std::vector<vec2> TerrainSystem::get_mob_spawn_locations(std::map<int,int> num_per_zone) {
+    std::vector<vec2> result;
+    std::default_random_engine rng;
 
-	this->renderer = renderer;
+    for (const auto& kv : num_per_zone) {
+        int zone = kv.first;
+        int num_mobs = kv.second;
 
-	if (grid != nullptr) {		// if grid is allocated, deallocate
-		delete[] grid;
-		grid = nullptr;
-	}
+        // Throw error if invalid zone
+        if (zone_radius_map.count(zone) == 0)
+            throw(std::runtime_error("Error: Cannot spawn mob in invalid zone"));
 
-	size_x = x;
-	size_y = y;
-	grid = new Cell[x * y]();	// 1D 2-dimensional array so we can guarantee that
-								// the entire world is in the same memory block.
-	entityStart = grid[0].entity;
+        // Store the radius of the current and previous zones
+        // Mobs should spawn outside of the previous radius, but within the current radius
+		float curr_zone_radius = (float) zone_radius_map[zone];
+        float prev_zone_radius;
+        if (zone == 1)
+            prev_zone_radius = 0.f;
+        else
+            prev_zone_radius = (float) zone_radius_map[zone-1];
 
-	for (int i = 0; i < x * y; i++) {
-		Entity& entity = grid[i].entity;
-		Motion& motion = registry.motions.emplace(entity);
-		motion.position = to_world_coordinates(i);
-		if (i % x == 0 || i % x == x - 1 ||
-			i / y == 0 || i / y == y - 1) {
-			grid[i].flags |= ((uint32)TERRAIN_TYPE::ROCK << 16) | TERRAIN_FLAGS::COLLIDABLE;
-		} else if (rng() % 2 == 1) {	// randomly make some cells AIR terrain type
-			grid[i].flags = (uint32)TERRAIN_TYPE::AIR << 16;
-		}
+		// Keep generating random locations until you meet the num_mobs quota
+		// Be sure to check if the current location is in the zone we want
+        while(num_mobs) {
+            vec2 random_location = get_random_terrain_location((int) curr_zone_radius);
 
-		TerrainCell& cell = registry.terrainCells.emplace(entity, grid[i].flags);
-	}
+			float distance = sqrt(pow(random_location.x,2) + pow(random_location.y,2));
+			
+			// Uncomment for debug
+			// printf("random_location.x: %f \n", random_location.x);
+			// printf("random_location.y: %f \n", random_location.y);
+			// printf("distance: %f \n", distance);
+
+			if (distance <= curr_zone_radius && distance >= prev_zone_radius) {
+				// location is valid, store it and decrement num_mobs
+				result.push_back(random_location);
+				num_mobs--;
+			} else {
+				// distance is invalid, we cannot use the generated location
+				used_terrain_locations.pop_back();
+			}
+        }
+    }
+    return result;
 }
 
-vec2 TerrainSystem::get_random_terrain_location() {
+vec2 TerrainSystem::get_random_terrain_location(int grid_size) {
 	vec2 position;
-	std::default_random_engine rng;
 
-	// Get unused spawn location within [-terrain->size_x/2 + 1, terrain->size_x/2 - 1] for x and 
-	// [-terrain->size_y/2 + 1, terrain->size_y/2 - 1] for y
+	// Determine the location range
+	int range_x;
+	int range_y;
+	if (grid_size >= 0) {
+		range_x = size_x;
+		range_y = size_y;
+	} else {
+		// force the range to be within the map size
+		range_x = grid_size * 2 > size_x ? size_x : grid_size * 2;
+		range_y = grid_size * 2 > size_y ? size_y : grid_size * 2;
+	}
+
+	// set up the random number generator
+	std::random_device rng;
+    std::mt19937 generator(rng());  // Seed the generator
+    std::uniform_int_distribution<> distribution_x(-range_x/2 + 1, range_x/2 - 1);
+	std::uniform_int_distribution<> distribution_y(-range_y/2 + 1, range_y/2 - 1);
+
+	// Get unused spawn location within the given ranges
 	while (true) {
-		position.x = abs((int) rng()) % (size_x - 2) + (-((size_x) / 2)) + 1;
-		position.y = abs((int) rng()) % (size_y - 2) + (-((size_y) / 2)) + 1;
+		position.x = distribution_x(generator);
+		position.y = distribution_y(generator);
 
 		// Skip locations that are covered by spaceship
 		if (position.x <= 1 && position.x >= -1 && position.y <= 2 && position.y >= -2) {
@@ -296,7 +326,7 @@ vec2 TerrainSystem::get_random_terrain_location() {
 		}
 
 		// Skip locations that are not accessible
-		if (isImpassable(position))
+		if (is_impassable(position))
 			continue;
 
 		if (!is_terrain_location_used(position)) {
