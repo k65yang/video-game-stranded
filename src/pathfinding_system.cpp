@@ -259,21 +259,14 @@ bool PathfindingSystem::A_star(Entity player_cell, Entity mob_cell, std::unorder
     > open;
 
     // Initialize closed array for A*
-    // closed is an array of booleans where closed[i] indicates whether the cell at index i in the world grid
-    // has been processed during A*
-    std::vector<bool> closed;
+    // closed is a map of key, value pairs where the key corresponds to the index of a cell in the world grid
+    // and the value indicates whether the cell has been processed during A*
+    std::unordered_map<int, bool> closed;
 
     // Initialize g array for A*
-    // g is an array of floats where g[i] indicates the cost to move from the mob cell (i.e. the starting cell) to
-    // the cell at index i in the world grid
-    std::vector<float> g;
-
-    // Initialize values in closed to false as all cells start out as open
-    // Initialize values in g to -1 as cost for cells start out unknown
-    for (int i = 0; i < terrain->size_x * terrain->size_y; i++) {
-        closed.push_back(false);
-        g.push_back(-1);
-    }  
+    // g is a map of key, value pairs where the key corresponds to the index of a cell in the world grid
+    // and the value indicates the cost to move from the mob cell (i.e. the starting cell) to the cell
+    std::unordered_map<int, float> g;
 
     // Start A* from the mob cell so add it to open and set its g to 0
     int mob_cell_index = terrain->get_cell_index(mob_cell);
@@ -289,7 +282,7 @@ bool PathfindingSystem::A_star(Entity player_cell, Entity mob_cell, std::unorder
         Entity curr = terrain->get_cell(curr_cell_index);
 
         // Set cell to closed
-        closed.at(curr_cell_index) = true;
+        closed[curr_cell_index] = true;
 
         // Stop A* if the cell is the one the player is in
         if (curr == player_cell) {
@@ -304,7 +297,7 @@ bool PathfindingSystem::A_star(Entity player_cell, Entity mob_cell, std::unorder
             int neighbor_cell_index = terrain->get_cell_index(neighbor);
 
             // Skip neighbor if it is closed
-            if (closed[neighbor_cell_index]) {
+            if (closed.count(neighbor_cell_index) == 1) {
                 continue;
             }
 
@@ -315,14 +308,14 @@ bool PathfindingSystem::A_star(Entity player_cell, Entity mob_cell, std::unorder
             float neighbor_f = neighbor_g + neighbor_h;
 
             // Do not add neighbor to open if it is already in open and came from a path with lower cost
-            if (g[neighbor_cell_index] != -1 && g[neighbor_cell_index] < neighbor_g) {
+            if (g.count(neighbor_cell_index) == 1 && g[neighbor_cell_index] < neighbor_g) {
                 continue;
             }
 
             // Add neighbor to open and set predecessor and g
             open.push(std::make_pair(neighbor_f, neighbor_cell_index));
             predecessor[neighbor_cell_index] = curr_cell_index;
-            g.at(neighbor_cell_index) = neighbor_g;
+            g[neighbor_cell_index] = neighbor_g;
         }
     }
 
