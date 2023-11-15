@@ -1,4 +1,5 @@
 #include "pathfinding_system.hpp"
+
 float ELAPSED = 0;
 int MOB_DIRECTION = 1;  // Default to facing up
 int UP = 0; 
@@ -6,6 +7,7 @@ int DOWN = 1;
 int LEFT = 2;
 int RIGHT = 3; 
 int DIRECTION_CHANGE = 0;
+
 void PathfindingSystem::init(TerrainSystem* terrain_arg)
 {
     this->terrain = terrain_arg;
@@ -13,24 +15,10 @@ void PathfindingSystem::init(TerrainSystem* terrain_arg)
     
 void PathfindingSystem::step(float elapsed_ms) 
 {
-    // TODO: better way to get player?
     Entity player = registry.players.entities[0]; 
 
-    // printf("++++++++PLAYER++++++++\n");
-    // printf("Player: %d\n", player);
-    // printf("Player cell index: %d\n", terrain->get_cell_index(terrain->get_cell(registry.motions.get(player).position)));
-
-    // printf("++++++++MOBS++++++++\n");
     for (Entity mob : registry.mobs.entities) {
         Mob& mob_mob = registry.mobs.get(mob);
-
-        // printf("size of mobSlowEffect registry: %i\n", registry.mobSlowEffects.components.size());
-        // printf("Mob: %d\n", mob);
-        // printf("Mob cell index: %d\n", terrain->get_cell_index(terrain->get_cell(registry.motions.get(mob).position)));
-        // printf("Mob position before (x): %f\n", registry.motions.get(mob).position[0]);
-        // printf("Mob position before (y): %f\n", registry.motions.get(mob).position[1]);
-        // printf("Mob velocity before (dx): %f\n", registry.motions.get(mob).velocity[0]);
-        // printf("Mob velocity before (dy): %f\n", registry.motions.get(mob).velocity[1]);
 
         // Stop mob from tracking the player if mob is tracking the player and has reached the next cell in their path and:
         // 1) player is not in the aggro range of the mob, or
@@ -54,16 +42,6 @@ void PathfindingSystem::step(float elapsed_ms)
             mob_path.path = new_path;
         }
 
-        // printf("Path for mob %d: ", mob);
-        // Path& mob_path = registry.paths.get(mob);
-        // std::deque<Entity> path_copy = mob_path.path;
-        // while (!path_copy.empty()) {
-        //     printf("%d ", terrain->get_cell_index(path_copy.front()));
-        //     path_copy.pop_front();
-        // }
-        // printf("\n");
-
-
         // Get the previous location of the mob 
         float prev_loc_x = registry.motions.get(mob).position[0];
         float prev_loc_y = registry.motions.get(mob).position[1];
@@ -73,14 +51,9 @@ void PathfindingSystem::step(float elapsed_ms)
         // Adjust this for mob animation speed
         ELAPSED += elapsed_ms;
 
-
         // Apply new terrain speed effect if the mob enters a new cell
-
-        Mob& mob_obj = registry.mobs.get(mob);
-
-        if (entered_new_cell(mob) && mob_obj.type != MOB_TYPE::GHOST) {
+        if (entered_new_cell(mob) && mob_mob.type != MOB_TYPE::GHOST) {
             // Get the cell the mob was previously in and the new cell the mob is in
-            Mob& mob_mob = registry.mobs.get(mob);
             Entity prev_mob_cell = mob_mob.curr_cell;
             Motion& mob_motion = registry.motions.get(mob);
             Entity new_mob_cell = terrain->get_cell(mob_motion.position);
@@ -96,13 +69,7 @@ void PathfindingSystem::step(float elapsed_ms)
             update_velocity_to_next_cell(mob, elapsed_ms);
         }
 
-        // printf("Mob position after (x): %f\n", registry.motions.get(mob).position[0]);
-        // printf("Mob position after (y): %f\n", registry.motions.get(mob).position[1]);
-        // printf("Mob velocity after (dx): %f\n", registry.motions.get(mob).velocity[0]);
-        // printf("Mob velocity after (dy): %f\n", registry.motions.get(mob).velocity[1]);
-
-        // printf("\n");
-                // Get the current location of the mob
+        // Get the current location of the mob
         float curr_loc_x = registry.motions.get(mob).position[0];
         float curr_loc_y = registry.motions.get(mob).position[1];
 
@@ -346,11 +313,6 @@ bool PathfindingSystem::reached_next_cell(Entity mob)
     Motion& next_cell_motion = registry.motions.get(next_cell);
     float dist = distance(mob_motion.position, next_cell_motion.position);
 
-    // printf("Next cell index: %d\n", terrain->get_cell_index(next_cell));
-    // printf("Next cell position (x): %f\n", next_cell_motion.position.x);
-    // printf("Next cell position (y): %f\n", next_cell_motion.position.y);
-    // printf("Distance between mob and next cell: %f\n", dist);
-
     // Check if mob is close to the center of the next cell
     return dist < 0.05;
 };
@@ -389,9 +351,6 @@ bool PathfindingSystem::is_player_in_mob_aggro_range(Entity player, Entity mob) 
 
     // Calculate the distance between the player and mob
     float dist = distance(mob_motion.position, player_motion.position);
-
-    // printf("Distance between player and mob %d: %f\n", mob, dist);
-    // printf("Player is in aggro range of mob? %d\n", dist <= mob_aggro_range);
 
     // Check if the player is within the aggro range of the mob
     return dist <= mob_aggro_range;
