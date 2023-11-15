@@ -390,8 +390,9 @@ void RenderSystem::initializeGlGeometryBuffers()
 	//////////////////////////
 // Initialize player sprite
 // The position corresponds to the center of the texture.
-	float player_frame_w = 0.125f; 
-	float player_frame_h = 0.2f;
+	// This is hardcoded dimensions of the texture/ num of frame in texture 
+	player_frame_w = 0.125f; 
+	player_frame_h = 0.2f;
 	std::vector<TexturedVertex> player_vertices(4);
 	player_vertices[0].position = { -1.f / 2, +1.f / 2, 0.f };
 	player_vertices[1].position = { +1.f / 2, +1.f / 2, 0.f };
@@ -409,8 +410,9 @@ void RenderSystem::initializeGlGeometryBuffers()
 
 	// Initialize mob sprite
 // The position corresponds to the center of the texture.
-	float mob_frame_w = 0.142857f;
-	float mob_frame_h = 0.25;
+	// This is hardcoded dimensions of the texture/ num of frame in texture 
+	mob_frame_w = 0.142857f;
+	mob_frame_h = 0.25;
 	std::vector<TexturedVertex> mob_vertices(4);
 	mob_vertices[0].position = { -1.f / 2, +1.f / 2, 0.f };
 	mob_vertices[1].position = { +1.f / 2, +1.f / 2, 0.f };

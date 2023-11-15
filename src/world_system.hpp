@@ -170,5 +170,17 @@ private:
 	/// Sets camera follow mode to true if no camera-control buttons are pressed
 	/// </summary>
 	void update_camera_follow();
+
+	/// <summary>
+	///  Sets the player's facing direction based on the cursor angle (aiming direction)
+	/// </summary>
+	void updatePlayerDirection();
+
+	/// <summary>
+	// Handles various aspects related to player movement, 
+	// including updating the walking animation and tracking the total distance traveled.
+	/// </summary>
+	/// <param name="elapsed_ms_since_last_update"></param>
+	void handlePlayerMovement(float elapsed_ms_since_last_update);
 	bool keyDown[KEYS];    // Uses InputKeyIndex values as index
 };

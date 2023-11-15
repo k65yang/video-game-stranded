@@ -156,6 +156,13 @@ public:
 	// Do not modify this. READ ONLY!!
 	bool is_terrain_mesh_loaded = false;
 
+	// Initialize player sprite
+	float player_frame_w;
+	float player_frame_h;
+	// Initialize mob sprite
+	float mob_frame_w;
+	float mob_frame_h;
+
 private:
 	// Internal vertex data structure used for batched rendering
 	struct BatchedVertex {

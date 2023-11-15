@@ -270,57 +270,13 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	f.position = m.position;
 
 	ELAPSED_TIME += elapsed_ms_since_last_update;
-	// rendering spritesheet with curser 
-	// change player direction based on aiming direction 
-	// Determine the player's facing direction based on the cursor angle
-	if (CURSOR_ANGLE >= -M_PI / 4 && CURSOR_ANGLE < M_PI / 4) {
-		PLAYER_DIRECTION = 2;  // Right
-	} else if (CURSOR_ANGLE >= M_PI / 4 && CURSOR_ANGLE < 3 * M_PI / 4) {
-		PLAYER_DIRECTION = 4;  // Down
-	} else if (CURSOR_ANGLE >= -3 * M_PI / 4 && CURSOR_ANGLE < -M_PI / 4) {
-		PLAYER_DIRECTION = 0;  // Up
-	} else {
-		PLAYER_DIRECTION = 3;  // Left
-	}
 
-	// Update player's direction
-	registry.players.components[0].framey = PLAYER_DIRECTION;
+	// update spritesheet with aiming direction 
+	updatePlayerDirection();
 
-	// Check if any movement keys are pressed and if player is not dead 
-	bool anyMovementKeysPressed = keyDown[LEFT] || keyDown[RIGHT] || keyDown[UP] || keyDown[DOWN];
-
-	// Movement code, build the velocity resulting from player moment
-	// We'll consider moveVelocity existing in player space
-	// Allow movement if player is not dead 
-	if (!registry.deathTimers.has(player_salmon)) {
-		m.velocity = { 0, 0 };
-		
-		handle_movement(m, LEFT);
-		if (length(m.velocity) > 0) {
-			m.velocity *= terrain->get_terrain_speed_ratio(terrain->get_cell(m.position));
-		}
-
-		if (anyMovementKeysPressed) {
-			// If any keys are pressed resulting movement then add to total travel distance. 
-			PLAYER_TOTAL_DISTANCE += FOOD_DECREASE_RATE * elapsed_ms_since_last_update / 1000.f;
-			if (ELAPSED_TIME > 100) {
-				// Update walking animation
-				registry.players.components[0].framex = (registry.players.components[0].framex + 1) % 4;
-				ELAPSED_TIME = 0.0f; // Reset the timer
-				}
-			}
-		else {
-			// No movement keys pressed, set back to the first frame
-			registry.players.components[0].framex = 0;
-
-			}
-	}
-	else {
-		// Player is dead, do not allow movement
-		m.velocity = { 0, 0 };
-		registry.players.components[0].framey = 1;
-
-	}
+	// Player Movement code, build the velocity resulting from player movement
+	//for movement, animation, and distance calculation
+	handlePlayerMovement(elapsed_ms_since_last_update);
 
 	// Camera movement mode
 	Camera& c = registry.cameras.get(main_camera);
@@ -378,6 +334,65 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 	return true;
 }
+
+
+void WorldSystem::updatePlayerDirection() {
+	if (CURSOR_ANGLE >= -M_PI / 4 && CURSOR_ANGLE < M_PI / 4) {
+		PLAYER_DIRECTION = 2;  // Right
+		}
+	else if (CURSOR_ANGLE >= M_PI / 4 && CURSOR_ANGLE < 3 * M_PI / 4) {
+		PLAYER_DIRECTION = 4;  // Down
+		}
+	else if (CURSOR_ANGLE >= -3 * M_PI / 4 && CURSOR_ANGLE < -M_PI / 4) {
+		PLAYER_DIRECTION = 0;  // Up
+		}
+	else {
+		PLAYER_DIRECTION = 3;  // Left
+		}
+
+	// Update player's direction
+	registry.players.components[0].framey = PLAYER_DIRECTION;
+	
+	}
+
+void WorldSystem::handlePlayerMovement(float elapsed_ms_since_last_update) {
+	// Check if any movement keys are pressed and if player is not dead
+	bool anyMovementKeysPressed = keyDown[LEFT] || keyDown[RIGHT] || keyDown[UP] || keyDown[DOWN];
+
+	// We'll consider moveVelocity existing in player space
+	// Allow movement if player is not dead 
+	// Movement code, build the velocity resulting from player movement
+	if (!registry.deathTimers.has(player_salmon)) {
+		Motion& m = registry.motions.get(player_salmon);
+		m.velocity = { 0, 0 };
+
+		handle_movement(m, LEFT);
+
+		if (length(m.velocity) > 0) {
+			m.velocity *= terrain->get_terrain_speed_ratio(terrain->get_cell(m.position));
+			}
+
+		if (anyMovementKeysPressed) {
+			PLAYER_TOTAL_DISTANCE += FOOD_DECREASE_RATE * elapsed_ms_since_last_update / 1000.f;
+
+			if (ELAPSED_TIME > 100) {
+				// Update walking animation
+				registry.players.components[0].framex = (registry.players.components[0].framex + 1) % 4;
+				ELAPSED_TIME = 0.0f; // Reset the timer
+				}
+			}
+		else {
+			// No movement keys pressed, set back to the first frame
+			registry.players.components[0].framex = 0;
+			}
+		}
+	else {
+		// Player is dead, do not allow movement
+		Motion& m = registry.motions.get(player_salmon);
+		m.velocity = { 0, 0 };
+		registry.players.components[0].framey = 1;
+		}
+	}
 
 void WorldSystem::handle_movement(Motion& motion, InputKeyIndex indexStart, bool invertDirection, bool useAbsoluteVelocity)
 {
