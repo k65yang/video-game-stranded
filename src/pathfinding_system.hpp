@@ -58,6 +58,17 @@ private:
     /// </param>
     bool A_star(Entity player_cell, Entity mob_cell, std::vector<int>& predecessor);
 
+	/// <summary>
+	/// Conducts a BFS over the world grid cells, starting from the cell the mob is in, to find the shortest path 
+    /// to the cell the player is in
+    /// Reference: https://www.geeksforgeeks.org/shortest-path-unweighted-graph/
+	/// </summary>
+	/// <param name="player_cell">The cell the player is in</param>
+	/// <param name="mob_cell">The cell the mob is in</param>
+	/// <param name="predecessor">
+    /// An array of ints which correspond to indices of cells in the world grid. predecessor[i] represents the immediate 
+    /// predecessor of the cell at index i in the world grid found during the BFS
+    /// </param>
 	bool BFS(Entity player_cell, Entity mob_cell, std::vector<int>& predecessor);
 
     /// <summary>
