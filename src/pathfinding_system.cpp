@@ -169,21 +169,18 @@ std::deque<Entity> PathfindingSystem::find_shortest_path(Entity player, Entity m
     Entity mob_cell = terrain->get_cell(mob_motion.position);
 
     // Initialize predecessor array for BFS
-    // predecessor is an array of ints which correspond to indices of cells in the world grid. predecessor[i] 
-    // represents the immediate predecessor of the cell at index i in the world grid found during the BFS
-    std::vector<int> predecessor;
+    // predecessor is a map of key, value pairs where the key corresponds to an index of a cell in the world grid 
+    // and the value represents the index of the immediate predecessor of the cell found during pathfinding
+    std::unordered_map<int, int> predecessor;
 
     // Check what kind of mob it is, for example ghosts don't use A* since they can go over collidable cells
-    Mob& curr = registry.mobs.get(mob);
-    if (curr.type == MOB_TYPE::GHOST) {
-        // Execute BFS
+    Mob& mob_mob = registry.mobs.get(mob);
+    if (mob_mob.type == MOB_TYPE::GHOST) {
         if (!BFS(player_cell, mob_cell, predecessor)) {
             printf("BFS PATH from mob in cell %d to player in cell %d could not be found\n", mob_cell, player_cell);
             assert(false);
         }
-    }
-    else {
-        // Has a collider, needs A*
+    } else {
         if (!A_star(player_cell, mob_cell, predecessor)) {
             printf("A* PATH from mob in cell %d to player in cell %d could not be found\n", mob_cell, player_cell);
             assert(false);
@@ -194,15 +191,15 @@ std::deque<Entity> PathfindingSystem::find_shortest_path(Entity player, Entity m
     std::deque<Entity> path;
     path.push_front(player_cell);
     int index = terrain->get_cell_index(player_cell);
-    while (predecessor.at(index) != -1) {
-        path.push_front(terrain->get_cell(predecessor.at(index)));
-        index = predecessor.at(index);
+    while (predecessor.count(index) == 1) {
+        path.push_front(terrain->get_cell(predecessor[index]));
+        index = predecessor[index];
     }
 
     return path;
 };
 
-bool PathfindingSystem::BFS(Entity player_cell, Entity mob_cell, std::vector<int>& predecessor)
+bool PathfindingSystem::BFS(Entity player_cell, Entity mob_cell, std::unordered_map<int, int>& predecessor)
 {
     // Initialize queue for BFS
     std::queue<Entity> bfs_queue;
@@ -213,10 +210,8 @@ bool PathfindingSystem::BFS(Entity player_cell, Entity mob_cell, std::vector<int
     std::vector<bool> visited;
 
     // Initialize values in visited false as all cells start out unvisited
-    // Initialize values in predecessor to -1 as predecessors for cells start out unknown
     for (int i = 0; i < terrain->size_x * terrain->size_y; i++) {
         visited.push_back(false);
-        predecessor.push_back(-1);
     }
 
     // Start BFS from mob cell so mark it as visited and add to BFS queue
@@ -240,7 +235,7 @@ bool PathfindingSystem::BFS(Entity player_cell, Entity mob_cell, std::vector<int
             // Set cell as visited, save its predecessor, and add it to the BFS queue if cell has not been visited yet
             if (!visited[neighbor_cell_index]) {
                 visited.at(neighbor_cell_index) = true;
-                predecessor.at(neighbor_cell_index) = curr_cell_index;
+                predecessor[neighbor_cell_index] = curr_cell_index;
                 bfs_queue.push(neighbor);
 
                 // Stop BFS if the cell is the one the player is in
@@ -254,7 +249,7 @@ bool PathfindingSystem::BFS(Entity player_cell, Entity mob_cell, std::vector<int
     return false;
 };
 
-bool PathfindingSystem::A_star(Entity player_cell, Entity mob_cell, std::vector<int>& predecessor)
+bool PathfindingSystem::A_star(Entity player_cell, Entity mob_cell, std::unordered_map<int, int>& predecessor)
 {
     // Resusable values
     Motion& player_cell_motion = registry.motions.get(player_cell);
@@ -279,11 +274,9 @@ bool PathfindingSystem::A_star(Entity player_cell, Entity mob_cell, std::vector<
     std::vector<float> g;
 
     // Initialize values in closed to false as all cells start out as open
-    // Initialize values in predecessor to -1 as predecessors for cells start out unknown
     // Initialize values in g to -1 as cost for cells start out unknown
     for (int i = 0; i < terrain->size_x * terrain->size_y; i++) {
         closed.push_back(false);
-        predecessor.push_back(-1);
         g.push_back(-1);
     }  
 
@@ -333,7 +326,7 @@ bool PathfindingSystem::A_star(Entity player_cell, Entity mob_cell, std::vector<
 
             // Add neighbor to open and set predecessor and g
             open.push(std::make_pair(neighbor_f, neighbor_cell_index));
-            predecessor.at(neighbor_cell_index) = curr_cell_index;
+            predecessor[neighbor_cell_index] = curr_cell_index;
             g.at(neighbor_cell_index) = neighbor_g;
         }
     }
