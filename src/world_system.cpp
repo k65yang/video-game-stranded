@@ -502,10 +502,13 @@ void WorldSystem::restart_game() {
 void WorldSystem::handle_collisions() {
 	// Loop over all collisions detected by the physics system
 	auto& collisionsRegistry = registry.collisions;
+	vec2 hasCorrectedDirection = {0,0};
+
 	for (uint i = 0; i < collisionsRegistry.components.size(); i++) {
 		// The entity and its collider
 		Entity entity = collisionsRegistry.entities[i];
 		Entity entity_other = collisionsRegistry.components[i].other_entity;
+		
 
 		// Collisions involving the player
 		if (registry.players.has(entity)) {
@@ -551,8 +554,9 @@ void WorldSystem::handle_collisions() {
 			}
 
 			// Checking Player - Terrain
-			if (registry.terrainCells.has(entity_other) || registry.boundaries.has(entity_other)) {
-
+			if (registry.terrainCells.has(entity_other) && registry.collisions.components[i].MTV != hasCorrectedDirection)
+			
+			{
 				Motion& motion = registry.motions.get(player_salmon);
 				/*
 				std::cout << "MTV x" << registry.collisions.components[i].MTV.x << "  MTV Y: " << registry.collisions.components[i].MTV.y << std::endl;
@@ -560,6 +564,7 @@ void WorldSystem::handle_collisions() {
 				*/
 				vec2 correctionVec = registry.collisions.components[i].MTV * registry.collisions.components[i].overlap;
 				motion.position = motion.position + correctionVec;
+				hasCorrectedDirection = registry.collisions.components[i].MTV;
 			}
 
 			// Checking Player - Items
