@@ -339,12 +339,5 @@ vec2 TerrainSystem::get_random_terrain_location(ZONE_NUMBER zone) {
 }
 
 bool TerrainSystem::is_terrain_location_used(vec2 position) {
-	// for (vec2 p : used_terrain_locations) {
-	// 	if (p.x == position.x && p.y == position.y) {
-	// 		return true;
-	// 	}
-	// }
-
-	// return false;
-	return used_terrain_locations.count(position);
+	return used_terrain_locations.count(position) > 0;
 }
