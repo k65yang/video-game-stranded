@@ -439,6 +439,9 @@ void WorldSystem::restart_game() {
 	// Re-initialize the terrain
 	terrain->init(loaded_map_name, renderer);
 
+	// PRESSURE TESTING FOR BVH 
+	//terrain->init(350, 350, renderer);
+
 	// Create a Spaceship 
 	spaceship = createSpaceship(renderer, { 0,0 });
 

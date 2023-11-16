@@ -4,7 +4,7 @@
 
 // stlib
 #include <chrono>
-
+#include <iostream>
 // internal
 #include "physics_system.hpp"
 #include "render_system.hpp"
@@ -42,6 +42,8 @@ int main()
 	world_system.init(&render_system, &terrain_system, &weapons_system);
 	render_system.initializeTerrainBuffers();
 	pathfinding_system.init(&terrain_system);
+	physics_system.init(registry.colliders.size());
+	
 
 	// variable timestep loop
 	auto t = Clock::now();

@@ -34,7 +34,7 @@ void TerrainSystem::init(const unsigned int x, const unsigned int y, RenderSyste
 			terraincell_grid[i] = ((uint32)TERRAIN_TYPE::ROCK << 16) | TERRAIN_FLAGS::COLLIDABLE;
 		}
 		else {
-			terraincell_grid[i] = ((uint32_t)TERRAIN_TYPE::GRASS) << 16;
+			terraincell_grid[i] = ((uint32_t)TERRAIN_TYPE::GRASS) << 16 | TERRAIN_FLAGS::ALLOW_SPAWNS;
 		}
 
 		TerrainCell& cell = registry.terrainCells.emplace(entity, terraincell_grid[i]);
