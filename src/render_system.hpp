@@ -6,6 +6,7 @@
 #include "common.hpp"
 #include "components.hpp"
 #include "tiny_ecs.hpp"
+#include <unordered_set>
 
 // System responsible for setting up OpenGL and for rendering all the
 // visual entities in the game
@@ -71,16 +72,36 @@ class RenderSystem {
 			textures_path("ghost.png"),
 	};
 
+	// How big one terrain spritesheet is
+	const ivec2 terrain_sheet_size =	{ 300, 150 };
+	// Number of "frames" per sprite sheet
+	const ivec2 terrain_sheet_n =		{ terrain_sheet_size.x / tile_size_px,
+										  terrain_sheet_size.y / tile_size_px };
+	// How big one "frame" is in that spritesheet is
+
+	// TODO: properly handle GL_LINEAR behaviour in texture atlasses instead of this hacky method.
+	// Basically, we're definining the "edge" texels/pixels of a tile
+	// as a "border" for GL_LINEAR filtering to use
+	const vec2	terrain_sheet_uv =		{ (tile_size_px - 1.f) / terrain_sheet_size.x,
+										  (tile_size_px - 1.f) / terrain_sheet_size.y };
+	const vec2 terrain_texel_offset =	{ 1.f / terrain_sheet_size.x, 
+										  1.f / terrain_sheet_size.y };
+
 	// This is used for generating the texture array for batched renders
 	// NOTE: all images must have the same dimensions.
 	const std::array<std::string, TERRAIN_TYPE::TERRAIN_COUNT> terrain_texture_paths = {
 		terrain_texture_path("0.png"),
-		terrain_texture_path("grass_3.png"),
-		terrain_texture_path("stone_3.png"),
-		terrain_texture_path("sand_3.png"),
-		terrain_texture_path("mud_2.png"),
-		terrain_texture_path("shallow_water_1.png"),
-		terrain_texture_path("deep_water_1.png"),
+		terrain_texture_path("1.png"),
+		terrain_texture_path("2.png"),
+		terrain_texture_path("3.png"),
+		terrain_texture_path("4.png"),
+		terrain_texture_path("5.png"),
+		terrain_texture_path("6.png"),
+	};
+
+	// Specifies which textures are directional
+	const std::unordered_set<TERRAIN_TYPE> directional_textures = {
+		ROCK,
 	};
 
 	std::array<GLuint, effect_count> effects;
@@ -156,13 +177,30 @@ public:
 	// Do not modify this. READ ONLY!!
 	bool is_terrain_mesh_loaded = false;
 
+	enum ORIENTATIONS : uint8 {
+		EDGE_BOTTOM,
+		EDGE_TOP,
+		EDGE_LEFT,
+		EDGE_RIGHT,
+		CORNER_OUTER_TOP_LEFT,
+		CORNER_OUTER_TOP_RIGHT,
+		CORNER_OUTER_BOTTOM_LEFT,
+		CORNER_OUTER_BOTTOM_RIGHT,
+		CORNER_INNER_TOP_LEFT,
+		CORNER_INNER_TOP_RIGHT,
+		CORNER_INNER_BOTTOM_LEFT,
+		CORNER_INNER_BOTTOM_RIGHT,
+		ORIENTATIONS_COUNT
+	};
+
 private:
 	// Internal vertex data structure used for batched rendering
 	struct BatchedVertex {
 		vec3 position;
 		vec2 texCoords;
 		uint16_t texIndex;
-		uint16_t flags;	// reserved for animated textures, etc.
+		uint8_t flags;		// reserved for animated textures, etc.
+		uint8 frameValue;	// Gives orientation, what random texture to use, etc.
 	};
 
 	// Internal drawing functions for each entity type

@@ -73,9 +73,9 @@ bool RenderSystem::init(GLFWwindow* window_arg)
 /// <param name="vertices"></param>
 /// <param name="indicies"></param>
 template <class T>
-void RenderSystem::make_quad(mat3 modelMatrix,
-	uint16_t texture_id,
-	std::vector<BatchedVertex>& vertices,
+void RenderSystem::make_quad(mat3 modelMatrix, 
+	uint16_t texture_id, 
+	std::vector<BatchedVertex>& vertices, 
 	std::vector<T>& indicies) {
 
 	makeQuadVertices(modelMatrix, texture_id, vertices);
@@ -89,17 +89,21 @@ void RenderSystem::make_quad(mat3 modelMatrix,
 void RenderSystem::makeQuadVertices(glm::mat3& modelMatrix, uint16_t texture_id, std::vector<BatchedVertex>& vertices)
 {
 	BatchedVertex quad[4];
+
+	// TODO: properly handle GL_LINEAR behaviour in texture atlasses instead of this hacky method.
+	// Basically, we're definining the "edge" texels/pixels of a tile
+	// as a "border" for GL_LINEAR filtering to use
 	quad[0].position = { -0.5f, 0.5f, 1.f };
-	quad[0].texCoords = { 0.f, 1.f };
+	quad[0].texCoords = { terrain_texel_offset.x, terrain_sheet_uv.y };
 
 	quad[1].position = { 0.5f, 0.5f, 1.f };
-	quad[1].texCoords = { 1.f, 1.f };
+	quad[1].texCoords = { terrain_sheet_uv.x, terrain_sheet_uv.y };
 
 	quad[2].position = { 0.5f, -0.5f, 1.f };
-	quad[2].texCoords = { 1.f, 0.f };
+	quad[2].texCoords = { terrain_sheet_uv.x, terrain_texel_offset.y };
 
 	quad[3].position = { -0.5f, -0.5f, 1.f };
-	quad[3].texCoords = { 0.f, 0.f };
+	quad[3].texCoords = { terrain_texel_offset.x, terrain_texel_offset.y };
 
 	for (BatchedVertex& v : quad) {
 		v.position = modelMatrix * v.position;
@@ -120,8 +124,8 @@ void RenderSystem::initializeTerrainBuffers()
 		Entity e = registry.terrainCells.entities[i];
 		TerrainCell& cell = registry.terrainCells.components[i];
 		mat3 modelMatrix = createModelMatrix(e);	// preprocess transform matrices because
-
-		// we can't really have per-mesh transforms so let's just bake them in!
+													// we can't really have per-mesh transforms so let's just bake them in!
+		
 		make_quad(modelMatrix, cell.terrain_type, vertices, indices);
 	}
 
