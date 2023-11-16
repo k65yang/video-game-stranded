@@ -314,7 +314,7 @@ bool PathfindingSystem::reached_next_cell(Entity mob)
     float dist = distance(mob_motion.position, next_cell_motion.position);
 
     // Check if mob is close to the center of the next cell
-    return dist < 0.05;
+    return dist < 0.1;
 };
 
 bool PathfindingSystem::has_player_moved(Entity player, Entity mob) 
@@ -331,12 +331,15 @@ bool PathfindingSystem::has_player_moved(Entity player, Entity mob)
 
 void PathfindingSystem::stop_tracking_player(Entity mob) 
 {
-    // Get the motion, mob, and path of the mob
+    // Get the motion, mob, path, and current cell of the mob
     Motion& mob_motion = registry.motions.get(mob);
     Mob& mob_mob = registry.mobs.get(mob);
     Path& mob_path = registry.paths.get(mob);
+    Entity& mob_curr_cell = mob_path.path.front();
+    Motion& mob_curr_cell_motion = registry.motions.get(mob_curr_cell);
 
-    // Set mob's velocity to 0, tracking player flag to false, and clear the path 
+    // Set mob's position to the center of their current cell, velocity to 0, tracking player flag to false, and clear the path 
+    mob_motion.position = mob_curr_cell_motion.position;
     mob_motion.velocity = {0.f, 0.f};
     mob_mob.is_tracking_player = false;
     mob_path.path.clear();
@@ -393,21 +396,18 @@ void PathfindingSystem::apply_new_terrain_speed_effect(Entity mob, Entity prev_c
 
 void PathfindingSystem::update_velocity_to_next_cell(Entity mob, float elapsed_ms)
 {
-    // Get and remove previous cell in the path
     Path& mob_path = registry.paths.get(mob);
-    Entity prev_cell = mob_path.path.front();
-    mob_path.path.pop_front();
-
-    // Set the position of the mob to the previous cell to keep mob in the middle of the path
     Motion& mob_motion = registry.motions.get(mob);
-    Motion& prev_cell_motion = registry.motions.get(prev_cell);
-    mob_motion.position = prev_cell_motion.position;
 
-    // Stop mob from tracking the player if there are no more cells in its path
-    if (mob_path.path.empty()) {
+    // Stop mob from tracking the player if it has reached the last cell in its path
+    if (mob_path.path.size() == 1) {
         stop_tracking_player(mob);
         return;
     }
+
+    // Get and remove previous cell in the path
+    Entity prev_cell = mob_path.path.front();
+    mob_path.path.pop_front();
 
     // Get angle to next cell in the path 
     Entity next_cell = mob_path.path.front();
