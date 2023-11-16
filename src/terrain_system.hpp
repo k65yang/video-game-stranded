@@ -202,6 +202,11 @@ public:
 	/// <param name="name">The name of the map to be loaded</param>
 	void load_grid(const std::string& name);
 
+	/// @brief Reset the terrain system when the game resets
+	void resetTerrainSystem() {
+		used_terrain_locations.clear();
+	}
+
 private:
 	// PLEASE DO NOT EXPOSE THESE UNLESS YOU KNOW WHAT YOU ARE DOING
 

@@ -433,6 +433,9 @@ void WorldSystem::restart_game() {
 	// Reset the weapons system
 	weapons_system->resetWeaponsSystem();
 
+	// Reset the terrain system
+	terrain->resetTerrainSystem();
+
 	// Debugging for memory/component leaks
 	registry.list_all_components();
 
