@@ -333,17 +333,18 @@ vec2 TerrainSystem::get_random_terrain_location(ZONE_NUMBER zone) {
 	}
 
 	// Add terrain location to used terrain locations
-	used_terrain_locations.push_back(position);
+	used_terrain_locations.insert(position);
 	// printf("position x: %f, position y: %f \n", position.x, position.y);
 	return position;
 }
 
 bool TerrainSystem::is_terrain_location_used(vec2 position) {
-	for (vec2 p : used_terrain_locations) {
-		if (p.x == position.x && p.y == position.y) {
-			return true;
-		}
-	}
+	// for (vec2 p : used_terrain_locations) {
+	// 	if (p.x == position.x && p.y == position.y) {
+	// 		return true;
+	// 	}
+	// }
 
-	return false;
+	// return false;
+	return used_terrain_locations.count(position);
 }

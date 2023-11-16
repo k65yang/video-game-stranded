@@ -2,6 +2,7 @@
 #include <cmath>
 #include <random>
 #include <map>
+#include <unordered_set>
 
 #include "common.hpp"
 #include "tiny_ecs.hpp"
@@ -238,5 +239,5 @@ private:
 	vec2 to_world_coordinates(const int index);
 
 	// Map to keep track of locations where an item/mob has been spawned
-	std::vector<vec2> used_terrain_locations;
+	std::unordered_set<vec2> used_terrain_locations;
 };

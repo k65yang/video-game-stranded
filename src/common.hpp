@@ -16,6 +16,11 @@
 #include <glm/ext/vector_int2.hpp>  // ivec2
 #include <glm/vec3.hpp>             // vec3
 #include <glm/mat3x3.hpp>           // mat3
+
+// glm hashing functions
+#define GLM_ENABLE_EXPERIMENTAL
+#include "glm/gtx/hash.hpp"
+
 using namespace glm;
 
 #include "tiny_ecs.hpp"
