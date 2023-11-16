@@ -293,8 +293,8 @@ vec2 TerrainSystem::get_random_terrain_location(ZONE_NUMBER zone) {
 
 	// set up the random number generator
 	std::random_device rng;
-    std::mt19937 generator(rng());  // Seed the generator
-    std::uniform_int_distribution<> distribution_x(-range_x/2 + 1, range_x/2 - 1);
+	std::mt19937 generator(rng());  // Seed the generator
+	std::uniform_int_distribution<> distribution_x(-range_x/2 + 1, range_x/2 - 1);
 	std::uniform_int_distribution<> distribution_y(-range_y/2 + 1, range_y/2 - 1);
 
 	// Store the radius of the current and previous zones
