@@ -99,11 +99,6 @@ class RenderSystem {
 		terrain_texture_path("6.png"),
 	};
 
-	// Specifies which textures are directional
-	const std::unordered_set<TERRAIN_TYPE> directional_textures = {
-		ROCK,
-	};
-
 	std::array<GLuint, effect_count> effects;
 	// Make sure these paths remain in sync with the associated enumerators.
 	const std::array<std::string, effect_count> effect_paths = {
@@ -120,6 +115,22 @@ class RenderSystem {
 	std::array<Mesh, geometry_count> meshes;
 
 public:
+	enum ORIENTATIONS : uint8 {
+		EDGE_BOTTOM,
+		EDGE_TOP,
+		EDGE_LEFT,
+		EDGE_RIGHT,
+		CORNER_OUTER_TOP_LEFT,
+		CORNER_OUTER_TOP_RIGHT,
+		CORNER_OUTER_BOTTOM_LEFT,
+		CORNER_OUTER_BOTTOM_RIGHT,
+		CORNER_INNER_TOP_LEFT,
+		CORNER_INNER_TOP_RIGHT,
+		CORNER_INNER_BOTTOM_LEFT,
+		CORNER_INNER_BOTTOM_RIGHT,
+		ORIENTATIONS_COUNT
+	};
+
 	// Initialize the window
 	bool init(GLFWwindow* window);
 
@@ -137,7 +148,7 @@ public:
 	/// <summary>
 	/// Generates the vertex and index buffers for batch rendering terrain.
 	/// </summary>
-	void initializeTerrainBuffers();
+	void initializeTerrainBuffers(std::unordered_map<unsigned int, ORIENTATIONS>& directional_tex_orientations);
 
 	void initializeGlTextures();
 
@@ -177,22 +188,6 @@ public:
 	// Do not modify this. READ ONLY!!
 	bool is_terrain_mesh_loaded = false;
 
-	enum ORIENTATIONS : uint8 {
-		EDGE_BOTTOM,
-		EDGE_TOP,
-		EDGE_LEFT,
-		EDGE_RIGHT,
-		CORNER_OUTER_TOP_LEFT,
-		CORNER_OUTER_TOP_RIGHT,
-		CORNER_OUTER_BOTTOM_LEFT,
-		CORNER_OUTER_BOTTOM_RIGHT,
-		CORNER_INNER_TOP_LEFT,
-		CORNER_INNER_TOP_RIGHT,
-		CORNER_INNER_BOTTOM_LEFT,
-		CORNER_INNER_BOTTOM_RIGHT,
-		ORIENTATIONS_COUNT
-	};
-
 private:
 	// Internal vertex data structure used for batched rendering
 	struct BatchedVertex {
@@ -201,6 +196,11 @@ private:
 		uint16_t texIndex;
 		uint8_t flags;		// reserved for animated textures, etc.
 		uint8 frameValue;	// Gives orientation, what random texture to use, etc.
+	};
+
+	enum VERTEX_FLAGS : uint8_t {
+		DIRECTIONAL = 0b1,
+		RANDOM = 0b10,
 	};
 
 	// Internal drawing functions for each entity type
@@ -216,9 +216,11 @@ private:
 	/// <param name="vertices">The vertex buffer</param>
 	/// <param name="indicies">The index buffer</param>
 	template <class T>
-	void make_quad(mat3 modelMatrix, uint16_t texture_id, std::vector<BatchedVertex>& vertices, std::vector<T>& indicies);
+	void make_quad(mat3 modelMatrix, uint16_t texture_id, std::vector<BatchedVertex>& vertices, std::vector<T>& indicies,
+		uint8_t flags = 0, uint8_t frameValue = 0);
 
-	void makeQuadVertices(glm::mat3& modelMatrix, uint16_t texture_id, std::vector<RenderSystem::BatchedVertex>& vertices);
+	void makeQuadVertices(glm::mat3& modelMatrix, uint16_t texture_id, std::vector<RenderSystem::BatchedVertex>& vertices,
+		uint8_t flags = 0, uint8_t frameValue = 0);
 
 	/// <summary>
 	/// Batch-draws the terrain layer.

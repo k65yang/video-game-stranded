@@ -73,12 +73,10 @@ bool RenderSystem::init(GLFWwindow* window_arg)
 /// <param name="vertices"></param>
 /// <param name="indicies"></param>
 template <class T>
-void RenderSystem::make_quad(mat3 modelMatrix, 
-	uint16_t texture_id, 
-	std::vector<BatchedVertex>& vertices, 
-	std::vector<T>& indicies) {
+void RenderSystem::make_quad(mat3 modelMatrix, uint16_t texture_id, std::vector<BatchedVertex>& vertices, 
+	std::vector<T>& indicies, uint8_t flags, uint8_t frameValue) {
 
-	makeQuadVertices(modelMatrix, texture_id, vertices);
+	makeQuadVertices(modelMatrix, texture_id, vertices, flags, frameValue);
 
 	int i = vertices.size() / 4 - 1;
 	for (uint x : { 0, 3, 1, 1, 3, 2 }) {
@@ -86,7 +84,8 @@ void RenderSystem::make_quad(mat3 modelMatrix,
 	}
 }
 
-void RenderSystem::makeQuadVertices(glm::mat3& modelMatrix, uint16_t texture_id, std::vector<BatchedVertex>& vertices)
+void RenderSystem::makeQuadVertices(glm::mat3& modelMatrix, uint16_t texture_id, std::vector<BatchedVertex>& vertices, 
+	uint8_t flags, uint8_t frameValue)
 {
 	BatchedVertex quad[4];
 
@@ -108,11 +107,13 @@ void RenderSystem::makeQuadVertices(glm::mat3& modelMatrix, uint16_t texture_id,
 	for (BatchedVertex& v : quad) {
 		v.position = modelMatrix * v.position;
 		v.texIndex = texture_id;
+		v.flags = flags;
+		v.frameValue = frameValue;
 		vertices.push_back(v);
 	}
 }
 
-void RenderSystem::initializeTerrainBuffers()
+void RenderSystem::initializeTerrainBuffers(std::unordered_map<unsigned int, ORIENTATIONS>& directional_tex_orientations)
 {
 	std::vector<BatchedVertex> vertices;
 	// We need 32-bit indices because 16-bit indices limits us to 
@@ -123,10 +124,12 @@ void RenderSystem::initializeTerrainBuffers()
 	for (uint i = 0; i < registry.terrainCells.entities.size(); i++) {
 		Entity e = registry.terrainCells.entities[i];
 		TerrainCell& cell = registry.terrainCells.components[i];
+		uint8_t flags = directional_terrain.count(cell.terrain_type) ? DIRECTIONAL : 0;
+		uint8_t frameValue = (cell.flag & ORIENTATION) >> 12;
 		mat3 modelMatrix = createModelMatrix(e);	// preprocess transform matrices because
 													// we can't really have per-mesh transforms so let's just bake them in!
-		
-		make_quad(modelMatrix, cell.terrain_type, vertices, indices);
+
+		make_quad(modelMatrix, cell.terrain_type, vertices, indices, flags, frameValue);
 	}
 
 	bindVBOandIBO(GEOMETRY_BUFFER_ID::TERRAIN, vertices, indices);

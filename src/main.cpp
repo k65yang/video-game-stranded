@@ -40,7 +40,6 @@ int main()
 	render_system.init(window);
 	weapons_system.init(&render_system);
 	world_system.init(&render_system, &terrain_system, &weapons_system);
-	render_system.initializeTerrainBuffers();
 	pathfinding_system.init(&terrain_system);
 
 	// variable timestep loop

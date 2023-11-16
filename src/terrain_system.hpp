@@ -2,6 +2,7 @@
 #include <cmath>
 #include <random>
 #include <map>
+#include <unordered_map>
 
 #include "common.hpp"
 #include "tiny_ecs.hpp"
@@ -146,6 +147,8 @@ public:
 	/// <param name="buffer">A vector buffer</param>
 	void get_accessible_neighbours(Entity cell, std::vector<Entity>& buffer, bool ignoreColliders, bool checkPathfind = false);
 
+	inline void filter_neighbouring_indices(int cell_index, int indices[8]);
+
 	/// <summary>
 	/// Updates the values for a tile. This includes rendering data and TerrainCell data.
 	/// </summary>
@@ -209,4 +212,10 @@ private:
 	/// <param name="index">The index to a cell in 'grid'</param>
 	/// <returns>The cell's world position</returns>
 	vec2 to_world_coordinates(const int index);
+
+	bool matches(uint16_t current, int index);
+
+	bool check_match(uint16_t current, int indices[8], std::initializer_list<uint8_t> args);
+
+	void generate_orientation_map(std::unordered_map<unsigned int, RenderSystem::ORIENTATIONS>& map);
 };

@@ -39,6 +39,9 @@ void TerrainSystem::init(const unsigned int x, const unsigned int y, RenderSyste
 
 		TerrainCell& cell = registry.terrainCells.emplace(entity, terraincell_grid[i]);
 	}
+
+	std::unordered_map<unsigned int, RenderSystem::ORIENTATIONS> orientation_map;
+	renderer->initializeTerrainBuffers(orientation_map);
 }
 
 void TerrainSystem::init(const std::string& map_name, RenderSystem* renderer)
@@ -64,12 +67,16 @@ void TerrainSystem::init(const std::string& map_name, RenderSystem* renderer)
 	entityStart = entity_grid[0];
 
 	// Bind entities to respective TerrainCell
-	for (int i = 0; i < size_x * size_y; i++) {
+	for (unsigned int i = 0; i < size_x * size_y; i++) {
 		Entity& entity = entity_grid[i];
 		Motion& motion = registry.motions.emplace(entity);
 		motion.position = to_world_coordinates(i);
 		TerrainCell& cell = registry.terrainCells.emplace(entity, terraincell_grid[i]);
 	}
+
+	std::unordered_map<unsigned int, RenderSystem::ORIENTATIONS> orientation_map;
+	//generate_orientation_map(orientation_map);
+	renderer->initializeTerrainBuffers(orientation_map);
 }
 
 void TerrainSystem::step(float delta_time)
@@ -136,6 +143,33 @@ void TerrainSystem::get_accessible_neighbours(Entity cell, std::vector<Entity>& 
 		cell_index - size_x - 1,	// Top-left cell
 	};
 
+	filter_neighbouring_indices(cell_index, indices);
+
+	for (int i = 0; i < 8; i++) {
+		int index = indices[i];
+
+		// Skip cell if index is -1
+		if (index < 0) {
+			continue;
+		}
+
+		Entity& tile = entity_grid[index];
+		unsigned int cell = terraincell_grid[index];
+
+		// If a cell is not collidable and pathfinding is not disabled, add to buffer
+		if (ignoreColliders) {
+			buffer.push_back(tile);
+		}
+		else {
+			if (!(cell & filter)) {
+				buffer.push_back(tile);
+			}
+		}
+	}
+}
+
+void TerrainSystem::filter_neighbouring_indices(int cell_index, int indices[8])
+{
 	// Check bounds
 	// if cell on left edge, skip top-left, left, or bottom-left neighbors
 	if (cell_index % size_x == 0) {
@@ -160,28 +194,6 @@ void TerrainSystem::get_accessible_neighbours(Entity cell, std::vector<Entity>& 
 		indices[6] = -1;
 		indices[2] = -1;
 		indices[5] = -1;
-	}
-
-	for (int i = 0; i < 8; i++) {
-		int index = indices[i];
-
-		// Skip cell if index is -1
-		if (index < 0) {
-			continue;
-		}
-
-		Entity& tile = entity_grid[index];
-		unsigned int cell = terraincell_grid[index];
-
-		// If a cell is not collidable and pathfinding is not disabled, add to buffer
-		if (ignoreColliders) {
-			buffer.push_back(tile);
-		}
-		else {
-			if (!(cell & filter)) {
-				buffer.push_back(tile);
-			}
-		}
 	}
 }
 
@@ -245,4 +257,65 @@ vec2 TerrainSystem::to_world_coordinates(const int index)
 	assert(index >= 0 && index < size_x * size_y);
 	return { (index % size_x) - size_x / 2,
 			index / size_x - size_y / 2 };
+}
+
+bool TerrainSystem::matches(uint16_t current_type, int index) {
+	if (index < 0) return true;
+	uint16_t cell_type = terraincell_grid[index] >> 16;
+	return !(current_type ^ cell_type);
+}
+
+bool TerrainSystem::check_match(uint16_t current, int indices[8], std::initializer_list<uint8_t> args) {
+	for (int i : args) {
+		assert(i < 8);
+		i = indices[i];
+		if (!matches(current, i))
+			return false;
+	}
+	return true;
+}
+
+void TerrainSystem::generate_orientation_map(std::unordered_map<unsigned int, RenderSystem::ORIENTATIONS>& map)
+{
+	const enum ori_index : uint8_t {
+		TOP, RIGHT, BOTTOM, LEFT, TR, BR, BL, TL, n
+	};
+
+	for (int cell_index = 0; cell_index < size_x * size_y; cell_index++) {
+		uint16_t current = terraincell_grid[cell_index] >> 16;
+
+		if (directional_terrain.count(static_cast<TERRAIN_TYPE>(current))) {
+
+			int indices[8] = {
+				cell_index - size_x,		// Top cell
+				cell_index + 1,				// Right cell
+				cell_index + size_x,		// Bottom cell
+				cell_index - 1,				// Left cell
+				cell_index - size_x + 1,	// Top-right cell
+				cell_index + size_x + 1,	// Bottom-right cell
+				cell_index + size_x - 1,	// Bottom-left cell
+				cell_index - size_x - 1,	// Top-left cell
+			};
+			filter_neighbouring_indices(cell_index, indices);
+
+			if (check_match(current, indices, { TOP, BOTTOM, LEFT, RIGHT })) {
+
+			}
+			else if (check_match(current, indices, { TOP, BOTTOM, LEFT })) {
+
+			}
+			else if (check_match(current, indices, { TOP, BOTTOM, RIGHT })) {
+
+			}
+			else if (check_match(current, indices, { RIGHT, LEFT, TOP })) {
+
+			}
+			else if (check_match(current, indices, { RIGHT, LEFT, BOTTOM })) {
+
+			}
+			else {
+
+			}
+		}
+	}
 }
