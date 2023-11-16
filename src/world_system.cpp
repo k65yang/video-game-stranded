@@ -992,7 +992,7 @@ void WorldSystem::spawn_items() {
 
 	for (int i = 0; i < ITEM_LIMIT; i++) {
 		// Get random spawn location
-		vec2 spawn_location = terrain->get_random_terrain_location(0);
+		vec2 spawn_location = terrain->get_random_terrain_location();
 
 		// Randomly choose item type
 		int item_type = rng() % NUM_ITEM_TYPES;
@@ -1011,21 +1011,21 @@ void WorldSystem::spawn_items() {
 	}
 
 	// TESTING: Force one spawn of each weapon.
-	 createItem(renderer, terrain->get_random_terrain_location(0), ITEM_TYPE::WEAPON_SHURIKEN);
-	 createItem(renderer, terrain->get_random_terrain_location(0), ITEM_TYPE::WEAPON_CROSSBOW);
-	 createItem(renderer, terrain->get_random_terrain_location(0), ITEM_TYPE::WEAPON_SHOTGUN);
-	 createItem(renderer, terrain->get_random_terrain_location(0), ITEM_TYPE::WEAPON_MACHINEGUN);
+	 createItem(renderer, terrain->get_random_terrain_location(), ITEM_TYPE::WEAPON_SHURIKEN);
+	 createItem(renderer, terrain->get_random_terrain_location(), ITEM_TYPE::WEAPON_CROSSBOW);
+	 createItem(renderer, terrain->get_random_terrain_location(), ITEM_TYPE::WEAPON_SHOTGUN);
+	 createItem(renderer, terrain->get_random_terrain_location(), ITEM_TYPE::WEAPON_MACHINEGUN);
 
 	 // TESTING: Force spawn quest items once
-	 createItem(renderer, terrain->get_random_terrain_location(0), ITEM_TYPE::QUEST_ONE);
-	 createItem(renderer, terrain->get_random_terrain_location(0), ITEM_TYPE::QUEST_TWO);
+	 createItem(renderer, terrain->get_random_terrain_location(), ITEM_TYPE::QUEST_ONE);
+	 createItem(renderer, terrain->get_random_terrain_location(), ITEM_TYPE::QUEST_TWO);
 };
 
 void WorldSystem::spawn_mobs() {
 	// NOTE: do not add more mobs than there are grid cells available in the zone!!!
-	std::map<int,int> zone_mob_numbers = {
-		{1, 5},			// zone 1 has 5 mobs
-		{2, 5},			// zone 2 has 5 mobs
+	std::map<ZONE_NUMBER,int> zone_mob_numbers = {
+		// {ZONE_0, 5},			// zone 1 has 5 mobs
+		// {ZONE_1, 5},			// zone 2 has 5 mobs
 	};
 
 	std::vector<vec2> zone_mob_locations = terrain->get_mob_spawn_locations(zone_mob_numbers);

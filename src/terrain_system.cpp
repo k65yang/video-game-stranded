@@ -248,66 +248,48 @@ vec2 TerrainSystem::to_world_coordinates(const int index)
 			index / size_x - size_y / 2 };
 }
 
-std::vector<vec2> TerrainSystem::get_mob_spawn_locations(std::map<int,int> num_per_zone) {
+std::vector<vec2> TerrainSystem::get_mob_spawn_locations(std::map<ZONE_NUMBER,int> num_per_zone) {
     std::vector<vec2> result;
     std::default_random_engine rng;
 
     for (const auto& kv : num_per_zone) {
-        int zone = kv.first;
+        ZONE_NUMBER zone = kv.first;
         int num_mobs = kv.second;
 
         // Throw error if invalid zone
         if (zone_radius_map.count(zone) == 0)
             throw(std::runtime_error("Error: Cannot spawn mob in invalid zone"));
 
-        // Store the radius of the current and previous zones
-        // Mobs should spawn outside of the previous radius, but within the current radius
-		float curr_zone_radius = (float) zone_radius_map[zone];
-        float prev_zone_radius;
-        if (zone == 1)
-            prev_zone_radius = 0.f;
-        else
-            prev_zone_radius = (float) zone_radius_map[zone-1];
-
 		// Keep generating random locations until you meet the num_mobs quota
 		// Be sure to check if the current location is in the zone we want
         while(num_mobs) {
-            vec2 random_location = get_random_terrain_location((int) curr_zone_radius);
-
-			float distance = sqrt(pow(random_location.x,2) + pow(random_location.y,2));
-			
-			// Uncomment for debug
-			// printf("random_location.x: %f \n", random_location.x);
-			// printf("random_location.y: %f \n", random_location.y);
-			// printf("distance: %f \n", distance);
-
-			if (distance <= curr_zone_radius && distance >= prev_zone_radius) {
-				// location is valid, store it and decrement num_mobs
-				result.push_back(random_location);
-				num_mobs--;
-			} else {
-				// distance is invalid, we cannot use the generated location
-				used_terrain_locations.pop_back();
-			}
+            result.push_back(get_random_terrain_location(zone));
+			num_mobs--;
         }
     }
     return result;
 }
 
-vec2 TerrainSystem::get_random_terrain_location(int grid_size) {
+vec2 TerrainSystem::get_random_terrain_location() {
+	// Get a random zone
+	std::random_device rd;
+	std::default_random_engine rng(rd());
+	std::uniform_int_distribution<int> distribution(0, ZONE_COUNT-1);
+	ZONE_NUMBER random_zone = static_cast<ZONE_NUMBER>(distribution(rng));
+
+	// Uncomment for debug
+	// printf("zone: %i\n", random_zone);
+
+	// Get a random location in that random zone
+	return get_random_terrain_location(random_zone);
+}
+
+vec2 TerrainSystem::get_random_terrain_location(ZONE_NUMBER zone) {
 	vec2 position;
 
 	// Determine the location range
-	int range_x;
-	int range_y;
-	if (grid_size >= 0) {
-		range_x = size_x;
-		range_y = size_y;
-	} else {
-		// force the range to be within the map size
-		range_x = grid_size * 2 > size_x ? size_x : grid_size * 2;
-		range_y = grid_size * 2 > size_y ? size_y : grid_size * 2;
-	}
+	int range_x = zone_radius_map[zone] * 2 > size_x ? size_x : zone_radius_map[zone] * 2;
+	int range_y = zone_radius_map[zone] * 2 > size_y ? size_y : zone_radius_map[zone] * 2;
 
 	// set up the random number generator
 	std::random_device rng;
@@ -315,7 +297,16 @@ vec2 TerrainSystem::get_random_terrain_location(int grid_size) {
     std::uniform_int_distribution<> distribution_x(-range_x/2 + 1, range_x/2 - 1);
 	std::uniform_int_distribution<> distribution_y(-range_y/2 + 1, range_y/2 - 1);
 
-	// Get unused spawn location within the given ranges
+	// Store the radius of the current and previous zones
+	float curr_zone_radius = (float) zone_radius_map[zone];
+	float prev_zone_radius;
+	if (zone == ZONE_0)
+		prev_zone_radius = 0.f;
+	else
+		prev_zone_radius = (float) zone_radius_map[static_cast<ZONE_NUMBER>(zone-1)];
+
+
+	// Get unused spawn location within the given zone
 	while (true) {
 		position.x = distribution_x(generator);
 		position.y = distribution_y(generator);
@@ -326,22 +317,29 @@ vec2 TerrainSystem::get_random_terrain_location(int grid_size) {
 		}
 
 		// Skip locations that are not accessible
-		if (is_impassable(position))
+		if (is_invalid_spawn(position))
+			continue;
+
+		// Skip locations that is not within the current zone
+		float distance = sqrt(pow(position.x,2) + pow(position.y,2));
+		if (distance > curr_zone_radius || distance < prev_zone_radius)
 			continue;
 
 		if (!is_terrain_location_used(position)) {
+			// Uncomment for debug
+			// printf("position.x: %f, position.y: %f, distance: %f \n", position.x, position.y, distance);
 			break;
 		}
-	} 
+	}
 
 	// Add terrain location to used terrain locations
 	used_terrain_locations.push_back(position);
-
+	// printf("position x: %f, position y: %f \n", position.x, position.y);
 	return position;
 }
 
 bool TerrainSystem::is_terrain_location_used(vec2 position) {
-		for (vec2 p : used_terrain_locations) {
+	for (vec2 p : used_terrain_locations) {
 		if (p.x == position.x && p.y == position.y) {
 			return true;
 		}

@@ -41,17 +41,17 @@ public:
 	};
 
 	// Look-up table for zone boundaries. Zones are circular.
-	// Key is zone number. Value is the radius FROM THE SPACESHIP
-	std::map<int, int> zone_radius_map = {
-		{1, 5},			// Zone 1 extends radius of 5 from spaceship
-		{2, 10},		// Zone 2 extends radius from 10 from spaceship but only r= 5-10 is zone 2
-		{3, 40}
+	// Key is zone number. Value is the radius from the spaceship
+	std::map<ZONE_NUMBER, int> zone_radius_map = {
+		{ZONE_0, 10},
+		{ZONE_1, 17},
+		{ZONE_2, 40}
 	};
 
 	/// @brief Function to get randomized spawn locations per zone
 	/// @param num_per_zone Map specifying how many mobs to spawn per zone
 	/// @return List of spawn locations
-	std::vector<vec2> get_mob_spawn_locations(std::map<int,int> num_per_zone);
+	std::vector<vec2> get_mob_spawn_locations(std::map<ZONE_NUMBER,int> num_per_zone);
 
 
 	/// <summary>
@@ -104,12 +104,11 @@ public:
 	/// <returns>The index of the cell in the grid</returns>
 	int get_cell_index(Entity cell);
 
-	/// @brief Get a random terrain location based within the given range
-	///        If range is 0, then the size of the map is used
-	/// @param grid_size An int 0 or larger. 
-	///        I.e. if grid_size=5, then will get a random position ([-5,5], [-5,5])
+	/// @brief Get a valid random terrain location anywhere on the map that is not used
+	/// @param @overload zone: The zone to get the random terrain location.
 	/// @return A vec2 of the random position
-	vec2 get_random_terrain_location(int grid_size);
+	vec2 get_random_terrain_location();
+	vec2 get_random_terrain_location(ZONE_NUMBER zone);
 
 	bool is_terrain_location_used(vec2 position);
 
@@ -238,6 +237,6 @@ private:
 	/// <returns>The cell's world position</returns>
 	vec2 to_world_coordinates(const int index);
 
-	// Vector to keep track of locations where an item/mob has been spawned
+	// Map to keep track of locations where an item/mob has been spawned
 	std::vector<vec2> used_terrain_locations;
 };
