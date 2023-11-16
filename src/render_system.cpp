@@ -225,18 +225,24 @@ void RenderSystem::drawTerrain(const mat3& view_2D, const mat3& projection_2D)
 	assert(viewMatrix_uloc >= 0);
 	GLint projectionMatrix_uloc = glGetUniformLocation(program, "projectionMatrix");
 	assert(projectionMatrix_uloc >= 0);
+	/*
 	GLint uv_offsets_uloc = glGetUniformLocation(program, "uv_offsets");
 	assert(uv_offsets_uloc >= 0);
 	GLint texel_offsets_uloc = glGetUniformLocation(program, "texel_offsets");
 	assert(texel_offsets_uloc >= 0);
+	*/
 	GLint in_position_loc = glGetAttribLocation(program, "in_position");
 	assert(in_position_loc >= 0);
 	GLint in_texcoord_loc = glGetAttribLocation(program, "in_texcoord");
 	assert(in_texcoord_loc >= 0);
 	GLint in_tex_i_loc = glGetAttribLocation(program, "in_tex_i");
 	assert(in_tex_i_loc >= 0);
+	/*
 	GLint in_flags_loc = glGetAttribLocation(program, "in_flags");
 	assert(in_flags_loc >= 0);
+	GLint in_fvalue_loc = glGetAttribLocation(program, "in_fvalue");
+	assert(in_fvalue_loc >= 0);
+	*/
 
 	// Calculates the offsets of each field within BatchedVertex
 	// Thank you to: https://www.cs.ubc.ca/~rhodin/2023_2024_CPSC_427/resources/minimal_mesh_rendering.cpp
@@ -265,10 +271,18 @@ void RenderSystem::drawTerrain(const mat3& view_2D, const mat3& projection_2D)
 	glVertexAttribIPointer(in_tex_i_loc, 1, GL_UNSIGNED_SHORT, SIZE_OF_EACH_VERTEX, TEX_INDEX_OFFSET);
 	gl_has_errors();
 
+	/*
 	glEnableVertexAttribArray(in_flags_loc);
 	gl_has_errors();
 	glVertexAttribPointer(in_flags_loc, 1, GL_UNSIGNED_BYTE, GL_FALSE, SIZE_OF_EACH_VERTEX, FLAGS_OFFSET);
 	gl_has_errors();
+
+	glEnableVertexAttribArray(in_fvalue_loc);
+	gl_has_errors();
+	glVertexAttribPointer(in_fvalue_loc, 1, GL_UNSIGNED_BYTE, GL_FALSE, SIZE_OF_EACH_VERTEX, FRAME_VALUE_OFFSET);
+	gl_has_errors();
+	*/
+
 	//const vec3 color = vec3(0, 1, 0);
 
 	// Camera and projectiin matrices
@@ -276,13 +290,14 @@ void RenderSystem::drawTerrain(const mat3& view_2D, const mat3& projection_2D)
 	gl_has_errors();
 	glUniformMatrix3fv(projectionMatrix_uloc, 1, GL_FALSE, (float*)&projection_2D);
 	gl_has_errors();
+	/*
 	glUniform2fv(uv_offsets_uloc, 1, (float*)&terrain_sheet_uv);
 	gl_has_errors();
 	glUniform2fv(texel_offsets_uloc, 1, (float*)&terrain_texel_offset);
 	gl_has_errors();
-	//glUniform3fv(color_uloc, 1, (float*)&color);
-	//gl_has_errors();
-
+	glUniform3fv(color_uloc, 1, (float*)&color);
+	gl_has_errors();
+	*/
 
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D_ARRAY, texture_array);

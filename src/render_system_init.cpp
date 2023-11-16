@@ -93,16 +93,33 @@ void RenderSystem::makeQuadVertices(glm::mat3& modelMatrix, uint16_t texture_id,
 	// Basically, we're definining the "edge" texels/pixels of a tile
 	// as a "border" for GL_LINEAR filtering to use
 	quad[0].position = { -0.5f, 0.5f, 1.f };
-	quad[0].texCoords = { terrain_texel_offset.x, terrain_sheet_uv.y };
+	quad[0].texCoords = { terrain_texel_offset.x, terrain_sheet_uv.y - terrain_texel_offset.y };
 
 	quad[1].position = { 0.5f, 0.5f, 1.f };
-	quad[1].texCoords = { terrain_sheet_uv.x, terrain_sheet_uv.y };
+	quad[1].texCoords = { terrain_sheet_uv.x - terrain_texel_offset.x, terrain_sheet_uv.y - terrain_texel_offset.y };
 
 	quad[2].position = { 0.5f, -0.5f, 1.f };
-	quad[2].texCoords = { terrain_sheet_uv.x, terrain_texel_offset.y };
+	quad[2].texCoords = { terrain_sheet_uv.x - terrain_texel_offset.x, terrain_texel_offset.y };
 
 	quad[3].position = { -0.5f, -0.5f, 1.f };
-	quad[3].texCoords = { terrain_texel_offset.x, terrain_texel_offset.y };
+	quad[3].texCoords = { terrain_texel_offset.x , terrain_texel_offset.y };
+
+	if (flags & DIRECTIONAL) {
+		ORIENTATIONS ori = static_cast<ORIENTATIONS>(frameValue);	// in the blind forest
+		vec2 index = terrain_atlas_offsets.at(ori);
+		vec2 uv_zero = quad[3].texCoords + index * terrain_sheet_uv;
+		vec2 uv_one = quad[1].texCoords + index * terrain_sheet_uv;
+
+		if (mirror_horizontal_orientations.count(ori))
+			std::swap(uv_zero.y, uv_one.y);
+		if (mirror_vertical_orientations.count(ori))
+			std::swap(uv_zero.x, uv_one.x);
+
+		quad[0].texCoords = { uv_zero.x, uv_one.y };
+		quad[1].texCoords = uv_one;
+		quad[2].texCoords = { uv_one.x, uv_zero.y };
+		quad[3].texCoords = uv_zero;
+	}
 
 	for (BatchedVertex& v : quad) {
 		v.position = modelMatrix * v.position;

@@ -11,6 +11,27 @@
 // System responsible for setting up OpenGL and for rendering all the
 // visual entities in the game
 class RenderSystem {
+public:
+	enum ORIENTATIONS : uint8 {
+		EDGE_BOTTOM,
+		EDGE_TOP,
+		EDGE_LEFT,
+		EDGE_RIGHT,
+		CORNER_OUTER_TOP_LEFT,
+		CORNER_OUTER_TOP_RIGHT,
+		CORNER_OUTER_BOTTOM_LEFT,
+		CORNER_OUTER_BOTTOM_RIGHT,
+		CORNER_INNER_TOP_LEFT,
+		CORNER_INNER_TOP_RIGHT,
+		CORNER_INNER_BOTTOM_LEFT,
+		CORNER_INNER_BOTTOM_RIGHT,
+		DOUBLE_EDGE_SIDES,
+		DOUBLE_EDGE_TOP,
+		DOUBLE_EDGE_BOTTOM,
+		INSIDE,
+		ORIENTATIONS_COUNT
+	};
+private:
 	/**
 	 * The following arrays store the assets the game will use. They are loaded
 	 * at initialization and are assumed to not be modified by the render loop.
@@ -82,8 +103,8 @@ class RenderSystem {
 	// TODO: properly handle GL_LINEAR behaviour in texture atlasses instead of this hacky method.
 	// Basically, we're definining the "edge" texels/pixels of a tile
 	// as a "border" for GL_LINEAR filtering to use
-	const vec2	terrain_sheet_uv =		{ (tile_size_px - 1.f) / terrain_sheet_size.x,
-										  (tile_size_px - 1.f) / terrain_sheet_size.y };
+	const vec2	terrain_sheet_uv =		{ (float)tile_size_px / terrain_sheet_size.x,
+										  (float)tile_size_px  / terrain_sheet_size.y };
 	const vec2 terrain_texel_offset =	{ 1.f / terrain_sheet_size.x, 
 										  1.f / terrain_sheet_size.y };
 
@@ -97,6 +118,33 @@ class RenderSystem {
 		terrain_texture_path("4.png"),
 		terrain_texture_path("5.png"),
 		terrain_texture_path("6.png"),
+	};
+
+	const std::unordered_set<ORIENTATIONS> mirror_vertical_orientations = {
+		EDGE_RIGHT, CORNER_OUTER_TOP_RIGHT, CORNER_OUTER_BOTTOM_RIGHT,
+	};
+
+	const std::unordered_set<ORIENTATIONS> mirror_horizontal_orientations = {
+		CORNER_OUTER_BOTTOM_LEFT, CORNER_OUTER_BOTTOM_RIGHT, DOUBLE_EDGE_BOTTOM
+	};
+
+	const std::unordered_map<ORIENTATIONS, ivec2> terrain_atlas_offsets = {
+		{EDGE_BOTTOM,					{0, 0}},
+		{EDGE_TOP,						{2, 0}},
+		{EDGE_LEFT,						{1, 1}},
+		{EDGE_RIGHT,					{1, 1}},
+		{CORNER_OUTER_TOP_LEFT,			{1, 0}},
+		{CORNER_OUTER_TOP_RIGHT,		{1, 0}},
+		{CORNER_OUTER_BOTTOM_LEFT,		{1, 0}},
+		{CORNER_OUTER_BOTTOM_RIGHT,		{1, 0}},
+		{CORNER_INNER_TOP_LEFT,			{1, 1}},
+		{CORNER_INNER_TOP_RIGHT,		{1, 1}},
+		{CORNER_INNER_BOTTOM_LEFT,		{2, 1}},
+		{CORNER_INNER_BOTTOM_RIGHT,		{2, 1}},
+		{DOUBLE_EDGE_SIDES,				{1, 2}},
+		{DOUBLE_EDGE_TOP,				{2, 2}},
+		{DOUBLE_EDGE_BOTTOM,			{2, 2}},
+		{INSIDE,						{2, 1}},
 	};
 
 	std::array<GLuint, effect_count> effects;
@@ -115,21 +163,6 @@ class RenderSystem {
 	std::array<Mesh, geometry_count> meshes;
 
 public:
-	enum ORIENTATIONS : uint8 {
-		EDGE_BOTTOM,
-		EDGE_TOP,
-		EDGE_LEFT,
-		EDGE_RIGHT,
-		CORNER_OUTER_TOP_LEFT,
-		CORNER_OUTER_TOP_RIGHT,
-		CORNER_OUTER_BOTTOM_LEFT,
-		CORNER_OUTER_BOTTOM_RIGHT,
-		CORNER_INNER_TOP_LEFT,
-		CORNER_INNER_TOP_RIGHT,
-		CORNER_INNER_BOTTOM_LEFT,
-		CORNER_INNER_BOTTOM_RIGHT,
-		ORIENTATIONS_COUNT
-	};
 
 	// Initialize the window
 	bool init(GLFWwindow* window);
