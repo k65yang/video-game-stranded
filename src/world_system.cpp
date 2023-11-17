@@ -978,8 +978,22 @@ void WorldSystem::on_mouse_click(int button, int action, int mods) {
 
 		Entity tile = terrain->get_cell(mouse_pos);
 		TerrainCell& cell = registry.terrainCells.get(tile);
+		bool to_collidable = (editor_flag & COLLIDABLE);
+		bool from_collidable = (cell.flag & COLLIDABLE);
+
 		cell.terrain_type = editor_terrain;
 		cell.flag = editor_flag;
+
+		// Update collisions
+		if (to_collidable != from_collidable) {
+			if (to_collidable) {
+				createDefaultCollider(tile);
+			}
+			else {
+				registry.colliders.remove(tile);
+			}
+		}
+
 		terrain->update_tile(tile, cell, true);	// true because we need to update adjacent cells too
 	}
 }

@@ -169,20 +169,7 @@ public:
 	/// <param name="tile">The tile's entity</param>
 	/// <param name="cell">The tile's TerrainCell component</param>
 	void update_tile(Entity tile, TerrainCell& cell, bool also_update_neighbours = false) {
-		int i = tile - entityStart;
-
-		// Update collisions
-		bool to_collidable = (cell.flag & COLLIDABLE);
-		bool from_collidable = (terraincell_grid[i] & COLLIDABLE);
-		if (to_collidable != from_collidable) {
-			if (to_collidable) {
-				registry.colliders.emplace(tile);
-			}
-			else {
-				registry.colliders.remove(tile);
-			}
-		}
-		
+		int i = tile - entityStart;		
 		terraincell_grid[i] = cell;
 		uint8_t frame_value = 0;
 
