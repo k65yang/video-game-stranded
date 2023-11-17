@@ -29,7 +29,7 @@ void ParticleSystem::step(float elapsed_ms) {
         }
 
         // Now generate new particles for the particle trail
-        if (particle_trail.particles.size() < NUM_PARTICLES - PARTICLES_PER_OBJ_PER_FRAME) {
+        if ((int)particle_trail.particles.size() < NUM_PARTICLES - PARTICLES_PER_OBJ_PER_FRAME) {
             for (int j = 0; j < PARTICLES_PER_OBJ_PER_FRAME; j++) {
                 particle_trail.particles.insert(
                     createParticle(particle_trail.texture, particle_trail.motion_component_ptr)
