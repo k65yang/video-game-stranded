@@ -126,10 +126,10 @@ Entity createBasicMob(RenderSystem* renderer, TerrainSystem* terrain, vec2 posit
 	// Initialize the collider, if it has a colliding mesh
 	createMeshCollider(entity, GEOMETRY_BUFFER_ID::MOB001_MESH, renderer);
 
-	TEXTURE_ASSET_ID texture = TEXTURE_ASSET_ID::MOB;
+	TEXTURE_ASSET_ID texture = TEXTURE_ASSET_ID::SLIME;
 	switch (type) {
 	case MOB_TYPE::SLIME:
-		texture = TEXTURE_ASSET_ID::MOB;
+		texture = TEXTURE_ASSET_ID::SLIME;
 		break;
 	case MOB_TYPE::GHOST:
 
