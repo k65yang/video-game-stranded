@@ -56,6 +56,7 @@ class RenderSystem {
 			textures_path("icon_shotgun.png"),
 			textures_path("icon_machine_gun.png"),
 			textures_path("spaceship.png"), 
+			textures_path("spacehome.png"),
 			textures_path("blueblock.png"),
 			textures_path("help1.png"),
 			textures_path("help2.png"),

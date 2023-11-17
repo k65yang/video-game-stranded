@@ -19,7 +19,6 @@ int PLAYER_DIRECTION = 4;  // Default to facing up
 float ELAPSED_TIME = 0;
 
 
-
 // Create the fish world
 WorldSystem::WorldSystem()
 	: points(0)
@@ -28,7 +27,7 @@ WorldSystem::WorldSystem()
 	// Seeding rng with random device
 	rng = std::default_random_engine(std::random_device()());
 
-}
+	}
 
 WorldSystem::~WorldSystem() {
 	// Destroy music components
@@ -277,6 +276,18 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	// Player Movement code, build the velocity resulting from player movement
 	//for movement, animation, and distance calculation
 	handlePlayerMovement(elapsed_ms_since_last_update);
+		
+	Motion& s_motion = registry.motions.get(spaceship);
+
+	// Check if the player is at the area around spaceship
+	if (length(m.position - s_motion.position) < 1.0f) {
+		Spaceship& s = registry.sapceship.get(home);
+		// if near home, set spaceship to interor 
+		s.in_home = TRUE;
+		printf("nearhome\n");
+		}
+		
+
 
 	// Camera movement mode
 	Camera& c = registry.cameras.get(main_camera);
@@ -455,7 +466,11 @@ void WorldSystem::restart_game() {
 	terrain->init(loaded_map_name, renderer);
 
 	// Create a Spaceship 
-	spaceship = createSpaceship(renderer, { 0,0 });
+
+	spaceship = createSpaceship(renderer, { 0,-2.5 });
+
+	// Create Home Screen 
+	home = createHome(renderer);
 
 	// Create a new salmon
 	player_salmon = createPlayer(renderer, { 0, 0 });
@@ -711,6 +726,8 @@ void WorldSystem::handle_collisions() {
 				registry.remove_all_components_of(entity);
 			}
 		}
+		// Todo: Collision involving Player - Spaceship should not allow player move ?
+			
 	}
 
 	// Remove all collisions from this simulation step
@@ -727,6 +744,11 @@ vec2 WorldSystem::interpolate(vec2 p1, vec2 p2, float param) {
 bool WorldSystem::is_over() const {
 	return bool(glfwWindowShouldClose(window));
 }
+
+// check if player is home and pause the game in main
+bool WorldSystem::is_home() const {
+	return registry.sapceship.get(home).in_home; 
+	}
 
 
 int WorldSystem::key_to_index(int key) {
@@ -786,10 +808,11 @@ void WorldSystem::update_camera_follow() {
 	c.mode_follow = true;
 }
 
+
 // On key callback
 void WorldSystem::on_key(int key, int, int action, int mod) {
 	Motion& player_motion = registry.motions.get(player_salmon);
-
+	Spaceship& s = registry.sapceship.get(home);
 	// Movement with velocity handled in step function  
 	update_key_presses(key, action);
 
@@ -829,6 +852,14 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		glfwSetWindowShouldClose(window, true);
 	}
 
+	// return back to world, should unpause the worldsystem and remove the homescreen 
+	// is layer changeable? 
+	if (action == GLFW_RELEASE && key == GLFW_KEY_SPACE) {
+		player_motion.position = { 0,0 };
+		s.in_home = false;
+
+
+		}
 	// Debugging
 	/*if (key == GLFW_KEY_D) {
 		if (action == GLFW_RELEASE)

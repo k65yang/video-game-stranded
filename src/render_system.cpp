@@ -36,8 +36,18 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 	gl_has_errors();
 
 	// Input data location as in the vertex buffer
+
 	if (render_request.used_effect == EFFECT_ASSET_ID::TEXTURED ||render_request.used_effect == EFFECT_ASSET_ID::SPRITESHEET)
 	{
+
+		// Skip rendering home screen if player is at world 
+		if (render_request.used_texture == TEXTURE_ASSET_ID::SPACEHOME) {
+			if (!registry.sapceship.get(entity).in_home) {
+				//printf("Player is outside, skip rending home \n");
+				return;
+				}
+			}
+
 		GLint in_position_loc = glGetAttribLocation(program, "in_position");
 		GLint in_texcoord_loc = glGetAttribLocation(program, "in_texcoord");
 		gl_has_errors();

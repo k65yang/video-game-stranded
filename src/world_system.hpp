@@ -58,9 +58,9 @@ public:
 
 	// Check for collisions
 	void handle_collisions();
-
 	// Should the game be over ?
 	bool is_over()const;
+	bool is_home()const; 
 private:
 	// Input callback functions
 	void on_key(int key, int, int action, int mod);
@@ -97,6 +97,7 @@ private:
 	Entity food_bar;
 	Entity weapon_indicator;
 	Entity spaceship;
+	Entity home; 
 	Entity help_bar;
 	std::vector<std::pair<Entity, bool>> quest_items;
 

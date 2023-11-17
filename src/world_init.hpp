@@ -24,6 +24,9 @@ Entity createBasicMob(RenderSystem* renderer, TerrainSystem* terrain, vec2 posit
 // the spaceship 
 Entity createSpaceship(RenderSystem* renderer, vec2 position);
 
+// the space home
+Entity createHome(RenderSystem* renderer); 
+
 // a red line for debugging purposes
 Entity createLine(vec2 position, vec2 size);
 
