@@ -1024,13 +1024,13 @@ void WorldSystem::spawn_items() {
 void WorldSystem::spawn_mobs() {
 	// NOTE: do not add more mobs than there are grid cells available in the zone!!!
 	std::map<ZONE_NUMBER,int> zone_mob_numbers = {
-		// {ZONE_0, 5},			// zone 1 has 5 mobs
-		// {ZONE_1, 5},			// zone 2 has 5 mobs
+		{ZONE_0, 5},			// zone 1 has 5 mobs
+		{ZONE_1, 5},			// zone 2 has 5 mobs
 	};
 
 	std::vector<vec2> zone_mob_locations = terrain->get_mob_spawn_locations(zone_mob_numbers);
 
 	for (const auto& spawn_location: zone_mob_locations) {
-		createBasicMob(renderer, terrain, spawn_location, MOB_TYPE::SLIME);
+		createBasicMob(renderer, terrain, spawn_location, rng() % 2 ? MOB_TYPE::SLIME : MOB_TYPE::GHOST);
 	}
 };

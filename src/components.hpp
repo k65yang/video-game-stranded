@@ -62,12 +62,12 @@ enum class MOB_TYPE {
 struct Mob {
 	bool is_tracking_player = false;
 	int damage;
-	int aggro_range = 5;
-	int health = 50;
-	float speed_ratio = 2.f;
+	int aggro_range;
+	int health;
+	float speed_ratio;
 	int mframex = 0;
 	int mframey = 1;
-	Entity curr_cell; // cell the mob is currently in
+	Entity curr_cell;
 	MOB_TYPE type;
 };
 

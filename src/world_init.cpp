@@ -119,36 +119,41 @@ Entity createBasicMob(RenderSystem* renderer, TerrainSystem* terrain, vec2 posit
 
 	// Classify this entity as a mob.
 	auto& mob_info = registry.mobs.emplace(entity);
-	mob_info.damage = 50;
+	mob_info.damage = mob_damage_map.at(type);
+	mob_info.aggro_range = mob_aggro_range_map.at(type);
+	mob_info.health = mob_health_map.at(type);
+	mob_info.speed_ratio = mob_speed_ratio_map.at(type);
 	mob_info.curr_cell = terrain->get_cell(motion.position);
 	mob_info.type = type;
 
 	// Initialize the collider, if it has a colliding mesh
 	createMeshCollider(entity, GEOMETRY_BUFFER_ID::MOB001_MESH, renderer);
 
-	TEXTURE_ASSET_ID texture = TEXTURE_ASSET_ID::SLIME;
+	TEXTURE_ASSET_ID texture = mob_textures_map.at(type);
 	switch (type) {
-	case MOB_TYPE::SLIME:
-		texture = TEXTURE_ASSET_ID::SLIME;
-		break;
-	case MOB_TYPE::GHOST:
-
-		// TODO: TEMPORARY!!! Make ghost spritesheet
-		registry.renderRequests.insert(
-			entity,
-			{	TEXTURE_ASSET_ID::GHOST,
-				EFFECT_ASSET_ID::TEXTURED,
-				GEOMETRY_BUFFER_ID::SPRITE,
-				RENDER_LAYER_ID::LAYER_1 });
-		return entity;
+		case MOB_TYPE::SLIME:	// Handle slime differently because it has sprite sheet animation
+			registry.renderRequests.insert(
+				entity,
+				{	
+					texture,
+					EFFECT_ASSET_ID::SPRITESHEET,
+					GEOMETRY_BUFFER_ID::MOB_SPRITE,
+					RENDER_LAYER_ID::LAYER_1 
+				}
+			);
+			break;
+		default:
+			registry.renderRequests.insert(
+				entity,
+				{	
+					texture,
+					EFFECT_ASSET_ID::TEXTURED,
+					GEOMETRY_BUFFER_ID::SPRITE,
+					RENDER_LAYER_ID::LAYER_1 
+				}
+			);
+			break;
 	}
-
-	registry.renderRequests.insert(
-		entity,
-		{	texture,
-			EFFECT_ASSET_ID::SPRITESHEET,
-			GEOMETRY_BUFFER_ID::MOB_SPRITE,
-			RENDER_LAYER_ID::LAYER_1 });
 
 	return entity;
 }

@@ -1,4 +1,5 @@
 #pragma once
+#include <map>
 
 #include "common.hpp"
 #include "tiny_ecs.hpp"
@@ -13,6 +14,36 @@ const float TURTLE_BB_HEIGHT = 0.4f * 202.f;
 const vec2 HEALTH_BAR_SCALE = vec2(5.f, 0.5);
 const vec2 FOOD_BAR_SCALE = vec2(5.5, 0.7);
 
+// Harcoded mob data
+// Damage for each mob
+const std::map<MOB_TYPE, int> mob_damage_map = {
+    {MOB_TYPE::GHOST, 10},
+    {MOB_TYPE::SLIME, 15}
+};
+
+// Aggro range for each mob
+const std::map<MOB_TYPE, int> mob_aggro_range_map = {
+    {MOB_TYPE::GHOST, 10},
+    {MOB_TYPE::SLIME, 10}
+};
+
+// Health for each mob
+const std::map<MOB_TYPE, int> mob_health_map = {
+    {MOB_TYPE::GHOST, 50},
+    {MOB_TYPE::SLIME, 30}
+};
+
+// Speed for each mob
+const std::map<MOB_TYPE, float> mob_speed_ratio_map = {
+    {MOB_TYPE::GHOST, 2.5f},
+    {MOB_TYPE::SLIME, 2.f}
+};
+
+// Texture for each mob
+const std::map<MOB_TYPE, TEXTURE_ASSET_ID> mob_textures_map = {
+    {MOB_TYPE::GHOST, TEXTURE_ASSET_ID::GHOST},
+    {MOB_TYPE::SLIME, TEXTURE_ASSET_ID::SLIME}
+};
 
 // the player
 Entity createPlayer(RenderSystem* renderer, vec2 pos);
