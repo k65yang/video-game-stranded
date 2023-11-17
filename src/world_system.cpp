@@ -433,6 +433,9 @@ void WorldSystem::restart_game() {
 	// Reset the weapons system
 	weapons_system->resetWeaponsSystem();
 
+	// Reset the terrain system
+	terrain->resetTerrainSystem();
+
 	// Debugging for memory/component leaks
 	registry.list_all_components();
 
@@ -992,7 +995,7 @@ void WorldSystem::spawn_items() {
 
 	for (int i = 0; i < ITEM_LIMIT; i++) {
 		// Get random spawn location
-		vec2 spawn_location = get_random_spawn_location();
+		vec2 spawn_location = terrain->get_random_terrain_location();
 
 		// Randomly choose item type
 		int item_type = rng() % NUM_ITEM_TYPES;
@@ -1011,71 +1014,26 @@ void WorldSystem::spawn_items() {
 	}
 
 	// TESTING: Force one spawn of each weapon.
-	 createItem(renderer, get_random_spawn_location(), ITEM_TYPE::WEAPON_SHURIKEN);
-	 createItem(renderer, get_random_spawn_location(), ITEM_TYPE::WEAPON_CROSSBOW);
-	 createItem(renderer, get_random_spawn_location(), ITEM_TYPE::WEAPON_SHOTGUN);
-	 createItem(renderer, get_random_spawn_location(), ITEM_TYPE::WEAPON_MACHINEGUN);
+	 createItem(renderer, terrain->get_random_terrain_location(), ITEM_TYPE::WEAPON_SHURIKEN);
+	 createItem(renderer, terrain->get_random_terrain_location(), ITEM_TYPE::WEAPON_CROSSBOW);
+	 createItem(renderer, terrain->get_random_terrain_location(), ITEM_TYPE::WEAPON_SHOTGUN);
+	 createItem(renderer, terrain->get_random_terrain_location(), ITEM_TYPE::WEAPON_MACHINEGUN);
 
 	 // TESTING: Force spawn quest items once
-	 createItem(renderer, get_random_spawn_location(), ITEM_TYPE::QUEST_ONE);
-	 createItem(renderer, get_random_spawn_location(), ITEM_TYPE::QUEST_TWO);
+	 createItem(renderer, terrain->get_random_terrain_location(), ITEM_TYPE::QUEST_ONE);
+	 createItem(renderer, terrain->get_random_terrain_location(), ITEM_TYPE::QUEST_TWO);
 };
 
 void WorldSystem::spawn_mobs() {
-	for (int i = 0; i < MOB_LIMIT; i++) {
-		// Get random spawn location
-		vec2 spawn_location = get_random_spawn_location();
+	// NOTE: do not add more mobs than there are grid cells available in the zone!!!
+	std::map<ZONE_NUMBER,int> zone_mob_numbers = {
+		// {ZONE_0, 5},			// zone 1 has 5 mobs
+		// {ZONE_1, 5},			// zone 2 has 5 mobs
+	};
 
-		// Randomly choose mob type
-		int item_type = rng() % 2;
+	std::vector<vec2> zone_mob_locations = terrain->get_mob_spawn_locations(zone_mob_numbers);
 
-		switch (item_type) {
-		case 0:
-			createBasicMob(renderer, terrain, spawn_location, MOB_TYPE::SLIME);
-			break;
-		case 1:
-			createBasicMob(renderer, terrain, spawn_location, MOB_TYPE::GHOST);;
-			break;
-		}
-		
+	for (const auto& spawn_location: zone_mob_locations) {
+		createBasicMob(renderer, terrain, spawn_location, MOB_TYPE::SLIME);
 	}
-};
-
-vec2 WorldSystem::get_random_spawn_location() {
-	vec2 position;
-
-	// Get unused spawn location within [-terrain->size_x/2 + 1, terrain->size_x/2 - 1] for x and 
-	// [-terrain->size_y/2 + 1, terrain->size_y/2 - 1] for y
-	while (true) {
-		position.x = abs((int) rng()) % (terrain->size_x - 2) + (-((terrain->size_x) / 2)) + 1;
-		position.y = abs((int) rng()) % (terrain->size_y - 2) + (-((terrain->size_y) / 2)) + 1;
-
-		// Skip locations that are covered by spaceship
-		if (position.x <= 1 && position.x >= -1 && position.y <= 2 && position.y >= -2) {
-			continue;
-		}
-
-		// Skip locations that are not accessible
-		if (terrain->is_invalid_spawn(position))
-			continue;
-
-		if (!is_spawn_location_used(position)) {
-			break;
-		}
-	} 
-
-	// Add spawn location to used spawn locations
-	used_spawn_locations.push_back(position);
-
-	return position;
-};
-
-bool WorldSystem::is_spawn_location_used(vec2 position) {
-	for (vec2 p : used_spawn_locations) {
-		if (p.x == position.x && p.y == position.y) {
-			return true;
-		}
-	}
-
-	return false;
 };

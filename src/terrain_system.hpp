@@ -2,6 +2,7 @@
 #include <cmath>
 #include <random>
 #include <map>
+#include <unordered_set>
 
 #include "common.hpp"
 #include "tiny_ecs.hpp"
@@ -39,6 +40,20 @@ public:
 		{TERRAIN_TYPE::SHALLOW_WATER, 0.25f},
 		{TERRAIN_TYPE::DEEP_WATER, 0.0625f}
 	};
+
+	// Look-up table for zone boundaries. Zones are circular.
+	// Key is zone number. Value is the radius from the spaceship
+	std::map<ZONE_NUMBER, int> zone_radius_map = {
+		{ZONE_0, 10},
+		{ZONE_1, 17},
+		{ZONE_2, 40}
+	};
+
+	/// @brief Function to get randomized spawn locations per zone
+	/// @param num_per_zone Map specifying how many mobs to spawn per zone
+	/// @return List of spawn locations
+	std::vector<vec2> get_mob_spawn_locations(std::map<ZONE_NUMBER,int> num_per_zone);
+
 
 	/// <summary>
 	/// Initializes the world grid with the given size. Each axis should preferably be odd.
@@ -89,6 +104,14 @@ public:
 	/// <param name="cell">The cell</param>
 	/// <returns>The index of the cell in the grid</returns>
 	int get_cell_index(Entity cell);
+
+	/// @brief Get a valid random terrain location anywhere on the map that is not used
+	/// @param @overload zone: The zone to get the random terrain location.
+	/// @return A vec2 of the random position
+	vec2 get_random_terrain_location();
+	vec2 get_random_terrain_location(ZONE_NUMBER zone);
+
+	bool is_terrain_location_used(vec2 position);
 
 	/// <summary>
 	/// Gets the speed ratio of the terrain of a cell
@@ -179,6 +202,11 @@ public:
 	/// <param name="name">The name of the map to be loaded</param>
 	void load_grid(const std::string& name);
 
+	/// @brief Reset the terrain system when the game resets
+	void resetTerrainSystem() {
+		used_terrain_locations.clear();
+	}
+
 private:
 	// PLEASE DO NOT EXPOSE THESE UNLESS YOU KNOW WHAT YOU ARE DOING
 
@@ -209,4 +237,7 @@ private:
 	/// <param name="index">The index to a cell in 'grid'</param>
 	/// <returns>The cell's world position</returns>
 	vec2 to_world_coordinates(const int index);
+
+	// Map to keep track of locations where an item/mob has been spawned
+	std::unordered_set<vec2> used_terrain_locations;
 };
