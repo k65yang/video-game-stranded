@@ -12,6 +12,7 @@
 #include "terrain_system.hpp"
 #include "pathfinding_system.hpp"
 #include "weapons_system.hpp"
+#include "particle_system.hpp"
 #include "common.hpp"
 
 using Clock = std::chrono::high_resolution_clock;
@@ -26,6 +27,7 @@ int main()
 	TerrainSystem terrain_system;
 	PathfindingSystem pathfinding_system;
 	WeaponsSystem weapons_system;
+	ParticleSystem particle_system;
 
 	// Initializing window
 	GLFWwindow* window = world_system.create_window();
@@ -42,6 +44,7 @@ int main()
 	world_system.init(&render_system, &terrain_system, &weapons_system);
 	render_system.initializeTerrainBuffers();
 	pathfinding_system.init(&terrain_system);
+	particle_system.init(&render_system);
 
 	// variable timestep loop
 	auto t = Clock::now();
@@ -60,6 +63,7 @@ int main()
 		terrain_system.step(elapsed_ms);
 		pathfinding_system.step(elapsed_ms);
 		weapons_system.step(elapsed_ms);
+		particle_system.step(elapsed_ms);
 		world_system.handle_collisions();
 		render_system.draw();
 	}

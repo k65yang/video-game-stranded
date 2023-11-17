@@ -1,4 +1,5 @@
 #include "terrain_system.hpp"
+#include "cstring"
 
 void TerrainSystem::init(const unsigned int x, const unsigned int y, RenderSystem* renderer)
 {
@@ -189,7 +190,7 @@ void TerrainSystem::save_grid(const std::string& name)
 {
 	const std::string path = map_path_builder(name);
 	std::ofstream file(path.c_str(), std::ios::binary | std::ios::out);
-	file.write(map_ext.c_str(), size(map_ext));
+	file.write(map_ext.c_str(), map_ext.size());
 	assert(file.is_open() && "Map file cannot be created or modified.");
 	write_to_file(file, savefile_version);
 	write_to_file(file, size_x);

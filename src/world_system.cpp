@@ -444,7 +444,7 @@ void WorldSystem::restart_game() {
 
 	// Create a new salmon
 	player_salmon = createPlayer(renderer, { 0, 0 });
-	registry.colors.insert(player_salmon, { 1, 0.8f, 0.8f });
+	registry.colors.insert(player_salmon, { 1, 0.8f, 0.8f , 1.f});
 
 	// Create the main camera
 	main_camera = createCamera({ 0,0 });
@@ -495,7 +495,10 @@ void WorldSystem::restart_game() {
 	for (int i = 0; i < KEYS; i++)
 	  keyDown[i] = false;
 
-	
+	// TESTING: Player particles
+	ParticleTrail& pt = registry.particleTrails.emplace(player_salmon);
+	pt.texture = TEXTURE_ASSET_ID::PLAYER_PARTICLE;
+	pt.motion_component_ptr = &registry.motions.get(player_salmon);
 }
 
 // Compute collisions between entities

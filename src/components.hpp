@@ -1,6 +1,5 @@
 #pragma once
 #include "common.hpp"
-#include <vector>
 #include <unordered_map>
 #include <deque>
 #include "../ext/stb_image/stb_image.h"
@@ -255,7 +254,8 @@ struct BoundaryBlock {
 
 enum class TEXTURE_ASSET_ID {
 	PLAYER = 0,
-	MOB = PLAYER + 1,
+	PLAYER_PARTICLE = PLAYER + 1,
+	MOB = PLAYER_PARTICLE + 1,
 	REDBLOCK = MOB + 1,
 	FOW = REDBLOCK + 1,
 	ITEM = FOW + 1,
@@ -336,3 +336,17 @@ struct RenderRequest {
 	RENDER_LAYER_ID layer_id = RENDER_LAYER_ID::LAYER_COUNT;
 };
 
+// Particle effects
+const int NUM_PARTICLES = 200;
+
+// Struct describing particles 
+struct Particle {
+	
+}; 
+
+// Each entity that has particle effects will have a vector to track individual particles
+struct ParticleTrail {
+	TEXTURE_ASSET_ID texture;
+	Motion* motion_component_ptr;
+	std::set<Entity> particles;
+};

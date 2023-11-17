@@ -24,6 +24,9 @@ public:
 	ComponentContainer<Path> paths;
 	ComponentContainer<Item> items;
 
+	ComponentContainer<ParticleTrail> particleTrails;
+	ComponentContainer<Particle> particles;
+
 	// Rendering related
 	ComponentContainer<Mesh*> meshPtrs;
 	ComponentContainer<RenderRequest> renderRequests;
@@ -31,7 +34,7 @@ public:
 
 	ComponentContainer<ScreenState> screenStates;
 	ComponentContainer<DebugComponent> debugComponents;
-	ComponentContainer<vec3> colors;
+	ComponentContainer<vec4> colors;
 	ComponentContainer<Collider> colliders;
 
 	ComponentContainer<BoundaryBlock> boundaries;
@@ -54,6 +57,9 @@ public:
 		registry_list.push_back(&mobSlowEffects);
 		registry_list.push_back(&paths);
 		registry_list.push_back(&items);
+
+		registry_list.push_back(&particleTrails);
+		registry_list.push_back(&particles);
 
 		registry_list.push_back(&meshPtrs);
 		registry_list.push_back(&renderRequests);

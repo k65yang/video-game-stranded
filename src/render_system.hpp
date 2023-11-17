@@ -40,6 +40,7 @@ class RenderSystem {
 	const std::array<std::string, texture_count> texture_paths = {
 			//textures_path("player.png"),
 			textures_path("player_spritesheet.png"),
+			textures_path("player_particle.png"),
 			textures_path("mob_spritesheet.png"),
 			textures_path("redblock.png"),
 			textures_path("fow mask.png"),

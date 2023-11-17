@@ -7,7 +7,7 @@ flat in uint tex_i;
 
 // Application data
 uniform sampler2DArray textures;
-//uniform vec3 fcolor;
+//uniform vec4 fcolor;
 
 // Output color
 layout(location = 0) out  vec4 color;
