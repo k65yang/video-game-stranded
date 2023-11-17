@@ -122,10 +122,11 @@ GLFWwindow* WorldSystem::create_window() {
 	return window;
 }
 
-void WorldSystem::init(RenderSystem* renderer_arg, TerrainSystem* terrain_arg, WeaponsSystem* weapons_system_arg) {
+void WorldSystem::init(RenderSystem* renderer_arg, TerrainSystem* terrain_arg, WeaponsSystem* weapons_system_arg, PhysicsSystem* physics_system_arg) {
 	this->renderer = renderer_arg;
 	this->terrain = terrain_arg;
 	this->weapons_system = weapons_system_arg;
+	this->physics_system = physics_system_arg;
 	// Playing background music indefinitely
 	Mix_PlayMusic(background_music, -1);
 	fprintf(stderr, "Loaded music\n");
@@ -439,8 +440,21 @@ void WorldSystem::restart_game() {
 	// Re-initialize the terrain
 	terrain->init(loaded_map_name, renderer);
 
-	// PRESSURE TESTING FOR BVH 
-	//terrain->init(350, 350, renderer);
+	// PRESSURE TESTING FOR BVH, can remove later
+	//terrain->init(512, 512, renderer);
+
+	// Add wall of stone around the map
+	for (unsigned int i = 0; i < registry.terrainCells.entities.size(); i++) {
+		Entity e = registry.terrainCells.entities[i];
+		TerrainCell& cell = registry.terrainCells.components[i];
+
+		if (cell.flag & TERRAIN_FLAGS::COLLIDABLE)
+			createDefaultCollider(e);
+	}
+
+	// THIS MUST BE CALL AFTER TERRAIN COLLIDER CREATION AND BEFORE ALL OTHER ENTITY CREATION
+	// build the static BVH with all terrain colliders.
+	physics_system->initStaticBVH(registry.colliders.size());
 
 	// Create a Spaceship 
 	spaceship = createSpaceship(renderer, { 0,0 });
@@ -472,21 +486,6 @@ void WorldSystem::restart_game() {
 	quest_items.push_back({ createQuestItem(renderer, {10.f, -2.f}, TEXTURE_ASSET_ID::QUEST_1_NOT_FOUND), false });
 	quest_items.push_back({ createQuestItem(renderer, {10.f, 2.f}, TEXTURE_ASSET_ID::QUEST_2_NOT_FOUND), false });
 
-	// Add wall of stone around the map
-	for (unsigned int i = 0; i < registry.terrainCells.entities.size(); i++) {
-		Entity e = registry.terrainCells.entities[i];
-		TerrainCell& cell = registry.terrainCells.components[i];
-
-		if (cell.flag & TERRAIN_FLAGS::COLLIDABLE)
-			createDefaultCollider(e);
-	}
-
-	//FOR DEMO, CAN REMOVE LATER
-	//createTerrainCollider(renderer, terrain, { 3.f, -3.f });  
-	//createTerrainCollider(renderer, terrain, { 3.f, 3.f });   
-	//createTerrainCollider(renderer, terrain, { -3.f, 3.f });  
-	//createTerrainCollider(renderer, terrain, { -3.f, -3.f });
-	
 	// clear all used spawn locations
 	used_spawn_locations.clear();
 

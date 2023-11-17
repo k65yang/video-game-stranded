@@ -10,9 +10,7 @@ vec2 invertHelper(vec2 MTV)
 	return MTV *= -1.0f;
 	}
 
-
 // Broad phase collision detection in Axis Aligned Bounding Box (AABB)
-
 bool AABBCollides(const Collider& collider1, const Collider& collider2) 
 {
 	float xPos1 = collider1.position.x;
@@ -70,11 +68,9 @@ bool AABBCollides(const Collider& collider1, vec2 aabbMin, vec2 aabbMax)
 
 }
 
-// reference:: https://gamedev.stackexchange.com/questions/105296/calculation-correct-position-of-object-after-collision-2d
-// Narrow phase of collision detection in SAT
 // Separating axis theorem(SAT): if there are no axises(all normals of two collider's edges) that seperates two collider,
 // then they must intercept each other.
-
+// reference: https://gamedev.stackexchange.com/questions/105296/calculation-correct-position-of-object-after-collision-2d
 std::tuple <bool, float, vec2> SATcollides(const Collider& collider1, const Collider& collider2)
 {
 	vec2 minimalTranslationVector;
@@ -269,24 +265,53 @@ std::tuple <bool, float, vec2> SATcollides(const Collider& collider1, const Coll
 	return std::make_tuple(true, overlap, minimalTranslationVector);
 }
 
+/// <summary>
+/// Collision detection in two phase: broad phase with AABB(axis align bounding box) and narrow phase with SAT(separating axis theorem)
+/// </summary>
+/// <param name="entity1"></param>
+/// <param name="entity2"></param>
+void PhysicsSystem::collides(Entity entity1, Entity entity2) {
+	auto& c1 = registry.colliders.get(entity1);
+	auto& c2 = registry.colliders.get(entity2);
+	if (distance(c1.position, c2.position) < detectRange) {
+		if (AABBCollides(c1, c2)) {
+			auto result = SATcollides(c1, c2);
+			bool isCollide;
+			float overlap;
+			vec2 MTV;
+			std::tie(isCollide, overlap, MTV) = result;
 
+			if (isCollide)
+			{
+				// Create a collisions event
+				// We are abusing the ECS system a bit in that we potentially insert muliple collisions for the same entity
+				registry.collisions.emplace_with_duplicates(entity1, entity2, overlap, MTV);
 
+				// inverting correction vector for other entites
+				registry.collisions.emplace_with_duplicates(entity2, entity1, overlap, invertHelper(MTV));
+			}
 
-// resize the total number node in the tree. number of nodes is bounded by 2N - 1, where N is number of colliders.
-void PhysicsSystem::init(size_t numberOfColliders) {
+		}
+	}
+
+}
+
+/// <summary>
+/// Initializes the static BVH with N:number of colliders (all terrain colliders). Total number of tree nodes is 2N - 1.
+/// ColliderMapping is used for indirect reference to avoid tempering with actual collider containers.
+/// </summary>
+/// <param name="numberOfColliders">Number of colliders</param>
+void PhysicsSystem::initStaticBVH(size_t numberOfColliders) {
 	this->numberOfColliders = numberOfColliders;
 	this->bvhTree.resize(2 * numberOfColliders - 1);
 	this->colliderMapping.resize(this->numberOfColliders);
 
-	// KIND OF UNSAFE, IDEALLY IT SHOULD BE CONST BUT issue is i cant reference collision container 
-	this->colliders = registry.colliders.components;
-
+	std::cout << "started building BVH" << std::endl;
 	buildBVH();
 	std::cout << "done building BVH" << std::endl;
-
 }
 
-// update the AABB of the BVH node based on all primitives it holds
+// internal functions: update the AABB of the BVH node based on all colliders it holds
 void PhysicsSystem::updateNodeBounds(int nodeIndex) 
 {
 	BVHNode& node = bvhTree[nodeIndex];
@@ -305,18 +330,21 @@ void PhysicsSystem::updateNodeBounds(int nodeIndex)
 
 		node.aabbMax.x = fmaxf(node.aabbMax.x, collider.position.x + (collider.scale.x / 2));
 		node.aabbMax.y = fmaxf(node.aabbMax.y, collider.position.y + (collider.scale.y / 2));
-
 	}
 }
 
+// internal functions: recursively divide nodes during tree construction. 
 void PhysicsSystem::subDivide(int nodeIndex) 
 {
-	// terminate recursion when only one primitive left in the node
+	// leafnode: terminate recursion when only one primitive(collider) left in the node
 	BVHNode& node = bvhTree[nodeIndex];
 	if (node.primitiveCount <= 1) {
 		return;
 	}
-	// determine split plane axis and position
+
+	// Midpoint split approach, could be optimize with surface area heuristic approach later on.
+	
+	// step1. determine split plane axis and position
 	vec2 bb = node.aabbMax - node.aabbMin;
 	int axis = 0;
 
@@ -326,7 +354,7 @@ void PhysicsSystem::subDivide(int nodeIndex)
 
 	float splitPos = node.aabbMin[axis] + bb[axis] * 0.5f;
 
-	// partition the primitive based on the splitPos
+	// step2. partition the primitive based on the splitPos
 
 	// index for first primitive on the node
 	int i = node.leftFirst;
@@ -337,26 +365,27 @@ void PhysicsSystem::subDivide(int nodeIndex)
 	while (i <= j) 
 	{
 		// if the collider center is to the left of split axis, it belong to left child
-		if (this->colliders[colliderMapping[i]].position[axis] < splitPos) {
+		if (registry.colliders.components[colliderMapping[i]].position[axis] < splitPos) {
 			i++;
 		}
 		else {
-		// if collider center is to the right, we move the index of such collider to the end
+		// if collider center is to the right, we move the index of such collider to the end and update j to one before it
 			std::swap(colliderMapping[i], colliderMapping[j--]);
 		}
 		
 	}
-	// we see that i is the index that separates colliders for left and right child.
-	// index before i are colliders for left child, after (including i) are colliders for right child
+	// now index before i are for colliders belong to left child, after (including i) are colliders that belongs to right child
 
+	
 	// check if any of the side is empty, dont need to split if thats the case
 	int leftCount = i - node.leftFirst;
 	if (leftCount == 0 || leftCount == node.primitiveCount) {
 		return;
 	}
+	
+	//step3. split group of primitives into two halves with the split plane for left/right child
 
-	// split group of primitives into two halves with the split plane for left/right child
-
+	// since i separates the two group, using i and primitive count splits them easily
 	int leftChildIndex = nodeUsed++;
 	int rightChildIndex = nodeUsed++;
 	bvhTree[leftChildIndex].leftFirst = node.leftFirst;
@@ -364,13 +393,13 @@ void PhysicsSystem::subDivide(int nodeIndex)
 	bvhTree[rightChildIndex].leftFirst = i;
 	bvhTree[rightChildIndex].primitiveCount = node.primitiveCount - leftCount;
 
-	// once assigning colliders are done, internal node's leftFirst represents the index of its leftchild.
+	// after assigning colliders, internal node's leftFirst represents the index of its leftchild.
 	node.leftFirst = leftChildIndex;
 
 	// setting primitive count to zero for internal node.
 	node.primitiveCount = 0;
 
-	// updating AABB for both child nodes.
+	//step4. updating AABB for both child nodes.
 	updateNodeBounds(leftChildIndex);
 	updateNodeBounds(rightChildIndex);
 	
@@ -380,9 +409,13 @@ void PhysicsSystem::subDivide(int nodeIndex)
 }
 
 
-// citaion for reference: https://jacco.ompf2.com/2022/04/13/how-to-build-a-bvh-part-1-basics/
 
-// building BVH tree in a top down approach
+/// <summary>
+/// building a static BVH tree for all terrain colliders in a top down approach.
+/// This must be call after creating terrain colliders and before all other colliders such as items, mobs....
+/// citation for reference1: https://jacco.ompf2.com/2022/04/13/how-to-build-a-bvh-part-1-basics/
+/// reference2: https://box2d.org/files/ErinCatto_DynamicBVH_Full.pdf
+/// </summary>
 void PhysicsSystem::buildBVH() 
 {
 	auto& collider_container = registry.colliders.components;
@@ -393,27 +426,25 @@ void PhysicsSystem::buildBVH()
 		colliderMapping[i] = i;
 	}
 
-	// set up root node
+	// set up root node's child node
 	BVHNode& root = bvhTree[rootNodeIndex];
 	root.leftFirst = 0;
 	
 	// adding all colliders under root node
 	root.primitiveCount = numberOfColliders;
 
+	// update AABB for the root node
 	updateNodeBounds(rootNodeIndex);
 
 	// recursively divide node into smaller nodes
 	subDivide(rootNodeIndex);
-
 }
 
-void PhysicsSystem::deleteCollider(Entity entity) {
-
-	
-
-
-}
-
+/// <summary>
+// Collision detection for entity against terrain collider using the static BVH. Creates corresponding collision component for the entities
+/// </summary>
+/// <param name="entity"></param>
+/// <param name="nodeIndex">This is always the rootnode index</param>
 void PhysicsSystem::intersectBVH(Entity entity, const int nodeIndex) {
 	BVHNode& node = bvhTree[nodeIndex];
 	auto& collider = registry.colliders.get(entity);
@@ -427,28 +458,32 @@ void PhysicsSystem::intersectBVH(Entity entity, const int nodeIndex) {
 	{
 		// check target collider against all collider under this node
 		for (int i = 0; i < node.primitiveCount; i++) 
-		
 		{
 			auto entity_j = registry.colliders.entities[colliderMapping[node.leftFirst + i]];
 
 			// Checking if the entity is itself 
 			if (entity != entity_j) 
 			{
-				auto result = SATcollides(collider, registry.colliders.components[colliderMapping[node.leftFirst + i]]);
-				bool isCollide;
-				float overlap;
-				vec2 MTV;
-				std::tie(isCollide, overlap, MTV) = result;
-
-				if (isCollide)
+				if (AABBCollides(collider, registry.colliders.components[colliderMapping[node.leftFirst + i]])) 
 				{
-					// Create a collisions event
-					// We are abusing the ECS system a bit in that we potentially insert muliple collisions for the same entity
-					registry.collisions.emplace_with_duplicates(entity, entity_j, overlap, MTV);
+					auto result = SATcollides(collider, registry.colliders.components[colliderMapping[node.leftFirst + i]]);
+					bool isCollide;
+					float overlap;
+					vec2 MTV;
+					std::tie(isCollide, overlap, MTV) = result;
 
-					// inverting correction vector for other entites
-					registry.collisions.emplace_with_duplicates(entity_j, entity, overlap, invertHelper(MTV));
+					if (isCollide)
+					{
+						// Create a collisions event
+						// We are abusing the ECS system a bit in that we potentially insert muliple collisions for the same entity
+						registry.collisions.emplace_with_duplicates(entity, entity_j, overlap, MTV);
+
+						// inverting correction vector for other entites
+						registry.collisions.emplace_with_duplicates(entity_j, entity, overlap, invertHelper(MTV));
+					}
+				
 				}
+				
 			}
 		}
 	}
@@ -456,16 +491,12 @@ void PhysicsSystem::intersectBVH(Entity entity, const int nodeIndex) {
 		// node is an internal node
 		intersectBVH(entity, node.leftFirst);
 		intersectBVH(entity, node.leftFirst + 1);
-	
 	}
 }
 
- // FIX BUG WHERE ITEM COMPONENT IS DELETE AFTER PICKUP, BUT DOES NOT UPDATE BVH WHICH CAUSE INDEX OUTOFBOUND.
-
 void PhysicsSystem::step(float elapsed_ms)
 {
-	// Move fish based on how much time has passed, this is to (partially) avoid
-	// having entities move at different speed based on the machine.
+	// POSITION UPDATE FROM VELOCITY
 	auto& motion_container = registry.motions;
 	auto& collider_container = registry.colliders;
 
@@ -491,21 +522,45 @@ void PhysicsSystem::step(float elapsed_ms)
 
 	}
 
-	// checking player and all projectile
-
-	auto& player_entity_container = registry.players.entities;
-
-	for (int i = 0; i < player_entity_container.size(); i++) {
-		intersectBVH(player_entity_container[i], 0);
-	}
-
+	// COLLISION DETECTION 
+	 
+	// player against terrain - uses static BVH 
+	auto& player_entity = registry.players.entities[0];
+	intersectBVH(player_entity, rootNodeIndex);
+	
+	// projectile against terrain - uses static BVH
 	auto& projectile_entity_container = registry.projectiles.entities;
 
 	for (int i = 0; i < projectile_entity_container.size(); i++) {
-		intersectBVH(projectile_entity_container[i], 0);
+		intersectBVH(projectile_entity_container[i], rootNodeIndex);
 	}
 
+	// player against item - brute force for now since BVH is not dynamic...
+	auto& item_entity_container = registry.items.entities;
+
+	for (int i = 0; i < item_entity_container.size(); i++) {
+		collides(player_entity, item_entity_container[i]);
+	}
+
+	// player against mob - brute force...
+	auto& mob_entity_container = registry.mobs.entities;
+
+	for (int i = 0; i < mob_entity_container.size(); i++) {
+		collides(player_entity, mob_entity_container[i]);
+	}
+
+	// projectile against mob - brute force...
+	for (int i = 0; i < projectile_entity_container.size(); i++) {
+		for (int j = 0; j < mob_entity_container.size(); j++) {
+			collides(projectile_entity_container[i], mob_entity_container[j]);
+		}
+	}
+
+
+
+
 }
+
 
 /*
 void PhysicsSystem::step(float elapsed_ms)

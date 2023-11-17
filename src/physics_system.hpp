@@ -8,7 +8,6 @@
 // AABB BVH node
 struct BVHNode 
 {
-	// 8 byte each, so 16 in total
 	vec2 aabbMin;
 	vec2 aabbMax;
 
@@ -33,19 +32,6 @@ struct BVHNode
 	// there is no need for left/right node variable
 	// we can get all primitives under such using primitiveCount
 
-	// assuming we can consistently reference primitives using index
-	// node is reference with index
-
-	// Since we know max number of nodes, given N primitives, in BVHtree is no more than 2N - 1
-	// we can preallocate all nodes and then reference it using index
-
-	//NOTES
-	// during traverse, make sure in leaf level, check that the primitives identifier is different from target to avoid collision with itself since the BVH tree build from all colliders.
-
-	// aim for all colliders, and update tree for moving colliders
-
-
-	// alternatives is build BVH with onlys static colliders like terains, so first include one identifier for static colliders, then check collisions for movable against 
 };
 
 // A simple physics system that moves rigid bodies and checks for collision
@@ -53,30 +39,27 @@ class PhysicsSystem
 {
 public:
 	
-	std::vector<BVHNode> bvhTree;
 	int numberOfColliders;
-	std::vector<Collider> colliders;
-
-	void init(size_t numberOfColliders);
+	float detectRange;
 	void step(float elapsed_ms);
+	void initStaticBVH(size_t numberOfColliders);
 	void buildBVH();
-	void PhysicsSystem::deleteCollider(Entity entity);
-	void PhysicsSystem::intersectBVH(Entity entity, const int nodeIndex);
+	void intersectBVH(Entity entity, const int nodeIndex);
+	void collides(Entity entity1, Entity entity2);
 
 	PhysicsSystem()
 	{
-		this->numberOfColliders = 0;
-		
+		this->numberOfColliders = 0; 
+		this->detectRange = 2.f;
 	}
 private:
+
 	int rootNodeIndex = 0;
 	int nodeUsed = 1;
 	std::vector<int> colliderMapping;
-	void PhysicsSystem::updateNodeBounds(int nodeIndex);
-	void PhysicsSystem::subDivide(int nodeIndex);
-
-
-
+	std::vector<BVHNode> bvhTree;
+	void updateNodeBounds(int nodeIndex);
+	void subDivide(int nodeIndex);
 };
 
 

@@ -39,10 +39,9 @@ int main()
 	// initialize the main systems
 	render_system.init(window);
 	weapons_system.init(&render_system);
-	world_system.init(&render_system, &terrain_system, &weapons_system);
+	world_system.init(&render_system, &terrain_system, &weapons_system, &physics_system);
 	render_system.initializeTerrainBuffers();
 	pathfinding_system.init(&terrain_system);
-	physics_system.init(registry.colliders.size());
 	
 
 	// variable timestep loop

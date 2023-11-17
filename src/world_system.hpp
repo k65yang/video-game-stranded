@@ -14,6 +14,7 @@
 #include "render_system.hpp"
 #include "terrain_system.hpp"
 #include "weapons_system.hpp"
+#include "physics_system.hpp"
 
 // Container for all our entities and game logic. Individual rendering / update is
 // deferred to the relative update() methods
@@ -39,7 +40,7 @@ public:
 	GLFWwindow* create_window();
 
 	// starts the game
-	void init(RenderSystem* renderer, TerrainSystem* terrain_arg, WeaponsSystem* weapons_system_arg);
+	void init(RenderSystem* renderer, TerrainSystem* terrain_arg, WeaponsSystem* weapons_system_arg, PhysicsSystem* physics_system_arg);
 
 	// Releases all associated resources
 	~WorldSystem();
@@ -86,6 +87,7 @@ private:
 	RenderSystem* renderer;
 	TerrainSystem* terrain;
 	WeaponsSystem* weapons_system;
+	PhysicsSystem* physics_system;
 	float current_speed;
 	float next_turtle_spawn;
 	float next_fish_spawn;
