@@ -125,11 +125,11 @@ private:
 	};
 
 	const std::unordered_set<ORIENTATIONS> mirror_vertical_orientations = {
-		EDGE_RIGHT, CORNER_OUTER_TOP_RIGHT, CORNER_INNER_BOTTOM_RIGHT, CORNER_INNER_TOP_RIGHT, DOUBLE_EDGE_END_RIGHT
+		EDGE_RIGHT, CORNER_OUTER_TOP_RIGHT, CORNER_INNER_BOTTOM_RIGHT, CORNER_INNER_TOP_RIGHT
 	};
 
 	const std::unordered_set<ORIENTATIONS> mirror_horizontal_orientations = {
-		CORNER_OUTER_BOTTOM_RIGHT
+		CORNER_OUTER_BOTTOM_RIGHT, DOUBLE_EDGE_END_RIGHT
 	};
 
 	const std::unordered_set<ORIENTATIONS> rotate_orientations = {

@@ -114,6 +114,7 @@ void RenderSystem::makeQuadVertices(glm::mat3& modelMatrix, uint16_t texture_id,
 		if (mirror_vertical_orientations.count(ori))
 			std::swap(uv_zero.x, uv_one.x);
 		if (rotate_orientations.count(ori)) {
+
 			quad[1].texCoords = { uv_zero.x, uv_one.y };
 			quad[2].texCoords = uv_one;
 			quad[3].texCoords = { uv_one.x, uv_zero.y };
