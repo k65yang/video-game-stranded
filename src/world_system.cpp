@@ -1031,6 +1031,6 @@ void WorldSystem::spawn_mobs() {
 	std::vector<vec2> zone_mob_locations = terrain->get_mob_spawn_locations(zone_mob_numbers);
 
 	for (const auto& spawn_location: zone_mob_locations) {
-		createBasicMob(renderer, terrain, spawn_location, rng() % 2 ? MOB_TYPE::SLIME : MOB_TYPE::GHOST);
+		createMob(renderer, terrain, spawn_location, rng() % 2 ? MOB_TYPE::SLIME : MOB_TYPE::GHOST);
 	}
 };

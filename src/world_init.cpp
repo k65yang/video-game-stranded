@@ -96,8 +96,7 @@ Entity createItem(RenderSystem* renderer, vec2 position, ITEM_TYPE type)
 	return entity;
 }
 
-// TODO: CLEAN UP ALL THIS CREATE INTO ONE GENERALISED FN
-Entity createBasicMob(RenderSystem* renderer, TerrainSystem* terrain, vec2 position, MOB_TYPE type)
+Entity createMob(RenderSystem* renderer, TerrainSystem* terrain, vec2 position, MOB_TYPE type)
 {
 	auto entity = Entity();
 
