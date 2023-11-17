@@ -171,6 +171,13 @@ struct Camera
 	bool mode_follow;
 };
 
+enum ZONE_NUMBER {
+	ZONE_0 = 0,
+	ZONE_1 = 1,
+	ZONE_2 = 2,
+	ZONE_COUNT = ZONE_2 + 1,
+};
+
 
 enum TERRAIN_TYPE : uint16_t {
 	AIR = 0,
