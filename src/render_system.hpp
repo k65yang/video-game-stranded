@@ -25,10 +25,14 @@ public:
 		CORNER_INNER_TOP_RIGHT,
 		CORNER_INNER_BOTTOM_LEFT,
 		CORNER_INNER_BOTTOM_RIGHT,
-		DOUBLE_EDGE_SIDES,
-		DOUBLE_EDGE_TOP,
-		DOUBLE_EDGE_BOTTOM,
+		DOUBLE_EDGE_VERTICAL,
+		DOUBLE_EDGE_HORIZONTAL,
+		DOUBLE_EDGE_END_TOP,
+		DOUBLE_EDGE_END_BOTTOM,
+		DOUBLE_EDGE_END_LEFT,
+		DOUBLE_EDGE_END_RIGHT,
 		INSIDE,
+		ISOLATED,
 		ORIENTATIONS_COUNT
 	};
 private:
@@ -121,11 +125,15 @@ private:
 	};
 
 	const std::unordered_set<ORIENTATIONS> mirror_vertical_orientations = {
-		EDGE_RIGHT, CORNER_OUTER_TOP_RIGHT, CORNER_OUTER_BOTTOM_RIGHT,
+		EDGE_RIGHT, CORNER_OUTER_TOP_RIGHT, CORNER_INNER_BOTTOM_RIGHT, CORNER_INNER_TOP_RIGHT, DOUBLE_EDGE_END_RIGHT
 	};
 
 	const std::unordered_set<ORIENTATIONS> mirror_horizontal_orientations = {
-		CORNER_OUTER_BOTTOM_LEFT, CORNER_OUTER_BOTTOM_RIGHT, DOUBLE_EDGE_BOTTOM
+		CORNER_OUTER_BOTTOM_RIGHT
+	};
+
+	const std::unordered_set<ORIENTATIONS> rotate_orientations = {
+		DOUBLE_EDGE_HORIZONTAL, DOUBLE_EDGE_END_LEFT, DOUBLE_EDGE_END_RIGHT
 	};
 
 	const std::unordered_map<ORIENTATIONS, ivec2> terrain_atlas_offsets = {
@@ -135,16 +143,20 @@ private:
 		{EDGE_RIGHT,					{1, 1}},
 		{CORNER_OUTER_TOP_LEFT,			{1, 0}},
 		{CORNER_OUTER_TOP_RIGHT,		{1, 0}},
-		{CORNER_OUTER_BOTTOM_LEFT,		{1, 0}},
-		{CORNER_OUTER_BOTTOM_RIGHT,		{1, 0}},
-		{CORNER_INNER_TOP_LEFT,			{1, 1}},
-		{CORNER_INNER_TOP_RIGHT,		{1, 1}},
-		{CORNER_INNER_BOTTOM_LEFT,		{2, 1}},
-		{CORNER_INNER_BOTTOM_RIGHT,		{2, 1}},
-		{DOUBLE_EDGE_SIDES,				{1, 2}},
-		{DOUBLE_EDGE_TOP,				{2, 2}},
-		{DOUBLE_EDGE_BOTTOM,			{2, 2}},
+		{CORNER_OUTER_BOTTOM_LEFT,		{0, 0}},
+		{CORNER_OUTER_BOTTOM_RIGHT,		{0, 0}},
+		{CORNER_INNER_TOP_LEFT,			{0, 2}},
+		{CORNER_INNER_TOP_RIGHT,		{0, 2}},
+		{CORNER_INNER_BOTTOM_LEFT,		{1, 1}},
+		{CORNER_INNER_BOTTOM_RIGHT,		{1, 1}},
+		{DOUBLE_EDGE_VERTICAL,			{1, 2}},
+		{DOUBLE_EDGE_HORIZONTAL,		{1, 2}},
+		{DOUBLE_EDGE_END_TOP,			{2, 2}},
+		{DOUBLE_EDGE_END_BOTTOM,		{0, 0}},
+		{DOUBLE_EDGE_END_LEFT,			{2, 2}},
+		{DOUBLE_EDGE_END_RIGHT,			{2, 2}},
 		{INSIDE,						{2, 1}},
+		{ISOLATED,						{0, 1}},
 	};
 
 	std::array<GLuint, effect_count> effects;
@@ -216,7 +228,7 @@ public:
 	/// <param name="cell">The tile</param>
 	/// <param name="i">The tile's index in the Cell array</param>
 	/// <param name="data">The updated render request</param>
-	void changeTerrainData(Entity cell, unsigned int i, TerrainCell& data);
+	void changeTerrainData(Entity cell, unsigned int i, TerrainCell& data, uint8_t frameValue = 0);
 
 	// Do not modify this. READ ONLY!!
 	bool is_terrain_mesh_loaded = false;

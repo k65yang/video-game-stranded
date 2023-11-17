@@ -464,14 +464,13 @@ mat3 RenderSystem::createProjectionMatrix()
 	return {{sx, 0.f, 0.f}, {0.f, sy, 0.f}, {tx, ty, 1.f}};
 }
 
-void RenderSystem::changeTerrainData(Entity cell, unsigned int i, TerrainCell& data)
+void RenderSystem::changeTerrainData(Entity cell, unsigned int i, TerrainCell& data, uint8_t frameValue)
 {
 	glBindBuffer(GL_ARRAY_BUFFER, vertex_buffers[(GLuint)GEOMETRY_BUFFER_ID::TERRAIN]);
 	gl_has_errors();
 	std::vector<BatchedVertex> vertices;
 	mat3 transform = createModelMatrix(cell);
 	uint8_t vertex_flags = directional_terrain.count(data.terrain_type) ? DIRECTIONAL : 0;
-	uint8_t frameValue = (data.flag & ORIENTATION) >> 12;
 	makeQuadVertices(transform, (uint16_t)data.terrain_type, vertices, vertex_flags, frameValue);
 
 	int x = i * sizeof(BatchedVertex) * 4;

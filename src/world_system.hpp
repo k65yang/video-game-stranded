@@ -124,7 +124,6 @@ private:
 
 	// Changes clicked tiles to this during debug mode
 	TERRAIN_TYPE editor_terrain = AIR;
-	RenderSystem::ORIENTATIONS editor_orientation = RenderSystem::ORIENTATIONS::EDGE_BOTTOM;
 
 	// Changes clicked tiles' flags to the given value.
 	uint16_t editor_flag = 0;

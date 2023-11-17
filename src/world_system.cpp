@@ -867,25 +867,6 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 			}
 			std::cout << "Tile: " << std::to_string(editor_terrain) << std::endl;
 		}
-		if (key == GLFW_KEY_KP_MULTIPLY) {	// numpad *
-			// Goes down a RenderSystem::ORIENTATIONS
-			if (editor_orientation == 0) {
-				editor_orientation = static_cast<RenderSystem::ORIENTATIONS>(RenderSystem::ORIENTATIONS::ORIENTATIONS_COUNT - 1);
-			}
-			else {
-				editor_orientation = static_cast<RenderSystem::ORIENTATIONS>(editor_orientation - 1);
-			}
-			std::cout << "Tile orientation: " << std::to_string(editor_orientation) << std::endl;
-		}
-		if (key == GLFW_KEY_KP_DIVIDE) {	// numpad '/'
-			// Goes up a RenderSystem::ORIENTATIONS
-
-			editor_orientation = static_cast<RenderSystem::ORIENTATIONS>(editor_orientation + 1);
-			if (editor_orientation == RenderSystem::ORIENTATIONS::ORIENTATIONS_COUNT) {
-				editor_orientation = static_cast<RenderSystem::ORIENTATIONS>(0);
-			}
-			std::cout << "Tile orientation: " << std::to_string(editor_orientation) << std::endl;
-		}
 		if (key == GLFW_KEY_KP_DECIMAL)	// numpad '.'
 			// Saves map data
 			terrain->save_grid(loaded_map_name);	
@@ -998,8 +979,8 @@ void WorldSystem::on_mouse_click(int button, int action, int mods) {
 		Entity tile = terrain->get_cell(mouse_pos);
 		TerrainCell& cell = registry.terrainCells.get(tile);
 		cell.terrain_type = editor_terrain;
-		cell.flag = editor_flag | ((uint16_t)editor_orientation << 12);
-		terrain->update_tile(tile, cell);
+		cell.flag = editor_flag;
+		terrain->update_tile(tile, cell, true);	// true because we need to update adjacent cells too
 	}
 }
 

@@ -109,16 +109,22 @@ void RenderSystem::makeQuadVertices(glm::mat3& modelMatrix, uint16_t texture_id,
 		vec2 index = terrain_atlas_offsets.at(ori);
 		vec2 uv_zero = quad[3].texCoords + index * terrain_sheet_uv;
 		vec2 uv_one = quad[1].texCoords + index * terrain_sheet_uv;
-
 		if (mirror_horizontal_orientations.count(ori))
 			std::swap(uv_zero.y, uv_one.y);
 		if (mirror_vertical_orientations.count(ori))
 			std::swap(uv_zero.x, uv_one.x);
-
-		quad[0].texCoords = { uv_zero.x, uv_one.y };
-		quad[1].texCoords = uv_one;
-		quad[2].texCoords = { uv_one.x, uv_zero.y };
-		quad[3].texCoords = uv_zero;
+		if (rotate_orientations.count(ori)) {
+			quad[1].texCoords = { uv_zero.x, uv_one.y };
+			quad[2].texCoords = uv_one;
+			quad[3].texCoords = { uv_one.x, uv_zero.y };
+			quad[0].texCoords = uv_zero;
+		}
+		else {
+			quad[0].texCoords = { uv_zero.x, uv_one.y };
+			quad[1].texCoords = uv_one;
+			quad[2].texCoords = { uv_one.x, uv_zero.y };
+			quad[3].texCoords = uv_zero;
+		}
 	}
 
 	for (BatchedVertex& v : quad) {
@@ -138,11 +144,12 @@ void RenderSystem::initializeTerrainBuffers(std::unordered_map<unsigned int, ORI
 	// The new maximum should be ~26,754 x 26,754.
 	std::vector<uint32_t> indices;
 
-	for (uint i = 0; i < registry.terrainCells.entities.size(); i++) {
+	for (uint32_t i = 0; i < registry.terrainCells.entities.size(); i++) {
 		Entity e = registry.terrainCells.entities[i];
 		TerrainCell& cell = registry.terrainCells.components[i];
 		uint8_t flags = directional_terrain.count(cell.terrain_type) ? DIRECTIONAL : 0;
-		uint8_t frameValue = (cell.flag & ORIENTATION) >> 12;
+		bool has_orientation = flags & DIRECTIONAL;
+		uint8_t frameValue = has_orientation ? directional_tex_orientations[i] : 0;
 		mat3 modelMatrix = createModelMatrix(e);	// preprocess transform matrices because
 													// we can't really have per-mesh transforms so let's just bake them in!
 

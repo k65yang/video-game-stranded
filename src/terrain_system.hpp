@@ -13,6 +13,11 @@
 // The underlying terrain grid square
 class TerrainSystem
 {
+private:
+	const enum ori_index : uint8_t {
+		TOP, RIGHT, BOTTOM, LEFT, TR, BR, BL, TL, n
+	};
+
 public:
 	// size of each respective axes (absolute)
 	int size_x, size_y;
@@ -153,9 +158,9 @@ public:
 	/// Updates the values for a tile. This includes rendering data and TerrainCell data.
 	/// </summary>
 	/// <param name="tile">The tile's entity</param>
-	void update_tile(Entity tile) {
+	void update_tile(Entity tile, bool also_update_neighbours = false) {
 		TerrainCell& cell = registry.terrainCells.get(tile);
-		return update_tile(tile, cell);
+		return update_tile(tile, cell, also_update_neighbours);
 	}
 
 	/// <summary>
@@ -163,11 +168,53 @@ public:
 	/// </summary>
 	/// <param name="tile">The tile's entity</param>
 	/// <param name="cell">The tile's TerrainCell component</param>
-	void update_tile(Entity tile, TerrainCell& cell) {
-		terraincell_grid[tile - entityStart] = cell;
+	void update_tile(Entity tile, TerrainCell& cell, bool also_update_neighbours = false) {
+		int i = tile - entityStart;
+
+		// Update collisions
+		bool to_collidable = (cell.flag & COLLIDABLE);
+		bool from_collidable = (terraincell_grid[i] & COLLIDABLE);
+		if (to_collidable != from_collidable) {
+			if (to_collidable) {
+				registry.colliders.emplace(tile);
+			}
+			else {
+				registry.colliders.remove(tile);
+			}
+		}
+		
+		terraincell_grid[i] = cell;
+		uint8_t frame_value = 0;
+
+		// Evaluate a direction if the terrain type is directional.
+		if (directional_terrain.count(cell.terrain_type)) {
+			frame_value = find_tile_orientation(i);
+		}
+
 		// We may have tiles changed during world_system.init() at startup so we need to check!
-		if (renderer->is_terrain_mesh_loaded)
-			renderer->changeTerrainData(tile, tile - entityStart, cell);
+		if (renderer->is_terrain_mesh_loaded) {
+			renderer->changeTerrainData(tile, tile - entityStart, cell, frame_value);
+			if (also_update_neighbours) {
+				// We also need to update the adjacent cells
+				int indices[8] = {
+				i - size_x,		// Top cell
+				i + 1,			// Right cell
+				i + size_x,		// Bottom cell
+				i - 1,			// Left cell
+				i - size_x + 1,	// Top-right cell
+				i + size_x + 1,	// Bottom-right cell
+				i + size_x - 1,	// Bottom-left cell
+				i - size_x - 1,	// Top-left cell
+				};
+				filter_neighbouring_indices(i, indices);
+
+				for (int j : indices) {
+					if (j < 0)
+						continue;
+					update_tile(entity_grid[j]);
+				}
+			}
+		}
 	}
 
 	/// <summary>
@@ -215,7 +262,11 @@ private:
 
 	bool matches(uint16_t current, int index);
 
-	bool check_match(uint16_t current, int indices[8], std::initializer_list<uint8_t> args);
+	bool check_match(uint16_t current, int indices[8], std::initializer_list<uint8_t> match_list, std::initializer_list<uint8_t> reject_list = {});
+
+	RenderSystem::ORIENTATIONS find_tile_orientation(int centre_index);
+
+	RenderSystem::ORIENTATIONS find_tile_orientation(uint16_t current, int indices[8]);
 
 	void generate_orientation_map(std::unordered_map<unsigned int, RenderSystem::ORIENTATIONS>& map);
 };

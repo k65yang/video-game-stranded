@@ -75,7 +75,7 @@ void TerrainSystem::init(const std::string& map_name, RenderSystem* renderer)
 	}
 
 	std::unordered_map<unsigned int, RenderSystem::ORIENTATIONS> orientation_map;
-	//generate_orientation_map(orientation_map);
+	generate_orientation_map(orientation_map);
 	renderer->initializeTerrainBuffers(orientation_map);
 }
 
@@ -265,57 +265,126 @@ bool TerrainSystem::matches(uint16_t current_type, int index) {
 	return !(current_type ^ cell_type);
 }
 
-bool TerrainSystem::check_match(uint16_t current, int indices[8], std::initializer_list<uint8_t> args) {
-	for (int i : args) {
+bool TerrainSystem::check_match(uint16_t current, int indices[8], 
+	std::initializer_list<uint8_t> match_list, 
+	std::initializer_list<uint8_t> reject_list) {
+	for (int i : match_list) {
 		assert(i < 8);
 		i = indices[i];
 		if (!matches(current, i))
 			return false;
 	}
+
+	for (int i : reject_list) {
+		assert(i < 8);
+		i = indices[i];
+		if (matches(current, i))
+			return false;
+	}
+
 	return true;
+}
+
+RenderSystem::ORIENTATIONS TerrainSystem::find_tile_orientation(int centre_index) {
+	int indices[8] = {
+	centre_index - size_x,		// Top cell
+	centre_index + 1,			// Right cell
+	centre_index + size_x,		// Bottom cell
+	centre_index - 1,			// Left cell
+	centre_index - size_x + 1,	// Top-right cell
+	centre_index + size_x + 1,	// Bottom-right cell
+	centre_index + size_x - 1,	// Bottom-left cell
+	centre_index - size_x - 1,	// Top-left cell
+	};
+	filter_neighbouring_indices(centre_index, indices);
+	return find_tile_orientation((uint16_t)(terraincell_grid[centre_index] >> 16), indices);
+}
+
+RenderSystem::ORIENTATIONS TerrainSystem::find_tile_orientation(uint16_t current, int indices[8]) {
+	// Surrounded and inner corners.
+	if (check_match(current, indices, { TOP, BOTTOM, LEFT, RIGHT })) {
+		if (check_match(current, indices, {}, { BL, BR })) {
+			return RenderSystem::ORIENTATIONS::DOUBLE_EDGE_VERTICAL;
+		}
+		else if (check_match(current, indices, {}, { TL, TR })) {
+			return RenderSystem::RenderSystem::ORIENTATIONS::INSIDE;
+		}
+		else if (check_match(current, indices, { TR }, { BR })) {
+			return RenderSystem::ORIENTATIONS::CORNER_INNER_BOTTOM_RIGHT;
+		}
+		else if (check_match(current, indices, { TL }, { BL })) {
+			return RenderSystem::ORIENTATIONS::CORNER_INNER_BOTTOM_LEFT;
+		}
+		else if (check_match(current, indices, { BR }, { TR })) {
+			return RenderSystem::ORIENTATIONS::CORNER_INNER_TOP_RIGHT;
+		}
+		else if (check_match(current, indices, { BL }, { TL })) {
+			return RenderSystem::ORIENTATIONS::CORNER_INNER_TOP_LEFT;
+		}
+		else {
+			return RenderSystem::ORIENTATIONS::INSIDE;
+		}
+	}
+
+	// Traditional edges
+	else if (check_match(current, indices, { TOP, BOTTOM, LEFT }, { RIGHT })) {
+		return RenderSystem::ORIENTATIONS::EDGE_RIGHT;
+	}
+	else if (check_match(current, indices, { TOP, BOTTOM, RIGHT }, { LEFT })) {
+		return RenderSystem::ORIENTATIONS::EDGE_LEFT;
+	}
+	else if (check_match(current, indices, { RIGHT, LEFT, TOP }, { BOTTOM })) {
+		return RenderSystem::ORIENTATIONS::EDGE_BOTTOM;
+	}
+	else if (check_match(current, indices, { RIGHT, LEFT, BOTTOM }, { TOP })) {
+		return RenderSystem::ORIENTATIONS::EDGE_TOP;
+	}
+
+	// Outer corners
+	else if (check_match(current, indices, { RIGHT, BOTTOM }, { TOP, LEFT })) {
+		return RenderSystem::ORIENTATIONS::CORNER_OUTER_TOP_LEFT;
+	}
+	else if (check_match(current, indices, { RIGHT, TOP }, { BOTTOM, LEFT })) {
+		return RenderSystem::ORIENTATIONS::CORNER_OUTER_BOTTOM_LEFT;
+	}
+	else if (check_match(current, indices, { LEFT, BOTTOM }, { TOP, RIGHT })) {
+		return RenderSystem::ORIENTATIONS::CORNER_OUTER_TOP_RIGHT;
+	}
+	else if (check_match(current, indices, { LEFT, TOP }, { BOTTOM, RIGHT })) {
+		return RenderSystem::ORIENTATIONS::CORNER_OUTER_BOTTOM_RIGHT;
+	}
+
+	// Double edges
+	else if (check_match(current, indices, { RIGHT, LEFT }, { TOP, BOTTOM })) {
+		return RenderSystem::ORIENTATIONS::DOUBLE_EDGE_HORIZONTAL;
+	}
+	else if (check_match(current, indices, { TOP, BOTTOM }, { RIGHT, LEFT })) {
+		return RenderSystem::ORIENTATIONS::DOUBLE_EDGE_VERTICAL;
+	}
+
+	// Double edged "tips"
+	else if (check_match(current, indices, { TOP }, { RIGHT, LEFT, BOTTOM })) {
+		return RenderSystem::ORIENTATIONS::DOUBLE_EDGE_END_BOTTOM;
+	}
+	else if (check_match(current, indices, { BOTTOM }, { RIGHT, LEFT, TOP })) {
+		return RenderSystem::ORIENTATIONS::DOUBLE_EDGE_END_TOP;
+	}
+	else if (check_match(current, indices, { LEFT }, { RIGHT, TOP, BOTTOM })) {
+		return RenderSystem::ORIENTATIONS::DOUBLE_EDGE_END_RIGHT;
+	}
+	else if (check_match(current, indices, { RIGHT }, { LEFT, TOP, BOTTOM })) {
+		return RenderSystem::ORIENTATIONS::DOUBLE_EDGE_END_LEFT;
+	}
+	// Default case
+	return RenderSystem::ORIENTATIONS::EDGE_BOTTOM;	// default texture is bottom face remember
 }
 
 void TerrainSystem::generate_orientation_map(std::unordered_map<unsigned int, RenderSystem::ORIENTATIONS>& map)
 {
-	const enum ori_index : uint8_t {
-		TOP, RIGHT, BOTTOM, LEFT, TR, BR, BL, TL, n
-	};
-
 	for (int cell_index = 0; cell_index < size_x * size_y; cell_index++) {
 		uint16_t current = terraincell_grid[cell_index] >> 16;
-
 		if (directional_terrain.count(static_cast<TERRAIN_TYPE>(current))) {
-
-			int indices[8] = {
-				cell_index - size_x,		// Top cell
-				cell_index + 1,				// Right cell
-				cell_index + size_x,		// Bottom cell
-				cell_index - 1,				// Left cell
-				cell_index - size_x + 1,	// Top-right cell
-				cell_index + size_x + 1,	// Bottom-right cell
-				cell_index + size_x - 1,	// Bottom-left cell
-				cell_index - size_x - 1,	// Top-left cell
-			};
-			filter_neighbouring_indices(cell_index, indices);
-
-			if (check_match(current, indices, { TOP, BOTTOM, LEFT, RIGHT })) {
-
-			}
-			else if (check_match(current, indices, { TOP, BOTTOM, LEFT })) {
-
-			}
-			else if (check_match(current, indices, { TOP, BOTTOM, RIGHT })) {
-
-			}
-			else if (check_match(current, indices, { RIGHT, LEFT, TOP })) {
-
-			}
-			else if (check_match(current, indices, { RIGHT, LEFT, BOTTOM })) {
-
-			}
-			else {
-
-			}
+			map.insert({ cell_index, find_tile_orientation(cell_index)});
 		}
 	}
 }

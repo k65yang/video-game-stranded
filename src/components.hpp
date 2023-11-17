@@ -197,7 +197,6 @@ enum TERRAIN_FLAGS : uint32_t {
 
 enum TERRAIN_MASKS : uint32_t {
 	FLAGS = 0xFF,			// first 8 bits
-	ORIENTATION = 0xF000,	// last 4 bits before TERRAIN_TYPE	
 	TYPES = 0xFFFF0000,		// last 16 bits
 };
 
