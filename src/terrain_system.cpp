@@ -370,7 +370,7 @@ RenderSystem::ORIENTATIONS TerrainSystem::find_tile_orientation(uint16_t current
 		return RenderSystem::ORIENTATIONS::DOUBLE_EDGE_END_LEFT;
 	}
 	// Default case
-	return RenderSystem::ORIENTATIONS::EDGE_BOTTOM;	// default texture is bottom face remember
+	return RenderSystem::ORIENTATIONS::ISOLATED;	// default texture
 }
 
 void TerrainSystem::generate_orientation_map(std::unordered_map<unsigned int, RenderSystem::ORIENTATIONS>& map)
