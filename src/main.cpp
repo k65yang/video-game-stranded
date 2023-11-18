@@ -4,7 +4,7 @@
 
 // stlib
 #include <chrono>
-
+#include <iostream>
 // internal
 #include "physics_system.hpp"
 #include "render_system.hpp"
@@ -39,7 +39,7 @@ int main()
 	// initialize the main systems
 	render_system.init(window);
 	weapons_system.init(&render_system);
-	world_system.init(&render_system, &terrain_system, &weapons_system);
+	world_system.init(&render_system, &terrain_system, &weapons_system, &physics_system);
 
 	// Load terrain mesh into the GPU
 	std::unordered_map<unsigned int, RenderSystem::ORIENTATIONS> orientation_map;
@@ -47,6 +47,7 @@ int main()
 	render_system.initializeTerrainBuffers(orientation_map);
 
 	pathfinding_system.init(&terrain_system);
+	
 
 	// variable timestep loop
 	auto t = Clock::now();

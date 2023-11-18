@@ -122,10 +122,11 @@ GLFWwindow* WorldSystem::create_window() {
 	return window;
 }
 
-void WorldSystem::init(RenderSystem* renderer_arg, TerrainSystem* terrain_arg, WeaponsSystem* weapons_system_arg) {
+void WorldSystem::init(RenderSystem* renderer_arg, TerrainSystem* terrain_arg, WeaponsSystem* weapons_system_arg, PhysicsSystem* physics_system_arg) {
 	this->renderer = renderer_arg;
 	this->terrain = terrain_arg;
 	this->weapons_system = weapons_system_arg;
+	this->physics_system = physics_system_arg;
 	// Playing background music indefinitely
 	Mix_PlayMusic(background_music, -1);
 	fprintf(stderr, "Loaded music\n");
@@ -433,11 +434,30 @@ void WorldSystem::restart_game() {
 	// Reset the weapons system
 	weapons_system->resetWeaponsSystem();
 
+	// Reset the terrain system
+	terrain->resetTerrainSystem();
+
 	// Debugging for memory/component leaks
 	registry.list_all_components();
 
 	// Re-initialize the terrain
 	terrain->init(loaded_map_name, renderer);
+
+	// PRESSURE TESTING FOR BVH, can remove later
+	//terrain->init(512, 512, renderer);
+
+	// Add wall of stone around the map
+	for (unsigned int i = 0; i < registry.terrainCells.entities.size(); i++) {
+		Entity e = registry.terrainCells.entities[i];
+		TerrainCell& cell = registry.terrainCells.components[i];
+
+		if (cell.flag & TERRAIN_FLAGS::COLLIDABLE)
+			createDefaultCollider(e);
+	}
+
+	// THIS MUST BE CALL AFTER TERRAIN COLLIDER CREATION AND BEFORE ALL OTHER ENTITY CREATION
+	// build the static BVH with all terrain colliders.
+	physics_system->initStaticBVH(registry.colliders.size());
 
 	// Create a Spaceship 
 	spaceship = createSpaceship(renderer, { 0,0 });
@@ -469,21 +489,6 @@ void WorldSystem::restart_game() {
 	quest_items.push_back({ createQuestItem(renderer, {10.f, -2.f}, TEXTURE_ASSET_ID::QUEST_1_NOT_FOUND), false });
 	quest_items.push_back({ createQuestItem(renderer, {10.f, 2.f}, TEXTURE_ASSET_ID::QUEST_2_NOT_FOUND), false });
 
-	// Add wall of stone around the map
-	for (unsigned int i = 0; i < registry.terrainCells.entities.size(); i++) {
-		Entity e = registry.terrainCells.entities[i];
-		TerrainCell& cell = registry.terrainCells.components[i];
-
-		if (cell.flag & TERRAIN_FLAGS::COLLIDABLE)
-			createDefaultCollider(e);
-	}
-
-	//FOR DEMO, CAN REMOVE LATER
-	//createTerrainCollider(renderer, terrain, { 3.f, -3.f });  
-	//createTerrainCollider(renderer, terrain, { 3.f, 3.f });   
-	//createTerrainCollider(renderer, terrain, { -3.f, 3.f });  
-	//createTerrainCollider(renderer, terrain, { -3.f, -3.f });
-	
 	// clear all used spawn locations
 	used_spawn_locations.clear();
 
@@ -502,10 +507,13 @@ void WorldSystem::restart_game() {
 void WorldSystem::handle_collisions() {
 	// Loop over all collisions detected by the physics system
 	auto& collisionsRegistry = registry.collisions;
+	vec2 hasCorrectedDirection = {0,0};
+
 	for (uint i = 0; i < collisionsRegistry.components.size(); i++) {
 		// The entity and its collider
 		Entity entity = collisionsRegistry.entities[i];
 		Entity entity_other = collisionsRegistry.components[i].other_entity;
+		
 
 		// Collisions involving the player
 		if (registry.players.has(entity)) {
@@ -551,8 +559,9 @@ void WorldSystem::handle_collisions() {
 			}
 
 			// Checking Player - Terrain
-			if (registry.terrainCells.has(entity_other) || registry.boundaries.has(entity_other)) {
-
+			if (registry.terrainCells.has(entity_other) && registry.collisions.components[i].MTV != hasCorrectedDirection)
+			
+			{
 				Motion& motion = registry.motions.get(player_salmon);
 				/*
 				std::cout << "MTV x" << registry.collisions.components[i].MTV.x << "  MTV Y: " << registry.collisions.components[i].MTV.y << std::endl;
@@ -560,6 +569,7 @@ void WorldSystem::handle_collisions() {
 				*/
 				vec2 correctionVec = registry.collisions.components[i].MTV * registry.collisions.components[i].overlap;
 				motion.position = motion.position + correctionVec;
+				hasCorrectedDirection = registry.collisions.components[i].MTV;
 			}
 
 			// Checking Player - Items
@@ -1003,7 +1013,7 @@ void WorldSystem::spawn_items() {
 
 	for (int i = 0; i < ITEM_LIMIT; i++) {
 		// Get random spawn location
-		vec2 spawn_location = get_random_spawn_location();
+		vec2 spawn_location = terrain->get_random_terrain_location();
 
 		// Randomly choose item type
 		int item_type = rng() % NUM_ITEM_TYPES;
@@ -1022,71 +1032,26 @@ void WorldSystem::spawn_items() {
 	}
 
 	// TESTING: Force one spawn of each weapon.
-	 createItem(renderer, get_random_spawn_location(), ITEM_TYPE::WEAPON_SHURIKEN);
-	 createItem(renderer, get_random_spawn_location(), ITEM_TYPE::WEAPON_CROSSBOW);
-	 createItem(renderer, get_random_spawn_location(), ITEM_TYPE::WEAPON_SHOTGUN);
-	 createItem(renderer, get_random_spawn_location(), ITEM_TYPE::WEAPON_MACHINEGUN);
+	 createItem(renderer, terrain->get_random_terrain_location(), ITEM_TYPE::WEAPON_SHURIKEN);
+	 createItem(renderer, terrain->get_random_terrain_location(), ITEM_TYPE::WEAPON_CROSSBOW);
+	 createItem(renderer, terrain->get_random_terrain_location(), ITEM_TYPE::WEAPON_SHOTGUN);
+	 createItem(renderer, terrain->get_random_terrain_location(), ITEM_TYPE::WEAPON_MACHINEGUN);
 
 	 // TESTING: Force spawn quest items once
-	 createItem(renderer, get_random_spawn_location(), ITEM_TYPE::QUEST_ONE);
-	 createItem(renderer, get_random_spawn_location(), ITEM_TYPE::QUEST_TWO);
+	 createItem(renderer, terrain->get_random_terrain_location(), ITEM_TYPE::QUEST_ONE);
+	 createItem(renderer, terrain->get_random_terrain_location(), ITEM_TYPE::QUEST_TWO);
 };
 
 void WorldSystem::spawn_mobs() {
-	for (int i = 0; i < MOB_LIMIT; i++) {
-		// Get random spawn location
-		vec2 spawn_location = get_random_spawn_location();
+	// NOTE: do not add more mobs than there are grid cells available in the zone!!!
+	std::map<ZONE_NUMBER,int> zone_mob_numbers = {
+		// {ZONE_0, 5},			// zone 1 has 5 mobs
+		// {ZONE_1, 5},			// zone 2 has 5 mobs
+	};
 
-		// Randomly choose mob type
-		int item_type = rng() % 2;
+	std::vector<vec2> zone_mob_locations = terrain->get_mob_spawn_locations(zone_mob_numbers);
 
-		switch (item_type) {
-		case 0:
-			createBasicMob(renderer, terrain, spawn_location, MOB_TYPE::SLIME);
-			break;
-		case 1:
-			createBasicMob(renderer, terrain, spawn_location, MOB_TYPE::GHOST);;
-			break;
-		}
-		
+	for (const auto& spawn_location: zone_mob_locations) {
+		createBasicMob(renderer, terrain, spawn_location, MOB_TYPE::SLIME);
 	}
-};
-
-vec2 WorldSystem::get_random_spawn_location() {
-	vec2 position;
-
-	// Get unused spawn location within [-terrain->size_x/2 + 1, terrain->size_x/2 - 1] for x and 
-	// [-terrain->size_y/2 + 1, terrain->size_y/2 - 1] for y
-	while (true) {
-		position.x = abs((int) rng()) % (terrain->size_x - 2) + (-((terrain->size_x) / 2)) + 1;
-		position.y = abs((int) rng()) % (terrain->size_y - 2) + (-((terrain->size_y) / 2)) + 1;
-
-		// Skip locations that are covered by spaceship
-		if (position.x <= 1 && position.x >= -1 && position.y <= 2 && position.y >= -2) {
-			continue;
-		}
-
-		// Skip locations that are not accessible
-		if (terrain->is_invalid_spawn(position))
-			continue;
-
-		if (!is_spawn_location_used(position)) {
-			break;
-		}
-	} 
-
-	// Add spawn location to used spawn locations
-	used_spawn_locations.push_back(position);
-
-	return position;
-};
-
-bool WorldSystem::is_spawn_location_used(vec2 position) {
-	for (vec2 p : used_spawn_locations) {
-		if (p.x == position.x && p.y == position.y) {
-			return true;
-		}
-	}
-
-	return false;
 };

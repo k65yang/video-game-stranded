@@ -65,7 +65,7 @@ struct Mob {
 	int damage;
 	float aggro_range = 5.f;
 	int health = 50;
-	float speed_ratio = 0.5f;
+	float speed_ratio = 2.f;
 	int mframex = 0;
 	int mframey = 1;
 	Entity curr_cell; // cell the mob is currently in
@@ -170,6 +170,13 @@ struct Mesh
 struct Camera
 {
 	bool mode_follow;
+};
+
+enum ZONE_NUMBER {
+	ZONE_0 = 0,
+	ZONE_1 = 1,
+	ZONE_2 = 2,
+	ZONE_COUNT = ZONE_2 + 1,
 };
 
 
