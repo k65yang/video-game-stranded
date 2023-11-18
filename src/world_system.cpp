@@ -122,10 +122,12 @@ GLFWwindow* WorldSystem::create_window() {
 	return window;
 }
 
-void WorldSystem::init(RenderSystem* renderer_arg, TerrainSystem* terrain_arg, WeaponsSystem* weapons_system_arg) {
+void WorldSystem::init(RenderSystem* renderer_arg, TerrainSystem* terrain_arg, WeaponsSystem* weapons_system_arg, MobSystem* mob_system_arg) {
 	this->renderer = renderer_arg;
 	this->terrain = terrain_arg;
 	this->weapons_system = weapons_system_arg;
+	this->mob_system = mob_system_arg;
+
 	// Playing background music indefinitely
 	Mix_PlayMusic(background_music, -1);
 	fprintf(stderr, "Loaded music\n");
@@ -492,7 +494,7 @@ void WorldSystem::restart_game() {
 
 	// FOR DEMO - to show different types of items being created.	
 	spawn_items();
-	spawn_mobs();
+	mob_system->spawn_mobs();
 
 	// for movement velocity
 	for (int i = 0; i < KEYS; i++)
@@ -1019,18 +1021,4 @@ void WorldSystem::spawn_items() {
 	 // TESTING: Force spawn quest items once
 	 createItem(renderer, terrain->get_random_terrain_location(), ITEM_TYPE::QUEST_ONE);
 	 createItem(renderer, terrain->get_random_terrain_location(), ITEM_TYPE::QUEST_TWO);
-};
-
-void WorldSystem::spawn_mobs() {
-	// NOTE: do not add more mobs than there are grid cells available in the zone!!!
-	std::map<ZONE_NUMBER,int> zone_mob_numbers = {
-		{ZONE_0, 5},			// zone 1 has 5 mobs
-		{ZONE_1, 5},			// zone 2 has 5 mobs
-	};
-
-	std::vector<vec2> zone_mob_locations = terrain->get_mob_spawn_locations(zone_mob_numbers);
-
-	for (const auto& spawn_location: zone_mob_locations) {
-		createMob(renderer, terrain, spawn_location, rng() % 2 ? MOB_TYPE::SLIME : MOB_TYPE::GHOST);
-	}
 };

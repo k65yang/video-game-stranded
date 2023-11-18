@@ -96,68 +96,6 @@ Entity createItem(RenderSystem* renderer, vec2 position, ITEM_TYPE type)
 	return entity;
 }
 
-Entity createMob(RenderSystem* renderer, TerrainSystem* terrain, vec2 position, MOB_TYPE type)
-{
-	auto entity = Entity();
-
-	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
-	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::MOB_SPRITE);
-	registry.meshPtrs.emplace(entity, &mesh);
-
-	// Initialize the motion
-	auto& motion = registry.motions.emplace(entity);
-	motion.angle = 0.f;
-	motion.velocity = { 0.f, 0.f };
-	motion.position = position;
-
-	// Setting initial values, scale is negative to make it face the opposite way
-	motion.scale = vec2({ 1, 1 });
-
-	// Initialize path
-	registry.paths.emplace(entity);
-
-	// Classify this entity as a mob.
-	auto& mob_info = registry.mobs.emplace(entity);
-	mob_info.damage = mob_damage_map.at(type);
-	mob_info.aggro_range = mob_aggro_range_map.at(type);
-	mob_info.health = mob_health_map.at(type);
-	mob_info.speed_ratio = mob_speed_ratio_map.at(type);
-	mob_info.curr_cell = terrain->get_cell(motion.position);
-	mob_info.type = type;
-
-	// Initialize the collider, if it has a colliding mesh
-	createMeshCollider(entity, GEOMETRY_BUFFER_ID::MOB001_MESH, renderer);
-
-	TEXTURE_ASSET_ID texture = mob_textures_map.at(type);
-	switch (type) {
-		case MOB_TYPE::SLIME:	// Handle slime differently because it has sprite sheet animation
-			registry.renderRequests.insert(
-				entity,
-				{	
-					texture,
-					EFFECT_ASSET_ID::SPRITESHEET,
-					GEOMETRY_BUFFER_ID::MOB_SPRITE,
-					RENDER_LAYER_ID::LAYER_1 
-				}
-			);
-			break;
-		default:
-			registry.renderRequests.insert(
-				entity,
-				{	
-					texture,
-					EFFECT_ASSET_ID::TEXTURED,
-					GEOMETRY_BUFFER_ID::SPRITE,
-					RENDER_LAYER_ID::LAYER_1 
-				}
-			);
-			break;
-	}
-
-	return entity;
-}
-
-
 Entity createSpaceship(RenderSystem* renderer, vec2 position) {
 	auto entity = Entity();
 
