@@ -39,9 +39,6 @@ void TerrainSystem::init(const unsigned int x, const unsigned int y, RenderSyste
 
 		TerrainCell& cell = registry.terrainCells.emplace(entity, terraincell_grid[i]);
 	}
-
-	std::unordered_map<unsigned int, RenderSystem::ORIENTATIONS> orientation_map;
-	renderer->initializeTerrainBuffers(orientation_map);
 }
 
 void TerrainSystem::init(const std::string& map_name, RenderSystem* renderer)
@@ -73,10 +70,6 @@ void TerrainSystem::init(const std::string& map_name, RenderSystem* renderer)
 		motion.position = to_world_coordinates(i);
 		TerrainCell& cell = registry.terrainCells.emplace(entity, terraincell_grid[i]);
 	}
-
-	std::unordered_map<unsigned int, RenderSystem::ORIENTATIONS> orientation_map;
-	generate_orientation_map(orientation_map);
-	renderer->initializeTerrainBuffers(orientation_map);
 }
 
 void TerrainSystem::step(float delta_time)
@@ -259,26 +252,26 @@ vec2 TerrainSystem::to_world_coordinates(const int index)
 			index / size_x - size_y / 2 };
 }
 
-bool TerrainSystem::matches(uint16_t current_type, int index) {
+bool TerrainSystem::matches_terrain_type(uint16_t current_type, int index) {
 	if (index < 0) return true;
 	uint16_t cell_type = terraincell_grid[index] >> 16;
 	return !(current_type ^ cell_type);
 }
 
-bool TerrainSystem::check_match(uint16_t current, int indices[8], 
+bool TerrainSystem::match_adjacent_terrain(uint16_t current, int indices[8], 
 	std::initializer_list<uint8_t> match_list, 
 	std::initializer_list<uint8_t> reject_list) {
 	for (int i : match_list) {
 		assert(i < 8);
 		i = indices[i];
-		if (!matches(current, i))
+		if (!matches_terrain_type(current, i))
 			return false;
 	}
 
 	for (int i : reject_list) {
 		assert(i < 8);
 		i = indices[i];
-		if (matches(current, i))
+		if (matches_terrain_type(current, i))
 			return false;
 	}
 
@@ -302,23 +295,23 @@ RenderSystem::ORIENTATIONS TerrainSystem::find_tile_orientation(int centre_index
 
 RenderSystem::ORIENTATIONS TerrainSystem::find_tile_orientation(uint16_t current, int indices[8]) {
 	// Surrounded and inner corners.
-	if (check_match(current, indices, { TOP, BOTTOM, LEFT, RIGHT })) {
-		if (check_match(current, indices, {}, { BL, BR })) {
+	if (match_adjacent_terrain(current, indices, { TOP, BOTTOM, LEFT, RIGHT })) {
+		if (match_adjacent_terrain(current, indices, {}, { BL, BR })) {
 			return RenderSystem::ORIENTATIONS::DOUBLE_EDGE_VERTICAL;
 		}
-		else if (check_match(current, indices, {}, { TL, TR })) {
+		else if (match_adjacent_terrain(current, indices, {}, { TL, TR })) {
 			return RenderSystem::RenderSystem::ORIENTATIONS::INSIDE;
 		}
-		else if (check_match(current, indices, { TR }, { BR })) {
+		else if (match_adjacent_terrain(current, indices, { TR }, { BR })) {
 			return RenderSystem::ORIENTATIONS::CORNER_INNER_BOTTOM_RIGHT;
 		}
-		else if (check_match(current, indices, { TL }, { BL })) {
+		else if (match_adjacent_terrain(current, indices, { TL }, { BL })) {
 			return RenderSystem::ORIENTATIONS::CORNER_INNER_BOTTOM_LEFT;
 		}
-		else if (check_match(current, indices, { BR }, { TR })) {
+		else if (match_adjacent_terrain(current, indices, { BR }, { TR })) {
 			return RenderSystem::ORIENTATIONS::CORNER_INNER_TOP_RIGHT;
 		}
-		else if (check_match(current, indices, { BL }, { TL })) {
+		else if (match_adjacent_terrain(current, indices, { BL }, { TL })) {
 			return RenderSystem::ORIENTATIONS::CORNER_INNER_TOP_LEFT;
 		}
 		else {
@@ -327,52 +320,52 @@ RenderSystem::ORIENTATIONS TerrainSystem::find_tile_orientation(uint16_t current
 	}
 
 	// Traditional edges
-	else if (check_match(current, indices, { TOP, BOTTOM, LEFT }, { RIGHT })) {
+	else if (match_adjacent_terrain(current, indices, { TOP, BOTTOM, LEFT }, { RIGHT })) {
 		return RenderSystem::ORIENTATIONS::EDGE_RIGHT;
 	}
-	else if (check_match(current, indices, { TOP, BOTTOM, RIGHT }, { LEFT })) {
+	else if (match_adjacent_terrain(current, indices, { TOP, BOTTOM, RIGHT }, { LEFT })) {
 		return RenderSystem::ORIENTATIONS::EDGE_LEFT;
 	}
-	else if (check_match(current, indices, { RIGHT, LEFT, TOP }, { BOTTOM })) {
+	else if (match_adjacent_terrain(current, indices, { RIGHT, LEFT, TOP }, { BOTTOM })) {
 		return RenderSystem::ORIENTATIONS::EDGE_BOTTOM;
 	}
-	else if (check_match(current, indices, { RIGHT, LEFT, BOTTOM }, { TOP })) {
+	else if (match_adjacent_terrain(current, indices, { RIGHT, LEFT, BOTTOM }, { TOP })) {
 		return RenderSystem::ORIENTATIONS::EDGE_TOP;
 	}
 
 	// Outer corners
-	else if (check_match(current, indices, { RIGHT, BOTTOM }, { TOP, LEFT })) {
+	else if (match_adjacent_terrain(current, indices, { RIGHT, BOTTOM }, { TOP, LEFT })) {
 		return RenderSystem::ORIENTATIONS::CORNER_OUTER_TOP_LEFT;
 	}
-	else if (check_match(current, indices, { RIGHT, TOP }, { BOTTOM, LEFT })) {
+	else if (match_adjacent_terrain(current, indices, { RIGHT, TOP }, { BOTTOM, LEFT })) {
 		return RenderSystem::ORIENTATIONS::CORNER_OUTER_BOTTOM_LEFT;
 	}
-	else if (check_match(current, indices, { LEFT, BOTTOM }, { TOP, RIGHT })) {
+	else if (match_adjacent_terrain(current, indices, { LEFT, BOTTOM }, { TOP, RIGHT })) {
 		return RenderSystem::ORIENTATIONS::CORNER_OUTER_TOP_RIGHT;
 	}
-	else if (check_match(current, indices, { LEFT, TOP }, { BOTTOM, RIGHT })) {
+	else if (match_adjacent_terrain(current, indices, { LEFT, TOP }, { BOTTOM, RIGHT })) {
 		return RenderSystem::ORIENTATIONS::CORNER_OUTER_BOTTOM_RIGHT;
 	}
 
 	// Double edges
-	else if (check_match(current, indices, { RIGHT, LEFT }, { TOP, BOTTOM })) {
+	else if (match_adjacent_terrain(current, indices, { RIGHT, LEFT }, { TOP, BOTTOM })) {
 		return RenderSystem::ORIENTATIONS::DOUBLE_EDGE_HORIZONTAL;
 	}
-	else if (check_match(current, indices, { TOP, BOTTOM }, { RIGHT, LEFT })) {
+	else if (match_adjacent_terrain(current, indices, { TOP, BOTTOM }, { RIGHT, LEFT })) {
 		return RenderSystem::ORIENTATIONS::DOUBLE_EDGE_VERTICAL;
 	}
 
 	// Double edged "tips"
-	else if (check_match(current, indices, { TOP }, { RIGHT, LEFT, BOTTOM })) {
+	else if (match_adjacent_terrain(current, indices, { TOP }, { RIGHT, LEFT, BOTTOM })) {
 		return RenderSystem::ORIENTATIONS::DOUBLE_EDGE_END_BOTTOM;
 	}
-	else if (check_match(current, indices, { BOTTOM }, { RIGHT, LEFT, TOP })) {
+	else if (match_adjacent_terrain(current, indices, { BOTTOM }, { RIGHT, LEFT, TOP })) {
 		return RenderSystem::ORIENTATIONS::DOUBLE_EDGE_END_TOP;
 	}
-	else if (check_match(current, indices, { LEFT }, { RIGHT, TOP, BOTTOM })) {
+	else if (match_adjacent_terrain(current, indices, { LEFT }, { RIGHT, TOP, BOTTOM })) {
 		return RenderSystem::ORIENTATIONS::DOUBLE_EDGE_END_RIGHT;
 	}
-	else if (check_match(current, indices, { RIGHT }, { LEFT, TOP, BOTTOM })) {
+	else if (match_adjacent_terrain(current, indices, { RIGHT }, { LEFT, TOP, BOTTOM })) {
 		return RenderSystem::ORIENTATIONS::DOUBLE_EDGE_END_LEFT;
 	}
 	// Default case
