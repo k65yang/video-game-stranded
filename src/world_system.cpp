@@ -277,15 +277,6 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	//for movement, animation, and distance calculation
 	handlePlayerMovement(elapsed_ms_since_last_update);
 		
-	Motion& s_motion = registry.motions.get(spaceship);
-
-	// Check if the player is at the area around spaceship
-	if (length(m.position - s_motion.position) < 1.0f) {
-		Spaceship& s = registry.sapceship.get(home);
-		// if near home, set spaceship to interor 
-		s.in_home = TRUE;
-		printf("nearhome\n");
-		}
 		
 
 
@@ -342,6 +333,12 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			}
 		}
 	}
+
+	//// update Spaceship home movement 
+	Motion& s_motion = registry.motions.get(home);
+	s_motion.position = { camera_motion.position.x,camera_motion.position.y };
+
+
 
 	return true;
 }
@@ -542,6 +539,7 @@ void WorldSystem::handle_collisions() {
 			Player& player = registry.players.get(entity);
 
 			// Checking Player - Spaceship (For regen)
+			// only regnerate after spaceship exit 
 			if (entity_other == spaceship) {
 				player.health = PLAYER_MAX_HEALTH;
 				player.food = PLAYER_MAX_FOOD;
@@ -550,6 +548,12 @@ void WorldSystem::handle_collisions() {
 				Motion& food = registry.motions.get(food_bar);
 				health.scale = HEALTH_BAR_SCALE;
 				food.scale = FOOD_BAR_SCALE;
+
+				Spaceship& s = registry.spaceship.get(home);
+				s.in_home = TRUE;
+				printf("nearhome\n");
+
+
 			}
 
 			// Checking Player - Mobs
@@ -747,7 +751,7 @@ bool WorldSystem::is_over() const {
 
 // check if player is home and pause the game in main
 bool WorldSystem::is_home() const {
-	return registry.sapceship.get(home).in_home; 
+	return registry.spaceship.get(home).in_home; 
 	}
 
 
@@ -812,7 +816,7 @@ void WorldSystem::update_camera_follow() {
 // On key callback
 void WorldSystem::on_key(int key, int, int action, int mod) {
 	Motion& player_motion = registry.motions.get(player_salmon);
-	Spaceship& s = registry.sapceship.get(home);
+	Spaceship& s = registry.spaceship.get(home);
 	// Movement with velocity handled in step function  
 	update_key_presses(key, action);
 
@@ -849,17 +853,18 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	}
 
 	if (action == GLFW_PRESS && key == GLFW_KEY_ESCAPE) {
-		glfwSetWindowShouldClose(window, true);
+		if (s.in_home) {
+			// Exit home screen and go back to world 
+			// Todo: Regenerate after exit
+			s.in_home = false;
+			player_motion.position = { 0,0 };
+
+			}
+		else {
+			// Close the window if not in home screen
+			glfwSetWindowShouldClose(window, true);
+			}
 	}
-
-	// return back to world, should unpause the worldsystem and remove the homescreen 
-	// is layer changeable? 
-	if (action == GLFW_RELEASE && key == GLFW_KEY_SPACE) {
-		player_motion.position = { 0,0 };
-		s.in_home = false;
-
-
-		}
 	// Debugging
 	/*if (key == GLFW_KEY_D) {
 		if (action == GLFW_RELEASE)

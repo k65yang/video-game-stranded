@@ -42,7 +42,7 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 
 		// Skip rendering home screen if player is at world 
 		if (render_request.used_texture == TEXTURE_ASSET_ID::SPACEHOME) {
-			if (!registry.sapceship.get(entity).in_home) {
+			if (!registry.spaceship.get(entity).in_home) {
 				//printf("Player is outside, skip rending home \n");
 				return;
 				}
