@@ -16,10 +16,10 @@ class TerrainSystem
 {
 private:
 	/// <summary>
-	/// Corresponds to the underlying index each element in every indices[8] you see in TerrainSystem
+	/// Corresponds to the underlying index each element in every indices[orientations_n_indices] you see in TerrainSystem
 	/// </summary>
 	const enum ori_index : uint8_t {
-		TOP, RIGHT, BOTTOM, LEFT, TR, BR, BL, TL, n
+		TOP, RIGHT, BOTTOM, LEFT, TR, BR, BL, TL, orientations_n_indices
 	};
 
 public:
@@ -179,11 +179,11 @@ public:
 	void get_accessible_neighbours(Entity cell, std::vector<Entity>& buffer, bool ignoreColliders, bool checkPathfind = false);
 
 	/// <summary>
-	/// Checks each 8 indices of cell_index's adjacent tiles. Sets them to -1 if they are out of range.
+	/// Checks each orientations_n_indices indices of cell_index's adjacent tiles. Sets them to -1 if they are out of range.
 	/// </summary>
 	/// <param name="cell_index">The index of the middle tile</param>
-	/// <param name="indices">The indices of all 8 adjacent tiles. See ori_index for order.</param>
-	inline void filter_neighbouring_indices(int cell_index, int indices[8]);
+	/// <param name="indices">The indices of all orientations_n_indices adjacent tiles. See ori_index for order.</param>
+	inline void filter_neighbouring_indices(int cell_index, int indices[orientations_n_indices]);
 
 	/// <summary>
 	/// Generates a map of type {cell_index, ORIENTATIONS} where:
@@ -224,7 +224,7 @@ public:
 			renderer->changeTerrainData(tile, tile - entityStart, cell, frame_value);
 			if (also_update_neighbours) {
 				// We also need to update the adjacent cells
-				int indices[8] = {
+				int indices[orientations_n_indices] = {
 				i - size_x,		// Top cell
 				i + 1,			// Right cell
 				i + size_x,		// Bottom cell
@@ -306,7 +306,7 @@ private:
 	/// <param name="match_list">List of ori_index neighbouring tiles that must be the same type</param>
 	/// <param name="reject_list">List of ori_index neighbouring tiles that must NOT match</param>
 	/// <returns>True if every neighbour in match_list matches AND every neighbour in reject_list do not match</returns>
-	bool match_adjacent_terrain(uint16_t current, int indices[8], std::initializer_list<uint8_t> match_list, std::initializer_list<uint8_t> reject_list = {});
+	bool match_adjacent_terrain(uint16_t current, int indices[orientations_n_indices], std::initializer_list<uint8_t> match_list, std::initializer_list<uint8_t> reject_list = {});
 
 	/// <summary>
 	/// Assuming that the given tile is a directional type, returns its appropriate orientation.
@@ -321,7 +321,7 @@ private:
 	/// <param name="current">The terrain type of the queried cell</param>
 	/// <param name="indices">The indices of all 8 adjacent tiles. See ori_index for order.</param>
 	/// <returns>The tile's orientation as RenderSystem::ORIENTATIONS</returns>
-	RenderSystem::ORIENTATIONS find_tile_orientation(uint16_t current, int indices[8]);
+	RenderSystem::ORIENTATIONS find_tile_orientation(uint16_t current, int indices[orientations_n_indices]);
 
 	// Map to keep track of locations where an item/mob has been spawned
 	std::unordered_set<vec2> used_terrain_locations;

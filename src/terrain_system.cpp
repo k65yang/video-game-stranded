@@ -126,7 +126,7 @@ void TerrainSystem::get_accessible_neighbours(Entity cell, std::vector<Entity>& 
 	if (checkPathfind)
 		filter |= TERRAIN_FLAGS::DISABLE_PATHFIND;	// check if tile has pathfinding disabled
 
-	int indices[8] = {
+	int indices[orientations_n_indices] = {
 		cell_index - size_x,		// Top cell
 		cell_index + 1,				// Right cell
 		cell_index + size_x,		// Bottom cell
@@ -162,7 +162,7 @@ void TerrainSystem::get_accessible_neighbours(Entity cell, std::vector<Entity>& 
 	}
 }
 
-void TerrainSystem::filter_neighbouring_indices(int cell_index, int indices[8])
+void TerrainSystem::filter_neighbouring_indices(int cell_index, int indices[orientations_n_indices])
 {
 	// Check bounds
 	// if cell on left edge, skip top-left, left, or bottom-left neighbors
@@ -259,18 +259,18 @@ bool TerrainSystem::matches_terrain_type(uint16_t current_type, int index) {
 	return !(current_type ^ cell_type);
 }
 
-bool TerrainSystem::match_adjacent_terrain(uint16_t current, int indices[8], 
+bool TerrainSystem::match_adjacent_terrain(uint16_t current, int indices[orientations_n_indices], 
 	std::initializer_list<uint8_t> match_list, 
 	std::initializer_list<uint8_t> reject_list) {
 	for (int i : match_list) {
-		assert(i < n);
+		assert(i < orientations_n_indices);
 		i = indices[i];
 		if (!matches_terrain_type(current, i))
 			return false;
 	}
 
 	for (int i : reject_list) {
-		assert(i < n);
+		assert(i < orientations_n_indices);
 		i = indices[i];
 		if (matches_terrain_type(current, i))
 			return false;
@@ -280,7 +280,7 @@ bool TerrainSystem::match_adjacent_terrain(uint16_t current, int indices[8],
 }
 
 RenderSystem::ORIENTATIONS TerrainSystem::find_tile_orientation(int centre_index) {
-	int indices[8] = {
+	int indices[orientations_n_indices] = {
 	centre_index - size_x,		// Top cell
 	centre_index + 1,			// Right cell
 	centre_index + size_x,		// Bottom cell
@@ -294,7 +294,7 @@ RenderSystem::ORIENTATIONS TerrainSystem::find_tile_orientation(int centre_index
 	return find_tile_orientation((uint16_t)(terraincell_grid[centre_index] >> 16), indices);
 }
 
-RenderSystem::ORIENTATIONS TerrainSystem::find_tile_orientation(uint16_t current, int indices[8]) {
+RenderSystem::ORIENTATIONS TerrainSystem::find_tile_orientation(uint16_t current, int indices[orientations_n_indices]) {
 	// Surrounded and inner corners.
 	if (match_adjacent_terrain(current, indices, { TOP, BOTTOM, LEFT, RIGHT })) {
 		if (match_adjacent_terrain(current, indices, {}, { BL, BR })) {
