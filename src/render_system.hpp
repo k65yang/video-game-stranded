@@ -12,7 +12,9 @@
 // visual entities in the game
 class RenderSystem {
 public:
+	/// TODO: add more orientations
 	enum ORIENTATIONS : uint8 {
+		ISOLATED,
 		EDGE_BOTTOM,
 		EDGE_TOP,
 		EDGE_LEFT,
@@ -32,7 +34,6 @@ public:
 		DOUBLE_EDGE_END_LEFT,
 		DOUBLE_EDGE_END_RIGHT,
 		INSIDE,
-		ISOLATED,
 		ORIENTATIONS_COUNT
 	};
 private:
@@ -98,7 +99,7 @@ private:
 	};
 
 	// How big one terrain spritesheet is
-	const ivec2 terrain_sheet_size =	{ 300, 150 };
+	const ivec2 terrain_sheet_size =	{ 300, 200 };
 	// Number of "frames" per sprite sheet
 	const ivec2 terrain_sheet_n =		{ terrain_sheet_size.x / tile_size_px,
 										  terrain_sheet_size.y / tile_size_px };
@@ -124,39 +125,41 @@ private:
 		terrain_texture_path("6.png"),
 	};
 
+	// Keep these in case we want some orientations to be flipped textures
 	const std::unordered_set<ORIENTATIONS> mirror_vertical_orientations = {
-		EDGE_RIGHT, CORNER_OUTER_TOP_RIGHT, CORNER_INNER_BOTTOM_RIGHT, CORNER_INNER_TOP_RIGHT
+		
 	};
 
 	const std::unordered_set<ORIENTATIONS> mirror_horizontal_orientations = {
-		CORNER_OUTER_BOTTOM_RIGHT, DOUBLE_EDGE_END_RIGHT
+		
 	};
 
 	const std::unordered_set<ORIENTATIONS> rotate_orientations = {
-		DOUBLE_EDGE_HORIZONTAL, DOUBLE_EDGE_END_LEFT, DOUBLE_EDGE_END_RIGHT
+		
 	};
 
+	// Think of these like grid positions in the terrain atlas
 	const std::unordered_map<ORIENTATIONS, ivec2> terrain_atlas_offsets = {
-		{EDGE_BOTTOM,					{0, 0}},
-		{EDGE_TOP,						{2, 0}},
-		{EDGE_LEFT,						{1, 1}},
-		{EDGE_RIGHT,					{1, 1}},
-		{CORNER_OUTER_TOP_LEFT,			{1, 0}},
-		{CORNER_OUTER_TOP_RIGHT,		{1, 0}},
-		{CORNER_OUTER_BOTTOM_LEFT,		{0, 0}},
-		{CORNER_OUTER_BOTTOM_RIGHT,		{0, 0}},
-		{CORNER_INNER_TOP_LEFT,			{0, 2}},
-		{CORNER_INNER_TOP_RIGHT,		{0, 2}},
-		{CORNER_INNER_BOTTOM_LEFT,		{1, 1}},
-		{CORNER_INNER_BOTTOM_RIGHT,		{1, 1}},
-		{DOUBLE_EDGE_VERTICAL,			{1, 2}},
-		{DOUBLE_EDGE_HORIZONTAL,		{1, 2}},
-		{DOUBLE_EDGE_END_TOP,			{2, 2}},
-		{DOUBLE_EDGE_END_BOTTOM,		{0, 0}},
-		{DOUBLE_EDGE_END_LEFT,			{2, 2}},
-		{DOUBLE_EDGE_END_RIGHT,			{2, 2}},
-		{INSIDE,						{2, 1}},
-		{ISOLATED,						{0, 1}},
+		{ISOLATED,						{0, 0}},
+		{EDGE_BOTTOM,					{1, 3}},
+		{EDGE_TOP,						{1, 1}},
+		{EDGE_LEFT,						{0, 2}},
+		{EDGE_RIGHT,					{2, 2}},
+		{CORNER_OUTER_TOP_LEFT,			{0, 1}},
+		{CORNER_OUTER_TOP_RIGHT,		{2, 1}},
+		{CORNER_OUTER_BOTTOM_LEFT,		{0, 3}},
+		{CORNER_OUTER_BOTTOM_RIGHT,		{2, 3}},
+		{CORNER_INNER_TOP_LEFT,			{3, 1}},
+		{CORNER_INNER_TOP_RIGHT,		{5, 1}},
+		{CORNER_INNER_BOTTOM_LEFT,		{3, 3}},
+		{CORNER_INNER_BOTTOM_RIGHT,		{5, 3}},
+		{DOUBLE_EDGE_VERTICAL,			{1, 0}},
+		{DOUBLE_EDGE_HORIZONTAL,		{2, 0}},
+		{DOUBLE_EDGE_END_TOP,			{4, 1}},
+		{DOUBLE_EDGE_END_BOTTOM,		{4, 3}},
+		{DOUBLE_EDGE_END_LEFT,			{3, 2}},
+		{DOUBLE_EDGE_END_RIGHT,			{5, 2}},
+		{INSIDE,						{1, 2}},
 	};
 
 	std::array<GLuint, effect_count> effects;
