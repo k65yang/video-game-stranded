@@ -263,14 +263,14 @@ bool TerrainSystem::match_adjacent_terrain(uint16_t current, int indices[8],
 	std::initializer_list<uint8_t> match_list, 
 	std::initializer_list<uint8_t> reject_list) {
 	for (int i : match_list) {
-		assert(i < 8);
+		assert(i < n);
 		i = indices[i];
 		if (!matches_terrain_type(current, i))
 			return false;
 	}
 
 	for (int i : reject_list) {
-		assert(i < 8);
+		assert(i < n);
 		i = indices[i];
 		if (matches_terrain_type(current, i))
 			return false;
