@@ -1002,6 +1002,7 @@ void WorldSystem::on_mouse_click(int button, int action, int mods) {
 			else {
 				registry.colliders.remove(tile);
 			}
+			physics_system->initStaticBVH(registry.colliders.size());
 		}
 
 		terrain->update_tile(tile, cell, true);	// true because we need to update adjacent cells too
