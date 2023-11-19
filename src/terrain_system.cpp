@@ -7,16 +7,11 @@ void TerrainSystem::init(const unsigned int x, const unsigned int y, RenderSyste
 
 	if (terraincell_grid != nullptr) {		// if grid is allocated, deallocate
 		registry.terrainCells.clear();
-		delete[] terraincell_grid;
-		terraincell_grid = nullptr;
+		deallocate_terrain_grid();
 	}
 
 	if (entity_grid != nullptr) {			// if grid is allocated, deallocate
-		for (uint i = 0; i < size_x * size_y; i++) {
-			registry.remove_all_components_of(entity_grid[i]);
-		}
-		delete[] entity_grid;
-		entity_grid = nullptr;
+		deallocate_entity_grid();
 	}
 
 	size_x = x;
@@ -48,16 +43,11 @@ void TerrainSystem::init(const std::string& map_name, RenderSystem* renderer)
 
 	if (terraincell_grid != nullptr) {		// if grid is allocated, deallocate
 		registry.terrainCells.clear();
-		delete[] terraincell_grid;
-		terraincell_grid = nullptr;
+		deallocate_terrain_grid();
 	}
 
 	if (entity_grid != nullptr) {			// if grid is allocated, deallocate
-		for (uint i = 0; i < size_x * size_y; i++) {
-			registry.remove_all_components_of(entity_grid[i]);
-		}
-		delete[] entity_grid;
-		entity_grid = nullptr;
+		deallocate_entity_grid();
 	}
 
 	load_grid(map_name);	// Load map from file
@@ -475,4 +465,41 @@ vec2 TerrainSystem::get_random_terrain_location(ZONE_NUMBER zone) {
 
 bool TerrainSystem::is_terrain_location_used(vec2 position) {
 	return used_terrain_locations.count(position) > 0;
+}
+
+void TerrainSystem::expand_map(int new_x, int new_y)
+{
+	int old_x = size_x;
+	int old_y = size_y;
+	const ivec2 old_to_new_index_offset = { (new_x - old_x) / 2,	// We're dividing by 2 because this is the offset pet 1 side
+											(new_y - old_y) / 2
+	};
+
+	// REMEMBER TO FREE THESE
+	Entity* old_entity_grid = entity_grid;
+	uint32_t* old_terraincell_grid = terraincell_grid;
+
+	// Trick init() into thinking the map isn't loaded yet
+	entity_grid = nullptr;
+	terraincell_grid = nullptr;	
+
+	registry.terrainCells.clear();				// Clear so the vector doesn't have to expand more than it needs
+
+	init(new_x, new_y, renderer);				// Load empty map with new x and y
+
+	// x and y will be reused here
+	for (int i = 0; i < old_x * old_y; i++) {
+		int x = old_to_new_index_offset.x + (i % old_x);
+		int y = old_to_new_index_offset.y + (i / old_x);
+		int i_new = x + y * size_x;
+		uint32_t data = old_terraincell_grid[i];
+		terraincell_grid[i_new] = data;			// Replace data with what we have
+		TerrainCell& cell = registry.terrainCells.get(entity_grid[i_new]);
+		
+		cell.from_uint32(data);
+	}
+
+	deallocate_terrain_grid(old_terraincell_grid);
+	deallocate_entity_grid(old_entity_grid, old_x, old_y);
+
 }

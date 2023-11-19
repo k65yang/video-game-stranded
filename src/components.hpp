@@ -223,6 +223,10 @@ struct TerrainCell
 	};
 
 	TerrainCell(uint32_t terrain_cell) {
+		from_uint32(terrain_cell);
+	}
+
+	void from_uint32(uint32_t terrain_cell) {
 		this->flag = (uint16_t)terrain_cell;
 		this->terrain_type = static_cast<TERRAIN_TYPE>((uint16_t)(terrain_cell >> 16));
 	}

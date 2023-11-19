@@ -22,6 +22,28 @@ private:
 		TOP, RIGHT, BOTTOM, LEFT, TR, BR, BL, TL, orientations_n_indices
 	};
 
+	inline void TerrainSystem::deallocate_terrain_grid(uint32_t*& terraincell_grid_pointer)	{ // cursed type 
+		delete[] terraincell_grid_pointer;
+		terraincell_grid_pointer = nullptr;
+	}
+
+	inline void TerrainSystem::deallocate_terrain_grid() {
+		deallocate_terrain_grid(terraincell_grid);
+	}
+
+	inline void TerrainSystem::deallocate_entity_grid(Entity*& entity_grid_pointer, size_t x, size_t y) {
+
+		for (size_t i = 0; i < x * y; i++) {
+			registry.remove_all_components_of(entity_grid_pointer[i]);
+		}
+		delete[] entity_grid_pointer;
+		entity_grid_pointer = nullptr;
+	}
+
+	inline void TerrainSystem::deallocate_entity_grid() {
+		deallocate_entity_grid(entity_grid, size_x, size_y);
+	}
+
 public:
 	// size of each respective axes (absolute)
 	int size_x, size_y;
@@ -62,7 +84,6 @@ public:
 	/// @param num_per_zone Map specifying how many mobs to spawn per zone
 	/// @return List of spawn locations
 	std::vector<vec2> get_mob_spawn_locations(std::map<ZONE_NUMBER,int> num_per_zone);
-
 
 	/// <summary>
 	/// Initializes the world grid with the given size. Each axis should preferably be odd.
@@ -256,6 +277,8 @@ public:
 	/// </summary>
 	/// <param name="name">The name of the map to be loaded</param>
 	void load_grid(const std::string& name);
+
+	void expand_map(int x, int y);
 
 	/// @brief Reset the terrain system when the game resets
 	void resetTerrainSystem() {

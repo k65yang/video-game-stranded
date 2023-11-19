@@ -495,8 +495,10 @@ void WorldSystem::restart_game() {
 	used_spawn_locations.clear();
 
 	// FOR DEMO - to show different types of items being created.	
-	spawn_items();
-	mob_system->spawn_mobs();
+ 
+	// TODO: uncomment these after messing w/ map editor
+	//spawn_items();
+	//mob_system->spawn_mobs();
 
 	// for movement velocity
 	for (int i = 0; i < KEYS; i++)
@@ -882,6 +884,28 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		if (key == GLFW_KEY_KP_DECIMAL)	// numpad '.'
 			// Saves map data
 			terrain->save_grid(loaded_map_name);	
+		if (key == GLFW_KEY_PAGE_UP) { // PageUp ke
+			// This expands the map to world_size_x, world_size_y.
+			// Make sure you disable item and mob spawning because physics and pathfinding
+			// will break!!
+			terrain->expand_map(world_size_x, world_size_y);
+			//restart_game();
+			renderer->empty_terrain_buffer();
+			
+			std::unordered_map<unsigned, RenderSystem::ORIENTATIONS> orientations;
+			terrain->generate_orientation_map(orientations);
+			renderer->initializeTerrainBuffers(orientations);
+
+			for (unsigned int i = 0; i < registry.terrainCells.entities.size(); i++) {
+				Entity e = registry.terrainCells.entities[i];
+				TerrainCell& cell = registry.terrainCells.components[i];
+
+				if (cell.flag & TERRAIN_FLAGS::COLLIDABLE)
+					createDefaultCollider(e);
+			}
+
+			physics_system->initStaticBVH(registry.colliders.size());
+		}
 	}
 
 	// Press B to toggle debug mode
