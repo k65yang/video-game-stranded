@@ -377,9 +377,10 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 	// Player updates
 	for (Entity entity : registry.players.entities) {
+		Motion& motion = registry.motions.get(entity);
+
 		// Knockback updates
 		if (registry.playerKnockbackEffects.has(entity)) {
-			Motion& motion = registry.motions.get(entity);
 			PlayerKnockbackEffect& playerKnockbackEffect = registry.playerKnockbackEffects.get(entity);
 			
 			// Increment duration
@@ -389,6 +390,23 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			if (playerKnockbackEffect.duration_ms < playerKnockbackEffect.elapsed_knockback_time_ms) {
 				motion.velocity = {0.f, 0.f};
 				registry.playerKnockbackEffects.remove(entity);
+
+				printf("KNOCKBACK REMOVED\n");
+			}
+		}
+
+		// Inaccuracy updates
+		if (registry.playerInaccuracyEffects.has(entity)) {
+			PlayerInaccuracyEffect& playerInaccuracyEffect = registry.playerInaccuracyEffects.get(entity);
+			
+			// Increment duration
+			playerInaccuracyEffect.elapsed_inaccuracy_time_ms += elapsed_ms_since_last_update;
+			
+			// Remove the PlayerInaccuracyEffect component if knockback effect is over
+			if (playerInaccuracyEffect.duration_ms < playerInaccuracyEffect.elapsed_inaccuracy_time_ms) {
+				registry.playerInaccuracyEffects.remove(entity);
+
+				printf("INACCURACY REMOVED\n");
 			}
 		}
 	}

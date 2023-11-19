@@ -42,6 +42,12 @@ void WeaponsSystem::fireWeapon(float player_x, float player_y, float player_angl
 	if (!weapon_component || !weapon_component->can_fire)
 		return;
 
+	Entity player = registry.players.entities[0];
+	if (registry.playerInaccuracyEffects.has(player)) {
+		PlayerInaccuracyEffect& playerInaccuracyEffect = registry.playerInaccuracyEffects.get(player);
+		applyProjectileInaccuracy(player_angle, playerInaccuracyEffect.inaccuracy_penalty_deg);
+	}
+
 	// TODO: offset projectile location a little so it doesn't get created on top of player
 	switch(active_weapon_type){
 		case ITEM_TYPE::WEAPON_SHURIKEN:
@@ -115,28 +121,16 @@ void WeaponsSystem::fireMachineGun(float player_x, float player_y, float angle) 
 	float max_recoil_angle;
 	switch(weapon_level[active_weapon_type]) {
 		case 0:
-			max_recoil_angle = 0.261799f; // 15 degrees
+			max_recoil_angle = 15.f;
 			break;
 		default: // default case is max level
-			max_recoil_angle = 0.174533f; // 10 degrees
+			max_recoil_angle = 10.f; // 10 degrees
 			break;
 	}
-	float stddev = max_recoil_angle/2;
-	float range_min = angle - max_recoil_angle;
-	float range_max = angle + max_recoil_angle;
+	
+	applyProjectileInaccuracy(angle, max_recoil_angle);
 
-	// The following approximates recoil for the machine gun.
-	// It is based on a gaussian distribution about the current angle
-	std::random_device rd;
-	std::mt19937 gen(rd());
-	std::normal_distribution<float> distribution(angle, stddev);
-
-	float angle_with_recoil;
-	do {
-        angle_with_recoil = distribution(gen);
-    } while (angle_with_recoil < range_min || angle_with_recoil > range_max);
-
-	createProjectile(renderer, {player_x, player_y}, angle_with_recoil);
+	createProjectile(renderer, {player_x, player_y}, angle);
 }
 
 void WeaponsSystem::applyWeaponEffects(Entity proj, Entity mob) {
@@ -228,4 +222,24 @@ bool WeaponsSystem::isValidWeapon(ITEM_TYPE test) {
 		ITEM_TYPE::WEAPON_MACHINEGUN,
 	};
 	return weapons_list.count(test);
+}
+
+void WeaponsSystem::applyProjectileInaccuracy(float& angle, float inaccuracy_penalty_deg) {
+	float inaccuracy_penalty_rad = radians(inaccuracy_penalty_deg);
+	float stddev = inaccuracy_penalty_rad/2;
+	float range_min = angle - inaccuracy_penalty_rad;
+	float range_max = angle + inaccuracy_penalty_rad;
+
+	// The following approximates recoil for the machine gun.
+	// It is based on a gaussian distribution about the current angle
+	std::random_device rd;
+	std::mt19937 gen(rd());
+	std::normal_distribution<float> distribution(angle, stddev);
+
+	float angle_with_inaccuracy;
+	do {
+        angle_with_inaccuracy = distribution(gen);
+    } while (angle_with_inaccuracy < range_min || angle_with_inaccuracy > range_max);
+
+	angle = angle_with_inaccuracy;
 }

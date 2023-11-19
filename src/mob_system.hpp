@@ -98,10 +98,17 @@ class MobSystem
         /// @return The created entity
         Entity create_mob(vec2 mob_position, MOB_TYPE mob_type);
 
-        /// @brief Applies a knockback to the player
+        /// @brief Applies knockback effect to the player
         /// @param player The player
         /// @param mob The mob that is knocking-back the player
-        /// @param duration_ms How long in ms the knockback lasts
+        /// @param duration_ms How long (in ms) the knockback lasts
         /// @param knockback_speed_ratio How fast the player travels while being knocked-back
         void apply_knockback(Entity player, Entity mob, float duration_ms, float knockback_speed_ratio);
+
+        /// @brief Applies inaccuracy effect to player
+        /// @param player The player
+        /// @param duration_ms How long (in ms) the inaccuracy lasts
+        /// @param inaccuracy_penalty_deg How much (in degrees) the player's accuracy should be affected
+        ///                               Ex. inaccuracy_penalty_deg=15 means accuracy should be off by a max of 15 degrees
+        void apply_inaccuracy(Entity player, float duration_ms, float inaccuracy_penalty_deg);
 };

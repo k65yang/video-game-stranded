@@ -23,6 +23,7 @@ void MobSystem::apply_mob_attack_effects(Entity player, Entity mob) {
 
 	if (mob_info.type == MOB_TYPE::DISRUPTOR) {
 		apply_knockback(player, mob, 500.f, 10.f);
+		apply_inaccuracy(player, 5000.f, 10.f);
 	}
 }
 
@@ -95,10 +96,24 @@ void MobSystem::apply_knockback(Entity player, Entity mob, float duration_ms, fl
 	playerKnockbackEffect.duration_ms = duration_ms;
 	playerKnockbackEffect.elapsed_knockback_time_ms = 0.f;
 
-	// Change velocity of player so that they move in the opposite direction of the mob (i.e. knock them back)
+	// Change velocity of player so that they move in the opposite they were just travelling (i.e. knock them back)
 	Motion& player_motion = registry.motions.get(player);
 	Motion& mob_motion = registry.motions.get(mob);
 	float angle = atan2(player_motion.position.y - mob_motion.position.y, player_motion.position.x - mob_motion.position.x);
 	player_motion.velocity[0] = cos(angle) * knockback_speed_ratio;
     player_motion.velocity[1] = sin(angle) * knockback_speed_ratio;
+
+	printf("KNOCKBACK APPLIED\n");
+};
+
+void MobSystem::apply_inaccuracy(Entity player, float duration_ms, float inaccuracy_penalty_deg) {
+	bool already_applied = registry.playerInaccuracyEffects.has(player);
+
+	// Create PlayerInaccuracyEffects component only if it does not exist already
+	PlayerInaccuracyEffect& playerInaccuracyEffect = already_applied ? registry.playerInaccuracyEffects.get(player) : registry.playerInaccuracyEffects.emplace(player);
+	playerInaccuracyEffect.duration_ms = duration_ms;
+	playerInaccuracyEffect.elapsed_inaccuracy_time_ms = 0.f;
+	playerInaccuracyEffect.inaccuracy_penalty_deg = inaccuracy_penalty_deg;
+
+	printf("INACCURACY APPLIED\n");
 };

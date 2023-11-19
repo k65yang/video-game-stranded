@@ -149,4 +149,10 @@ class WeaponsSystem
         /// @param test the ITEM_TYPE to be tested
         /// @return bool
         bool isValidWeapon(ITEM_TYPE test);
+
+        /// @brief Applies inaccuracy to a projectile by changing its angle
+        /// @param angle Original angle of the projectile
+        /// @param inaccuracy_penalty_deg How much (in degrees) the accuracy of the projectile should be affected 
+        ///                               Ex. inaccuracy_penalty_deg=15 means the projectile should be off from its original angle by a max of 15 degrees
+        void applyProjectileInaccuracy(float& angle, float inaccuracy_penalty_deg);
 };
