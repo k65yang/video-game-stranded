@@ -63,12 +63,12 @@ enum class MOB_TYPE {
 struct Mob {
 	bool is_tracking_player = false;
 	int damage;
-	float aggro_range = 5.f;
-	int health = 50;
-	float speed_ratio = 2.f;
+	int aggro_range;
+	int health;
+	float speed_ratio;
 	int mframex = 0;
 	int mframey = 1;
-	Entity curr_cell; // cell the mob is currently in
+	Entity curr_cell;
 	MOB_TYPE type;
 };
 
@@ -273,8 +273,8 @@ struct BoundaryBlock {
 
 enum class TEXTURE_ASSET_ID {
 	PLAYER = 0,
-	MOB = PLAYER + 1,
-	REDBLOCK = MOB + 1,
+	SLIME = PLAYER + 1,
+	REDBLOCK = SLIME + 1,
 	FOW = REDBLOCK + 1,
 	ITEM = FOW + 1,
 	FOOD = ITEM + 1,

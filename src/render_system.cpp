@@ -79,7 +79,7 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 
 			gl_has_errors();
 		}
-		else if (render_request.used_texture == TEXTURE_ASSET_ID::MOB) {
+		else if (render_request.used_texture == TEXTURE_ASSET_ID::SLIME) {
 			glUniform1i(isPlayer_uloc, 0);
 
 			registry.mobs.get(entity).mframex;

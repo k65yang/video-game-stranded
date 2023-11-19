@@ -12,6 +12,7 @@
 #include "terrain_system.hpp"
 #include "pathfinding_system.hpp"
 #include "weapons_system.hpp"
+#include "mob_system.hpp"
 #include "common.hpp"
 
 using Clock = std::chrono::high_resolution_clock;
@@ -26,6 +27,7 @@ int main()
 	TerrainSystem terrain_system;
 	PathfindingSystem pathfinding_system;
 	WeaponsSystem weapons_system;
+	MobSystem mob_system;
 
 	// Initializing window
 	GLFWwindow* window = world_system.create_window();
@@ -39,7 +41,8 @@ int main()
 	// initialize the main systems
 	render_system.init(window);
 	weapons_system.init(&render_system);
-	world_system.init(&render_system, &terrain_system, &weapons_system, &physics_system);
+	mob_system.init(&render_system, &terrain_system);
+	world_system.init(&render_system, &terrain_system, &weapons_system, &physics_system, &mob_system);
 
 	// Load terrain mesh into the GPU
 	std::unordered_map<unsigned int, RenderSystem::ORIENTATIONS> orientation_map;
@@ -66,6 +69,7 @@ int main()
 		terrain_system.step(elapsed_ms);
 		pathfinding_system.step(elapsed_ms);
 		weapons_system.step(elapsed_ms);
+		mob_system.step(elapsed_ms);
 		world_system.handle_collisions();
 		render_system.draw();
 	}
