@@ -45,7 +45,7 @@ void WeaponsSystem::fireWeapon(float player_x, float player_y, float player_angl
 	Entity player = registry.players.entities[0];
 	if (registry.playerInaccuracyEffects.has(player)) {
 		PlayerInaccuracyEffect& playerInaccuracyEffect = registry.playerInaccuracyEffects.get(player);
-		applyProjectileInaccuracy(player_angle, playerInaccuracyEffect.inaccuracy_penalty_deg);
+		applyProjectileInaccuracy(player_angle, playerInaccuracyEffect.inaccuracy_percent);
 	}
 
 	// TODO: offset projectile location a little so it doesn't get created on top of player
@@ -117,19 +117,18 @@ void WeaponsSystem::fireShotgun(float player_x, float player_y, float angle) {
 }
 
 void WeaponsSystem::fireMachineGun(float player_x, float player_y, float angle) {
-	// This is the max angle from player direction. Double for total range.
-	float max_recoil_angle;
+	float inaccuracy_percent;
 	switch(weapon_level[active_weapon_type]) {
 		case 0:
-			max_recoil_angle = 15.f;
+			inaccuracy_percent = 0.4f;
 			break;
 		default: // default case is max level
-			max_recoil_angle = 10.f; // 10 degrees
+			inaccuracy_percent = 0.3f;
 			break;
 	}
 	
-	applyProjectileInaccuracy(angle, max_recoil_angle);
-
+	applyProjectileInaccuracy(angle, inaccuracy_percent);
+	
 	createProjectile(renderer, {player_x, player_y}, angle);
 }
 
@@ -224,11 +223,14 @@ bool WeaponsSystem::isValidWeapon(ITEM_TYPE test) {
 	return weapons_list.count(test);
 }
 
-void WeaponsSystem::applyProjectileInaccuracy(float& angle, float inaccuracy_penalty_deg) {
-	float inaccuracy_penalty_rad = radians(inaccuracy_penalty_deg);
-	float stddev = inaccuracy_penalty_rad/2;
-	float range_min = angle - inaccuracy_penalty_rad;
-	float range_max = angle + inaccuracy_penalty_rad;
+void WeaponsSystem::applyProjectileInaccuracy(float& angle, float inaccuracy_percent) {
+	// Determine max angle using inaccuracy percentage
+	// Limit max angle to 45 degrees so projectiles go in the general direction the player is facing
+	float max_angle = radians(45.f * inaccuracy_percent);
+	
+	float stddev = max_angle/2;
+	float range_min = angle - max_angle;
+	float range_max = angle + max_angle;
 
 	// The following approximates recoil for the machine gun.
 	// It is based on a gaussian distribution about the current angle

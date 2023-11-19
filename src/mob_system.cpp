@@ -23,7 +23,7 @@ void MobSystem::apply_mob_attack_effects(Entity player, Entity mob) {
 
 	if (mob_info.type == MOB_TYPE::DISRUPTOR) {
 		apply_knockback(player, mob, 500.f, 10.f);
-		apply_inaccuracy(player, 5000.f, 10.f);
+		apply_inaccuracy(player, 5000.f, 0.5f);
 	}
 }
 
@@ -106,14 +106,14 @@ void MobSystem::apply_knockback(Entity player, Entity mob, float duration_ms, fl
 	printf("KNOCKBACK APPLIED\n");
 };
 
-void MobSystem::apply_inaccuracy(Entity player, float duration_ms, float inaccuracy_penalty_deg) {
+void MobSystem::apply_inaccuracy(Entity player, float duration_ms, float inaccuracy_percent) {
 	bool already_applied = registry.playerInaccuracyEffects.has(player);
 
 	// Create PlayerInaccuracyEffects component only if it does not exist already
 	PlayerInaccuracyEffect& playerInaccuracyEffect = already_applied ? registry.playerInaccuracyEffects.get(player) : registry.playerInaccuracyEffects.emplace(player);
 	playerInaccuracyEffect.duration_ms = duration_ms;
 	playerInaccuracyEffect.elapsed_inaccuracy_time_ms = 0.f;
-	playerInaccuracyEffect.inaccuracy_penalty_deg = inaccuracy_penalty_deg;
+	playerInaccuracyEffect.inaccuracy_percent = inaccuracy_percent;
 
 	printf("INACCURACY APPLIED\n");
 };

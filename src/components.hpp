@@ -47,7 +47,7 @@ struct PlayerKnockbackEffect {
 struct PlayerInaccuracyEffect {
 	float duration_ms;				
 	float elapsed_inaccuracy_time_ms;
-	float inaccuracy_penalty_deg;
+	float inaccuracy_percent;
 };
 
 // The weapon

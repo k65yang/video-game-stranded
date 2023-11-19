@@ -105,10 +105,9 @@ class MobSystem
         /// @param knockback_speed_ratio How fast the player travels while being knocked-back
         void apply_knockback(Entity player, Entity mob, float duration_ms, float knockback_speed_ratio);
 
-        /// @brief Applies inaccuracy effect to player
+        /// @brief Applies inaccuracy effect to the player
         /// @param player The player
         /// @param duration_ms How long (in ms) the inaccuracy lasts
-        /// @param inaccuracy_penalty_deg How much (in degrees) the player's accuracy should be affected
-        ///                               Ex. inaccuracy_penalty_deg=15 means accuracy should be off by a max of 15 degrees
-        void apply_inaccuracy(Entity player, float duration_ms, float inaccuracy_penalty_deg);
+        /// @param inaccuracy_percent How much inaccuracy there is for the player as a percentage [0, 1.0] (0 means no inaccuracy)
+        void apply_inaccuracy(Entity player, float duration_ms, float inaccuracy_percent);
 };
