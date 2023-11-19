@@ -37,6 +37,12 @@ struct Player
 	int framey = 4; 
 };
 
+// Knockback effect for player from mobs
+struct PlayerKnockbackEffect {
+	float duration_ms;				
+	float elapsed_knockback_time_ms;
+};
+
 // The weapon
 struct Weapon {
 	ITEM_TYPE weapon_type;
