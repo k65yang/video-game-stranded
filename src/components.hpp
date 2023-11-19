@@ -56,6 +56,8 @@ struct Projectile {
 enum class MOB_TYPE {
 	SLIME = 0,
 	GHOST = SLIME + 1,
+	BRUTE = GHOST + 1,
+	MOB_COUNT = BRUTE + 1
 };
 
 // Mob component
@@ -291,10 +293,9 @@ enum class TEXTURE_ASSET_ID {
 	QUEST_1_ITEM = QUEST_2_FOUND + 1,
 	QUEST_2_ITEM = QUEST_1_ITEM +1,
 	GHOST = QUEST_2_ITEM + 1,
-	TEXTURE_COUNT = GHOST + 1,
+	BRUTE = GHOST + 1,
+	TEXTURE_COUNT = BRUTE + 1
 	//PLAYER_SPRITE_SHEET = TEXTURE_COUNT +1
-
-
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 

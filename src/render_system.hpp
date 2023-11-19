@@ -69,6 +69,7 @@ class RenderSystem {
 			textures_path("q1.png"),
 			textures_path("q2.png"),
 			textures_path("ghost.png"),
+			textures_path("redblock.png"),	// TODO: find texture for brute mob type
 	};
 
 	// This is used for generating the texture array for batched renders
