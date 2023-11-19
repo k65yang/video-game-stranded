@@ -70,7 +70,8 @@ void TerrainSystem::step(float delta_time)
 Entity TerrainSystem::get_cell(vec2 position)
 {
 	// round x and y value before casting for more accurate mapping of position to cell
-	return get_cell((int)std::round(position.x), (int)std::round(position.y));
+	ivec2 quantized_position = quantize_vec2(position);
+	return get_cell(quantized_position.x, quantized_position.y);
 }
 
 Entity TerrainSystem::get_cell(int x, int y)
@@ -78,7 +79,7 @@ Entity TerrainSystem::get_cell(int x, int y)
 	assert(entity_grid != nullptr);
 	assert(abs(x) <= size_x / 2);
 	assert(abs(y) <= size_y / 2);
-	return entity_grid[to_array_index(x, y)];
+	return get_cell(to_array_index(x, y));
 }
 
 Entity TerrainSystem::get_cell(int index)
@@ -234,6 +235,11 @@ unsigned int TerrainSystem::to_array_index(int x, int y)
 	x = size_x / 2 + x;
 	y = size_y / 2 + y;
 	return (y * size_x + x);
+}
+
+unsigned int TerrainSystem::to_array_index(ivec2 position)
+{
+	return to_array_index(position.x, position.y);
 }
 
 vec2 TerrainSystem::to_world_coordinates(const int index)
@@ -467,7 +473,7 @@ bool TerrainSystem::is_terrain_location_used(vec2 position) {
 	return used_terrain_locations.count(position) > 0;
 }
 
-void TerrainSystem::expand_map(int new_x, int new_y)
+void TerrainSystem::expand_map(const int new_x,const int new_y)
 {
 	int old_x = size_x;
 	int old_y = size_y;
@@ -487,19 +493,21 @@ void TerrainSystem::expand_map(int new_x, int new_y)
 
 	init(new_x, new_y, renderer);				// Load empty map with new x and y
 
-	// x and y will be reused here
 	for (int i = 0; i < old_x * old_y; i++) {
 		int x = old_to_new_index_offset.x + (i % old_x);
 		int y = old_to_new_index_offset.y + (i / old_x);
 		int i_new = x + y * size_x;
-		uint32_t data = old_terraincell_grid[i];
-		terraincell_grid[i_new] = data;			// Replace data with what we have
-		TerrainCell& cell = registry.terrainCells.get(entity_grid[i_new]);
-		
-		cell.from_uint32(data);
+
+		if (i_new < size_x * size_y) {
+			// Truncate if we resized into a smaller map
+			uint32_t data = old_terraincell_grid[i];
+			TerrainCell& cell = registry.terrainCells.get(entity_grid[i_new]);
+
+			terraincell_grid[i_new] = data;		// Replace data with what we have
+			cell.from_uint32(data);				// Also update the TerrainCell component
+		}
 	}
 
 	deallocate_terrain_grid(old_terraincell_grid);
 	deallocate_entity_grid(old_entity_grid, old_x, old_y);
-
 }

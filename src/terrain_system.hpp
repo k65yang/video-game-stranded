@@ -88,8 +88,8 @@ public:
 	/// <summary>
 	/// Initializes the world grid with the given size. Each axis should preferably be odd.
 	/// </summary>
-	/// <param name="x">The size of the map in the x axis (preferably odd)</param>
-	/// <param name="y">The size of the map in the y axis (preferably odd)</param>
+	/// <param name="x">The size of the map in the x axis</param>
+	/// <param name="y">The size of the map in the y axis</param>
 	/// <param name="renderer">The main renderer</param>
 	void init(const unsigned int x, const unsigned int y, RenderSystem* renderer);
 
@@ -105,6 +105,24 @@ public:
 	/// </summary>
 	/// <param name="delta_time">The time since the last frame in milliseconds</param>
 	void step(float delta_time);
+
+	/// <summary>
+	/// Rounds a given float into the nearest integer.
+	/// </summary>
+	/// <param name="x">The given float</param>
+	/// <returns>The nearest integer</returns>
+	inline int quantize_f(float x) {
+		return std::round(x);
+	}
+
+	/// <summary>
+	/// Rounds a given vec2 into the nearest integers.
+	/// </summary>
+	/// <param name="position">Any given vec2</param>
+	/// <returns>An ivec2 containing two rounded integers.</returns>
+	inline ivec2 quantize_vec2(vec2 position) {
+		return glm::round(position);
+	}
 
 	/// <summary>
 	/// Returns the entity associated with the cell at the given position
@@ -278,7 +296,13 @@ public:
 	/// <param name="name">The name of the map to be loaded</param>
 	void load_grid(const std::string& name);
 
-	void expand_map(int x, int y);
+	/// <summary>
+	/// Deletes the old map and generates one anew with size x, y.
+	/// Already-defined map data is inserted into the new map.
+	/// </summary>
+	/// <param name="x">The size of the map in the x axis</param>
+	/// <param name="y">The size of the map in the y axis</param>
+	void expand_map(const int new_x, const int new_y);
 
 	/// @brief Reset the terrain system when the game resets
 	void resetTerrainSystem() {
@@ -308,6 +332,14 @@ private:
 	/// <param name="y">The y position of the cell</param>
 	/// <returns>An index for 'grid' corresponding to that position</returns>
 	unsigned int to_array_index(int x, int y);
+
+	/// <summary>
+	/// Returns the index used for 'grid' with the given x and y world coordinates
+	/// </summary>
+	/// <param name="x">The x position of the cell</param>
+	/// <param name="y">The y position of the cell</param>
+	/// <returns>An index for 'grid' corresponding to that position</returns>
+	unsigned int to_array_index(ivec2 position);
 
 	/// <summary>
 	/// Converts a cell's index into world coordinates.
