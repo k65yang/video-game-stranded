@@ -172,9 +172,10 @@ void RenderSystem::drawToScreen()
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	gl_has_errors();
 	// Enabling alpha channel for textures
-	glDisable(GL_BLEND);
+	 glDisable(GL_BLEND);
 	// glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glDisable(GL_DEPTH_TEST);
+
 
 	// Draw the screen texture on the quad geometry
 	glBindBuffer(GL_ARRAY_BUFFER, vertex_buffers[(GLuint)GEOMETRY_BUFFER_ID::SCREEN_TRIANGLE]);
@@ -437,15 +438,19 @@ void RenderSystem::draw()
 		}
 	}
 
+	
+	// Truely render to the screen
+	drawToScreen();
+
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+
 	// TODO: for UI elements, have new projection matrices that use screen coordinates instead of map coordinates
 	for (Entity entity : layer_4_entities) {
 		drawTexturedMesh(entity, view_2D, projection_2D);
-	}
+		}
 
-
-
-	// Truely render to the screen
-	drawToScreen();
 
 
 	// flicker-free display with a double buffer
