@@ -826,12 +826,12 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 
 		std::vector<std::pair<Mob&, Motion&>> mobs;
 		for (auto& mob : registry.mobs.entities) {
-			mobs.push_back(std::make_pair(registry.mobs.get(mob), registry.motions.get(mob)));
+			mobs.push_back({ registry.mobs.get(mob), registry.motions.get(mob) });
 		}
 
 		std::vector<std::pair<Item&, Motion&>> items;
 		for (auto& item : registry.items.entities) {
-			items.push_back(std::make_pair(registry.items.get(item), registry.motions.get(item)));
+			items.push_back({ registry.items.get(item), registry.motions.get(item) });
 		}
 
 		SaveGame(player, mobs, items);

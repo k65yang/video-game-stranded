@@ -4,6 +4,3 @@
 
 void SaveGame(Player& player, std::vector<std::pair<Mob&, Motion&>> mobs, std::vector<std::pair<Item&, Motion&>> items);
 void LoadGame();
-
-
-

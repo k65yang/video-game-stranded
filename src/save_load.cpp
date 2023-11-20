@@ -1,31 +1,12 @@
 #include "save_load.hpp"
+#include <iostream>
 
 using json = nlohmann::json;
-
-void SaveGame(Player& player, std::vector<std::pair<Mob&, Motion&>> mobs, std::vector<std::pair<Item&, Motion&>> items) {
-	json data;
-
-    // below is using to and from json
-    data["player"] = player;
-    data["mobs"] = mobs;
-    data["items"] = items;
-
-    // Save/create into a file
-    std::ofstream file("save.json");
-    file << data;
-}
-
-void LoadGame() {
-
-}
-
-
 
 void to_json(json& j, const Player& p) {
     j = json{ {"health", p.health}, {"food", p.food} };
 }
 
-// FILL out the rest of the player struct with defaults? if needed
 void from_json(const json& j, Player& p) {
     j.at("health").get_to(p.health);
     j.at("food").get_to(p.food);
@@ -35,7 +16,6 @@ void to_json(json& j, const Mob& mob) {
     j = json{ {"damage", mob.damage}, {"aggro_range", mob.aggro_range}, {"health", mob.health}, {"speed_ratio", mob.speed_ratio},  {"type", mob.type} };
 }
 
-// FILL out the rest of the mob struct with defaults? if needed
 void from_json(const json& j, Mob& mob) {
     j.at("damage").get_to(mob.damage);
     j.at("aggro_range").get_to(mob.aggro_range);
@@ -64,4 +44,23 @@ void from_json(const json& j, Motion& m) {
     j.at("velocity_y").get_to(m.velocity[1]);
     j.at("scale_x").get_to(m.scale[0]);
     j.at("scale_y").get_to(m.scale[1]);
+}
+
+void SaveGame(Player& player, std::vector<std::pair<Mob&, Motion&>> mobs, std::vector<std::pair<Item&, Motion&>> items) {
+ 
+    json data;
+
+    data["player"] = player;
+    data["mobs"] = mobs;
+    data["items"] = items;
+
+    std::cout << data.dump(4);
+
+    // Save/create into a file
+    std::ofstream file("save.json");
+    file << data;
+}
+
+void LoadGame() {
+
 }
