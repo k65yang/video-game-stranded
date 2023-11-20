@@ -1,4 +1,5 @@
 #pragma once
+#include <map>
 
 #include "common.hpp"
 #include "tiny_ecs.hpp"
@@ -13,13 +14,11 @@ const float TURTLE_BB_HEIGHT = 0.4f * 202.f;
 const vec2 HEALTH_BAR_SCALE = vec2(5.f, 0.5);
 const vec2 FOOD_BAR_SCALE = vec2(5.5, 0.7);
 
-
 // the player
 Entity createPlayer(RenderSystem* renderer, vec2 pos);
+
 // the prey
 Entity createItem(RenderSystem* renderer, vec2 position, ITEM_TYPE type);
-// the enemy
-Entity createBasicMob(RenderSystem* renderer, TerrainSystem* terrain, vec2 position, MOB_TYPE type);
 
 // the spaceship 
 Entity createSpaceship(RenderSystem* renderer, vec2 position);

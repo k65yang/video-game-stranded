@@ -73,12 +73,10 @@ bool RenderSystem::init(GLFWwindow* window_arg)
 /// <param name="vertices"></param>
 /// <param name="indicies"></param>
 template <class T>
-void RenderSystem::make_quad(mat3 modelMatrix,
-	uint16_t texture_id,
-	std::vector<BatchedVertex>& vertices,
-	std::vector<T>& indicies) {
+void RenderSystem::make_quad(mat3 modelMatrix, uint16_t texture_id, std::vector<BatchedVertex>& vertices, 
+	std::vector<T>& indicies, uint8_t flags, uint8_t frameValue) {
 
-	makeQuadVertices(modelMatrix, texture_id, vertices);
+	makeQuadVertices(modelMatrix, texture_id, vertices, flags, frameValue);
 
 	int i = vertices.size() / 4 - 1;
 	for (uint x : { 0, 3, 1, 1, 3, 2 }) {
@@ -86,29 +84,60 @@ void RenderSystem::make_quad(mat3 modelMatrix,
 	}
 }
 
-void RenderSystem::makeQuadVertices(glm::mat3& modelMatrix, uint16_t texture_id, std::vector<BatchedVertex>& vertices)
+void RenderSystem::makeQuadVertices(glm::mat3& modelMatrix, uint16_t texture_id, std::vector<BatchedVertex>& vertices, 
+	uint8_t flags, uint8_t frameValue)
 {
 	BatchedVertex quad[4];
+
+	// TODO: properly handle GL_LINEAR behaviour in texture atlasses instead of this hacky method.
+	// Basically, we're definining the "edge" texels/pixels of a tile
+	// as a "border" for GL_LINEAR filtering to use
 	quad[0].position = { -0.5f, 0.5f, 1.f };
-	quad[0].texCoords = { 0.f, 1.f };
+	quad[0].texCoords = { terrain_texel_offset.x, terrain_sheet_uv.y - terrain_texel_offset.y };
 
 	quad[1].position = { 0.5f, 0.5f, 1.f };
-	quad[1].texCoords = { 1.f, 1.f };
+	quad[1].texCoords = { terrain_sheet_uv.x - terrain_texel_offset.x, terrain_sheet_uv.y - terrain_texel_offset.y };
 
 	quad[2].position = { 0.5f, -0.5f, 1.f };
-	quad[2].texCoords = { 1.f, 0.f };
+	quad[2].texCoords = { terrain_sheet_uv.x - terrain_texel_offset.x, terrain_texel_offset.y };
 
 	quad[3].position = { -0.5f, -0.5f, 1.f };
-	quad[3].texCoords = { 0.f, 0.f };
+	quad[3].texCoords = { terrain_texel_offset.x , terrain_texel_offset.y };
+
+	if (flags & DIRECTIONAL) {
+		ORIENTATIONS ori = static_cast<ORIENTATIONS>(frameValue);	// in the blind forest
+		vec2 index = terrain_atlas_offsets.at(ori);
+		vec2 uv_zero = quad[3].texCoords + index * terrain_sheet_uv;
+		vec2 uv_one = quad[1].texCoords + index * terrain_sheet_uv;
+		if (mirror_horizontal_orientations.count(ori))
+			std::swap(uv_zero.y, uv_one.y);
+		if (mirror_vertical_orientations.count(ori))
+			std::swap(uv_zero.x, uv_one.x);
+		if (rotate_orientations.count(ori)) {
+
+			quad[1].texCoords = { uv_zero.x, uv_one.y };
+			quad[2].texCoords = uv_one;
+			quad[3].texCoords = { uv_one.x, uv_zero.y };
+			quad[0].texCoords = uv_zero;
+		}
+		else {
+			quad[0].texCoords = { uv_zero.x, uv_one.y };
+			quad[1].texCoords = uv_one;
+			quad[2].texCoords = { uv_one.x, uv_zero.y };
+			quad[3].texCoords = uv_zero;
+		}
+	}
 
 	for (BatchedVertex& v : quad) {
 		v.position = modelMatrix * v.position;
 		v.texIndex = texture_id;
+		v.flags = flags;
+		v.frameValue = frameValue;
 		vertices.push_back(v);
 	}
 }
 
-void RenderSystem::initializeTerrainBuffers()
+void RenderSystem::initializeTerrainBuffers(std::unordered_map<unsigned int, ORIENTATIONS>& directional_tex_orientations)
 {
 	std::vector<BatchedVertex> vertices;
 	// We need 32-bit indices because 16-bit indices limits us to 
@@ -116,13 +145,16 @@ void RenderSystem::initializeTerrainBuffers()
 	// The new maximum should be ~26,754 x 26,754.
 	std::vector<uint32_t> indices;
 
-	for (uint i = 0; i < registry.terrainCells.entities.size(); i++) {
+	for (uint32_t i = 0; i < registry.terrainCells.entities.size(); i++) {
 		Entity e = registry.terrainCells.entities[i];
 		TerrainCell& cell = registry.terrainCells.components[i];
+		uint8_t flags = directional_terrain.count(cell.terrain_type) ? DIRECTIONAL : 0;
+		bool has_orientation = flags & DIRECTIONAL;
+		uint8_t frameValue = has_orientation ? directional_tex_orientations[i] : 0;
 		mat3 modelMatrix = createModelMatrix(e);	// preprocess transform matrices because
+													// we can't really have per-mesh transforms so let's just bake them in!
 
-		// we can't really have per-mesh transforms so let's just bake them in!
-		make_quad(modelMatrix, cell.terrain_type, vertices, indices);
+		make_quad(modelMatrix, cell.terrain_type, vertices, indices, flags, frameValue);
 	}
 
 	bindVBOandIBO(GEOMETRY_BUFFER_ID::TERRAIN, vertices, indices);
