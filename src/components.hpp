@@ -176,7 +176,8 @@ enum ZONE_NUMBER {
 	ZONE_0 = 0,
 	ZONE_1 = 1,
 	ZONE_2 = 2,
-	ZONE_COUNT = ZONE_2 + 1,
+	ZONE_3 = 3,
+	ZONE_COUNT = ZONE_3 + 1,
 };
 
 
