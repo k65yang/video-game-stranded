@@ -80,7 +80,7 @@ class MobSystem
         const std::map<MOB_TYPE, float> mob_speed_ratio_map = {
             {MOB_TYPE::GHOST, 2.5f},
             {MOB_TYPE::SLIME, 2.f},
-            {MOB_TYPE::BRUTE, 1.f},
+            {MOB_TYPE::BRUTE, 0.5f},
             {MOB_TYPE::DISRUPTOR, 1.5f}
         };
 
