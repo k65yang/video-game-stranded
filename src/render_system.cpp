@@ -1,7 +1,7 @@
 // internal
 #include "render_system.hpp"
 #include <SDL.h>
-
+#include <iostream>
 #include "tiny_ecs_registry.hpp"
 
 
@@ -184,6 +184,15 @@ void RenderSystem::drawToScreen()
 																	 // indices to the bound GL_ARRAY_BUFFER
 	gl_has_errors();
 	const GLuint water_program = effects[(GLuint)EFFECT_ASSET_ID::WATER];
+
+	// set player position uniform 
+	GLuint playerPos_uloc = glGetUniformLocation(water_program, "playerPos");
+	auto playerEntity = registry.players.entities[0];
+	glUniform2f(playerPos_uloc, registry.motions.get(playerEntity).position.x, registry.motions.get(playerEntity).position.y);
+
+	// std::cout << "set uniform playerpos " << registry.motions.get(playerEntity).position.x << "and " << registry.motions.get(playerEntity).position.y << std::endl; // FOR DEBUG REMOVE LATER
+	
+
 	// Set clock
 	GLuint time_uloc = glGetUniformLocation(water_program, "time");
 	GLuint dead_timer_uloc = glGetUniformLocation(water_program, "screen_darken_factor");
@@ -203,6 +212,7 @@ void RenderSystem::drawToScreen()
 
 	glBindTexture(GL_TEXTURE_2D, off_screen_render_buffer_color);
 	gl_has_errors();
+
 	// Draw
 	glDrawElements(
 		GL_TRIANGLES, 3, GL_UNSIGNED_SHORT,
@@ -367,6 +377,7 @@ void RenderSystem::draw()
 	std::vector<Entity> layer_2_entities;
 	std::vector<Entity> layer_3_entities;
 	std::vector<Entity> layer_4_entities;
+	Entity player_entity = registry.players.entities[0];
 
 	for (Entity entity : registry.renderRequests.entities)
 	{
@@ -377,7 +388,19 @@ void RenderSystem::draw()
 		
 		// resort them in different queue of render request based on layer they belong to
 		if (registry.renderRequests.get(entity).layer_id == RENDER_LAYER_ID::LAYER_1) {
-			layer_1_entities.push_back(entity);
+			// check distance between entity and player, dont consider to be draw if too far away
+
+			// item or mob
+			if (registry.items.has(entity) || (registry.mobs.has(entity))) {
+
+				// put in draw array if distance to player is close enough
+				if (distance(registry.motions.get(player_entity).position, registry.motions.get(entity).position) < fog_distance) {
+					layer_1_entities.push_back(entity);
+				}
+			}
+			else {
+				layer_1_entities.push_back(entity);
+			}
 		}
 		else if (registry.renderRequests.get(entity).layer_id == RENDER_LAYER_ID::LAYER_2) {
 			layer_2_entities.push_back(entity);

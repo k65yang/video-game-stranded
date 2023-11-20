@@ -298,6 +298,9 @@ private:
 	GLuint texture_array;
 
 	Entity screen_state_entity;
+
+	// Distance limit to render mobs and items 
+	float fog_distance = 5.f;
 };
 
 bool loadEffectFromFile(

@@ -268,8 +268,8 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	screen.screen_darken_factor = 1 - min_timer_ms / 3000;
 
 	Motion& m = registry.motions.get(player_salmon);
-	Motion& f = registry.motions.get(fow);
-	f.position = m.position;
+	//Motion& f = registry.motions.get(fow);
+	//f.position = m.position;
 
 	ELAPSED_TIME += elapsed_ms_since_last_update;
 
@@ -490,8 +490,8 @@ void WorldSystem::restart_game() {
 	// Create the main camera
 	main_camera = createCamera({ 0,0 });
 
-	// Create fow
-	fow = createFOW(renderer, { 0,0 });
+	// DISABLE FOW MASK
+	//fow = createFOW(renderer, { 0,0 });
 
 	// Create health bars 
 	health_bar = createHealthBar(renderer, { -8.f, 7.f });
