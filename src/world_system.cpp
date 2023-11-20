@@ -814,6 +814,31 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	}
 	*/
 
+	// Saving and reloading
+	if (action == GLFW_PRESS && key == GLFW_KEY_L) {
+		// Load the game state 
+		LoadGame();
+	} 
+	
+	if (action == GLFW_PRESS && key == GLFW_KEY_K) {
+		// Save the game state (player location, weapon, health, food, mobs & location)
+		Player& player = registry.players.get(player_salmon);
+
+		std::vector<std::pair<Mob&, Motion&>> mobs;
+		for (auto& mob : registry.mobs.entities) {
+			mobs.push_back(std::make_pair(registry.mobs.get(mob), registry.motions.get(mob)));
+		}
+
+		std::vector<std::pair<Item&, Motion&>> items;
+		for (auto& item : registry.items.entities) {
+			items.push_back(std::make_pair(registry.items.get(item), registry.motions.get(item)));
+		}
+
+		SaveGame(player, mobs, items);
+
+
+	}
+
 	// Resetting game
 	if (action == GLFW_RELEASE && key == GLFW_KEY_R) {
 		int w, h;
