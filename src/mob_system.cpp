@@ -14,7 +14,7 @@ void MobSystem::spawn_mobs() {
 	std::vector<vec2> zone_mob_locations = terrain->get_mob_spawn_locations(zone_mob_numbers);
 
 	for (const auto& spawn_location: zone_mob_locations) {
-		create_mob(spawn_location, MOB_TYPE::DISRUPTOR);
+		create_mob(spawn_location, rng() % 2 ? MOB_TYPE::DISRUPTOR : MOB_TYPE::BRUTE);
 	}
 }
 
