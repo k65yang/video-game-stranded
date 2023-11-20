@@ -151,9 +151,8 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 	// Drawing of num_indices/3 triangles specified in the index buffer
 	glDrawElements(GL_TRIANGLES, num_indices, GL_UNSIGNED_SHORT, nullptr);
 	gl_has_errors();
-}
 
-// make step funtion 
+}
 
 // draw the intermediate texture to the screen, with some distortion to simulate
 // water

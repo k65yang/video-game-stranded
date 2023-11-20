@@ -334,16 +334,8 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		}
 	}
 
-	//// update Spaceship home movement 
-	Motion& s_motion = registry.motions.get(home);
-	s_motion.position = { camera_motion.position.x,camera_motion.position.y };
-
-
-
 	return true;
 }
-
-
 void WorldSystem::updatePlayerDirection() {
 	if (CURSOR_ANGLE >= -M_PI / 4 && CURSOR_ANGLE < M_PI / 4) {
 		PLAYER_DIRECTION = 2;  // Right
@@ -551,6 +543,13 @@ void WorldSystem::handle_collisions() {
 
 				Spaceship& s = registry.spaceship.get(home);
 				s.in_home = TRUE;
+
+				Motion& camera_motion = registry.motions.get(main_camera);
+				//// update Spaceship home movement 
+				Motion& s_motion = registry.motions.get(home);
+				s_motion.position = { camera_motion.position.x,camera_motion.position.y };
+
+
 				printf("nearhome\n");
 
 
