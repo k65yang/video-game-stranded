@@ -21,6 +21,15 @@ bool RenderSystem::init(GLFWwindow* window_arg)
 	glfwMakeContextCurrent(window);
 	glfwSwapInterval(1); // vsync
 
+	// Get window resolution
+	if (windowed_mode) {
+		window_resolution = target_resolution;
+	}
+	else {
+		const GLFWvidmode* mode = glfwGetVideoMode(glfwGetPrimaryMonitor());
+		window_resolution = { mode->width, mode->height };
+	}
+
 	// Load OpenGL function pointers
 	const int is_fine = gl3w_init();
 	assert(is_fine == 0);
@@ -35,11 +44,11 @@ bool RenderSystem::init(GLFWwindow* window_arg)
 	// https://stackoverflow.com/questions/36672935/why-retina-screen-coordinate-value-is-twice-the-value-of-pixel-value
 	int frame_buffer_width_px, frame_buffer_height_px;
 	glfwGetFramebufferSize(window, &frame_buffer_width_px, &frame_buffer_height_px);  // Note, this will be 2x the resolution given to glfwCreateWindow on retina displays
-	if (frame_buffer_width_px != window_width_px)
+	if (frame_buffer_width_px != window_resolution.x)
 	{
 		printf("WARNING: retina display! https://stackoverflow.com/questions/36672935/why-retina-screen-coordinate-value-is-twice-the-value-of-pixel-value\n");
 		printf("glfwGetFramebufferSize = %d,%d\n", frame_buffer_width_px, frame_buffer_height_px);
-		printf("window width_height = %d,%d\n", window_width_px, window_height_px);
+		printf("window width_height = %d,%d\n", window_resolution.x, window_resolution.y);
 	}
 
 	// Hint: Ask your TA for how to setup pretty OpenGL error callbacks. 
