@@ -177,6 +177,41 @@ Entity createLine(vec2 position, vec2 scale)
 	return entity;
 }
 
+Entity createBar(RenderSystem* renderer, vec2 position, BAR_TYPE type) {
+	auto entity = Entity();
+
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Initialize the position, scale, and physics components
+	auto& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.velocity = { 0.f, 0.f };
+	motion.position = position;
+	motion.scale = vec2({ 5.5, 0.7 });
+
+	// Initialize the collider
+	createDefaultCollider(entity);
+
+	TEXTURE_ASSET_ID texture = TEXTURE_ASSET_ID::PLAYER;
+	switch (type) {
+			case BAR_TYPE::HEALTH_BAR:
+				texture = TEXTURE_ASSET_ID::REDBLOCK;
+				break;
+			case BAR_TYPE::FOOD_BAR:
+				texture = TEXTURE_ASSET_ID::BLUEBLOCK;
+				break;
+		}
+
+	registry.renderRequests.insert(
+		entity,
+		{ texture,
+			EFFECT_ASSET_ID::TEXTURED,
+			GEOMETRY_BUFFER_ID::SPRITE,
+			RENDER_LAYER_ID::LAYER_4 });
+
+	return entity;
+	}
 Entity createHealthBar(RenderSystem* renderer, vec2 position) {
 	auto entity = Entity();
 
@@ -188,7 +223,7 @@ Entity createHealthBar(RenderSystem* renderer, vec2 position) {
 	motion.angle = 0.f;
 	motion.velocity = { 0.f, 0.f };
 	motion.position = position; 
-	motion.scale = vec2({ 5.f, 0.5 });
+	motion.scale = vec2({ 5.5, 0.7 });
 
 	registry.renderRequests.insert(
 		entity,
@@ -212,7 +247,7 @@ Entity createFoodBar(RenderSystem* renderer, vec2 position) {
 	motion.velocity = { 0.f, 0.f };
 	motion.position = position;
 	motion.scale = vec2({ 5.5, 0.7 });
-
+	//motion.scale = vec2({ 20.f, 2 });
 	registry.renderRequests.insert(
 		entity,
 		{ TEXTURE_ASSET_ID::BLUEBLOCK,
