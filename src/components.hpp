@@ -22,14 +22,22 @@ enum class ITEM_TYPE {
 	WEAPON_MACHINEGUN = WEAPON_SHOTGUN + 1,
 	FOOD = WEAPON_MACHINEGUN + 1,
 	UPGRADE = FOOD + 1,
+	TURKEY = UPGRADE + 1,
+	AMMO = TURKEY + 1,
+
 };
 
 enum class BAR_TYPE {
 	HEALTH_BAR = 0,
-	FOOD_BAR = HEALTH_BAR +1,
+	FOOD_BAR = HEALTH_BAR + 1,
+	FOOD_STORAGE = FOOD_BAR + 1,
+	AMMO_STORAGE = FOOD_STORAGE + 1,
 
 	};
-
+enum class FRAME_TYPE {
+	HEALTH_FRAME = 0, 
+	BAR_FRAME = HEALTH_FRAME + 1, 
+	};
 
 // TODO: cool idea for later is to have a customizable difficulty that adjusts food and health.
 struct Player
@@ -304,7 +312,14 @@ enum class TEXTURE_ASSET_ID {
 	SPACESHIP = ICON_MACHINE_GUN + 1,
 	SPACEHOME = SPACESHIP + 1,
 	BLUEBLOCK = SPACEHOME + 1,
-	HELP_ONE = BLUEBLOCK + 1,
+	//inserting new blocks here
+	FOOD_BLOCK = BLUEBLOCK + 1, 
+	AMMO_BLOCK = FOOD_BLOCK + 1,
+	BAR_FRAME = AMMO_BLOCK + 1,
+	HEALTH_FRAME = BAR_FRAME +1,
+	AMMO = HEALTH_FRAME +1, 
+	TURKEY = AMMO + 1, 
+	HELP_ONE = TURKEY + 1,
 	HELP_TWO = HELP_ONE + 1,
 	HELP_THREE = HELP_TWO + 1,
 	HELP_FOUR = HELP_THREE + 1,

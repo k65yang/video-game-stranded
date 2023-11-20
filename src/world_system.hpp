@@ -98,7 +98,12 @@ private:
 	Entity main_camera;
 	Entity fow;
 	Entity health_bar;
+	Entity health_frame; 
 	Entity food_bar;
+	Entity food_storage; 
+	Entity turkey;
+	Entity ammo_storage;
+	Entity ammo;
 	Entity weapon_indicator;
 	Entity spaceship;
 	Entity home; 

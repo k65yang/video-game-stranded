@@ -26,6 +26,7 @@ Entity createSpaceship(RenderSystem* renderer, vec2 position);
 // the space home
 Entity createHome(RenderSystem* renderer); 
 
+Entity createStorage(RenderSystem* renderer, vec2 position, ITEM_TYPE type);
 // a red line for debugging purposes
 Entity createLine(vec2 position, vec2 size);
 
@@ -39,8 +40,7 @@ Entity createFOW(RenderSystem* renderer, vec2 pos);
 
 // UI Elements
 Entity createBar(RenderSystem* renderer, vec2 position, BAR_TYPE type);
-Entity createHealthBar(RenderSystem* renderer, vec2 position);
-Entity createFoodBar(RenderSystem* renderer, vec2 position);
+Entity createFrame(RenderSystem* renderer, vec2 position, FRAME_TYPE type);
 Entity createWeaponIndicator(RenderSystem* renderer, vec2 position, TEXTURE_ASSET_ID weapon_texture);
 
 // Tool tips for ease of use 

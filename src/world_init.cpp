@@ -201,6 +201,14 @@ Entity createBar(RenderSystem* renderer, vec2 position, BAR_TYPE type) {
 			case BAR_TYPE::FOOD_BAR:
 				texture = TEXTURE_ASSET_ID::BLUEBLOCK;
 				break;
+			case BAR_TYPE::FOOD_STORAGE:
+				texture = TEXTURE_ASSET_ID::FOOD_BLOCK;
+				motion.scale = vec2({ 0.5, 2 });
+				break;
+			case BAR_TYPE::AMMO_STORAGE:
+				texture = TEXTURE_ASSET_ID::AMMO_BLOCK;
+				motion.scale = vec2({ 0.5, 2 });
+				break;
 		}
 
 	registry.renderRequests.insert(
@@ -212,30 +220,8 @@ Entity createBar(RenderSystem* renderer, vec2 position, BAR_TYPE type) {
 
 	return entity;
 	}
-Entity createHealthBar(RenderSystem* renderer, vec2 position) {
-	auto entity = Entity();
 
-	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
-	registry.meshPtrs.emplace(entity, &mesh);
-
-	// Initialize the position, scale, and physics components
-	auto& motion = registry.motions.emplace(entity);
-	motion.angle = 0.f;
-	motion.velocity = { 0.f, 0.f };
-	motion.position = position; 
-	motion.scale = vec2({ 5.5, 0.7 });
-
-	registry.renderRequests.insert(
-		entity,
-		{ TEXTURE_ASSET_ID::REDBLOCK,
-			EFFECT_ASSET_ID::TEXTURED,
-			GEOMETRY_BUFFER_ID::SPRITE,
-			RENDER_LAYER_ID::LAYER_4 });
-
-	return entity;
-}
-
-Entity createFoodBar(RenderSystem* renderer, vec2 position) {
+Entity createFrame(RenderSystem* renderer, vec2 position, FRAME_TYPE type) {
 	auto entity = Entity();
 
 	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
@@ -246,17 +232,71 @@ Entity createFoodBar(RenderSystem* renderer, vec2 position) {
 	motion.angle = 0.f;
 	motion.velocity = { 0.f, 0.f };
 	motion.position = position;
-	motion.scale = vec2({ 5.5, 0.7 });
-	//motion.scale = vec2({ 20.f, 2 });
+	motion.scale = vec2({ 6, 1 });
+
+	// Initialize the collider
+	createDefaultCollider(entity);
+
+	TEXTURE_ASSET_ID texture = TEXTURE_ASSET_ID::PLAYER;
+	switch (type) {
+			case FRAME_TYPE::HEALTH_FRAME:
+				texture = TEXTURE_ASSET_ID::HEALTH_FRAME;
+				break;
+			case FRAME_TYPE::BAR_FRAME:
+				texture = TEXTURE_ASSET_ID::BAR_FRAME;
+				break;
+
+		}
+
 	registry.renderRequests.insert(
 		entity,
-		{ TEXTURE_ASSET_ID::BLUEBLOCK,
+		{ texture,
 			EFFECT_ASSET_ID::TEXTURED,
 			GEOMETRY_BUFFER_ID::SPRITE,
 			RENDER_LAYER_ID::LAYER_4 });
 
 	return entity;
-}
+	}
+
+Entity createStorage(RenderSystem* renderer, vec2 position, ITEM_TYPE type) {
+	auto entity = Entity();
+
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Initialize the position, scale, and physics components
+	auto& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.velocity = { 0.f, 0.f };
+	motion.position = position;
+	motion.scale = vec2({ 7, 5 });
+
+	//auto& spaceship = registry.spaceship.emplace(entity);
+	// Initialize the collider
+	createDefaultCollider(entity);
+
+	TEXTURE_ASSET_ID texture = TEXTURE_ASSET_ID::PLAYER;
+	switch (type) {
+			case ITEM_TYPE::AMMO:
+				texture = TEXTURE_ASSET_ID::AMMO;
+				motion.scale = vec2({ 8, 6 });
+
+				break;
+			case ITEM_TYPE::TURKEY:
+				texture = TEXTURE_ASSET_ID::TURKEY;
+				break;
+		}
+
+	registry.renderRequests.insert(
+		entity,
+		{ texture,
+			EFFECT_ASSET_ID::TEXTURED,
+			GEOMETRY_BUFFER_ID::SPRITE,
+			RENDER_LAYER_ID::LAYER_4 });
+
+	return entity;
+	}
+
 
 Entity createHelp(RenderSystem* renderer, vec2 position, TEXTURE_ASSET_ID texture) {
 	auto entity = Entity();

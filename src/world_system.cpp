@@ -496,9 +496,21 @@ void WorldSystem::restart_game() {
 	// Create health bars 
 	health_bar = createBar(renderer, { -8.f, 7.f }, BAR_TYPE::HEALTH_BAR);
 
+	health_frame = createFrame(renderer, { -8.f, 7.f }, FRAME_TYPE::HEALTH_FRAME);
 
 	// Create food bars 
-	food_bar = createBar(renderer, { -8.f, 7.f }, BAR_TYPE::FOOD_BAR);
+	food_bar = createBar(renderer, { -8.f, -7.f }, BAR_TYPE::FOOD_BAR);
+
+	// Create food storage bar
+	// Todo: locate the food storage bar according to screen size and food sprite 
+	food_storage = createBar(renderer, { -3.5f, 0.f }, BAR_TYPE::FOOD_STORAGE);
+
+	// Create ammo storage bar
+	ammo_storage = createBar(renderer, { 4.5f, 0.5f }, BAR_TYPE::AMMO_STORAGE);
+
+	// Creating spaceship home items 
+	turkey = createStorage(renderer, { -5.5f, 0.f }, ITEM_TYPE::TURKEY);
+	ammo = createStorage(renderer, { 1.f, 0.5f }, ITEM_TYPE::AMMO);
 
 	// Reset the weapon indicator
 	user_has_first_weapon = false;
@@ -898,11 +910,29 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 			Motion& camera_motion = registry.motions.get(main_camera);
 			camera_motion.angle = 0;
 			camera_motion.scale = vec2(1, 1);
+			/*
+			auto& spaceshipsRegistry = registry.spaceship;
 
-			//camera_motion.scale = vec2(0, 0); 
-			//// update Spaceship home movement 
+			for (uint i = 0; i < spaceshipsRegistry.components.size(); i++) {
+				// The entity and its collider
+				Entity home_entity = spaceshipsRegistry.entities[i];
+				Motion& e_motion = registry.motions.get(home_entity);
+				e_motion.position = { e_motion.position.x + camera_motion.position.x, e_motion.position.y + camera_motion.position.y };
+			}
+			*/
+			//update Spaceship home movement 
 			Motion& s_motion = registry.motions.get(home);
 			s_motion.position = { camera_motion.position.x,camera_motion.position.y };
+
+			Motion& fs_motion = registry.motions.get(food_storage);
+			Motion& a_motion = registry.motions.get(ammo_storage); 
+			Motion& t_motion = registry.motions.get(turkey);
+			Motion& as_motion = registry.motions.get(ammo);
+
+			fs_motion.position = { fs_motion.position.x + camera_motion.position.x,fs_motion.position.y + camera_motion.position.y };
+			a_motion.position = { a_motion.position.x + camera_motion.position.x,  a_motion.position.y + camera_motion.position.y };
+			t_motion.position = { t_motion.position.x + camera_motion.position.x,t_motion.position.y + camera_motion.position.y };
+			as_motion.position = { as_motion.position.x + camera_motion.position.x,  as_motion.position.y + camera_motion.position.y };
 
 			printf("You are home\n");
 			s.in_home = true;
