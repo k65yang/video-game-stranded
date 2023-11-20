@@ -494,10 +494,11 @@ void WorldSystem::restart_game() {
 	fow = createFOW(renderer, { 0,0 });
 
 	// Create health bars 
-	health_bar = createHealthBar(renderer, { -8.f, 7.f });
+	health_bar = createBar(renderer, { -8.f, 7.f }, BAR_TYPE::HEALTH_BAR);
+
 
 	// Create food bars 
-	food_bar = createFoodBar(renderer, { 8.f, 7.f });
+	food_bar = createBar(renderer, { -8.f, 7.f }, BAR_TYPE::FOOD_BAR);
 
 	// Reset the weapon indicator
 	user_has_first_weapon = false;
@@ -889,7 +890,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 
 			Motion& health = registry.motions.get(health_bar);
 			Motion& food = registry.motions.get(food_bar);
-			health.scale = HEALTH_BAR_SCALE;
+			//health.scale = HEALTH_BAR_SCALE;
 			food.scale = FOOD_BAR_SCALE;
 
 

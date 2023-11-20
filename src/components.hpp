@@ -24,6 +24,13 @@ enum class ITEM_TYPE {
 	UPGRADE = FOOD + 1,
 };
 
+enum class BAR_TYPE {
+	HEALTH_BAR = 0,
+	FOOD_BAR = HEALTH_BAR +1,
+
+	};
+
+
 // TODO: cool idea for later is to have a customizable difficulty that adjusts food and health.
 struct Player
 {
