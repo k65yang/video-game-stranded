@@ -817,12 +817,18 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	// Saving and reloading
 	if (action == GLFW_PRESS && key == GLFW_KEY_L) {
 		// Load the game state 
-		LoadGame();
-	} 
+		std::ifstream f("save.json");
+		json data = json::parse(f);
+
+		std::cout << "Loading ...";
+
+		load_game(data);
+	}
 	
 	if (action == GLFW_PRESS && key == GLFW_KEY_K) {
 		// Save the game state (player location, weapon, health, food, mobs & location)
 		Player& player = registry.players.get(player_salmon);
+		Motion& player_motion = registry.motions.get(player_salmon);
 
 		std::vector<std::pair<Mob&, Motion&>> mobs;
 		for (auto& mob : registry.mobs.entities) {
@@ -834,7 +840,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 			items.push_back({ registry.items.get(item), registry.motions.get(item) });
 		}
 
-		SaveGame(player, mobs, items);
+		SaveGame(player, player_motion, mobs, items);
 
 
 	}
@@ -1054,3 +1060,98 @@ void WorldSystem::spawn_items() {
 	 createItem(renderer, terrain->get_random_terrain_location(), ITEM_TYPE::QUEST_ONE);
 	 createItem(renderer, terrain->get_random_terrain_location(), ITEM_TYPE::QUEST_TWO);
 };
+
+// Adapted from restart_game
+void WorldSystem::load_game(json j) {
+	vec2 player_location = j["player_motion"]["position"];
+	printf("x: %f, y: %f", player_location[0], player_location[1]);
+
+	// Debugging for memory/component leaks
+	registry.list_all_components();
+	printf("Restarting\n");
+
+	// Reset the game speed
+	current_speed = 5.f;
+
+	// Remove all entities that we created
+	// All that have a motion, we could also iterate over all fish, turtles, ... but that would be more cumbersome
+	while (registry.motions.entities.size() > 0)
+		registry.remove_all_components_of(registry.motions.entities.back());
+
+	// These weapons don't have a motions so let's kill them all!
+	while (registry.weapons.entities.size() > 0)
+		registry.remove_all_components_of(registry.weapons.entities.back());
+
+	// Reset the weapons system
+	weapons_system->resetWeaponsSystem();
+
+	// TODO: add weapons into the saving
+
+	// Reset the terrain system
+	terrain->resetTerrainSystem();
+
+	// Debugging for memory/component leaks
+	registry.list_all_components();
+
+	// Re-initialize the terrain
+	terrain->init(loaded_map_name, renderer);
+
+	// PRESSURE TESTING FOR BVH, can remove later
+	//terrain->init(512, 512, renderer);
+
+	// Add wall of stone around the map
+	for (unsigned int i = 0; i < registry.terrainCells.entities.size(); i++) {
+		Entity e = registry.terrainCells.entities[i];
+		TerrainCell& cell = registry.terrainCells.components[i];
+
+		if (cell.flag & TERRAIN_FLAGS::COLLIDABLE)
+			createDefaultCollider(e);
+	}
+
+	// THIS MUST BE CALL AFTER TERRAIN COLLIDER CREATION AND BEFORE ALL OTHER ENTITY CREATION
+	// build the static BVH with all terrain colliders.
+	physics_system->initStaticBVH(registry.colliders.size());
+
+	// Create a Spaceship 
+	spaceship = createSpaceship(renderer, { 0,0 });
+
+	// Create a new salmon
+	player_salmon = createPlayer(renderer, { 0, 0 });
+	registry.colors.insert(player_salmon, { 1, 0.8f, 0.8f });
+
+	// Create the main camera
+	main_camera = createCamera({ 0,0 });
+
+	// Create fow
+	fow = createFOW(renderer, { 0,0 });
+
+	// Create health bars 
+	health_bar = createHealthBar(renderer, { -8.f, 7.f });
+
+	// Create food bars 
+	food_bar = createFoodBar(renderer, { 8.f, 7.f });
+
+	// Reset the weapon indicator
+	user_has_first_weapon = false;
+
+	// A function that handles the help/tutorial (some tool tips at the top of the screen)
+	help_bar = createHelp(renderer, { 0.f, -7.f }, tooltips[0]);
+	current_tooltip = 1;
+
+	quest_items.clear();
+	quest_items.push_back({ createQuestItem(renderer, {10.f, -2.f}, TEXTURE_ASSET_ID::QUEST_1_NOT_FOUND), false });
+	quest_items.push_back({ createQuestItem(renderer, {10.f, 2.f}, TEXTURE_ASSET_ID::QUEST_2_NOT_FOUND), false });
+
+	// clear all used spawn locations
+	used_spawn_locations.clear();
+
+	// FOR DEMO - to show different types of items being created.	
+	spawn_items();
+	mob_system->spawn_mobs();
+
+	// for movement velocity
+	for (int i = 0; i < KEYS; i++)
+		keyDown[i] = false;
+
+
+}

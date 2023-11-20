@@ -1,5 +1,6 @@
 #include "save_load.hpp"
 #include <iostream>
+#include <fstream>
 
 using json = nlohmann::json;
 
@@ -46,21 +47,20 @@ void from_json(const json& j, Motion& m) {
     j.at("scale_y").get_to(m.scale[1]);
 }
 
-void SaveGame(Player& player, std::vector<std::pair<Mob&, Motion&>> mobs, std::vector<std::pair<Item&, Motion&>> items) {
+void SaveGame(Player& player, Motion& player_motion std::vector<std::pair<Mob&, Motion&>> mobs, std::vector<std::pair<Item&, Motion&>> items) {
  
     json data;
 
     data["player"] = player;
+    data["player_motion"] = player_motion;
     data["mobs"] = mobs;
     data["items"] = items;
 
-    std::cout << data.dump(4);
+    // std::cout << data.dump(4);
 
     // Save/create into a file
-    std::ofstream file("save.json");
+    std::ofstream file;
+    file.open("save.json");
     file << data;
-}
-
-void LoadGame() {
-
+    file.close();
 }

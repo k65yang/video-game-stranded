@@ -16,7 +16,10 @@
 #include "weapons_system.hpp"
 #include "mob_system.hpp"
 #include "physics_system.hpp"
-#include "save_load.hpp"
+#include "save.hpp"
+#include <nlohmann/json.hpp>
+
+using json = nlohmann::json;
 
 // Container for all our entities and game logic. Individual rendering / update is
 // deferred to the relative update() methods
@@ -76,6 +79,8 @@ private:
 
 	// restart level
 	void restart_game();
+
+	void load_game(json j);
 
 	// OpenGL window handle
 	GLFWwindow* window;
