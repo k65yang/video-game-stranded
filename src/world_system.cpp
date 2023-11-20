@@ -664,7 +664,7 @@ void WorldSystem::handle_collisions() {
 					weapon_indicator = createWeaponIndicator(renderer, {-10.f, -6.f}, TEXTURE_ASSET_ID::ICON_MACHINE_GUN);
 					break;
 				case ITEM_TYPE::UPGRADE:
-					// Just add to inventory
+					weapons_system->upgradeCurrentWeapon();
 					break;
 				}
 
