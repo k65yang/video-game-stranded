@@ -225,14 +225,24 @@ void RenderSystem::drawTerrain(const mat3& view_2D, const mat3& projection_2D)
 	assert(viewMatrix_uloc >= 0);
 	GLint projectionMatrix_uloc = glGetUniformLocation(program, "projectionMatrix");
 	assert(projectionMatrix_uloc >= 0);
+	/*
+	GLint uv_offsets_uloc = glGetUniformLocation(program, "uv_offsets");
+	assert(uv_offsets_uloc >= 0);
+	GLint texel_offsets_uloc = glGetUniformLocation(program, "texel_offsets");
+	assert(texel_offsets_uloc >= 0);
+	*/
 	GLint in_position_loc = glGetAttribLocation(program, "in_position");
 	assert(in_position_loc >= 0);
 	GLint in_texcoord_loc = glGetAttribLocation(program, "in_texcoord");
 	assert(in_texcoord_loc >= 0);
 	GLint in_tex_i_loc = glGetAttribLocation(program, "in_tex_i");
 	assert(in_tex_i_loc >= 0);
-	//GLint in_flags_loc = glGetAttribLocation(program, "in_flags");
-	//assert(in_flags_loc >= 0);
+	/*
+	GLint in_flags_loc = glGetAttribLocation(program, "in_flags");
+	assert(in_flags_loc >= 0);
+	GLint in_fvalue_loc = glGetAttribLocation(program, "in_fvalue");
+	assert(in_fvalue_loc >= 0);
+	*/
 
 	// Calculates the offsets of each field within BatchedVertex
 	// Thank you to: https://www.cs.ubc.ca/~rhodin/2023_2024_CPSC_427/resources/minimal_mesh_rendering.cpp
@@ -240,6 +250,8 @@ void RenderSystem::drawTerrain(const mat3& view_2D, const mat3& projection_2D)
 	const void* POSITION_OFFSET = reinterpret_cast<void*>(offsetof(BatchedVertex, position));
 	const void* UV_OFFSET = reinterpret_cast<void*>(offsetof(BatchedVertex, texCoords));
 	const void* TEX_INDEX_OFFSET = reinterpret_cast<void*>(offsetof(BatchedVertex, texIndex));
+	const void* FLAGS_OFFSET = reinterpret_cast<void*>(offsetof(BatchedVertex, flags));
+	const void* FRAME_VALUE_OFFSET = reinterpret_cast<void*>(offsetof(BatchedVertex, frameValue));
 
 	// Vertex position
 	glEnableVertexAttribArray(in_position_loc);
@@ -259,16 +271,33 @@ void RenderSystem::drawTerrain(const mat3& view_2D, const mat3& projection_2D)
 	glVertexAttribIPointer(in_tex_i_loc, 1, GL_UNSIGNED_SHORT, SIZE_OF_EACH_VERTEX, TEX_INDEX_OFFSET);
 	gl_has_errors();
 
-	const vec3 color = vec3(0, 1, 0);
+	/*
+	glEnableVertexAttribArray(in_flags_loc);
+	gl_has_errors();
+	glVertexAttribPointer(in_flags_loc, 1, GL_UNSIGNED_BYTE, GL_FALSE, SIZE_OF_EACH_VERTEX, FLAGS_OFFSET);
+	gl_has_errors();
+
+	glEnableVertexAttribArray(in_fvalue_loc);
+	gl_has_errors();
+	glVertexAttribPointer(in_fvalue_loc, 1, GL_UNSIGNED_BYTE, GL_FALSE, SIZE_OF_EACH_VERTEX, FRAME_VALUE_OFFSET);
+	gl_has_errors();
+	*/
+
+	//const vec3 color = vec3(0, 1, 0);
 
 	// Camera and projectiin matrices
 	glUniformMatrix3fv(viewMatrix_uloc, 1, GL_FALSE, (float*)&view_2D);
 	gl_has_errors();
 	glUniformMatrix3fv(projectionMatrix_uloc, 1, GL_FALSE, (float*)&projection_2D);
 	gl_has_errors();
-	//glUniform3fv(color_uloc, 1, (float*)&color);
-	//gl_has_errors();
-
+	/*
+	glUniform2fv(uv_offsets_uloc, 1, (float*)&terrain_sheet_uv);
+	gl_has_errors();
+	glUniform2fv(texel_offsets_uloc, 1, (float*)&terrain_texel_offset);
+	gl_has_errors();
+	glUniform3fv(color_uloc, 1, (float*)&color);
+	gl_has_errors();
+	*/
 
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D_ARRAY, texture_array);
@@ -435,13 +464,14 @@ mat3 RenderSystem::createProjectionMatrix()
 	return {{sx, 0.f, 0.f}, {0.f, sy, 0.f}, {tx, ty, 1.f}};
 }
 
-void RenderSystem::changeTerrainData(Entity cell, unsigned int i, TerrainCell& data)
+void RenderSystem::changeTerrainData(Entity cell, unsigned int i, TerrainCell& data, uint8_t frameValue)
 {
 	glBindBuffer(GL_ARRAY_BUFFER, vertex_buffers[(GLuint)GEOMETRY_BUFFER_ID::TERRAIN]);
 	gl_has_errors();
 	std::vector<BatchedVertex> vertices;
 	mat3 transform = createModelMatrix(cell);
-	makeQuadVertices(transform, (uint16_t)data.terrain_type, vertices);
+	uint8_t vertex_flags = directional_terrain.count(data.terrain_type) ? DIRECTIONAL : 0;
+	makeQuadVertices(transform, (uint16_t)data.terrain_type, vertices, vertex_flags, frameValue);
 
 	int x = i * sizeof(BatchedVertex) * 4;
 	int y = sizeof(BatchedVertex) * 4;

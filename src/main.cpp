@@ -43,7 +43,12 @@ int main()
 	weapons_system.init(&render_system);
 	mob_system.init(&render_system, &terrain_system);
 	world_system.init(&render_system, &terrain_system, &weapons_system, &physics_system, &mob_system);
-	render_system.initializeTerrainBuffers();
+
+	// Load terrain mesh into the GPU
+	std::unordered_map<unsigned int, RenderSystem::ORIENTATIONS> orientation_map;
+	terrain_system.generate_orientation_map(orientation_map);	// Gets all the tiles with directional textures
+	render_system.initializeTerrainBuffers(orientation_map);
+
 	pathfinding_system.init(&terrain_system);
 	
 

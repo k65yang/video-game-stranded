@@ -28,7 +28,7 @@ bool gl_has_errors()
 {
 	// TODO: Uncomment for debugging. Find out how to not let this compile w/ CMake release builds.
 
-	/*
+	
 	GLenum error = glGetError();
 
 	if (error == GL_NO_ERROR) return false;
@@ -61,6 +61,6 @@ bool gl_has_errors()
 	}
 
 	return true;
-	*/
-	return false;
+	
+	//return false;
 }

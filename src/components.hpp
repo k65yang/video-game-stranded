@@ -2,6 +2,7 @@
 #include "common.hpp"
 #include <vector>
 #include <unordered_map>
+#include <unordered_set>
 #include <deque>
 #include "../ext/stb_image/stb_image.h"
 #include <map>
@@ -190,10 +191,20 @@ enum TERRAIN_TYPE : uint16_t {
 	TERRAIN_COUNT = DEEP_WATER + 1
 };
 
+// Specifies which textures are directional
+const std::unordered_set<TERRAIN_TYPE> directional_terrain = {
+	ROCK,
+};
+
 enum TERRAIN_FLAGS : uint32_t {
 	COLLIDABLE =			0b1,
 	DISABLE_PATHFIND =		0b10,
 	ALLOW_SPAWNS =			0b100,
+};
+
+enum TERRAIN_MASKS : uint32_t {
+	FLAGS = 0xFF,			// first 8 bits
+	TYPES = 0xFFFF0000,		// last 16 bits
 };
 
 /// <summary>
