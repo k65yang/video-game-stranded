@@ -19,7 +19,6 @@ int PLAYER_DIRECTION = 4;  // Default to facing up
 float ELAPSED_TIME = 0;
 
 
-
 // Create the fish world
 WorldSystem::WorldSystem()
 	: points(0)
@@ -28,7 +27,7 @@ WorldSystem::WorldSystem()
 	// Seeding rng with random device
 	rng = std::default_random_engine(std::random_device()());
 
-}
+	}
 
 WorldSystem::~WorldSystem() {
 	// Destroy music components
@@ -273,57 +272,16 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	f.position = m.position;
 
 	ELAPSED_TIME += elapsed_ms_since_last_update;
-	// rendering spritesheet with curser 
-	// change player direction based on aiming direction 
-	// Determine the player's facing direction based on the cursor angle
-	if (CURSOR_ANGLE >= -M_PI / 4 && CURSOR_ANGLE < M_PI / 4) {
-		PLAYER_DIRECTION = 2;  // Right
-	} else if (CURSOR_ANGLE >= M_PI / 4 && CURSOR_ANGLE < 3 * M_PI / 4) {
-		PLAYER_DIRECTION = 4;  // Down
-	} else if (CURSOR_ANGLE >= -3 * M_PI / 4 && CURSOR_ANGLE < -M_PI / 4) {
-		PLAYER_DIRECTION = 0;  // Up
-	} else {
-		PLAYER_DIRECTION = 3;  // Left
-	}
 
-	// Update player's direction
-	registry.players.components[0].framey = PLAYER_DIRECTION;
+	// update spritesheet with aiming direction 
+	updatePlayerDirection();
 
-	// Check if any movement keys are pressed and if player is not dead 
-	bool anyMovementKeysPressed = keyDown[LEFT] || keyDown[RIGHT] || keyDown[UP] || keyDown[DOWN];
-
-	// Movement code, build the velocity resulting from player moment
-	// We'll consider moveVelocity existing in player space
-	// Allow movement if player is not dead 
-	if (!registry.deathTimers.has(player_salmon)) {
-		m.velocity = { 0, 0 };
+	// Player Movement code, build the velocity resulting from player movement
+	//for movement, animation, and distance calculation
+	handlePlayerMovement(elapsed_ms_since_last_update);
 		
-		handle_movement(m, LEFT);
-		if (length(m.velocity) > 0) {
-			m.velocity *= terrain->get_terrain_speed_ratio(terrain->get_cell(m.position));
-		}
+		
 
-		if (anyMovementKeysPressed) {
-			// If any keys are pressed resulting movement then add to total travel distance. 
-			PLAYER_TOTAL_DISTANCE += FOOD_DECREASE_RATE * elapsed_ms_since_last_update / 1000.f;
-			if (ELAPSED_TIME > 100) {
-				// Update walking animation
-				registry.players.components[0].framex = (registry.players.components[0].framex + 1) % 4;
-				ELAPSED_TIME = 0.0f; // Reset the timer
-				}
-			}
-		else {
-			// No movement keys pressed, set back to the first frame
-			registry.players.components[0].framex = 0;
-
-			}
-	}
-	else {
-		// Player is dead, do not allow movement
-		m.velocity = { 0, 0 };
-		registry.players.components[0].framey = 1;
-
-	}
 
 	// Camera movement mode
 	Camera& c = registry.cameras.get(main_camera);
@@ -390,6 +348,63 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 	return true;
 }
+void WorldSystem::updatePlayerDirection() {
+	if (CURSOR_ANGLE >= -M_PI / 4 && CURSOR_ANGLE < M_PI / 4) {
+		PLAYER_DIRECTION = 2;  // Right
+		}
+	else if (CURSOR_ANGLE >= M_PI / 4 && CURSOR_ANGLE < 3 * M_PI / 4) {
+		PLAYER_DIRECTION = 4;  // Down
+		}
+	else if (CURSOR_ANGLE >= -3 * M_PI / 4 && CURSOR_ANGLE < -M_PI / 4) {
+		PLAYER_DIRECTION = 0;  // Up
+		}
+	else {
+		PLAYER_DIRECTION = 3;  // Left
+		}
+
+	// Update player's direction
+	registry.players.components[0].framey = PLAYER_DIRECTION;
+	
+	}
+
+void WorldSystem::handlePlayerMovement(float elapsed_ms_since_last_update) {
+	// Check if any movement keys are pressed and if player is not dead
+	bool anyMovementKeysPressed = keyDown[LEFT] || keyDown[RIGHT] || keyDown[UP] || keyDown[DOWN];
+
+	// We'll consider moveVelocity existing in player space
+	// Allow movement if player is not dead 
+	// Movement code, build the velocity resulting from player movement
+	if (!registry.deathTimers.has(player_salmon)) {
+		Motion& m = registry.motions.get(player_salmon);
+		m.velocity = { 0, 0 };
+
+		handle_movement(m, LEFT);
+
+		if (length(m.velocity) > 0) {
+			m.velocity *= terrain->get_terrain_speed_ratio(terrain->get_cell(m.position));
+			}
+
+		if (anyMovementKeysPressed) {
+			PLAYER_TOTAL_DISTANCE += FOOD_DECREASE_RATE * elapsed_ms_since_last_update / 1000.f;
+
+			if (ELAPSED_TIME > 100) {
+				// Update walking animation
+				registry.players.components[0].framex = (registry.players.components[0].framex + 1) % 4;
+				ELAPSED_TIME = 0.0f; // Reset the timer
+				}
+			}
+		else {
+			// No movement keys pressed, set back to the first frame
+			registry.players.components[0].framex = 0;
+			}
+		}
+	else {
+		// Player is dead, do not allow movement
+		Motion& m = registry.motions.get(player_salmon);
+		m.velocity = { 0, 0 };
+		registry.players.components[0].framey = 1;
+		}
+	}
 
 void WorldSystem::handle_movement(Motion& motion, InputKeyIndex indexStart, bool invertDirection, bool useAbsoluteVelocity)
 {
@@ -471,7 +486,11 @@ void WorldSystem::restart_game() {
 	physics_system->initStaticBVH(registry.colliders.size());
 
 	// Create a Spaceship 
-	spaceship = createSpaceship(renderer, { 0,0 });
+
+	spaceship = createSpaceship(renderer, { 0,-2.5 });
+
+	// Create Home Screen 
+	home = createHome(renderer);
 
 	// Create a new salmon
 	player_salmon = createPlayer(renderer, { 0, 0 });
@@ -527,12 +546,12 @@ void WorldSystem::handle_collisions() {
 		Entity entity = collisionsRegistry.entities[i];
 		Entity entity_other = collisionsRegistry.components[i].other_entity;
 		
-
 		// Collisions involving the player
 		if (registry.players.has(entity)) {
 			Player& player = registry.players.get(entity);
-
 			// Checking Player - Spaceship (For regen)
+			// only regnerate after spaceship exit 
+			/*
 			if (entity_other == spaceship) {
 				player.health = PLAYER_MAX_HEALTH;
 				player.food = PLAYER_MAX_FOOD;
@@ -541,7 +560,21 @@ void WorldSystem::handle_collisions() {
 				Motion& food = registry.motions.get(food_bar);
 				health.scale = HEALTH_BAR_SCALE;
 				food.scale = FOOD_BAR_SCALE;
+
+				Spaceship& s = registry.spaceship.get(home);
+				s.in_home = TRUE;
+
+				Motion& camera_motion = registry.motions.get(main_camera);
+				//// update Spaceship home movement 
+				Motion& s_motion = registry.motions.get(home);
+				s_motion.position = { camera_motion.position.x,camera_motion.position.y };
+
+
+				printf("nearhome\n");
+
+
 			}
+			*/
 
 			// Checking Player - Mobs
 			if (registry.mobs.has(entity_other)) {
@@ -719,6 +752,8 @@ void WorldSystem::handle_collisions() {
 				registry.remove_all_components_of(entity);
 			}
 		}
+		// Todo: Collision involving Player - Spaceship should not allow player move ?
+			
 	}
 
 	// Remove all collisions from this simulation step
@@ -735,6 +770,11 @@ vec2 WorldSystem::interpolate(vec2 p1, vec2 p2, float param) {
 bool WorldSystem::is_over() const {
 	return bool(glfwWindowShouldClose(window));
 }
+
+// check if player is home and pause the game in main
+bool WorldSystem::is_home() const {
+	return registry.spaceship.get(home).in_home; 
+	}
 
 
 int WorldSystem::key_to_index(int key) {
@@ -794,10 +834,11 @@ void WorldSystem::update_camera_follow() {
 	c.mode_follow = true;
 }
 
+
 // On key callback
 void WorldSystem::on_key(int key, int, int action, int mod) {
 	Motion& player_motion = registry.motions.get(player_salmon);
-
+	Spaceship& s = registry.spaceship.get(home);
 	// Movement with velocity handled in step function  
 	update_key_presses(key, action);
 
@@ -834,8 +875,50 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	}
 
 	if (action == GLFW_PRESS && key == GLFW_KEY_ESCAPE) {
-		glfwSetWindowShouldClose(window, true);
+		if (s.in_home) {
+			// Exit home screen and go back to world 
+			// Todo: Regenerate after exit
+			s.in_home = false;
+			player_motion.position = { 0,0 };
+
+			}
+		else {
+			// Close the window if not in home screen
+			glfwSetWindowShouldClose(window, true);
+			}
 	}
+
+	// Enter ship if player is near
+	if (length(registry.motions.get(player_salmon).position - registry.motions.get(spaceship).position) < 1.0f && s.in_home == false) {
+		printf("Near entrance, press E to enter\n");
+		if (action == GLFW_PRESS && key == GLFW_KEY_E ) {
+			Player& player = registry.players.get(player_salmon);
+
+			Spaceship& s = registry.spaceship.get(home);
+			player.health = PLAYER_MAX_HEALTH;
+			player.food = PLAYER_MAX_FOOD;
+
+			Motion& health = registry.motions.get(health_bar);
+			Motion& food = registry.motions.get(food_bar);
+			health.scale = HEALTH_BAR_SCALE;
+			food.scale = FOOD_BAR_SCALE;
+
+
+			// no caemra shake 
+			Motion& camera_motion = registry.motions.get(main_camera);
+			camera_motion.angle = 0;
+			camera_motion.scale = vec2(1, 1);
+
+			//camera_motion.scale = vec2(0, 0); 
+			//// update Spaceship home movement 
+			Motion& s_motion = registry.motions.get(home);
+			s_motion.position = { camera_motion.position.x,camera_motion.position.y };
+
+			printf("You are home\n");
+			s.in_home = true;
+		}
+	}
+
 
 	// Debugging
 	/*if (key == GLFW_KEY_D) {

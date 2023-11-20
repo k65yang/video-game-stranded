@@ -83,6 +83,7 @@ private:
 			textures_path("icon_shotgun.png"),
 			textures_path("icon_machine_gun.png"),
 			textures_path("spaceship.png"), 
+			textures_path("spacehome.png"),
 			textures_path("blueblock.png"),
 			textures_path("help1.png"),
 			textures_path("help2.png"),
@@ -240,6 +241,13 @@ public:
 
 	// Do not modify this. READ ONLY!!
 	bool is_terrain_mesh_loaded = false;
+
+	// Initialize player sprite
+	float player_frame_w;
+	float player_frame_h;
+	// Initialize mob sprite
+	float mob_frame_w;
+	float mob_frame_h;
 
 private:
 	// Internal vertex data structure used for batched rendering
