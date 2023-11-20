@@ -48,6 +48,12 @@ struct Weapon {
 	int projectile_damage;               // weapon damage
 };
 
+// The spaceship 
+struct Spaceship {
+	bool in_home; // controls if player exit home or enter home
+
+	};
+
 // The projectile
 struct Projectile {
 	int damage;
@@ -289,7 +295,8 @@ enum class TEXTURE_ASSET_ID {
 	ICON_SHOTGUN = ICON_CROSSBOW + 1,
 	ICON_MACHINE_GUN = ICON_SHOTGUN + 1,
 	SPACESHIP = ICON_MACHINE_GUN + 1,
-	BLUEBLOCK = SPACESHIP + 1,
+	SPACEHOME = SPACESHIP + 1,
+	BLUEBLOCK = SPACEHOME + 1,
 	HELP_ONE = BLUEBLOCK + 1,
 	HELP_TWO = HELP_ONE + 1,
 	HELP_THREE = HELP_TWO + 1,

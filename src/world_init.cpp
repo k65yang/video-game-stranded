@@ -96,6 +96,7 @@ Entity createItem(RenderSystem* renderer, vec2 position, ITEM_TYPE type)
 	return entity;
 }
 
+
 Entity createSpaceship(RenderSystem* renderer, vec2 position) {
 	auto entity = Entity();
 
@@ -124,6 +125,35 @@ Entity createSpaceship(RenderSystem* renderer, vec2 position) {
 	return entity;
 }
 
+Entity createHome(RenderSystem* renderer) {
+	auto entity = Entity();
+
+	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Initialize the motion
+	auto& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.velocity = { 0.f, 0.f };
+	motion.position = { 0,-1.6 };
+	//motion.position = { 2,2 };
+
+	createDefaultCollider(entity);
+	// Add home into spaceship
+	auto& spaceship = registry.spaceship.emplace(entity);
+
+	// Setting initial values, scale is negative to make it face the opposite way
+	motion.scale = vec2({ window_width_px / 50, window_height_px / 50 });
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::SPACEHOME,
+		 EFFECT_ASSET_ID::TEXTURED,
+		 GEOMETRY_BUFFER_ID::SPRITE,
+			RENDER_LAYER_ID::LAYER_4 });
+
+	return entity;
+	}
 
 Entity createLine(vec2 position, vec2 scale)
 {

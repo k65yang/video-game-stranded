@@ -31,6 +31,7 @@ int main()
 
 	// Initializing window
 	GLFWwindow* window = world_system.create_window();
+
 	if (!window) {
 		// Time to read the error message
 		printf("Press any key to exit");
@@ -64,14 +65,20 @@ int main()
 			(float)(std::chrono::duration_cast<std::chrono::microseconds>(now - t)).count() / 1000;
 		t = now;
 
-		world_system.step(elapsed_ms);
-		physics_system.step(elapsed_ms);
-		terrain_system.step(elapsed_ms);
-		pathfinding_system.step(elapsed_ms);
-		weapons_system.step(elapsed_ms);
-		mob_system.step(elapsed_ms);
-		world_system.handle_collisions();
+		// this pauses the world system when player is at home  
+		if (!world_system.is_home()) {
+			world_system.step(elapsed_ms);
+			physics_system.step(elapsed_ms);
+			terrain_system.step(elapsed_ms);
+			pathfinding_system.step(elapsed_ms);
+			weapons_system.step(elapsed_ms);
+			mob_system.step(elapsed_ms);
+			world_system.handle_collisions();
+			}
 		render_system.draw();
+
+		//else do home step function
+
 	}
 
 	return EXIT_SUCCESS;
