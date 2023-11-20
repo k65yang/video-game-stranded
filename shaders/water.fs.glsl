@@ -3,9 +3,9 @@
 uniform sampler2D screen_texture;
 uniform float time;
 uniform float screen_darken_factor;
+uniform float fogRadius;
 
 in vec2 texcoord;
-in float distanceToPlayer;
 
 
 layout(location = 0) out vec4 color;
@@ -14,9 +14,8 @@ layout(location = 0) out vec4 color;
 void main()
 {
 	
-	float darkenOutsideFow = 0.15;
+	float darkenOutsideFow = 0.25;
 	float magnifier = 3.f;
-	float fogRadius = 0.3f;
 
 	// calculate distance between center pixel and current pixel
 	float disToFOW = distance(texcoord, vec2(0.5f, 0.5f));
@@ -26,10 +25,9 @@ void main()
 	// texture from frame buffer
     vec4 in_color = texture(screen_texture, texcoord);
 
-	
 	// drawing circle with distance in glsl reference: https://www.youtube.com/watch?v=L-BA4nJJ8bQ
 	// change pixel color based on distance to center pixel, if further, the texture color is darker
-	if (disToFOW  < fogRadius) {
+	if (disToFOW < 0.25f) {
 		color = (1 - magnifier * disToFOW ) * in_color;
 	} else {
 	// for pixel outside fog, darken but keep them still visible
@@ -38,7 +36,6 @@ void main()
 	
 	// comment above and uncomment this line to disable fow
 	// color = in_color;
-
 }
 
 

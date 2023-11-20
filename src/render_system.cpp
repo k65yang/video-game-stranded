@@ -181,17 +181,18 @@ void RenderSystem::drawToScreen()
 	glBindBuffer(GL_ARRAY_BUFFER, vertex_buffers[(GLuint)GEOMETRY_BUFFER_ID::SCREEN_TRIANGLE]);
 	glBindBuffer(
 		GL_ELEMENT_ARRAY_BUFFER,
-		index_buffers[(GLuint)GEOMETRY_BUFFER_ID::SCREEN_TRIANGLE]); // Note, GL_ELEMENT_ARRAY_BUFFER associates
+		index_buffers[(GLuint)GEOMETRY_BUFFER_ID::SCREEN_TRIANGLE]); // Note, GL_ELEMENT_ARRAY_BUFFER assoZZciates
 																	 // indices to the bound GL_ARRAY_BUFFER
 	gl_has_errors();
 	const GLuint water_program = effects[(GLuint)EFFECT_ASSET_ID::WATER];
 
 	// set player position uniform 
-	GLuint playerPos_uloc = glGetUniformLocation(water_program, "playerPos");
 	auto playerEntity = registry.players.entities[0];
-	glUniform2f(playerPos_uloc, registry.motions.get(playerEntity).position.x, registry.motions.get(playerEntity).position.y);
 
-	// std::cout << "set uniform playerpos " << registry.motions.get(playerEntity).position.x << "and " << registry.motions.get(playerEntity).position.y << std::endl; // FOR DEBUG REMOVE LATER
+
+	GLuint fogRadius_uloc = glGetUniformLocation(water_program, "fogRadius");
+	glUniform1fv(fogRadius_uloc,1, (float*) &fog_radius);
+
 	
 
 	// Set clock
@@ -395,7 +396,7 @@ void RenderSystem::draw()
 			if (registry.items.has(entity) || (registry.mobs.has(entity))) {
 
 				// put in draw array if distance to player is close enough
-				if (distance(registry.motions.get(player_entity).position, registry.motions.get(entity).position) < fog_distance) {
+				if (distance(registry.motions.get(player_entity).position, registry.motions.get(entity).position) < fog_radius) {
 					layer_1_entities.push_back(entity);
 				}
 			}

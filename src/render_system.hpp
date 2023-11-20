@@ -300,7 +300,7 @@ private:
 	Entity screen_state_entity;
 
 	// Distance limit to render mobs and items 
-	float fog_distance = 5.f;
+	float fog_radius = 4.5f;
 };
 
 bool loadEffectFromFile(
