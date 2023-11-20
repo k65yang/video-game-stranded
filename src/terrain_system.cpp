@@ -53,6 +53,7 @@ void TerrainSystem::init(const std::string& map_name, RenderSystem* renderer)
 	load_grid(map_name);	// Load map from file
 	entity_grid = new Entity[size_x * size_y]();
 	entityStart = entity_grid[0];
+	//clean_map_tiles();
 
 	// Bind entities to respective TerrainCell
 	for (unsigned int i = 0; i < size_x * size_y; i++) {

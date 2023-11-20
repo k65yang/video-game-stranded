@@ -66,7 +66,7 @@ public:
 		{TERRAIN_TYPE::AIR, 1.f},
 		{TERRAIN_TYPE::GRASS, 1.f},
 		{TERRAIN_TYPE::ROCK, 1.f},
-		{TERRAIN_TYPE::SAND, 0.5f},
+		{TERRAIN_TYPE::SAND, 0.6f},
 		{TERRAIN_TYPE::MUD, 0.3f},
 		{TERRAIN_TYPE::SHALLOW_WATER, 0.25f},
 		{TERRAIN_TYPE::DEEP_WATER, 0.0625f}
@@ -77,7 +77,8 @@ public:
 	std::map<ZONE_NUMBER, int> zone_radius_map = {
 		{ZONE_0, 10},
 		{ZONE_1, 17},
-		{ZONE_2, 40}
+		{ZONE_2, 40},
+		{ZONE_3, 64}
 	};
 
 	/// @brief Function to get randomized spawn locations per zone
@@ -307,6 +308,25 @@ public:
 	/// @brief Reset the terrain system when the game resets
 	void resetTerrainSystem() {
 		used_terrain_locations.clear();
+	}
+
+	/// <summary>
+	/// Checks every tile and sets their flags appropriately. Useful after messing with the map editor.
+	/// </summary>
+	void clean_map_tiles() {
+		for (unsigned i = 0; i < size_x * size_y; i++) {
+			uint32_t& cell = terraincell_grid[i];
+			TERRAIN_TYPE type = static_cast<TERRAIN_TYPE>(cell >> 16);
+			if (type == ROCK || type == SHALLOW_WATER || type == DEEP_WATER)
+				cell &= ~(ALLOW_SPAWNS);
+			if (type == ROCK)
+				cell &= ~(DISABLE_PATHFIND);
+			if (type == GRASS || type == MUD || type == SAND)
+				cell |= ALLOW_SPAWNS;
+			if (type == GRASS || type == MUD || type == SAND || type == SHALLOW_WATER || type == DEEP_WATER) {
+				cell &= ~(COLLIDABLE);
+			}
+		}
 	}
 
 private:
