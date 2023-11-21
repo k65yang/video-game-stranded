@@ -500,27 +500,30 @@ void PhysicsSystem::step(float elapsed_ms)
 	// POSITION UPDATE FROM VELOCITY
 	auto& motion_container = registry.motions;
 	auto& collider_container = registry.colliders;
-
+	auto& terrainCell_container = registry.terrainCells;
 	for (uint i = 0; i < motion_container.size(); i++)
 	{
-		Motion& motion = motion_container.components[i];
 		Entity entity = motion_container.entities[i];
-		motion.position += motion.velocity * elapsed_ms / 1000.f;
 
-		// adjusting collider center for moving object
-		if (collider_container.has(entity))
-		{
-			collider_container.get(entity).position = motion.position;
+		if (!terrainCell_container.has(motion_container.entities[i])) {
+			Motion& motion = motion_container.components[i];
 
-			auto& player_container = registry.players;
-			if (player_container.has(entity))
+			motion.position += motion.velocity * elapsed_ms / 1000.f;
+
+			// adjusting collider center for moving object
+			if (collider_container.has(entity))
 			{
-				// update collider rotation matrix since player angle changes
-				collider_container.get(entity).rotation = mat2(cos(motion.angle), -sin(motion.angle), sin(motion.angle), cos(motion.angle));
+				collider_container.get(entity).position = motion.position;
+
+				auto& player_container = registry.players;
+				if (player_container.has(entity))
+				{
+					// update collider rotation matrix since player angle changes
+					collider_container.get(entity).rotation = mat2(cos(motion.angle), -sin(motion.angle), sin(motion.angle), cos(motion.angle));
+				}
+
 			}
-
 		}
-
 	}
 
 	// COLLISION DETECTION 
@@ -536,6 +539,13 @@ void PhysicsSystem::step(float elapsed_ms)
 		intersectBVH(projectile_entity_container[i], rootNodeIndex);
 	}
 
+	// mob against terrain - uses static BVH
+	auto& mob_entity_container = registry.mobs.entities;
+
+	for (int i = 0; i < mob_entity_container.size(); i++) {
+		intersectBVH(mob_entity_container[i], rootNodeIndex);
+	}
+
 	// player against item - brute force for now since BVH is not dynamic...
 	auto& item_entity_container = registry.items.entities;
 
@@ -543,8 +553,7 @@ void PhysicsSystem::step(float elapsed_ms)
 		collides(player_entity, item_entity_container[i]);
 	}
 
-	// player against mob - brute force...
-	auto& mob_entity_container = registry.mobs.entities;
+	// player against mob
 
 	for (int i = 0; i < mob_entity_container.size(); i++) {
 		collides(player_entity, mob_entity_container[i]);

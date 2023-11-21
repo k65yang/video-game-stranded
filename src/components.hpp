@@ -59,6 +59,7 @@ struct Weapon {
 	float elapsed_last_shot_time_ms;     // controls fire rate, the time that the weapon was fired last
 	float projectile_velocity;           // speed of projectiles of this weapon
 	int projectile_damage;               // weapon damage
+	float knockback_force;				 // magnitude of knockback on enemy
 };
 
 // The spaceship 
