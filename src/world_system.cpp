@@ -1366,8 +1366,6 @@ void WorldSystem::load_game(json j) {
 	// Create the main camera
 	main_camera = createCamera(player_location);
 
-	// Create fow
-	fow = createFOW(renderer, player_location);
 
 	// Create health bars 
 	health_bar = createHealthBar(renderer, { -8.f, 7.f }, player.health);
