@@ -748,10 +748,10 @@ void WorldSystem::handle_collisions() {
 				// printf("mob health: %i", mob.health);
 				if (mob.health <= 0) {
 					registry.remove_all_components_of(entity_other);
-					audio_system->PlayOneShot(AudioSystem::MOB_DEATH);
+					audio_system->play_one_shot(AudioSystem::MOB_DEATH);
 				}
 				else {
-					audio_system->PlayOneShot(AudioSystem::MOB_HIT);
+					audio_system->play_one_shot(AudioSystem::MOB_HIT);
 				}
 				// Add weapon effects to the mob
 				weapons_system->applyWeaponEffects(entity, entity_other);
@@ -1166,11 +1166,11 @@ void WorldSystem::on_mouse_click(int button, int action, int mods) {
 				if (w.can_fire) {
 					switch (w.weapon_type) {
 					case ITEM_TYPE::WEAPON_SHOTGUN:
-						audio_system->PlayOneShot(AudioSystem::SHOT); break;
+						audio_system->play_one_shot(AudioSystem::SHOT); break;
 					case ITEM_TYPE::WEAPON_MACHINEGUN:
-						audio_system->PlayOneShot(AudioSystem::SHOT_MG); break;
+						audio_system->play_one_shot(AudioSystem::SHOT_MG); break;
 					case ITEM_TYPE::WEAPON_CROSSBOW:
-						audio_system->PlayOneShot(AudioSystem::SHOT_CROSSBOW); break;
+						audio_system->play_one_shot(AudioSystem::SHOT_CROSSBOW); break;
 					}
 				}
 			}

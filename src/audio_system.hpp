@@ -89,7 +89,7 @@ public:
 	/// Plays a given sound. Supports instantaneous playment of music, but not recommended.
 	/// </summary>
 	/// <param name="id">Audio ID of the sound</param>
-	void PlayOneShot(AUDIO id) {
+	void play_one_shot(AUDIO id) {
 		bool is_music = music_paths.count(id);
 		if (is_music)
 			Mix_PlayMusic(music[id], 0);
