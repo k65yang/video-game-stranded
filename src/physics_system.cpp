@@ -303,6 +303,7 @@ void PhysicsSystem::collides(Entity entity1, Entity entity2) {
 /// <param name="numberOfColliders">Number of colliders</param>
 void PhysicsSystem::initStaticBVH(size_t numberOfColliders) {
 	this->numberOfColliders = numberOfColliders;
+	this->bvhTree.clear();
 	this->bvhTree.resize(2 * numberOfColliders - 1);
 	this->colliderMapping.resize(this->numberOfColliders);
 

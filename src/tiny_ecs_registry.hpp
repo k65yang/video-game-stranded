@@ -22,6 +22,7 @@ public:
 	ComponentContainer<Projectile> projectiles;
 
 	ComponentContainer<Mob> mobs;
+	ComponentContainer<Spaceship> spaceship; 
 	ComponentContainer<MobSlowEffect> mobSlowEffects;
 	ComponentContainer<Path> paths;
 	ComponentContainer<Item> items;
@@ -55,6 +56,7 @@ public:
 		registry_list.push_back(&projectiles);
 
 		registry_list.push_back(&mobs);
+		registry_list.push_back(&spaceship);
 		registry_list.push_back(&mobSlowEffects);
 		registry_list.push_back(&paths);
 		registry_list.push_back(&items);

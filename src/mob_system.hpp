@@ -40,6 +40,12 @@ class MobSystem
         /// @param player The player
         /// @param mob The mob whose effects are to be applied to the player
         void apply_mob_attack_effects(Entity player, Entity mob);
+        
+        /// @brief Creates a mob and adds it to the mobs registry
+        /// @param mob_position The initial position of the mob
+        /// @param mob_type The type of mob to be created
+        /// @return The created entity
+        Entity create_mob(vec2 mob_position, MOB_TYPE mob_type, int current_health = 0);
 
     private:
         // Pointer to rendering system
@@ -91,12 +97,6 @@ class MobSystem
             {MOB_TYPE::BRUTE, TEXTURE_ASSET_ID::BRUTE},
             {MOB_TYPE::DISRUPTOR, TEXTURE_ASSET_ID::DISRUPTOR}
         };
-
-        /// @brief Creates a mob and adds it to the mobs registry
-        /// @param mob_position The initial position of the mob
-        /// @param mob_type The type of mob to be created
-        /// @return The created entity
-        Entity create_mob(vec2 mob_position, MOB_TYPE mob_type);
 
         /// @brief Applies knockback effect to the player
         /// @param player The player

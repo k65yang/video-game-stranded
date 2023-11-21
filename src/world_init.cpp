@@ -66,8 +66,8 @@ Entity createItem(RenderSystem* renderer, vec2 position, ITEM_TYPE type)
 	case ITEM_TYPE::QUEST_TWO:
 		texture = TEXTURE_ASSET_ID::QUEST_2_ITEM;
 		break;
-	case ITEM_TYPE::UPGRADE:
-		texture = TEXTURE_ASSET_ID::ITEM;
+	case ITEM_TYPE::WEAPON_UPGRADE:
+		texture = TEXTURE_ASSET_ID::WEAPON_UPGRADE;
 		break;
 	case ITEM_TYPE::FOOD:
 		texture = TEXTURE_ASSET_ID::FOOD;
@@ -95,6 +95,7 @@ Entity createItem(RenderSystem* renderer, vec2 position, ITEM_TYPE type)
 
 	return entity;
 }
+
 
 Entity createSpaceship(RenderSystem* renderer, vec2 position) {
 	auto entity = Entity();
@@ -124,6 +125,35 @@ Entity createSpaceship(RenderSystem* renderer, vec2 position) {
 	return entity;
 }
 
+Entity createHome(RenderSystem* renderer) {
+	auto entity = Entity();
+
+	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Initialize the motion
+	auto& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.velocity = { 0.f, 0.f };
+	motion.position = { 0,-1.6 };
+	//motion.position = { 2,2 };
+
+	createDefaultCollider(entity);
+	// Add home into spaceship
+	auto& spaceship = registry.spaceship.emplace(entity);
+
+	// Setting initial values, scale is negative to make it face the opposite way
+	motion.scale = vec2({ target_resolution.x / tile_size_px, target_resolution.y / tile_size_px });
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::SPACEHOME,
+		 EFFECT_ASSET_ID::TEXTURED,
+		 GEOMETRY_BUFFER_ID::SPRITE,
+			RENDER_LAYER_ID::LAYER_4 });
+
+	return entity;
+	}
 
 Entity createLine(vec2 position, vec2 scale)
 {
@@ -147,7 +177,7 @@ Entity createLine(vec2 position, vec2 scale)
 	return entity;
 }
 
-Entity createHealthBar(RenderSystem* renderer, vec2 position) {
+Entity createHealthBar(RenderSystem* renderer, vec2 position, int health) {
 	auto entity = Entity();
 
 	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
@@ -158,7 +188,7 @@ Entity createHealthBar(RenderSystem* renderer, vec2 position) {
 	motion.angle = 0.f;
 	motion.velocity = { 0.f, 0.f };
 	motion.position = position; 
-	motion.scale = vec2({ 5.f, 0.5 });
+	motion.scale = vec2(((float)health / (float)PLAYER_MAX_HEALTH) * HEALTH_BAR_SCALE[0], HEALTH_BAR_SCALE[1]);
 
 	registry.renderRequests.insert(
 		entity,
@@ -170,7 +200,7 @@ Entity createHealthBar(RenderSystem* renderer, vec2 position) {
 	return entity;
 }
 
-Entity createFoodBar(RenderSystem* renderer, vec2 position) {
+Entity createFoodBar(RenderSystem* renderer, vec2 position, int food) {
 	auto entity = Entity();
 
 	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
@@ -181,7 +211,7 @@ Entity createFoodBar(RenderSystem* renderer, vec2 position) {
 	motion.angle = 0.f;
 	motion.velocity = { 0.f, 0.f };
 	motion.position = position;
-	motion.scale = vec2({ 5.5, 0.7 });
+	motion.scale = vec2(((float)food / (float)PLAYER_MAX_FOOD) * FOOD_BAR_SCALE[0], FOOD_BAR_SCALE[1]);
 
 	registry.renderRequests.insert(
 		entity,

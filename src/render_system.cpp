@@ -36,8 +36,18 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 	gl_has_errors();
 
 	// Input data location as in the vertex buffer
+
 	if (render_request.used_effect == EFFECT_ASSET_ID::TEXTURED ||render_request.used_effect == EFFECT_ASSET_ID::SPRITESHEET)
 	{
+
+		// Skip rendering home screen if player is at world 
+		if (render_request.used_texture == TEXTURE_ASSET_ID::SPACEHOME) {
+			if (!registry.spaceship.get(entity).in_home) {
+				//printf("Player is outside, skip rending home \n");
+				return;
+				}
+			}
+
 		GLint in_position_loc = glGetAttribLocation(program, "in_position");
 		GLint in_texcoord_loc = glGetAttribLocation(program, "in_texcoord");
 		gl_has_errors();
@@ -63,33 +73,30 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 
 		glBindTexture(GL_TEXTURE_2D, texture_id);
 		gl_has_errors();
-		GLint isPlayer_uloc = glGetUniformLocation(program, "isPlayer");
 
 		if (render_request.used_texture == TEXTURE_ASSET_ID::PLAYER)
 		{
-			// set the frame for shader 
-			glUniform1i(isPlayer_uloc, 1);
 
 			// set the frame for shader for player
-			GLint framex_uloc = glGetUniformLocation(program, "framex");
-			GLint framey_uloc = glGetUniformLocation(program, "framey");
 
-			glUniform1i(framex_uloc, registry.players.components[0].framex);
-			glUniform1i(framey_uloc, registry.players.components[0].framey);
+			GLint playerFrame_uloc = glGetUniformLocation(program, "spriteFrame");
+			glUniform2f(playerFrame_uloc, registry.players.components[0].framex, registry.players.components[0].framey);
 
+			// Set the frame dimensions for the player
+			GLint frameDimensions_uloc = glGetUniformLocation(program, "frameDimensions");
+			glUniform2f(frameDimensions_uloc, player_frame_w, player_frame_h);
 			gl_has_errors();
 		}
 		else if (render_request.used_texture == TEXTURE_ASSET_ID::SLIME) {
-			glUniform1i(isPlayer_uloc, 0);
-
-			registry.mobs.get(entity).mframex;
 			// set the frame for shader for mob 
-			GLint mframex_uloc = glGetUniformLocation(program, "mframex");
-			GLint mframey_uloc = glGetUniformLocation(program, "mframey");
 
-			glUniform1i(mframex_uloc, registry.mobs.get(entity).mframex);
-			glUniform1i(mframey_uloc, registry.mobs.get(entity).mframey);
+			GLint mFrame_uloc = glGetUniformLocation(program, "spriteFrame");
+			glUniform2f(mFrame_uloc, registry.mobs.get(entity).mframex, registry.mobs.get(entity).mframey);
 			//printf("printing in mob i framey %d \n", registry.mobs.get(entity).mframey);
+
+			// Set the frame dimensions for the mob
+			GLint frameDimensions_uloc = glGetUniformLocation(program, "frameDimensions");
+			glUniform2f(frameDimensions_uloc, mob_frame_w, mob_frame_h);
 			gl_has_errors();
 
 			}
@@ -143,9 +150,8 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 	// Drawing of num_indices/3 triangles specified in the index buffer
 	glDrawElements(GL_TRIANGLES, num_indices, GL_UNSIGNED_SHORT, nullptr);
 	gl_has_errors();
-}
 
-// make step funtion 
+}
 
 // draw the intermediate texture to the screen, with some distortion to simulate
 // water
@@ -225,14 +231,24 @@ void RenderSystem::drawTerrain(const mat3& view_2D, const mat3& projection_2D)
 	assert(viewMatrix_uloc >= 0);
 	GLint projectionMatrix_uloc = glGetUniformLocation(program, "projectionMatrix");
 	assert(projectionMatrix_uloc >= 0);
+	/*
+	GLint uv_offsets_uloc = glGetUniformLocation(program, "uv_offsets");
+	assert(uv_offsets_uloc >= 0);
+	GLint texel_offsets_uloc = glGetUniformLocation(program, "texel_offsets");
+	assert(texel_offsets_uloc >= 0);
+	*/
 	GLint in_position_loc = glGetAttribLocation(program, "in_position");
 	assert(in_position_loc >= 0);
 	GLint in_texcoord_loc = glGetAttribLocation(program, "in_texcoord");
 	assert(in_texcoord_loc >= 0);
 	GLint in_tex_i_loc = glGetAttribLocation(program, "in_tex_i");
 	assert(in_tex_i_loc >= 0);
-	//GLint in_flags_loc = glGetAttribLocation(program, "in_flags");
-	//assert(in_flags_loc >= 0);
+	/*
+	GLint in_flags_loc = glGetAttribLocation(program, "in_flags");
+	assert(in_flags_loc >= 0);
+	GLint in_fvalue_loc = glGetAttribLocation(program, "in_fvalue");
+	assert(in_fvalue_loc >= 0);
+	*/
 
 	// Calculates the offsets of each field within BatchedVertex
 	// Thank you to: https://www.cs.ubc.ca/~rhodin/2023_2024_CPSC_427/resources/minimal_mesh_rendering.cpp
@@ -240,6 +256,8 @@ void RenderSystem::drawTerrain(const mat3& view_2D, const mat3& projection_2D)
 	const void* POSITION_OFFSET = reinterpret_cast<void*>(offsetof(BatchedVertex, position));
 	const void* UV_OFFSET = reinterpret_cast<void*>(offsetof(BatchedVertex, texCoords));
 	const void* TEX_INDEX_OFFSET = reinterpret_cast<void*>(offsetof(BatchedVertex, texIndex));
+	const void* FLAGS_OFFSET = reinterpret_cast<void*>(offsetof(BatchedVertex, flags));
+	const void* FRAME_VALUE_OFFSET = reinterpret_cast<void*>(offsetof(BatchedVertex, frameValue));
 
 	// Vertex position
 	glEnableVertexAttribArray(in_position_loc);
@@ -259,16 +277,33 @@ void RenderSystem::drawTerrain(const mat3& view_2D, const mat3& projection_2D)
 	glVertexAttribIPointer(in_tex_i_loc, 1, GL_UNSIGNED_SHORT, SIZE_OF_EACH_VERTEX, TEX_INDEX_OFFSET);
 	gl_has_errors();
 
-	const vec3 color = vec3(0, 1, 0);
+	/*
+	glEnableVertexAttribArray(in_flags_loc);
+	gl_has_errors();
+	glVertexAttribPointer(in_flags_loc, 1, GL_UNSIGNED_BYTE, GL_FALSE, SIZE_OF_EACH_VERTEX, FLAGS_OFFSET);
+	gl_has_errors();
+
+	glEnableVertexAttribArray(in_fvalue_loc);
+	gl_has_errors();
+	glVertexAttribPointer(in_fvalue_loc, 1, GL_UNSIGNED_BYTE, GL_FALSE, SIZE_OF_EACH_VERTEX, FRAME_VALUE_OFFSET);
+	gl_has_errors();
+	*/
+
+	//const vec3 color = vec3(0, 1, 0);
 
 	// Camera and projectiin matrices
 	glUniformMatrix3fv(viewMatrix_uloc, 1, GL_FALSE, (float*)&view_2D);
 	gl_has_errors();
 	glUniformMatrix3fv(projectionMatrix_uloc, 1, GL_FALSE, (float*)&projection_2D);
 	gl_has_errors();
-	//glUniform3fv(color_uloc, 1, (float*)&color);
-	//gl_has_errors();
-
+	/*
+	glUniform2fv(uv_offsets_uloc, 1, (float*)&terrain_sheet_uv);
+	gl_has_errors();
+	glUniform2fv(texel_offsets_uloc, 1, (float*)&terrain_texel_offset);
+	gl_has_errors();
+	glUniform3fv(color_uloc, 1, (float*)&color);
+	gl_has_errors();
+	*/
 
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D_ARRAY, texture_array);
@@ -421,31 +456,51 @@ mat3 RenderSystem::createProjectionMatrix()
 {
 	// Othogonal projection matrix.
 	// Same code as the template since it scales with aspect ratio.
-	float left = -window_width_px / 2.f; // Modified these values so the middle of the screen is now 0,0
-	float top = -window_height_px / 2.f;
-	
-	float right = window_width_px / 2.f;
-	float bottom = window_height_px /2.f;
+	int x = window_resolution.x;
+	int y = window_resolution.y;
 
-	float sx = 2.f / (right - left) * tile_size_px;	// We finally scale the world space -> screen space tile size mappings
-	float sy = 2.f / (top - bottom) * tile_size_px;
-	float tx = -(right + left) / (right - left) * tile_size_px;
-	float ty = -(top + bottom) / (top - bottom) * tile_size_px;
+	// We must scale how each tile is affected by the resolution because:
+	//	1. We don't want the player to see more of the map if they play on a larger resolution
+	const double s = static_cast<double>(x) / target_resolution.x;
+	const float tile_size_px_scaled = tile_size_px * s;
+
+	float left = -x / 2.f; // Modified these values so the middle of the screen is now 0,0
+	float top = -y / 2.f;
+	
+	float right = x / 2.f;
+	float bottom = y /2.f;
+
+	float sx = 2.f / (right - left) * tile_size_px_scaled;	// We finally scale the world space -> screen space tile size mappings
+	float sy = 2.f / (top - bottom) * tile_size_px_scaled;
+	float tx = -(right + left) / (right - left) * tile_size_px_scaled;
+	float ty = -(top + bottom) / (top - bottom) * tile_size_px_scaled;
 
 	return {{sx, 0.f, 0.f}, {0.f, sy, 0.f}, {tx, ty, 1.f}};
 }
 
-void RenderSystem::changeTerrainData(Entity cell, unsigned int i, TerrainCell& data)
+void RenderSystem::changeTerrainData(Entity cell, unsigned int i, TerrainCell& data, uint8_t frameValue)
 {
 	glBindBuffer(GL_ARRAY_BUFFER, vertex_buffers[(GLuint)GEOMETRY_BUFFER_ID::TERRAIN]);
 	gl_has_errors();
 	std::vector<BatchedVertex> vertices;
 	mat3 transform = createModelMatrix(cell);
-	makeQuadVertices(transform, (uint16_t)data.terrain_type, vertices);
+	uint8_t vertex_flags = directional_terrain.count(data.terrain_type) ? DIRECTIONAL : 0;
+	makeQuadVertices(transform, (uint16_t)data.terrain_type, vertices, vertex_flags, frameValue);
 
 	int x = i * sizeof(BatchedVertex) * 4;
 	int y = sizeof(BatchedVertex) * 4;
 	glBufferSubData(GL_ARRAY_BUFFER, i * sizeof(BatchedVertex) * 4, sizeof(BatchedVertex) * 4, vertices.data());
 	gl_has_errors();
+}
+
+void RenderSystem::empty_terrain_buffer()
+{
+	// Tell GPU to deallocate those buffers
+	glDeleteBuffers(1, &vertex_buffers[(GLuint)GEOMETRY_BUFFER_ID::TERRAIN]);
+	glDeleteBuffers(1, &index_buffers[(GLuint)GEOMETRY_BUFFER_ID::TERRAIN]);
+
+	// Tell GPU to reallocate those buffers
+	glGenBuffers(1, &vertex_buffers[(GLuint)GEOMETRY_BUFFER_ID::TERRAIN]);
+	glGenBuffers(1, &index_buffers[(GLuint)GEOMETRY_BUFFER_ID::TERRAIN]);
 }
 

@@ -2,6 +2,7 @@
 #include "common.hpp"
 #include <vector>
 #include <unordered_map>
+#include <unordered_set>
 #include <deque>
 #include "../ext/stb_image/stb_image.h"
 #include <map>
@@ -20,7 +21,7 @@ enum class ITEM_TYPE {
 	WEAPON_SHOTGUN = WEAPON_CROSSBOW + 1,
 	WEAPON_MACHINEGUN = WEAPON_SHOTGUN + 1,
 	FOOD = WEAPON_MACHINEGUN + 1,
-	UPGRADE = FOOD + 1,
+	WEAPON_UPGRADE = FOOD + 1,
 };
 
 // TODO: cool idea for later is to have a customizable difficulty that adjusts food and health.
@@ -59,6 +60,12 @@ struct Weapon {
 	float projectile_velocity;           // speed of projectiles of this weapon
 	int projectile_damage;               // weapon damage
 };
+
+// The spaceship 
+struct Spaceship {
+	bool in_home; // controls if player exit home or enter home
+
+	};
 
 // The projectile
 struct Projectile {
@@ -190,7 +197,8 @@ enum ZONE_NUMBER {
 	ZONE_0 = 0,
 	ZONE_1 = 1,
 	ZONE_2 = 2,
-	ZONE_COUNT = ZONE_2 + 1,
+	ZONE_3 = 3,
+	ZONE_COUNT = ZONE_3 + 1,
 };
 
 
@@ -205,10 +213,20 @@ enum TERRAIN_TYPE : uint16_t {
 	TERRAIN_COUNT = DEEP_WATER + 1
 };
 
+// Specifies which textures are directional
+const std::unordered_set<TERRAIN_TYPE> directional_terrain = {
+	ROCK,
+};
+
 enum TERRAIN_FLAGS : uint32_t {
 	COLLIDABLE =			0b1,
 	DISABLE_PATHFIND =		0b10,
 	ALLOW_SPAWNS =			0b100,
+};
+
+enum TERRAIN_MASKS : uint32_t {
+	FLAGS = 0xFF,			// first 8 bits
+	TYPES = 0xFFFF0000,		// last 16 bits
 };
 
 /// <summary>
@@ -227,6 +245,10 @@ struct TerrainCell
 	};
 
 	TerrainCell(uint32_t terrain_cell) {
+		from_uint32(terrain_cell);
+	}
+
+	void from_uint32(uint32_t terrain_cell) {
 		this->flag = (uint16_t)terrain_cell;
 		this->terrain_type = static_cast<TERRAIN_TYPE>((uint16_t)(terrain_cell >> 16));
 	}
@@ -280,8 +302,8 @@ enum class TEXTURE_ASSET_ID {
 	SLIME = PLAYER + 1,
 	REDBLOCK = SLIME + 1,
 	FOW = REDBLOCK + 1,
-	ITEM = FOW + 1,
-	FOOD = ITEM + 1,
+	WEAPON_UPGRADE = FOW + 1,
+	FOOD = WEAPON_UPGRADE + 1,
 	WEAPON_SHURIKEN = FOOD + 1,
 	WEAPON_CROSSBOW = WEAPON_SHURIKEN + 1,
 	WEAPON_ARROW = WEAPON_CROSSBOW + 1,
@@ -293,7 +315,8 @@ enum class TEXTURE_ASSET_ID {
 	ICON_SHOTGUN = ICON_CROSSBOW + 1,
 	ICON_MACHINE_GUN = ICON_SHOTGUN + 1,
 	SPACESHIP = ICON_MACHINE_GUN + 1,
-	BLUEBLOCK = SPACESHIP + 1,
+	SPACEHOME = SPACESHIP + 1,
+	BLUEBLOCK = SPACEHOME + 1,
 	HELP_ONE = BLUEBLOCK + 1,
 	HELP_TWO = HELP_ONE + 1,
 	HELP_THREE = HELP_TWO + 1,
@@ -308,8 +331,9 @@ enum class TEXTURE_ASSET_ID {
 	GHOST = QUEST_2_ITEM + 1,
 	BRUTE = GHOST + 1,
 	DISRUPTOR = BRUTE + 1,
-	TEXTURE_COUNT = DISRUPTOR + 1
-	//PLAYER_SPRITE_SHEET = TEXTURE_COUNT +1
+	LOADED = DISRUPTOR + 1,
+	SAVING = LOADED + 1,
+	TEXTURE_COUNT = SAVING + 1,
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 
@@ -357,4 +381,3 @@ struct RenderRequest {
 	GEOMETRY_BUFFER_ID used_geometry = GEOMETRY_BUFFER_ID::GEOMETRY_COUNT;
 	RENDER_LAYER_ID layer_id = RENDER_LAYER_ID::LAYER_COUNT;
 };
-

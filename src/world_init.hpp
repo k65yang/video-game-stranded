@@ -23,6 +23,9 @@ Entity createItem(RenderSystem* renderer, vec2 position, ITEM_TYPE type);
 // the spaceship 
 Entity createSpaceship(RenderSystem* renderer, vec2 position);
 
+// the space home
+Entity createHome(RenderSystem* renderer); 
+
 // a red line for debugging purposes
 Entity createLine(vec2 position, vec2 size);
 
@@ -35,8 +38,8 @@ Entity createLine(vec2 position, vec2 size);
 Entity createFOW(RenderSystem* renderer, vec2 pos);
 
 // UI Elements
-Entity createHealthBar(RenderSystem* renderer, vec2 position);
-Entity createFoodBar(RenderSystem* renderer, vec2 position);
+Entity createHealthBar(RenderSystem* renderer, vec2 position, int health = PLAYER_MAX_HEALTH);
+Entity createFoodBar(RenderSystem* renderer, vec2 position, int food = PLAYER_MAX_FOOD);
 Entity createWeaponIndicator(RenderSystem* renderer, vec2 position, TEXTURE_ASSET_ID weapon_texture);
 
 // Tool tips for ease of use 
