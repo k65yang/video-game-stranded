@@ -1140,7 +1140,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 			fs_motion.position = { -3.5f + camera_motion.position.x, camera_motion.position.y };
 			as_motion.position = { 4.5f + camera_motion.position.x,  0.5f + camera_motion.position.y };
 			t_motion.position = { -5.5f + camera_motion.position.x, 0.f + camera_motion.position.y };
-			a_item_motion.position = { 1.f + camera_motion.position.x, 0.5f + camera_motion.position.y };
+			a_item_motion.position = { 1.5f + camera_motion.position.x, 0.5f + camera_motion.position.y };
 			fs_frame_motion.position = { -3.49f + camera_motion.position.x, camera_motion.position.y };
 			as_frame_motion.position = { 4.51f + camera_motion.position.x,  0.5f + camera_motion.position.y };
 			// regenerate food and health 
