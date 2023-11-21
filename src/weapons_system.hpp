@@ -18,9 +18,14 @@ class WeaponsSystem
         }
 
         /// @brief When the game restarts (without exiting), we must clean the weapons system
-        ///        For now, this is setting weapon_component back to nullptr
+        ///        For now, this is setting weapon_component back to nullptr, active weapon type to none, and weapon upgrade levels to 0
         void resetWeaponsSystem() {
             weapon_component = nullptr;
+            active_weapon_type = ITEM_TYPE::WEAPON_NONE;
+
+            for (auto& x : weapon_level) {
+                weapon_level[x.first] = 0;
+            }
         }
 
         /// @brief  Initializes the render system that the weapon system needs to draw projectiles
@@ -149,4 +154,9 @@ class WeaponsSystem
         /// @param test the ITEM_TYPE to be tested
         /// @return bool
         bool isValidWeapon(ITEM_TYPE test);
+
+        /// @brief Changes the angle of a projectile so it is not completely accurate
+        /// @param angle Original angle of the projectile
+        /// @param inaccuracy_percent How much inaccuracy there is for the projectile as a percentage [0, 1.0] (0 means no inaccuracy)
+        void applyProjectileInaccuracy(float& angle, float inaccuracy_percent);
 };

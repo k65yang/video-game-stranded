@@ -16,6 +16,10 @@
 #include "weapons_system.hpp"
 #include "mob_system.hpp"
 #include "physics_system.hpp"
+#include "save.hpp"
+#include <nlohmann/json.hpp>
+
+using json = nlohmann::json;
 
 // Container for all our entities and game logic. Individual rendering / update is
 // deferred to the relative update() methods
@@ -76,6 +80,8 @@ private:
 	// restart level
 	void restart_game();
 
+	void load_game(json j);
+
 	// OpenGL window handle
 	GLFWwindow* window;
 
@@ -101,6 +107,7 @@ private:
 	Entity spaceship;
 	Entity home; 
 	Entity help_bar;
+	bool tooltips_on = true;
 	std::vector<std::pair<Entity, bool>> quest_items;
 
 	bool user_has_first_weapon = false;
@@ -119,21 +126,27 @@ private:
 
 	// Random item and mob spawning 
 	// Limits on the number of items and mobs
-	const int ITEM_LIMIT = 32;
+	const int ITEM_LIMIT = 64;
 
 	// Vector to keep track of locations where an item/mob has been spawned
 	std::vector<vec2> used_spawn_locations;
 
-	// Changes clicked tiles to this during debug mode
-	TERRAIN_TYPE editor_terrain = AIR;
+	// Map editor fields
+	TERRAIN_TYPE editor_terrain = AIR; // Changes clicked tiles to this during debug mode
+	uint16_t editor_flag = 0; // Changes clicked tiles' flags to the given value.
+	bool editor_place_tile = false;
 
-	// Changes clicked tiles' flags to the given value.
-	uint16_t editor_flag = 0;
+	/// <summary>
+	/// Repeatedly replaces the clicked tile into editor specifications if applicable
+	/// </summary>
+	void map_editor_routine();
 
 	/// <summary>
 	/// Spawns ITEM_LIMIT items randomly across the map
 	///	</summary>
 	void spawn_items();
+
+	void load_spawned_items_mobs(json& j);
 
 	/// <summary>
 	/// Maps the GLFW key into a InputKeyIndex as an int

@@ -7,18 +7,28 @@ void MobSystem::step(float elapsed_ms) {
 void MobSystem::spawn_mobs() {
     // NOTE: do not add more mobs than there are grid cells available in the zone!!!
 	std::map<ZONE_NUMBER,int> zone_mob_numbers = {
-		{ZONE_0, 5},    // zone 1 has 5 mobs
-		{ZONE_1, 5},	// zone 2 has 5 mobs
+		{ZONE_1, 5},    // zone 1 has 5 mobs
+		{ZONE_2, 10},	// zone 2 has 5 mobs
+		{ZONE_3, 50},	// zone 2 has 5 mobs
 	};
 
 	std::vector<vec2> zone_mob_locations = terrain->get_mob_spawn_locations(zone_mob_numbers);
 
 	for (const auto& spawn_location: zone_mob_locations) {
-		create_mob(spawn_location, rng() % 2 ? MOB_TYPE::SLIME : MOB_TYPE::GHOST);
+		create_mob(spawn_location, rng() % 2 ? MOB_TYPE::DISRUPTOR : MOB_TYPE::BRUTE);
 	}
 }
 
-Entity MobSystem::create_mob(vec2 mob_position, MOB_TYPE mob_type) {
+void MobSystem::apply_mob_attack_effects(Entity player, Entity mob) {
+	Mob& mob_info = registry.mobs.get(mob);
+
+	if (mob_info.type == MOB_TYPE::DISRUPTOR) {
+		apply_knockback(player, mob, 500.f, 10.f);
+		apply_inaccuracy(player, 5000.f, 0.5f);
+	}
+}
+
+Entity MobSystem::create_mob(vec2 mob_position, MOB_TYPE mob_type, int current_health) {
     auto entity = Entity();
 
 	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
@@ -39,7 +49,13 @@ Entity MobSystem::create_mob(vec2 mob_position, MOB_TYPE mob_type) {
 	auto& mob_info = registry.mobs.emplace(entity);
 	mob_info.damage = mob_damage_map.at(mob_type);
 	mob_info.aggro_range = mob_aggro_range_map.at(mob_type);
-	mob_info.health = mob_health_map.at(mob_type);
+	mob_info.is_tracking_player = false;
+	if (current_health != 0) {
+		mob_info.health = current_health;
+	}
+	else {
+		mob_info.health = mob_health_map.at(mob_type);
+	}
 	mob_info.speed_ratio = mob_speed_ratio_map.at(mob_type);
 	mob_info.curr_cell = terrain->get_cell(motion.position);
 	mob_info.type = mob_type;
@@ -74,4 +90,37 @@ Entity MobSystem::create_mob(vec2 mob_position, MOB_TYPE mob_type) {
 	}
 
 	return entity;
-}
+};
+
+void MobSystem::apply_knockback(Entity player, Entity mob, float duration_ms, float knockback_speed_ratio) {
+	// Apply knock back only if player is not knocked back already
+	if (registry.playerKnockbackEffects.has(player)) {
+		return;
+	}
+
+	// Create PlayerKnockbackEffect component
+	PlayerKnockbackEffect& playerKnockbackEffect = registry.playerKnockbackEffects.emplace(player);
+	playerKnockbackEffect.duration_ms = duration_ms;
+	playerKnockbackEffect.elapsed_knockback_time_ms = 0.f;
+
+	// Change velocity of player so that they move in the opposite they were just travelling (i.e. knock them back)
+	Motion& player_motion = registry.motions.get(player);
+	Motion& mob_motion = registry.motions.get(mob);
+	float angle = atan2(player_motion.position.y - mob_motion.position.y, player_motion.position.x - mob_motion.position.x);
+	player_motion.velocity[0] = cos(angle) * knockback_speed_ratio;
+    player_motion.velocity[1] = sin(angle) * knockback_speed_ratio;
+
+	printf("KNOCKBACK APPLIED\n");
+};
+
+void MobSystem::apply_inaccuracy(Entity player, float duration_ms, float inaccuracy_percent) {
+	bool already_applied = registry.playerInaccuracyEffects.has(player);
+
+	// Create PlayerInaccuracyEffects component only if it does not exist already
+	PlayerInaccuracyEffect& playerInaccuracyEffect = already_applied ? registry.playerInaccuracyEffects.get(player) : registry.playerInaccuracyEffects.emplace(player);
+	playerInaccuracyEffect.duration_ms = duration_ms;
+	playerInaccuracyEffect.elapsed_inaccuracy_time_ms = 0.f;
+	playerInaccuracyEffect.inaccuracy_percent = inaccuracy_percent;
+
+	printf("INACCURACY APPLIED\n");
+};
