@@ -296,9 +296,6 @@ struct Collider
 	int flag;  // for filtering 
 };
 
-struct BoundaryBlock {
-
-};
 
 /**
  * The following enumerators represent global identifiers refering to graphic
@@ -328,8 +325,7 @@ enum class TEXTURE_ASSET_ID {
 	PLAYER = 0,
 	SLIME = PLAYER + 1,
 	REDBLOCK = SLIME + 1,
-	FOW = REDBLOCK + 1,
-	WEAPON_UPGRADE = FOW + 1,
+	WEAPON_UPGRADE = REDBLOCK + 1,
 	FOOD = WEAPON_UPGRADE + 1,
 	WEAPON_SHURIKEN = FOOD + 1,
 	WEAPON_CROSSBOW = WEAPON_SHURIKEN + 1,
@@ -379,8 +375,8 @@ enum class EFFECT_ASSET_ID {
 	SPRITESHEET = PEBBLE + 1,
 	SALMON = SPRITESHEET + 1,
 	TEXTURED = SALMON + 1,
-	WATER = TEXTURED + 1,
-	TERRAIN = WATER + 1,
+	FOG = TEXTURED + 1,
+	TERRAIN = FOG + 1,
 	EFFECT_COUNT = TERRAIN + 1
 };
 const int effect_count = (int)EFFECT_ASSET_ID::EFFECT_COUNT;
@@ -404,7 +400,7 @@ enum class GEOMETRY_BUFFER_ID {
 enum class RENDER_LAYER_ID {
 	LAYER_1 = 0,
 	LAYER_2 = LAYER_1 + 1,
-	LAYER_3 = LAYER_2 + 1,      // Fog of war
+	LAYER_3 = LAYER_2 + 1,      
 	LAYER_4 = LAYER_3 + 1,      // UI elements
 	LAYER_COUNT = LAYER_4 + 1
 

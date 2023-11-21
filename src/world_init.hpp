@@ -33,13 +33,7 @@ Entity createStorage(RenderSystem* renderer, vec2 position, ITEM_TYPE type);
 // a red line for debugging purposes
 Entity createLine(vec2 position, vec2 size);
 
-/// <summary>
-/// Creates FOW entity on given position
-/// </summary>
-/// <param name="renderer">renderer for render request</param>
-/// <param name="position">position for FOW</param>
-/// <returns>The fow entity</returns>
-Entity createFOW(RenderSystem* renderer, vec2 pos);
+
 
 // UI Elements
 Entity createBar(RenderSystem* renderer, vec2 position, int amount, BAR_TYPE type);
@@ -50,35 +44,6 @@ Entity createWeaponIndicator(RenderSystem* renderer, vec2 position, TEXTURE_ASSE
 Entity createHelp(RenderSystem* renderer, vec2 position, TEXTURE_ASSET_ID texture);
 
 Entity createQuestItem(RenderSystem* renderer, vec2 position, TEXTURE_ASSET_ID texture);
-
-// test only
-Entity createTestDummy(RenderSystem* renderer, vec2 position);
-
-/// <summary>
-/// Turn a terrain cell non-passable, as well as changing the sprite
-/// </summary>
-/// <param name="renderer">renderer for render request</param>
-/// /// <param name="renderer">terrain from terrain system</param>
-/// <param name="position">position of target terrain cell</param>
-/// <returns>The terrain cell entity</returns>
-Entity createTerrainCollider(RenderSystem* renderer,TerrainSystem* terrain, vec2 position);
-
-/// <summary>
-/// Create boundary block given position and scale
-/// </summary>
-/// <param name="renderer">renderer for render request</param>
-/// <param name="position">scale of the block</param>
-/// <param name="scale">scale of the block</param>
-/// <returns>Boundary block entity</returns>
-Entity createBoundaryBlock(RenderSystem* renderer, vec2 position, vec2 scale);
-
-/// <summary>
-/// Creates a box boundary with given size and center point
-/// </summary>
-/// <param name="size">size of box in vec2</param>
-/// <param name="center">center point of box boundary in world space</param>
-/// <returns>void</returns>
-void boundaryInitialize(RenderSystem* renderer, vec2 size, vec2 center);
 
 /// <summary>
 /// create coord of a box given a scale(width/height). Points are in local coord and center is 0,0. 
