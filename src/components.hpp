@@ -182,7 +182,8 @@ enum ZONE_NUMBER {
 	ZONE_0 = 0,
 	ZONE_1 = 1,
 	ZONE_2 = 2,
-	ZONE_COUNT = ZONE_2 + 1,
+	ZONE_3 = 3,
+	ZONE_COUNT = ZONE_3 + 1,
 };
 
 
@@ -229,6 +230,10 @@ struct TerrainCell
 	};
 
 	TerrainCell(uint32_t terrain_cell) {
+		from_uint32(terrain_cell);
+	}
+
+	void from_uint32(uint32_t terrain_cell) {
 		this->flag = (uint16_t)terrain_cell;
 		this->terrain_type = static_cast<TERRAIN_TYPE>((uint16_t)(terrain_cell >> 16));
 	}

@@ -304,7 +304,12 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	Camera& c = registry.cameras.get(main_camera);
 	Motion& camera_motion = registry.motions.get(main_camera);
 	if (c.mode_follow) {
-		camera_motion.position = m.position;	// why are the positions inverted???
+		/*
+		if (debugging.in_debug_mode)
+			camera_motion.velocity = { 0,0 };
+		else
+		*/
+		camera_motion.position = m.position;
 	}
 	else {
 		handle_movement(camera_motion, CAMERA_LEFT);
@@ -353,6 +358,10 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			}
 		}
 	}
+
+	// Lets the editor drag
+	if (debugging.in_debug_mode && editor_place_tile)
+		map_editor_routine();
 
 	return true;
 }
@@ -531,6 +540,8 @@ void WorldSystem::restart_game() {
 	used_spawn_locations.clear();
 
 	// FOR DEMO - to show different types of items being created.	
+ 
+	// TODO: uncomment these after messing w/ map editor
 	spawn_items();
 	mob_system->spawn_mobs();
 
@@ -1026,6 +1037,28 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		if (key == GLFW_KEY_KP_DECIMAL)	// numpad '.'
 			// Saves map data
 			terrain->save_grid(loaded_map_name);	
+		if (key == GLFW_KEY_PAGE_UP) { // PageUp ke
+			// This expands the map to world_size_x, world_size_y.
+			// Make sure you disable item and mob spawning because physics and pathfinding
+			// will break!!
+			terrain->expand_map(world_size_x, world_size_y);
+			//restart_game();
+			renderer->empty_terrain_buffer();
+			
+			std::unordered_map<unsigned, RenderSystem::ORIENTATIONS> orientations;
+			terrain->generate_orientation_map(orientations);
+			renderer->initializeTerrainBuffers(orientations);
+
+			for (unsigned int i = 0; i < registry.terrainCells.entities.size(); i++) {
+				Entity e = registry.terrainCells.entities[i];
+				TerrainCell& cell = registry.terrainCells.components[i];
+
+				if (cell.flag & TERRAIN_FLAGS::COLLIDABLE)
+					createDefaultCollider(e);
+			}
+
+			physics_system->initStaticBVH(registry.colliders.size());
+		}
 	}
 
 	// Press B to toggle debug mode
@@ -1116,32 +1149,42 @@ void WorldSystem::on_mouse_click(int button, int action, int mods) {
 		}
 	}
 
-	if (debugging.in_debug_mode && button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS) {
-		mat3 view_ = renderer->createModelMatrix(main_camera);
+	if (debugging.in_debug_mode && button == GLFW_MOUSE_BUTTON_RIGHT) {
+		if (action == GLFW_PRESS)
+			editor_place_tile = true;
+		else if (action == GLFW_RELEASE)
+			editor_place_tile = false;
+	}
+}
 
-		// You can cache this to save performance.
-		mat3 proj_ = inverse(renderer->createProjectionMatrix());
+void WorldSystem::map_editor_routine() {
+	mat3 view_ = renderer->createModelMatrix(main_camera);
 
-		double xpos, ypos;
-		glfwGetCursorPos(window, &xpos, &ypos);	// For some reason it only supports doubles!
-		ivec2 window_size = renderer->window_resolution;
+	// You can cache this to save performance.
+	mat3 proj_ = inverse(renderer->createProjectionMatrix());
 
-		// Recall that valid clip coordinates are between [-1, 1]. 
-		// First, we need to turn screen (pixel) coordinates into clip coordinates:
-		vec3 mouse_pos = {
-			(xpos / window_size.x) * 2 - 1,			// Get the fraction of the x pos in the screen, multiply 2 to map range to [0, 2], 
-													// then offset so the range is now [-1, 1].
-			-(ypos / window_size.y) * 2 + 1,		// Same thing, but recall that the y direction is opposite in glfw.
-			1.0 };									// Denote that this is a point.
-		mouse_pos = view_ * proj_ * mouse_pos;
+	double xpos, ypos;
+	glfwGetCursorPos(window, &xpos, &ypos);	// For some reason it only supports doubles!
+	ivec2 screen = renderer->window_resolution;
 
-		Entity tile = terrain->get_cell(mouse_pos);
-		TerrainCell& cell = registry.terrainCells.get(tile);
-		bool to_collidable = (editor_flag & COLLIDABLE);
-		bool from_collidable = (cell.flag & COLLIDABLE);
+	// Recall that valid clip coordinates are between [-1, 1]. 
+	// First, we need to turn screen (pixel) coordinates into clip coordinates:
+	vec3 mouse_pos = {
+		(xpos / screen.x) * 2 - 1,		// Get the fraction of the x pos in the screen, multiply 2 to map range to [0, 2], 
+												// then offset so the range is now [-1, 1].
+		-(ypos / screen.y) * 2 + 1,		// Same thing, but recall that the y direction is opposite in glfw.
+		1.0 };									// Denote that this is a point.
+	mouse_pos = view_ * proj_ * mouse_pos;
 
-		cell.terrain_type = editor_terrain;
-		cell.flag = editor_flag;
+	Entity tile = terrain->get_cell(mouse_pos);
+	TerrainCell& cell = registry.terrainCells.get(tile);
+	bool to_collidable = (editor_flag & COLLIDABLE);
+	bool from_collidable = (cell.flag & COLLIDABLE);
+	uint32_t data = ((uint32_t)editor_terrain << 16) | editor_flag;
+
+
+	if (cell != data) {
+		cell.from_uint32(data);
 
 		// Update collisions
 		if (to_collidable != from_collidable) {

@@ -240,6 +240,11 @@ public:
 	/// <param name="data">The updated render request</param>
 	void changeTerrainData(Entity cell, unsigned int i, TerrainCell& data, uint8_t frameValue = 0);
 
+	/// <summary>
+	/// Releases the frame buffer. Make sure you call initializeTerrainBuffers again.
+	/// </summary>
+	void empty_terrain_buffer();
+
 	// Do not modify this. READ ONLY!!
 	bool is_terrain_mesh_loaded = false;
 
