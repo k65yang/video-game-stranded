@@ -38,6 +38,19 @@ struct Player
 	int framey = 4; 
 };
 
+// Knockback effect for player from mobs
+struct PlayerKnockbackEffect {
+	float duration_ms;				
+	float elapsed_knockback_time_ms;
+};
+
+// Inaccuracy effect for player from mobs
+struct PlayerInaccuracyEffect {
+	float duration_ms;				
+	float elapsed_inaccuracy_time_ms;
+	float inaccuracy_percent;
+};
+
 // The weapon
 struct Weapon {
 	ITEM_TYPE weapon_type;
@@ -63,6 +76,8 @@ struct Projectile {
 enum class MOB_TYPE {
 	SLIME = 0,
 	GHOST = SLIME + 1,
+	BRUTE = GHOST + 1,
+	DISRUPTOR = BRUTE + 1
 };
 
 // Mob component
@@ -314,12 +329,11 @@ enum class TEXTURE_ASSET_ID {
 	QUEST_1_ITEM = QUEST_2_FOUND + 1,
 	QUEST_2_ITEM = QUEST_1_ITEM +1,
 	GHOST = QUEST_2_ITEM + 1,
-	LOADED = GHOST + 1,
+	BRUTE = GHOST + 1,
+	DISRUPTOR = BRUTE + 1,
+	LOADED = DISRUPTOR + 1,
 	SAVING = LOADED + 1,
 	TEXTURE_COUNT = SAVING + 1,
-	//PLAYER_SPRITE_SHEET = TEXTURE_COUNT +1
-
-
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 
