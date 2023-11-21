@@ -87,6 +87,7 @@ private:
 			textures_path("blueblock.png"),
 			//inserting new blocks here
 			textures_path("foodblock.png"),
+			textures_path("brownblock.png"),
 			textures_path("ammoblock.png"),
 			textures_path("bar_frame.png"),
 			textures_path("health_empty_bar.png"),

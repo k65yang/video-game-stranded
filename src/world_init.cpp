@@ -204,10 +204,13 @@ Entity createBar(RenderSystem* renderer, vec2 position, BAR_TYPE type) {
 			case BAR_TYPE::FOOD_BAR:
 				texture = TEXTURE_ASSET_ID::BLUEBLOCK;
 				break;
+			case BAR_TYPE:: AMMO_BAR:
+				texture = TEXTURE_ASSET_ID::BROWNBLOCK;
+				motion.scale = vec2({ 3, 0.4 }); 
+				break; 
 			case BAR_TYPE::FOOD_STORAGE:
 				texture = TEXTURE_ASSET_ID::FOOD_BLOCK;
 				motion.scale = vec2({ 0.5, 2 });
-
 				break;
 			case BAR_TYPE::AMMO_STORAGE:
 				texture = TEXTURE_ASSET_ID::AMMO_BLOCK;

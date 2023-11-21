@@ -309,6 +309,8 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	if (user_has_first_weapon) {
 		Motion& weapon_ui = registry.motions.get(weapon_indicator);
 		weapon_ui.position = { -10.f + camera_motion.position.x, -6.f + camera_motion.position.y };
+		Motion& ammo_ui = registry.motions.get(ammo_indicator); 
+		ammo_ui.position = { -10 + camera_motion.position.x, -4.f + camera_motion.position.y};
 	}
 
 	// Mob updates
@@ -660,16 +662,17 @@ void WorldSystem::handle_collisions() {
 					break;
 				case ITEM_TYPE::WEAPON_SHURIKEN:
 					player_equipped_weapon = weapons_system->createWeapon(ITEM_TYPE::WEAPON_SHURIKEN);
-					
 					// Remove the current weapon_indicator and add a new one for the equipped weapon
 					if (user_has_first_weapon) {
 						registry.remove_all_components_of(weapon_indicator);
+						registry.remove_all_components_of(ammo_indicator);
 					} else {
 						// Has just picked up the first weapon
 						user_has_first_weapon = true;
 						help_bar = createHelp(renderer, { 0.f, -7.f }, TEXTURE_ASSET_ID::HELP_WEAPON);
 					}
 					weapon_indicator = createWeaponIndicator(renderer, { -10.f, -6.f }, TEXTURE_ASSET_ID::ICON_SHURIKEN);
+					ammo_indicator = createBar(renderer, { -10, -4.f }, BAR_TYPE::AMMO_BAR); 
 					break;
 				case ITEM_TYPE::WEAPON_CROSSBOW:
 					player_equipped_weapon = weapons_system->createWeapon(ITEM_TYPE::WEAPON_CROSSBOW);
@@ -677,12 +680,15 @@ void WorldSystem::handle_collisions() {
 					// Remove the current weapon_indicator and add a new one for the equipped weapon
 					if (user_has_first_weapon) {
 						registry.remove_all_components_of(weapon_indicator);
+						registry.remove_all_components_of(ammo_indicator);
 					} else {
 						// Has just picked up the first weapon
 						user_has_first_weapon = true;
 						help_bar = createHelp(renderer, { 0.f, -7.f }, TEXTURE_ASSET_ID::HELP_WEAPON);
 					}
 					weapon_indicator = createWeaponIndicator(renderer, {-10.f, -6.f}, TEXTURE_ASSET_ID::ICON_CROSSBOW);
+					ammo_indicator = createBar(renderer, { -10, -4.f }, BAR_TYPE::AMMO_BAR);
+
 					break;
 				case ITEM_TYPE::WEAPON_SHOTGUN:
 					player_equipped_weapon = weapons_system->createWeapon(ITEM_TYPE::WEAPON_SHOTGUN);
@@ -690,12 +696,15 @@ void WorldSystem::handle_collisions() {
 					// Remove the current weapon_indicator and add a new one for the equipped weapon
 					if (user_has_first_weapon) {
 						registry.remove_all_components_of(weapon_indicator);
+						registry.remove_all_components_of(ammo_indicator);
 					} else {
 						// Has just picked up the first weapon
 						user_has_first_weapon = true;
 						help_bar = createHelp(renderer, { 0.f, -7.f }, TEXTURE_ASSET_ID::HELP_WEAPON);
 					}
 					weapon_indicator = createWeaponIndicator(renderer, {-10.f, -6.f}, TEXTURE_ASSET_ID::ICON_SHOTGUN);
+					ammo_indicator = createBar(renderer, { -10, -4.f }, BAR_TYPE::AMMO_BAR);
+
 					break;
 				case ITEM_TYPE::WEAPON_MACHINEGUN:
 					player_equipped_weapon = weapons_system->createWeapon(ITEM_TYPE::WEAPON_MACHINEGUN);
@@ -703,12 +712,16 @@ void WorldSystem::handle_collisions() {
 					// Remove the current weapon_indicator and add a new one for the equipped weapon
 					if (user_has_first_weapon) {
 						registry.remove_all_components_of(weapon_indicator);
+						registry.remove_all_components_of(ammo_indicator);
+
 					} else {
 						// Has just picked up the first weapon
 						user_has_first_weapon = true;
 						help_bar = createHelp(renderer, { 0.f, -7.f }, TEXTURE_ASSET_ID::HELP_WEAPON);
 					}
 					weapon_indicator = createWeaponIndicator(renderer, {-10.f, -6.f}, TEXTURE_ASSET_ID::ICON_MACHINE_GUN);
+					ammo_indicator = createBar(renderer, { -10, -4.f }, BAR_TYPE::AMMO_BAR);
+
 					break;
 				case ITEM_TYPE::UPGRADE:
 					// Just add to inventory
@@ -942,6 +955,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 			int foodNeeded = PLAYER_MAX_FOOD - player.food;
 
 			printf("Food before refil: %d \n", player.food);
+			// Update food bar after regenerate  
 			// Check if there is enough food in the home to fill the player's capacity
 			if (foodNeeded <= f_storage.amount) {
 				// Take food from home to fill player's capacity
@@ -968,6 +982,14 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 			printf("before Turkey scale: (%f, %f)\n", fs_motion.scale.x, fs_motion.scale.y);
 			fs_motion.scale = new_turkey_scale;
 			printf("after Turkey scale: (%f, %f)\n", fs_motion.scale.x, fs_motion.scale.y);
+
+
+			if (registry.weapons.has(player_equipped_weapon)) {
+				auto& weapon = registry.weapons.get(player_equipped_weapon);
+				weapon.ammo_count = 100;
+				printf("Weapon count after enter home %d \n", weapon.ammo_count); 
+			}
+
 
 			printf("You are home\n");
 			s.in_home = true;
@@ -1113,6 +1135,7 @@ void WorldSystem::on_mouse_move(vec2 mouse_position) {
 void WorldSystem::on_mouse_click(int button, int action, int mods) {
 	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
 		if (!registry.deathTimers.has(player_salmon)) {
+			// if theres ammo in current weapon 
 			Motion& player_motion = registry.motions.get(player_salmon);
 			// printf("player x: %f, player y: %f \n", player_motion.position.x, player_motion.position.y);
 			weapons_system->fireWeapon(player_motion.position.x, player_motion.position.y, CURSOR_ANGLE);

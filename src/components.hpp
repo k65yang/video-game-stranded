@@ -28,9 +28,12 @@ enum class ITEM_TYPE {
 };
 
 enum class BAR_TYPE {
+	// UI bars
 	HEALTH_BAR = 0,
 	FOOD_BAR = HEALTH_BAR + 1,
-	FOOD_STORAGE = FOOD_BAR + 1,
+	AMMO_BAR = FOOD_BAR + 1,
+	// bars inside the home 
+	FOOD_STORAGE = AMMO_BAR +1,
 	AMMO_STORAGE = FOOD_STORAGE + 1,
 
 	};
@@ -61,6 +64,7 @@ struct Weapon {
 	float elapsed_last_shot_time_ms;     // controls fire rate, the time that the weapon was fired last
 	float projectile_velocity;           // speed of projectiles of this weapon
 	int projectile_damage;               // weapon damage
+	int ammo_count;
 };
 
 // The spaceship 
@@ -319,7 +323,8 @@ enum class TEXTURE_ASSET_ID {
 	BLUEBLOCK = SPACEHOME + 1,
 	//inserting new blocks here
 	FOOD_BLOCK = BLUEBLOCK + 1, 
-	AMMO_BLOCK = FOOD_BLOCK + 1,
+	BROWNBLOCK = FOOD_BLOCK + 1,
+	AMMO_BLOCK = BROWNBLOCK + 1,
 	BAR_FRAME = AMMO_BLOCK + 1,
 	HEALTH_FRAME = BAR_FRAME +1,
 	AMMO = HEALTH_FRAME +1, 

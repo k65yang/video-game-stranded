@@ -28,7 +28,8 @@ Entity WeaponsSystem::createWeapon(ITEM_TYPE weapon_type) {
 	weapon.fire_rate = weapon_fire_rate_map[weapon_type];
 	weapon.projectile_velocity = weapon_projectile_velocity_map[weapon_type];
 	weapon.projectile_damage = weapon_damage_map[weapon_type];
-
+	// can change the amount ammo 
+	weapon.ammo_count = 10; 
 	// Set tracking for the newly created weapon
 	active_weapon_type = weapon_type;
 	active_weapon_entity = entity;
@@ -39,26 +40,40 @@ Entity WeaponsSystem::createWeapon(ITEM_TYPE weapon_type) {
 void WeaponsSystem::fireWeapon(float player_x, float player_y, float player_angle) {
 	if (active_weapon_type == ITEM_TYPE::WEAPON_NONE)
 		return;
-	if (!weapon_component || !weapon_component->can_fire)
+	if (!weapon_component || !weapon_component->can_fire || weapon_component->ammo_count <= 0)
 		return;
 
 	// TODO: offset projectile location a little so it doesn't get created on top of player
 	switch(active_weapon_type){
 		case ITEM_TYPE::WEAPON_SHURIKEN:
+			weapon_component->ammo_count--;
 			fireShuriken(player_x, player_y, player_angle);
 			break;
 		case ITEM_TYPE::WEAPON_CROSSBOW:
+			weapon_component->ammo_count--;
 			fireCrossbow(player_x, player_y, player_angle);
 			break;
 		case ITEM_TYPE::WEAPON_SHOTGUN:
+			// decrement ammunition count
+			weapon_component->ammo_count -= 5;
 			fireShotgun(player_x, player_y, player_angle);
 			break;
 		case ITEM_TYPE::WEAPON_MACHINEGUN:
+			weapon_component->ammo_count--;
 			fireMachineGun(player_x, player_y, player_angle);
 			break;
 		default:
 			throw(std::runtime_error("Error: Failed to fire weapon because unknown weapon equipped"));
 	}
+
+
+	printf("Ammunition count: %d\n", weapon_component->ammo_count);
+
+	// disable firing if ammo is empty 
+	if (weapon_component->ammo_count == 0) {
+		weapon_component->can_fire = false;
+		}
+
 		
 }
 
@@ -74,10 +89,11 @@ void WeaponsSystem::fireShuriken(float player_x, float player_y, float angle) {
 			weapon_component->elapsed_last_shot_time_ms = 0.f;
 			break;
 		default:
-			createProjectile(renderer, {player_x, player_y}, angle);
-			createProjectile(renderer, {player_x + offset * cos(angle), player_y + offset * sin(angle)}, angle);
+			createProjectile(renderer, { player_x, player_y }, angle);
+			createProjectile(renderer, { player_x + offset * cos(angle), player_y + offset * sin(angle) }, angle);
 			weapon_component->can_fire = false;
 			weapon_component->elapsed_last_shot_time_ms = 0.f;
+				
 			break;
 	}
 }

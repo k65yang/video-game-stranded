@@ -105,6 +105,7 @@ private:
 	Entity ammo_storage;
 	Entity ammo;
 	Entity weapon_indicator;
+	Entity ammo_indicator; 
 	Entity spaceship;
 	Entity home; 
 	Entity help_bar;
