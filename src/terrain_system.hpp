@@ -18,7 +18,7 @@ private:
 	/// <summary>
 	/// Corresponds to the underlying index each element in every indices[orientations_n_indices] you see in TerrainSystem
 	/// </summary>
-	const enum ori_index : uint8_t {
+	enum ori_index : uint8_t {
 		TOP, RIGHT, BOTTOM, LEFT, TR, BR, BL, TL, orientations_n_indices
 	};
 
