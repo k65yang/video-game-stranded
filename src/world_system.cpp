@@ -845,7 +845,13 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 			quests.push_back(item.second);
 		}
 
-		SaveGame(player, player_motion, mobs, items, quests);
+		ITEM_TYPE type = ITEM_TYPE::WEAPON_NONE;
+		if (user_has_first_weapon) {
+			Weapon& weapon = registry.weapons.get(player_equipped_weapon);
+			type = weapon.weapon_type;
+		}
+
+		SaveGame(player, player_motion, mobs, items, quests, type);
 
 	}
 
@@ -1088,7 +1094,32 @@ void WorldSystem::load_game(json j) {
 	// Reset the weapons system
 	weapons_system->resetWeaponsSystem();
 
-	// TODO: add weapons into the saving
+	ITEM_TYPE weapon_type = (ITEM_TYPE)j["weapon"];
+	if (weapon_type == ITEM_TYPE::WEAPON_NONE) {
+		user_has_first_weapon = false;
+		registry.remove_all_components_of(weapon_indicator);
+	}
+	else {
+		// GIVE player their weapon if they have one, and set weapon indicator accordingly
+		player_equipped_weapon = weapons_system->createWeapon(weapon_type);
+		user_has_first_weapon = true;
+
+		switch (weapon_type) {
+		case ITEM_TYPE::WEAPON_CROSSBOW:
+			weapon_indicator = createWeaponIndicator(renderer, { -10.f, -6.f }, TEXTURE_ASSET_ID::ICON_CROSSBOW);
+			break;
+		case ITEM_TYPE::WEAPON_MACHINEGUN:
+			weapon_indicator = createWeaponIndicator(renderer, { -10.f, -6.f }, TEXTURE_ASSET_ID::ICON_MACHINE_GUN);
+			break;
+		case ITEM_TYPE::WEAPON_SHOTGUN:
+			weapon_indicator = createWeaponIndicator(renderer, { -10.f, -6.f }, TEXTURE_ASSET_ID::ICON_SHOTGUN);
+			break;
+		case ITEM_TYPE::WEAPON_SHURIKEN:
+			weapon_indicator = createWeaponIndicator(renderer, { -10.f, -6.f }, TEXTURE_ASSET_ID::WEAPON_SHURIKEN);
+			break;
+		}
+
+	}
 
 	// Reset the terrain system
 	terrain->resetTerrainSystem();
@@ -1136,9 +1167,6 @@ void WorldSystem::load_game(json j) {
 
 	// Create food bars 
 	food_bar = createFoodBar(renderer, { 8.f, 7.f }, player.food);
-
-	// Reset the weapon indicator
-	user_has_first_weapon = false;
 
 	tooltips_on = false;
 	help_bar = createHelp(renderer, { 0.f, -7.f }, TEXTURE_ASSET_ID::LOADED);
