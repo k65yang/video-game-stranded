@@ -7,8 +7,9 @@ void MobSystem::step(float elapsed_ms) {
 void MobSystem::spawn_mobs() {
     // NOTE: do not add more mobs than there are grid cells available in the zone!!!
 	std::map<ZONE_NUMBER,int> zone_mob_numbers = {
-		{ZONE_0, 5},    // zone 1 has 5 mobs
-		{ZONE_1, 5},	// zone 2 has 5 mobs
+		{ZONE_1, 5},    // zone 1 has 5 mobs
+		{ZONE_2, 10},	// zone 2 has 5 mobs
+		{ZONE_3, 50},	// zone 2 has 5 mobs
 	};
 
 	std::vector<vec2> zone_mob_locations = terrain->get_mob_spawn_locations(zone_mob_numbers);
@@ -18,7 +19,7 @@ void MobSystem::spawn_mobs() {
 	}
 }
 
-Entity MobSystem::create_mob(vec2 mob_position, MOB_TYPE mob_type) {
+Entity MobSystem::create_mob(vec2 mob_position, MOB_TYPE mob_type, int current_health) {
     auto entity = Entity();
 
 	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
@@ -39,7 +40,13 @@ Entity MobSystem::create_mob(vec2 mob_position, MOB_TYPE mob_type) {
 	auto& mob_info = registry.mobs.emplace(entity);
 	mob_info.damage = mob_damage_map.at(mob_type);
 	mob_info.aggro_range = mob_aggro_range_map.at(mob_type);
-	mob_info.health = mob_health_map.at(mob_type);
+	mob_info.is_tracking_player = false;
+	if (current_health != 0) {
+		mob_info.health = current_health;
+	}
+	else {
+		mob_info.health = mob_health_map.at(mob_type);
+	}
 	mob_info.speed_ratio = mob_speed_ratio_map.at(mob_type);
 	mob_info.curr_cell = terrain->get_cell(motion.position);
 	mob_info.type = mob_type;

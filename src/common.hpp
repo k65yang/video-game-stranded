@@ -57,8 +57,8 @@ const bool windowed_mode = true;
 
 const int tile_size_px = 50;		// Represents how many pixels a tile occupies in a row and column
 
-const unsigned short world_size_x = 64;
-const unsigned short world_size_y = 64;
+const unsigned short world_size_x = 128;
+const unsigned short world_size_y = 128;
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846f

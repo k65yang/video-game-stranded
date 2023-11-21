@@ -40,6 +40,8 @@ void PathfindingSystem::step(float elapsed_ms)
             std::deque<Entity> new_path = find_shortest_path(player, mob);
             Path& mob_path = registry.paths.get(mob);
             mob_path.path = new_path;
+
+            update_velocity_to_next_cell(mob, elapsed_ms);
         }
 
         // Get the previous location of the mob 

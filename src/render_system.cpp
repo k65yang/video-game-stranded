@@ -496,3 +496,14 @@ void RenderSystem::changeTerrainData(Entity cell, unsigned int i, TerrainCell& d
 	gl_has_errors();
 }
 
+void RenderSystem::empty_terrain_buffer()
+{
+	// Tell GPU to deallocate those buffers
+	glDeleteBuffers(1, &vertex_buffers[(GLuint)GEOMETRY_BUFFER_ID::TERRAIN]);
+	glDeleteBuffers(1, &index_buffers[(GLuint)GEOMETRY_BUFFER_ID::TERRAIN]);
+
+	// Tell GPU to reallocate those buffers
+	glGenBuffers(1, &vertex_buffers[(GLuint)GEOMETRY_BUFFER_ID::TERRAIN]);
+	glGenBuffers(1, &index_buffers[(GLuint)GEOMETRY_BUFFER_ID::TERRAIN]);
+}
+

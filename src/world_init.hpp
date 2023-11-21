@@ -38,8 +38,8 @@ Entity createLine(vec2 position, vec2 size);
 Entity createFOW(RenderSystem* renderer, vec2 pos);
 
 // UI Elements
-Entity createHealthBar(RenderSystem* renderer, vec2 position);
-Entity createFoodBar(RenderSystem* renderer, vec2 position);
+Entity createHealthBar(RenderSystem* renderer, vec2 position, int health = PLAYER_MAX_HEALTH);
+Entity createFoodBar(RenderSystem* renderer, vec2 position, int food = PLAYER_MAX_FOOD);
 Entity createWeaponIndicator(RenderSystem* renderer, vec2 position, TEXTURE_ASSET_ID weapon_texture);
 Entity createPowerupIndicator(RenderSystem* renderer, vec2 position, TEXTURE_ASSET_ID powerup_texture);
 

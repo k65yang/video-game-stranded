@@ -22,6 +22,28 @@ private:
 		TOP, RIGHT, BOTTOM, LEFT, TR, BR, BL, TL, orientations_n_indices
 	};
 
+	inline void TerrainSystem::deallocate_terrain_grid(uint32_t*& terraincell_grid_pointer)	{ // cursed type 
+		delete[] terraincell_grid_pointer;
+		terraincell_grid_pointer = nullptr;
+	}
+
+	inline void TerrainSystem::deallocate_terrain_grid() {
+		deallocate_terrain_grid(terraincell_grid);
+	}
+
+	inline void TerrainSystem::deallocate_entity_grid(Entity*& entity_grid_pointer, size_t x, size_t y) {
+
+		for (size_t i = 0; i < x * y; i++) {
+			registry.remove_all_components_of(entity_grid_pointer[i]);
+		}
+		delete[] entity_grid_pointer;
+		entity_grid_pointer = nullptr;
+	}
+
+	inline void TerrainSystem::deallocate_entity_grid() {
+		deallocate_entity_grid(entity_grid, size_x, size_y);
+	}
+
 public:
 	// size of each respective axes (absolute)
 	int size_x, size_y;
@@ -44,7 +66,7 @@ public:
 		{TERRAIN_TYPE::AIR, 1.f},
 		{TERRAIN_TYPE::GRASS, 1.f},
 		{TERRAIN_TYPE::ROCK, 1.f},
-		{TERRAIN_TYPE::SAND, 0.5f},
+		{TERRAIN_TYPE::SAND, 0.6f},
 		{TERRAIN_TYPE::MUD, 0.3f},
 		{TERRAIN_TYPE::SHALLOW_WATER, 0.25f},
 		{TERRAIN_TYPE::DEEP_WATER, 0.0625f}
@@ -55,7 +77,8 @@ public:
 	std::map<ZONE_NUMBER, int> zone_radius_map = {
 		{ZONE_0, 10},
 		{ZONE_1, 17},
-		{ZONE_2, 40}
+		{ZONE_2, 40},
+		{ZONE_3, 64}
 	};
 
 	/// @brief Function to get randomized spawn locations per zone
@@ -63,12 +86,11 @@ public:
 	/// @return List of spawn locations
 	std::vector<vec2> get_mob_spawn_locations(std::map<ZONE_NUMBER,int> num_per_zone);
 
-
 	/// <summary>
 	/// Initializes the world grid with the given size. Each axis should preferably be odd.
 	/// </summary>
-	/// <param name="x">The size of the map in the x axis (preferably odd)</param>
-	/// <param name="y">The size of the map in the y axis (preferably odd)</param>
+	/// <param name="x">The size of the map in the x axis</param>
+	/// <param name="y">The size of the map in the y axis</param>
 	/// <param name="renderer">The main renderer</param>
 	void init(const unsigned int x, const unsigned int y, RenderSystem* renderer);
 
@@ -84,6 +106,24 @@ public:
 	/// </summary>
 	/// <param name="delta_time">The time since the last frame in milliseconds</param>
 	void step(float delta_time);
+
+	/// <summary>
+	/// Rounds a given float into the nearest integer.
+	/// </summary>
+	/// <param name="x">The given float</param>
+	/// <returns>The nearest integer</returns>
+	inline int quantize_f(float x) {
+		return std::round(x);
+	}
+
+	/// <summary>
+	/// Rounds a given vec2 into the nearest integers.
+	/// </summary>
+	/// <param name="position">Any given vec2</param>
+	/// <returns>An ivec2 containing two rounded integers.</returns>
+	inline ivec2 quantize_vec2(vec2 position) {
+		return glm::round(position);
+	}
 
 	/// <summary>
 	/// Returns the entity associated with the cell at the given position
@@ -257,9 +297,36 @@ public:
 	/// <param name="name">The name of the map to be loaded</param>
 	void load_grid(const std::string& name);
 
+	/// <summary>
+	/// Deletes the old map and generates one anew with size x, y.
+	/// Already-defined map data is inserted into the new map.
+	/// </summary>
+	/// <param name="x">The size of the map in the x axis</param>
+	/// <param name="y">The size of the map in the y axis</param>
+	void expand_map(const int new_x, const int new_y);
+
 	/// @brief Reset the terrain system when the game resets
 	void resetTerrainSystem() {
 		used_terrain_locations.clear();
+	}
+
+	/// <summary>
+	/// Checks every tile and sets their flags appropriately. Useful after messing with the map editor.
+	/// </summary>
+	void clean_map_tiles() {
+		for (unsigned i = 0; i < size_x * size_y; i++) {
+			uint32_t& cell = terraincell_grid[i];
+			TERRAIN_TYPE type = static_cast<TERRAIN_TYPE>(cell >> 16);
+			if (type == ROCK || type == SHALLOW_WATER || type == DEEP_WATER)
+				cell &= ~(ALLOW_SPAWNS);
+			if (type == ROCK)
+				cell &= ~(DISABLE_PATHFIND);
+			if (type == GRASS || type == MUD || type == SAND)
+				cell |= ALLOW_SPAWNS;
+			if (type == GRASS || type == MUD || type == SAND || type == SHALLOW_WATER || type == DEEP_WATER) {
+				cell &= ~(COLLIDABLE);
+			}
+		}
 	}
 
 private:
@@ -285,6 +352,14 @@ private:
 	/// <param name="y">The y position of the cell</param>
 	/// <returns>An index for 'grid' corresponding to that position</returns>
 	unsigned int to_array_index(int x, int y);
+
+	/// <summary>
+	/// Returns the index used for 'grid' with the given x and y world coordinates
+	/// </summary>
+	/// <param name="x">The x position of the cell</param>
+	/// <param name="y">The y position of the cell</param>
+	/// <returns>An index for 'grid' corresponding to that position</returns>
+	unsigned int to_array_index(ivec2 position);
 
 	/// <summary>
 	/// Converts a cell's index into world coordinates.
