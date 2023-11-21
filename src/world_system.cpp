@@ -545,16 +545,6 @@ void WorldSystem::restart_game() {
 	while (registry.weapons.entities.size() > 0)
 		registry.remove_all_components_of(registry.weapons.entities.back());
 
-	// Remove powerups. 
-	// while (registry.healthPowerup.size() > 0)
-	// 	registry.remove_all_components_of(registry.healthPowerup.entities.back());
-	// while (registry.speedPowerup.size() > 0)
-	// 	registry.remove_all_components_of(registry.speedPowerup.entities.back());
-	
-	// Remove particle trails. Particles have motion, so they are deleted already.
-	// while (registry.particleTrails.size() > 0)
-	// 	registry.remove_all_components_of(registry.particleTrails.entities.back());
-
 	// Reset the weapons system
 	weapons_system->resetWeaponsSystem();
 
