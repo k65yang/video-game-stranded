@@ -77,8 +77,25 @@ GLFWwindow* WorldSystem::create_window() {
 #endif
 	glfwWindowHint(GLFW_RESIZABLE, 0);
 
+	// TODO: make a more elegant solution via manipulating the projection matrix instead of this hack
+	// so UI elements are aspect ratio and resolution independent in theory
+	// Build window size using screen dimensions
+	const GLFWvidmode* mode = glfwGetVideoMode(glfwGetPrimaryMonitor());
+	int y = mode->height;
+	int s = y / aspect_ratio.y;	// scale factor such that s * aspect_ratio = {mode->width, mode->height}. 
+	int x = aspect_ratio.x * s;
+	// Remember: aspect_ratio.y * s = y, aspect_ratio.x * s = x
+
+	GLFWmonitor* monitor_ptr = glfwGetPrimaryMonitor();
+
+	if (windowed_mode) {
+		monitor_ptr = nullptr;
+		x = target_resolution.x;
+		y = target_resolution.y;
+	}
+
 	// Create the main window (for rendering, keyboard, and mouse input)
-	window = glfwCreateWindow(window_width_px, window_height_px, "Stranded", nullptr, nullptr);
+	window = glfwCreateWindow(x, y, "Stranded", monitor_ptr, nullptr);
 	if (window == nullptr) {
 		fprintf(stderr, "Failed to glfwCreateWindow");
 		return nullptr;
@@ -1064,8 +1081,10 @@ void WorldSystem::on_mouse_move(vec2 mouse_position) {
 	if (!registry.deathTimers.has(player_salmon)) {
 		// The player is always in the middle of the screen so we need to compute the 
 		// rotation angle w.r.t. the centre of the screen
-		float screen_centre_x = window_width_px/2;
-		float screen_centre_y = window_height_px/2;
+		ivec2 window_size = renderer->window_resolution;
+
+		float screen_centre_x = window_size.x/2;
+		float screen_centre_y = window_size.y/2;
 
 		Motion& motion = registry.motions.get(player_salmon);
 		CURSOR_ANGLE = atan2(mouse_position.y - screen_centre_y, mouse_position.x - screen_centre_x);
