@@ -1,6 +1,7 @@
 #pragma once
 #include "common.hpp"
 #include <unordered_map>
+#include <unordered_set>
 #include <deque>
 #include "../ext/stb_image/stb_image.h"
 #include <map>
@@ -61,6 +62,12 @@ struct Weapon {
 	int projectile_damage;               // weapon damage
 };
 
+// The spaceship 
+struct Spaceship {
+	bool in_home; // controls if player exit home or enter home
+
+	};
+
 // The projectile
 struct Projectile {
 	int damage;
@@ -76,12 +83,12 @@ enum class MOB_TYPE {
 struct Mob {
 	bool is_tracking_player = false;
 	int damage;
-	float aggro_range = 5.f;
-	int health = 50;
-	float speed_ratio = 2.f;
+	int aggro_range;
+	int health;
+	float speed_ratio;
 	int mframex = 0;
 	int mframey = 1;
-	Entity curr_cell; // cell the mob is currently in
+	Entity curr_cell;
 	MOB_TYPE type;
 };
 
@@ -204,10 +211,20 @@ enum TERRAIN_TYPE : uint16_t {
 	TERRAIN_COUNT = DEEP_WATER + 1
 };
 
+// Specifies which textures are directional
+const std::unordered_set<TERRAIN_TYPE> directional_terrain = {
+	ROCK,
+};
+
 enum TERRAIN_FLAGS : uint32_t {
 	COLLIDABLE =			0b1,
 	DISABLE_PATHFIND =		0b10,
 	ALLOW_SPAWNS =			0b100,
+};
+
+enum TERRAIN_MASKS : uint32_t {
+	FLAGS = 0xFF,			// first 8 bits
+	TYPES = 0xFFFF0000,		// last 16 bits
 };
 
 /// <summary>
@@ -277,8 +294,8 @@ struct BoundaryBlock {
 enum class TEXTURE_ASSET_ID {
 	PLAYER = 0,
 	PLAYER_PARTICLE = PLAYER + 1,
-	MOB = PLAYER_PARTICLE + 1,
-	REDBLOCK = MOB + 1,
+	SLIME = PLAYER_PARTICLE + 1,
+	REDBLOCK = SLIME + 1,
 	FOW = REDBLOCK + 1,
 	ITEM = FOW + 1,
 	FOOD = ITEM + 1,
@@ -297,7 +314,8 @@ enum class TEXTURE_ASSET_ID {
 	POWERUP_HEALTH = ICON_POWERUP_HEALTH + 1,
 	POWERUP_SPEED = POWERUP_HEALTH + 1,
 	SPACESHIP = POWERUP_SPEED + 1,
-	BLUEBLOCK = SPACESHIP + 1,
+	SPACEHOME = SPACESHIP + 1,
+	BLUEBLOCK = SPACEHOME + 1,
 	HELP_ONE = BLUEBLOCK + 1,
 	HELP_TWO = HELP_ONE + 1,
 	HELP_THREE = HELP_TWO + 1,
@@ -312,8 +330,6 @@ enum class TEXTURE_ASSET_ID {
 	GHOST = QUEST_2_ITEM + 1,
 	TEXTURE_COUNT = GHOST + 1,
 	//PLAYER_SPRITE_SHEET = TEXTURE_COUNT +1
-
-
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 

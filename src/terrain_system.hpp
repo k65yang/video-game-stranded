@@ -2,6 +2,7 @@
 #include <cmath>
 #include <random>
 #include <map>
+#include <unordered_map>
 #include <unordered_set>
 
 #include "common.hpp"
@@ -13,6 +14,14 @@
 // The underlying terrain grid square
 class TerrainSystem
 {
+private:
+	/// <summary>
+	/// Corresponds to the underlying index each element in every indices[orientations_n_indices] you see in TerrainSystem
+	/// </summary>
+	const enum ori_index : uint8_t {
+		TOP, RIGHT, BOTTOM, LEFT, TR, BR, BL, TL, orientations_n_indices
+	};
+
 public:
 	// size of each respective axes (absolute)
 	int size_x, size_y;
@@ -170,12 +179,28 @@ public:
 	void get_accessible_neighbours(Entity cell, std::vector<Entity>& buffer, bool ignoreColliders, bool checkPathfind = false);
 
 	/// <summary>
+	/// Checks each orientations_n_indices indices of cell_index's adjacent tiles. Sets them to -1 if they are out of range.
+	/// </summary>
+	/// <param name="cell_index">The index of the middle tile</param>
+	/// <param name="indices">The indices of all orientations_n_indices adjacent tiles. See ori_index for order.</param>
+	inline void filter_neighbouring_indices(int cell_index, int indices[orientations_n_indices]);
+
+	/// <summary>
+	/// Generates a map of type {cell_index, ORIENTATIONS} where:
+	///		The key is the index (for terraincell_grid) of a tile with directional terrain type.
+	///		The value is its tile orientation.
+	/// </summary>
+	/// <param name="map">Map to write to</param>
+	void generate_orientation_map(std::unordered_map<unsigned int, RenderSystem::ORIENTATIONS>& map);
+
+	/// <summary>
 	/// Updates the values for a tile. This includes rendering data and TerrainCell data.
 	/// </summary>
 	/// <param name="tile">The tile's entity</param>
-	void update_tile(Entity tile) {
+	/// <param name="also_update_neighbours">Set to True if this tile's neighbours should also be updated</param>
+	void update_tile(Entity tile, bool also_update_neighbours = false) {
 		TerrainCell& cell = registry.terrainCells.get(tile);
-		return update_tile(tile, cell);
+		return update_tile(tile, cell, also_update_neighbours);
 	}
 
 	/// <summary>
@@ -183,11 +208,41 @@ public:
 	/// </summary>
 	/// <param name="tile">The tile's entity</param>
 	/// <param name="cell">The tile's TerrainCell component</param>
-	void update_tile(Entity tile, TerrainCell& cell) {
-		terraincell_grid[tile - entityStart] = cell;
+	/// <param name="also_update_neighbours">Set to True if this tile's neighbours should also be updated</param>
+	void update_tile(Entity tile, TerrainCell& cell, bool also_update_neighbours = false) {
+		int i = tile - entityStart;		
+		terraincell_grid[i] = cell;
+		uint8_t frame_value = 0;
+
+		// Evaluate a direction if the terrain type is directional.
+		if (directional_terrain.count(cell.terrain_type)) {
+			frame_value = find_tile_orientation(i);
+		}
+
 		// We may have tiles changed during world_system.init() at startup so we need to check!
-		if (renderer->is_terrain_mesh_loaded)
-			renderer->changeTerrainData(tile, tile - entityStart, cell);
+		if (renderer->is_terrain_mesh_loaded) {
+			renderer->changeTerrainData(tile, tile - entityStart, cell, frame_value);
+			if (also_update_neighbours) {
+				// We also need to update the adjacent cells
+				int indices[orientations_n_indices] = {
+				i - size_x,		// Top cell
+				i + 1,			// Right cell
+				i + size_x,		// Bottom cell
+				i - 1,			// Left cell
+				i - size_x + 1,	// Top-right cell
+				i + size_x + 1,	// Bottom-right cell
+				i + size_x - 1,	// Bottom-left cell
+				i - size_x - 1,	// Top-left cell
+				};
+				filter_neighbouring_indices(i, indices);
+
+				for (int j : indices) {
+					if (j < 0)
+						continue;
+					update_tile(entity_grid[j]);
+				}
+			}
+		}
 	}
 
 	/// <summary>
@@ -237,6 +292,36 @@ private:
 	/// <param name="index">The index to a cell in 'grid'</param>
 	/// <returns>The cell's world position</returns>
 	vec2 to_world_coordinates(const int index);
+
+	/// <summary>
+	/// Checks if the given terrain type and terrain_cell[index] has the same terrain type
+	/// </summary>
+	bool matches_terrain_type(uint16_t current, int index);
+
+	/// <summary>
+	/// Checks that 2 given lisst of ori_index-indexed tiles either has matching terrain or non-matching terrain.
+	/// </summary>
+	/// <param name="current">The terrain type of the queried cell</param>
+	/// <param name="indices">The indices of all 8 adjacent tiles. See ori_index for order.</param>
+	/// <param name="match_list">List of ori_index neighbouring tiles that must be the same type</param>
+	/// <param name="reject_list">List of ori_index neighbouring tiles that must NOT match</param>
+	/// <returns>True if every neighbour in match_list matches AND every neighbour in reject_list do not match</returns>
+	bool match_adjacent_terrain(uint16_t current, int indices[orientations_n_indices], std::initializer_list<uint8_t> match_list, std::initializer_list<uint8_t> reject_list = {});
+
+	/// <summary>
+	/// Assuming that the given tile is a directional type, returns its appropriate orientation.
+	/// </summary>
+	/// <param name="centre_index">The index of the queried tile.</param>
+	/// <returns>The tile's orientation as RenderSystem::ORIENTATIONS</returns>
+	RenderSystem::ORIENTATIONS find_tile_orientation(int centre_index);
+
+	/// <summary>
+	/// Assuming that the given tile is a directional type, returns its appropriate orientation.
+	/// </summary>
+	/// <param name="current">The terrain type of the queried cell</param>
+	/// <param name="indices">The indices of all 8 adjacent tiles. See ori_index for order.</param>
+	/// <returns>The tile's orientation as RenderSystem::ORIENTATIONS</returns>
+	RenderSystem::ORIENTATIONS find_tile_orientation(uint16_t current, int indices[orientations_n_indices]);
 
 	// Map to keep track of locations where an item/mob has been spawned
 	std::unordered_set<vec2> used_terrain_locations;

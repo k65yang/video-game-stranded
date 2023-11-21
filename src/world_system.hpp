@@ -14,6 +14,8 @@
 #include "render_system.hpp"
 #include "terrain_system.hpp"
 #include "weapons_system.hpp"
+#include "mob_system.hpp"
+#include "physics_system.hpp"
 
 // Container for all our entities and game logic. Individual rendering / update is
 // deferred to the relative update() methods
@@ -39,7 +41,7 @@ public:
 	GLFWwindow* create_window();
 
 	// starts the game
-	void init(RenderSystem* renderer, TerrainSystem* terrain_arg, WeaponsSystem* weapons_system_arg);
+	void init(RenderSystem* renderer, TerrainSystem* terrain_arg, WeaponsSystem* weapons_system_arg, PhysicsSystem* physics_system_arg, MobSystem* mob_system_arg);
 
 	// Releases all associated resources
 	~WorldSystem();
@@ -58,9 +60,9 @@ public:
 
 	// Check for collisions
 	void handle_collisions();
-
 	// Should the game be over ?
 	bool is_over()const;
+	bool is_home()const; 
 private:
 	// Input callback functions
 	void on_key(int key, int, int action, int mod);
@@ -80,12 +82,12 @@ private:
 	// Number of fish eaten by the salmon, displayed in the window title
 	unsigned int points;
 
-	vec2 zone1_boundary_size = {15,15};
-
 	// Game state
 	RenderSystem* renderer;
 	TerrainSystem* terrain;
 	WeaponsSystem* weapons_system;
+	MobSystem* mob_system;
+	PhysicsSystem* physics_system;
 	float current_speed;
 	float next_turtle_spawn;
 	float next_fish_spawn;
@@ -98,6 +100,7 @@ private:
 	Entity weapon_indicator;
 	Entity powerup_indicator;
 	Entity spaceship;
+	Entity home; 
 	Entity help_bar;
 	std::vector<std::pair<Entity, bool>> quest_items;
 
@@ -119,7 +122,6 @@ private:
 	// Random item and mob spawning 
 	// Limits on the number of items and mobs
 	const int ITEM_LIMIT = 32;
-	const int MOB_LIMIT = 16;
 
 	// Vector to keep track of locations where an item/mob has been spawned
 	std::vector<vec2> used_spawn_locations;
@@ -130,16 +132,10 @@ private:
 	// Changes clicked tiles' flags to the given value.
 	uint16_t editor_flag = 0;
 
-
 	/// <summary>
 	/// Spawns ITEM_LIMIT items randomly across the map
 	///	</summary>
 	void spawn_items();
-
-	/// <summary>
-	/// Spawns MOB_LIMIT mobs randomly across the map
-	///	</summary>
-	void spawn_mobs();
 
 	/// <summary>
 	/// Maps the GLFW key into a InputKeyIndex as an int
@@ -159,5 +155,17 @@ private:
 	/// Sets camera follow mode to true if no camera-control buttons are pressed
 	/// </summary>
 	void update_camera_follow();
+
+	/// <summary>
+	///  Sets the player's facing direction based on the cursor angle (aiming direction)
+	/// </summary>
+	void updatePlayerDirection();
+
+	/// <summary>
+	// Handles various aspects related to player movement, 
+	// including updating the walking animation and tracking the total distance traveled.
+	/// </summary>
+	/// <param name="elapsed_ms_since_last_update"></param>
+	void handlePlayerMovement(float elapsed_ms_since_last_update);
 	bool keyDown[KEYS];    // Uses InputKeyIndex values as index
 };
