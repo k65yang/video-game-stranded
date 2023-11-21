@@ -265,7 +265,7 @@ Entity createFrame(RenderSystem* renderer, vec2 position, FRAME_TYPE type) {
 				break;
 			case FRAME_TYPE::BAR_FRAME:
 				texture = TEXTURE_ASSET_ID::BAR_FRAME;
-				motion.scale = vec2({ 1.2, 2.2 });
+				motion.scale = vec2({ 1.2, 2 });
 				break;
 
 		}

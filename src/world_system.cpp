@@ -294,7 +294,6 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	updatePlayerDirection();
 
 	// Player Movement code, build the velocity resulting from player movement
-	//for movement, animation, and distance calculation
 	handlePlayerMovement(elapsed_ms_since_last_update);
 		
 	// Camera movement mode
@@ -337,9 +336,6 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	if (registry.weapons.has(player_equipped_weapon)) {
 		auto& weapon = registry.weapons.get(player_equipped_weapon);
 		vec2 new_ammo_scale = vec2(((float)weapon.ammo_count / (float)PLAYER_MAX_AMMO) * AMMO_BAR_SCALE[0], AMMO_BAR_SCALE[1]);
-		//printf("Ammo count: %d\n", weapon.ammo_count); 
-		//printf("Player max ammo: %d\n", PLAYER_MAX_AMMO);
-		//printf("new_ammo_scale_outside: (%f,%f)\n", new_ammo_scale.x, new_ammo_scale.y);
 		auto& w_motion = registry.motions.get(ammo_indicator);
 		w_motion.scale = new_ammo_scale;
 
@@ -1063,23 +1059,21 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 			Motion& t_motion = registry.motions.get(turkey);
 			Motion& a_item_motion = registry.motions.get(ammo);
 
+			// bar movements 
 			fs_motion.position = { -3.5f + camera_motion.position.x, camera_motion.position.y };
 			as_motion.position = { 4.5f + camera_motion.position.x,  0.5f + camera_motion.position.y };
 			t_motion.position = { -5.5f + camera_motion.position.x, 0.f + camera_motion.position.y };
 			a_item_motion.position = { 1.f + camera_motion.position.x, 0.5f + camera_motion.position.y };
-			fs_frame_motion.position = { -3.5f + camera_motion.position.x, camera_motion.position.y };
-			as_frame_motion.position = { 4.5f + camera_motion.position.x,  0.5f + camera_motion.position.y };
+			fs_frame_motion.position = { -3.49f + camera_motion.position.x, camera_motion.position.y };
+			as_frame_motion.position = { 4.51f + camera_motion.position.x,  0.5f + camera_motion.position.y };
 			// regenerate food and health 
 			player.health = PLAYER_MAX_HEALTH;
 			health.scale = HEALTH_BAR_SCALE;
 			// Calculate the amount of food needed to fill the player's capacity
 			checkAndRegenerate(player.food, f_storage.amount, PLAYER_MAX_FOOD);
-
 			// update food bar scales based on the regen  
-			vec2 new_food_scale = vec2(((float)player.food / (float)PLAYER_MAX_FOOD) * FOOD_BAR_SCALE[0], FOOD_BAR_SCALE[1]);
-			vec2 new_turkey_scale = vec2(TURKEY_BAR_SCALE[0], ((float)f_storage.amount / (float)200) * TURKEY_BAR_SCALE[1]);
-			food.scale = new_food_scale;
-			fs_motion.scale = new_turkey_scale;
+			food.scale = vec2(((float)player.food / (float)PLAYER_MAX_FOOD) * FOOD_BAR_SCALE[0], FOOD_BAR_SCALE[1]);
+			fs_motion.scale = vec2(TURKEY_BAR_SCALE[0], ((float)f_storage.amount / (float)200) * TURKEY_BAR_SCALE[1]);
 			// check has weapon 
 			if (registry.weapons.has(player_equipped_weapon)) {
 				auto& weapon = registry.weapons.get(player_equipped_weapon);
@@ -1087,14 +1081,9 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 				//regen ammo
 				checkAndRegenerate(weapon.ammo_count, a_storage.amount, PLAYER_MAX_AMMO);
 				// update ammo bar scales based on regen
-				vec2 new_ammo_scale = vec2(((float)weapon.ammo_count / (float)PLAYER_MAX_AMMO) * AMMO_BAR_SCALE[0], AMMO_BAR_SCALE[1]);
-				vec2 new_a_storage_scale = vec2(AMMO_STORAGE_SCALE[0], ((float)a_storage.amount / (float)200) * AMMO_STORAGE_SCALE[1]);
-				w_motion.scale = new_ammo_scale;
-				as_motion.scale = new_a_storage_scale;
-
-
+				w_motion.scale = vec2(((float)weapon.ammo_count / (float)PLAYER_MAX_AMMO) * AMMO_BAR_SCALE[0], AMMO_BAR_SCALE[1]);
+				as_motion.scale = vec2(AMMO_STORAGE_SCALE[0], ((float)a_storage.amount / (float)200) * AMMO_STORAGE_SCALE[1]);
 			}
-			// Todo: do interpolation in step function 
 
 			printf("You are home\n");
 			s.in_home = true;
