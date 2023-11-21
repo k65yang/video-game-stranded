@@ -53,7 +53,7 @@ static int window_height_px;
 // Actual screen resolution stores iniside render_system as window_resolution
 const ivec2 target_resolution = { 1200, 800 };	// alternative: { 1620, 1080 }
 const ivec2 aspect_ratio = { 3, 2 };			// Remember to reduce this to lowest form!
-// const bool windowed_mode = true;
+const bool windowed_mode = true;
 
 const int tile_size_px = 50;		// Represents how many pixels a tile occupies in a row and column
 
