@@ -11,6 +11,7 @@
 
 const int PLAYER_MAX_FOOD = 100;
 const int PLAYER_MAX_HEALTH = 100;
+const int PLAYER_MAX_AMMO = 10;
 
 enum class ITEM_TYPE {
 	QUEST_ONE = 0,
@@ -78,7 +79,7 @@ struct Weapon {
 	float elapsed_last_shot_time_ms;     // controls fire rate, the time that the weapon was fired last
 	float projectile_velocity;           // speed of projectiles of this weapon
 	int projectile_damage;               // weapon damage
-	int ammo_count;
+	int ammo_count = PLAYER_MAX_AMMO;
 };
 
 // The spaceship 

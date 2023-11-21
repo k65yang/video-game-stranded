@@ -179,6 +179,14 @@ private:
 	void updatePlayerDirection();
 
 	/// <summary>
+	/// Regenerate from storage 
+	/// </summary>
+	/// <param name="resource"></param>
+	/// <param name="storage"></param>
+	/// <param name="max_capacity"></param>
+	void checkAndRegenerate(int& resource, int& storage, int max_capacity); 
+
+	/// <summary>
 	// Handles various aspects related to player movement, 
 	// including updating the walking animation and tracking the total distance traveled.
 	/// </summary>

@@ -13,7 +13,9 @@ const float TURTLE_BB_WIDTH = 0.4f * 300.f;
 const float TURTLE_BB_HEIGHT = 0.4f * 202.f;
 const vec2 HEALTH_BAR_SCALE = vec2(5.5, 0.7);
 const vec2 FOOD_BAR_SCALE = vec2(5.5, 0.7);
+const vec2 AMMO_BAR_SCALE = vec2({ 3, 0.4 }); 
 const vec2 TURKEY_BAR_SCALE = vec2({ 0.5, 2 });
+const vec2 AMMO_STORAGE_SCALE = vec2({ 0.5, 2 });
 
 // the player
 Entity createPlayer(RenderSystem* renderer, vec2 pos);

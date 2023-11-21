@@ -331,6 +331,17 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		Motion& ammo_ui = registry.motions.get(ammo_indicator); 
 		ammo_ui.position = { -10 + camera_motion.position.x, -4.f + camera_motion.position.y};
 	}
+	// update the ammo bar 
+	if (registry.weapons.has(player_equipped_weapon)) {
+		auto& weapon = registry.weapons.get(player_equipped_weapon);
+		vec2 new_ammo_scale = vec2(((float)weapon.ammo_count / (float)PLAYER_MAX_AMMO) * AMMO_BAR_SCALE[0], AMMO_BAR_SCALE[1]);
+		//printf("Ammo count: %d\n", weapon.ammo_count); 
+		//printf("Player max ammo: %d\n", PLAYER_MAX_AMMO);
+		//printf("new_ammo_scale_outside: (%f,%f)\n", new_ammo_scale.x, new_ammo_scale.y);
+		auto& w_motion = registry.motions.get(ammo_indicator);
+		w_motion.scale = new_ammo_scale;
+
+		}
 
 	// Mob updates
 	for (Entity entity : registry.mobs.entities) {
@@ -564,11 +575,9 @@ void WorldSystem::restart_game() {
 	food_bar = createBar(renderer, { 8.f, -7.f }, PLAYER_MAX_FOOD, BAR_TYPE::FOOD_BAR);
 
 	// Create food storage bar
-	// Todo: locate the food storage bar according to screen size and food sprite 
-	food_storage = createBar(renderer, { -3.5f, 0.f }, 100, BAR_TYPE::FOOD_STORAGE);
-
+	food_storage = createBar(renderer, { -3.5f, 0.f }, 200, BAR_TYPE::FOOD_STORAGE);
 	// Create ammo storage bar
-	ammo_storage = createBar(renderer, { 4.5f, 0.5f }, 100, BAR_TYPE::AMMO_STORAGE);
+	ammo_storage = createBar(renderer, { 4.5f, 0.5f }, 200, BAR_TYPE::AMMO_STORAGE);
 
 	// Creating spaceship home items 
 	turkey = createStorage(renderer, { -5.5f, 0.f }, ITEM_TYPE::TURKEY);
@@ -734,7 +743,7 @@ void WorldSystem::handle_collisions() {
 						help_bar = createHelp(renderer, { 0.f, -7.f }, TEXTURE_ASSET_ID::HELP_WEAPON);
 					}
 					weapon_indicator = createWeaponIndicator(renderer, { -10.f, -6.f }, TEXTURE_ASSET_ID::ICON_SHURIKEN);
-					ammo_indicator = createBar(renderer, { -10, -4.f },100, BAR_TYPE::AMMO_BAR); 
+					ammo_indicator = createBar(renderer, { -10, -4.f }, registry.weapons.get(player_equipped_weapon).ammo_count, BAR_TYPE::AMMO_BAR);
 					break;
 				case ITEM_TYPE::WEAPON_CROSSBOW:
 					player_equipped_weapon = weapons_system->createWeapon(ITEM_TYPE::WEAPON_CROSSBOW);
@@ -749,7 +758,7 @@ void WorldSystem::handle_collisions() {
 						help_bar = createHelp(renderer, { 0.f, -7.f }, TEXTURE_ASSET_ID::HELP_WEAPON);
 					}
 					weapon_indicator = createWeaponIndicator(renderer, {-10.f, -6.f}, TEXTURE_ASSET_ID::ICON_CROSSBOW);
-					ammo_indicator = createBar(renderer, { -10, -4.f },100, BAR_TYPE::AMMO_BAR);
+					ammo_indicator = createBar(renderer, { -10, -4.f }, registry.weapons.get(player_equipped_weapon).ammo_count, BAR_TYPE::AMMO_BAR);
 
 					break;
 				case ITEM_TYPE::WEAPON_SHOTGUN:
@@ -765,7 +774,7 @@ void WorldSystem::handle_collisions() {
 						help_bar = createHelp(renderer, { 0.f, -7.f }, TEXTURE_ASSET_ID::HELP_WEAPON);
 					}
 					weapon_indicator = createWeaponIndicator(renderer, {-10.f, -6.f}, TEXTURE_ASSET_ID::ICON_SHOTGUN);
-					ammo_indicator = createBar(renderer, { -10, -4.f },100, BAR_TYPE::AMMO_BAR);
+					ammo_indicator = createBar(renderer, { -10, -4.f }, registry.weapons.get(player_equipped_weapon).ammo_count, BAR_TYPE::AMMO_BAR);
 
 					break;
 				case ITEM_TYPE::WEAPON_MACHINEGUN:
@@ -782,7 +791,7 @@ void WorldSystem::handle_collisions() {
 						help_bar = createHelp(renderer, { 0.f, -7.f }, TEXTURE_ASSET_ID::HELP_WEAPON);
 					}
 					weapon_indicator = createWeaponIndicator(renderer, {-10.f, -6.f}, TEXTURE_ASSET_ID::ICON_MACHINE_GUN);
-					ammo_indicator = createBar(renderer, { -10, -4.f }, 100, BAR_TYPE::AMMO_BAR);
+					ammo_indicator = createBar(renderer, { -10, -4.f }, registry.weapons.get(player_equipped_weapon).ammo_count, BAR_TYPE::AMMO_BAR);
 
 					break;
 				case ITEM_TYPE::WEAPON_UPGRADE:
@@ -911,6 +920,17 @@ void WorldSystem::update_camera_follow() {
 	c.mode_follow = true;
 }
 
+void WorldSystem::checkAndRegenerate(int& resource, int& storage, int max_capacity) {
+	int needed = max_capacity - resource;
+	if (needed <= storage) {
+		storage -= needed;
+		resource = max_capacity;
+		}
+	else {
+		resource += storage;
+		storage = 0;
+		}
+	}
 
 // On key callback
 void WorldSystem::on_key(int key, int, int action, int mod) {
@@ -1015,11 +1035,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		if (action == GLFW_PRESS && key == GLFW_KEY_E ) {
 			Player& player = registry.players.get(player_salmon);
 			Spaceship& s = registry.spaceship.get(home);
-
-			// regenerate food and health 
-			player.health = PLAYER_MAX_HEALTH;
-			//player.food = PLAYER_MAX_FOOD;
-
+			//bars
 			Motion& health = registry.motions.get(health_bar);
 			Motion& food = registry.motions.get(food_bar);
 
@@ -1027,16 +1043,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 			Motion& camera_motion = registry.motions.get(main_camera);
 			camera_motion.angle = 0;
 			camera_motion.scale = vec2(1, 1);
-			/*
-			auto& spaceshipsRegistry = registry.spaceship;
 
-			for (uint i = 0; i < spaceshipsRegistry.components.size(); i++) {
-				// The entity and its collider
-				Entity home_entity = spaceshipsRegistry.entities[i];
-				Motion& e_motion = registry.motions.get(home_entity);
-				e_motion.position = { e_motion.position.x + camera_motion.position.x, e_motion.position.y + camera_motion.position.y };
-			}
-			*/
 			//update Spaceship home movement 
 			Motion& s_motion = registry.motions.get(home);
 			s_motion.position = { camera_motion.position.x,camera_motion.position.y };
@@ -1046,56 +1053,44 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 			// Bars 
 			Motion& fs_motion = registry.motions.get(food_storage);
 			Bar& f_storage = registry.bar.get(food_storage);
-			Motion& a_motion = registry.motions.get(ammo_storage); 
+			Motion& as_motion = registry.motions.get(ammo_storage); 
+			Bar& a_storage = registry.bar.get(ammo_storage);
 
 			// storage items 
 			Motion& t_motion = registry.motions.get(turkey);
-			Motion& as_motion = registry.motions.get(ammo);
+			Motion& a_item_motion = registry.motions.get(ammo);
 
 			fs_motion.position = { -3.5f + camera_motion.position.x, camera_motion.position.y };
-			a_motion.position = { 4.5f + camera_motion.position.x,  0.5f + camera_motion.position.y };
+			as_motion.position = { 4.5f + camera_motion.position.x,  0.5f + camera_motion.position.y };
 			t_motion.position = { -5.5f + camera_motion.position.x, 0.f + camera_motion.position.y };
-			as_motion.position = { 1.f + camera_motion.position.x, 0.5f + camera_motion.position.y };
+			a_item_motion.position = { 1.f + camera_motion.position.x, 0.5f + camera_motion.position.y };
 
+			// regenerate food and health 
+			player.health = PLAYER_MAX_HEALTH;
+			health.scale = HEALTH_BAR_SCALE;
 			// Calculate the amount of food needed to fill the player's capacity
-			int foodNeeded = PLAYER_MAX_FOOD - player.food;
+			checkAndRegenerate(player.food, f_storage.amount, PLAYER_MAX_FOOD);
 
-			printf("Food before refil: %d \n", player.food);
-			// Update food bar after regenerate  
-			// Check if there is enough food in the home to fill the player's capacity
-			if (foodNeeded <= f_storage.amount) {
-				// Take food from home to fill player's capacity
-				f_storage.amount -= foodNeeded;
-				player.food = PLAYER_MAX_FOOD;
-				printf("Food after refil: %d \n", player.food);
-				printf("The ammount of food storage left: %d \n", f_storage.amount);
-				}
-			else {
-				// Take all available food from home
-				player.food += f_storage.amount;
-				f_storage.amount = 0;
-				printf("Food after refil: %d \n", player.food);
-				printf("The ammount of food storage left: %d \n", f_storage.amount);
-				}
-			// regenerate based on player.food  
+			// update food bar scales based on the regen  
 			vec2 new_food_scale = vec2(((float)player.food / (float)PLAYER_MAX_FOOD) * FOOD_BAR_SCALE[0], FOOD_BAR_SCALE[1]);
 			vec2 new_turkey_scale = vec2(TURKEY_BAR_SCALE[0], ((float)f_storage.amount / (float)200) * TURKEY_BAR_SCALE[1]);
-
-			printf("New Turkey scale: (%f, %f)\n", new_turkey_scale.x, new_turkey_scale.y);
-			// do interpolation in step function 
-			health.scale = HEALTH_BAR_SCALE;
 			food.scale = new_food_scale;
-			printf("before Turkey scale: (%f, %f)\n", fs_motion.scale.x, fs_motion.scale.y);
 			fs_motion.scale = new_turkey_scale;
-			printf("after Turkey scale: (%f, %f)\n", fs_motion.scale.x, fs_motion.scale.y);
-
-
+			// check has weapon 
 			if (registry.weapons.has(player_equipped_weapon)) {
 				auto& weapon = registry.weapons.get(player_equipped_weapon);
-				weapon.ammo_count = 100;
-				printf("Weapon count after enter home %d \n", weapon.ammo_count); 
-			}
+				auto& w_motion = registry.motions.get(ammo_indicator);
+				//regen ammo
+				checkAndRegenerate(weapon.ammo_count, a_storage.amount, PLAYER_MAX_AMMO);
+				// update ammo bar scales based on regen
+				vec2 new_ammo_scale = vec2(((float)weapon.ammo_count / (float)PLAYER_MAX_AMMO) * AMMO_BAR_SCALE[0], AMMO_BAR_SCALE[1]);
+				vec2 new_a_storage_scale = vec2(AMMO_STORAGE_SCALE[0], ((float)a_storage.amount / (float)200) * AMMO_STORAGE_SCALE[1]);
+				w_motion.scale = new_ammo_scale;
+				as_motion.scale = new_a_storage_scale;
 
+
+			}
+			// Todo: do interpolation in step function 
 
 			printf("You are home\n");
 			s.in_home = true;

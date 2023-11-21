@@ -194,7 +194,6 @@ Entity createBar(RenderSystem* renderer, vec2 position, int amount, BAR_TYPE typ
 	createDefaultCollider(entity);
 
 	auto& bar = registry.bar.emplace(entity);
-	bar.amount = 200;
 
 	TEXTURE_ASSET_ID texture = TEXTURE_ASSET_ID::PLAYER;
 	switch (type) {
@@ -212,13 +211,18 @@ Entity createBar(RenderSystem* renderer, vec2 position, int amount, BAR_TYPE typ
 				texture = TEXTURE_ASSET_ID::BROWNBLOCK;
 				motion.scale = vec2({ 3, 0.4 }); 
 				break; 
+				// Turkey at home 
 			case BAR_TYPE::FOOD_STORAGE:
 				texture = TEXTURE_ASSET_ID::FOOD_BLOCK;
 				motion.scale = vec2({ 0.5, 2 });
+				bar.amount = 200;
+
+
 				break;
 			case BAR_TYPE::AMMO_STORAGE:
 				texture = TEXTURE_ASSET_ID::AMMO_BLOCK;
 				motion.scale = vec2({ 0.5, 2 });
+				bar.amount = 200;
 				break;
 		}
 
