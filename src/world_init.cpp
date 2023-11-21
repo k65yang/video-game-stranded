@@ -177,7 +177,7 @@ Entity createLine(vec2 position, vec2 scale)
 	return entity;
 }
 
-Entity createBar(RenderSystem* renderer, vec2 position, BAR_TYPE type) {
+Entity createBar(RenderSystem* renderer, vec2 position, int amount, BAR_TYPE type) {
 	auto entity = Entity();
 
 	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
@@ -200,10 +200,12 @@ Entity createBar(RenderSystem* renderer, vec2 position, BAR_TYPE type) {
 	switch (type) {
 			case BAR_TYPE::HEALTH_BAR:
 				texture = TEXTURE_ASSET_ID::REDBLOCK;
+				motion.scale = vec2(((float)amount / (float)PLAYER_MAX_HEALTH) * HEALTH_BAR_SCALE[0], HEALTH_BAR_SCALE[1]);
+
 				break;
 			case BAR_TYPE::FOOD_BAR:
 				texture = TEXTURE_ASSET_ID::BLUEBLOCK;
-				motion.scale = vec2(((float)food / (float)PLAYER_MAX_FOOD) * FOOD_BAR_SCALE[0], FOOD_BAR_SCALE[1]);
+				motion.scale = vec2(((float)amount / (float)PLAYER_MAX_FOOD) * FOOD_BAR_SCALE[0], FOOD_BAR_SCALE[1]);
 
 				break;
 			case BAR_TYPE:: AMMO_BAR:
@@ -240,6 +242,7 @@ Entity createFrame(RenderSystem* renderer, vec2 position, FRAME_TYPE type) {
 	auto& motion = registry.motions.emplace(entity);
 	motion.angle = 0.f;
 	motion.velocity = { 0.f, 0.f };
+	motion.scale = vec2({ 6, 1 });
 
 	// Initialize the collider
 	createDefaultCollider(entity);
@@ -255,8 +258,6 @@ Entity createFrame(RenderSystem* renderer, vec2 position, FRAME_TYPE type) {
 
 		}
 	motion.position = position; 
-	motion.scale = vec2(((float)health / (float)PLAYER_MAX_HEALTH) * HEALTH_BAR_SCALE[0], HEALTH_BAR_SCALE[1]);
-
 	registry.renderRequests.insert(
 		entity,
 		{ texture,

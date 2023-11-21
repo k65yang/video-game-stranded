@@ -555,20 +555,20 @@ void WorldSystem::restart_game() {
 	// Create fow
 	fow = createFOW(renderer, { 0,0 });
 
-	// Create health bars 
-	health_bar = createBar(renderer, { -8.f, 7.f }, BAR_TYPE::HEALTH_BAR);
+	// Create health bars
+	health_bar = createBar(renderer, { -8.f, 7.f }, PLAYER_MAX_HEALTH, BAR_TYPE::HEALTH_BAR);
 
 	health_frame = createFrame(renderer, { -8.f, 7.f }, FRAME_TYPE::HEALTH_FRAME);
 
 	// Create food bars 
-	food_bar = createBar(renderer, { 8.f, -7.f }, BAR_TYPE::FOOD_BAR);
+	food_bar = createBar(renderer, { 8.f, -7.f }, PLAYER_MAX_FOOD, BAR_TYPE::FOOD_BAR);
 
 	// Create food storage bar
 	// Todo: locate the food storage bar according to screen size and food sprite 
-	food_storage = createBar(renderer, { -3.5f, 0.f }, BAR_TYPE::FOOD_STORAGE);
+	food_storage = createBar(renderer, { -3.5f, 0.f }, 100, BAR_TYPE::FOOD_STORAGE);
 
 	// Create ammo storage bar
-	ammo_storage = createBar(renderer, { 4.5f, 0.5f }, BAR_TYPE::AMMO_STORAGE);
+	ammo_storage = createBar(renderer, { 4.5f, 0.5f }, 100, BAR_TYPE::AMMO_STORAGE);
 
 	// Creating spaceship home items 
 	turkey = createStorage(renderer, { -5.5f, 0.f }, ITEM_TYPE::TURKEY);
@@ -734,7 +734,7 @@ void WorldSystem::handle_collisions() {
 						help_bar = createHelp(renderer, { 0.f, -7.f }, TEXTURE_ASSET_ID::HELP_WEAPON);
 					}
 					weapon_indicator = createWeaponIndicator(renderer, { -10.f, -6.f }, TEXTURE_ASSET_ID::ICON_SHURIKEN);
-					ammo_indicator = createBar(renderer, { -10, -4.f }, BAR_TYPE::AMMO_BAR); 
+					ammo_indicator = createBar(renderer, { -10, -4.f },100, BAR_TYPE::AMMO_BAR); 
 					break;
 				case ITEM_TYPE::WEAPON_CROSSBOW:
 					player_equipped_weapon = weapons_system->createWeapon(ITEM_TYPE::WEAPON_CROSSBOW);
@@ -749,7 +749,7 @@ void WorldSystem::handle_collisions() {
 						help_bar = createHelp(renderer, { 0.f, -7.f }, TEXTURE_ASSET_ID::HELP_WEAPON);
 					}
 					weapon_indicator = createWeaponIndicator(renderer, {-10.f, -6.f}, TEXTURE_ASSET_ID::ICON_CROSSBOW);
-					ammo_indicator = createBar(renderer, { -10, -4.f }, BAR_TYPE::AMMO_BAR);
+					ammo_indicator = createBar(renderer, { -10, -4.f },100, BAR_TYPE::AMMO_BAR);
 
 					break;
 				case ITEM_TYPE::WEAPON_SHOTGUN:
@@ -765,7 +765,7 @@ void WorldSystem::handle_collisions() {
 						help_bar = createHelp(renderer, { 0.f, -7.f }, TEXTURE_ASSET_ID::HELP_WEAPON);
 					}
 					weapon_indicator = createWeaponIndicator(renderer, {-10.f, -6.f}, TEXTURE_ASSET_ID::ICON_SHOTGUN);
-					ammo_indicator = createBar(renderer, { -10, -4.f }, BAR_TYPE::AMMO_BAR);
+					ammo_indicator = createBar(renderer, { -10, -4.f },100, BAR_TYPE::AMMO_BAR);
 
 					break;
 				case ITEM_TYPE::WEAPON_MACHINEGUN:
@@ -782,7 +782,7 @@ void WorldSystem::handle_collisions() {
 						help_bar = createHelp(renderer, { 0.f, -7.f }, TEXTURE_ASSET_ID::HELP_WEAPON);
 					}
 					weapon_indicator = createWeaponIndicator(renderer, {-10.f, -6.f}, TEXTURE_ASSET_ID::ICON_MACHINE_GUN);
-					ammo_indicator = createBar(renderer, { -10, -4.f }, BAR_TYPE::AMMO_BAR);
+					ammo_indicator = createBar(renderer, { -10, -4.f }, 100, BAR_TYPE::AMMO_BAR);
 
 					break;
 				case ITEM_TYPE::WEAPON_UPGRADE:
@@ -1447,10 +1447,10 @@ void WorldSystem::load_game(json j) {
 	fow = createFOW(renderer, player_location);
 
 	// Create health bars 
-	health_bar = createHealthBar(renderer, { -8.f, 7.f }, player.health);
+	health_bar = createBar(renderer, { -8.f, 7.f }, player.health, BAR_TYPE::HEALTH_BAR);
 
 	// Create food bars 
-	food_bar = createFoodBar(renderer, { 8.f, 7.f }, player.food);
+	food_bar = createBar(renderer, { 8.f, 7.f }, player.food, BAR_TYPE:: FOOD_BAR);
 
 	tooltips_on = false;
 	help_bar = createHelp(renderer, { 0.f, -7.f }, TEXTURE_ASSET_ID::LOADED);
