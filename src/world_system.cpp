@@ -752,11 +752,6 @@ void WorldSystem::handle_collisions() {
 				registry.remove_all_components_of(entity);
 			}
 			
-			// Checking Projectile - Boundary 
-			else if (registry.boundaries.has(entity_other))
-			{
-				registry.remove_all_components_of(entity);
-			}
 		}
 		// Todo: Collision involving Player - Spaceship should not allow player move ?
 			

@@ -69,7 +69,6 @@ private:
 			textures_path("player_spritesheet.png"),
 			textures_path("mob_spritesheet.png"),
 			textures_path("redblock.png"),
-			textures_path("fow mask.png"),
 			textures_path("item.png"),
 			textures_path("food.png"),
 			textures_path("weapon_shuriken.png"),
@@ -171,7 +170,7 @@ private:
 		shader_path("spritesheet"), 
 		shader_path("salmon"),
 		shader_path("textured"),
-		shader_path("water"),
+		shader_path("fog"),
 		shader_path("terrain"),};
 
 	std::array<GLuint, geometry_count> vertex_buffers;
