@@ -102,6 +102,7 @@ private:
 			textures_path("ghost.png"),
 			textures_path("brute.png"),	
 			textures_path("disruptor.png"),
+			textures_path("mob_turret.png"),
 			textures_path("loaded.png"),
 			textures_path("saving.png"),
 	};
