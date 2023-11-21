@@ -39,6 +39,7 @@ Entity MobSystem::create_mob(vec2 mob_position, MOB_TYPE mob_type, int current_h
 	auto& mob_info = registry.mobs.emplace(entity);
 	mob_info.damage = mob_damage_map.at(mob_type);
 	mob_info.aggro_range = mob_aggro_range_map.at(mob_type);
+	mob_info.is_tracking_player = false;
 	if (current_health != 0) {
 		mob_info.health = current_health;
 	}

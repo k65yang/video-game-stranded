@@ -840,8 +840,12 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 			items.push_back({ registry.items.get(item), registry.motions.get(item) });
 		}
 
-		SaveGame(player, player_motion, mobs, items);
+		std::vector<bool> quests;
+		for (auto& item : quest_items) {
+			quests.push_back(item.second);
+		}
 
+		SaveGame(player, player_motion, mobs, items, quests);
 
 	}
 
@@ -1136,15 +1140,25 @@ void WorldSystem::load_game(json j) {
 	// Reset the weapon indicator
 	user_has_first_weapon = false;
 
-	// TODO: remove the tooltips successfully
 	tooltips_on = false;
 	help_bar = createHelp(renderer, { 0.f, -7.f }, TEXTURE_ASSET_ID::LOADED);
 	current_tooltip = tooltips.size();
 
-	// TODO: Save the bool for the quest items -> put below
 	quest_items.clear();
-	quest_items.push_back({ createQuestItem(renderer, {10.f, -2.f}, TEXTURE_ASSET_ID::QUEST_1_NOT_FOUND), false });
-	quest_items.push_back({ createQuestItem(renderer, {10.f, 2.f}, TEXTURE_ASSET_ID::QUEST_2_NOT_FOUND), false });
+
+	if (!j["quests"][0]) {
+		quest_items.push_back({ createQuestItem(renderer, {10.f, -2.f}, TEXTURE_ASSET_ID::QUEST_1_NOT_FOUND), false });
+	}
+	else {
+		quest_items.push_back({ createQuestItem(renderer, {10.f, -2.f}, TEXTURE_ASSET_ID::QUEST_1_FOUND), true });
+	}
+
+	if (!j["quests"][1]) {
+		quest_items.push_back({ createQuestItem(renderer, {10.f, 2.f}, TEXTURE_ASSET_ID::QUEST_2_NOT_FOUND), false });
+	}
+	else {
+		quest_items.push_back({ createQuestItem(renderer, {10.f, 2.f}, TEXTURE_ASSET_ID::QUEST_2_FOUND), true });
+	}
 
 	// clear all used spawn locations
 	used_spawn_locations.clear();
@@ -1154,19 +1168,14 @@ void WorldSystem::load_game(json j) {
 	// for movement velocity
 	for (int i = 0; i < KEYS; i++)
 		keyDown[i] = false;
-
-
 }
 
 void WorldSystem::load_spawned_items_mobs(json& j) {
-	json& mobs = j["mobs"];
-	json& items = j["items"];
-
-	for (auto& item : items) {
+	for (auto& item : j["items"]) {
 		createItem(renderer, { item[1]["position_x"], item[1]["position_y"] }, item[0]["data"]);
 	}
 
-	for (auto& mob : mobs) {
+	for (auto& mob : j["mobs"]) {
 		mob_system->create_mob({ mob[1]["position_x"], mob[1]["position_y"] }, mob[0]["type"], mob[0]["health"]);
 	}
 }
