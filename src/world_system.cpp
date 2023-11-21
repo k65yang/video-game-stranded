@@ -30,15 +30,6 @@ WorldSystem::WorldSystem()
 	}
 
 WorldSystem::~WorldSystem() {
-	// Destroy music components
-	if (background_music != nullptr)
-		Mix_FreeMusic(background_music);
-	if (salmon_dead_sound != nullptr)
-		Mix_FreeChunk(salmon_dead_sound);
-	if (salmon_eat_sound != nullptr)
-		Mix_FreeChunk(salmon_eat_sound);
-	Mix_CloseAudio();
-
 	// Destroy all created components
 	registry.clear_all_components();
 
@@ -112,42 +103,16 @@ GLFWwindow* WorldSystem::create_window() {
 	glfwSetCursorPosCallback(window, cursor_pos_redirect);
 	glfwSetMouseButtonCallback(window, cursor_button_redirect);
 
-	//////////////////////////////////////
-	// Loading music and sounds with SDL
-	if (SDL_Init(SDL_INIT_AUDIO) < 0) {
-		fprintf(stderr, "Failed to initialize SDL Audio");
-		return nullptr;
-	}
-	if (Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048) == -1) {
-		fprintf(stderr, "Failed to open audio device");
-		return nullptr;
-	}
-
-	background_music = Mix_LoadMUS(audio_path("music.wav").c_str());
-	salmon_dead_sound = Mix_LoadWAV(audio_path("salmon_dead.wav").c_str());
-	salmon_eat_sound = Mix_LoadWAV(audio_path("salmon_eat.wav").c_str());
-
-	if (background_music == nullptr || salmon_dead_sound == nullptr || salmon_eat_sound == nullptr) {
-		fprintf(stderr, "Failed to load sounds\n %s\n %s\n %s\n make sure the data directory is present",
-			audio_path("music.wav").c_str(),
-			audio_path("salmon_dead.wav").c_str(),
-			audio_path("salmon_eat.wav").c_str());
-		return nullptr;
-	}
-
 	return window;
 }
 
-void WorldSystem::init(RenderSystem* renderer_arg, TerrainSystem* terrain_arg, WeaponsSystem* weapons_system_arg, PhysicsSystem* physics_system_arg, MobSystem* mob_system_arg) {
+void WorldSystem::init(RenderSystem* renderer_arg, TerrainSystem* terrain_arg, WeaponsSystem* weapons_system_arg, PhysicsSystem* physics_system_arg, MobSystem* mob_system_arg, AudioSystem* audio_system_arg) {
 	this->renderer = renderer_arg;
 	this->terrain = terrain_arg;
 	this->weapons_system = weapons_system_arg;
 	this->mob_system = mob_system_arg;
 	this->physics_system = physics_system_arg;
-	
-	// Playing background music indefinitely
-	Mix_PlayMusic(background_music, -1);
-	fprintf(stderr, "Loaded music\n");
+	this->audio_system = audio_system_arg;
 
 	// Set all states to default
 	restart_game();
@@ -820,8 +785,11 @@ void WorldSystem::handle_collisions() {
 				// printf("mob health: %i", mob.health);
 				if (mob.health <= 0) {
 					registry.remove_all_components_of(entity_other);
+					audio_system->play_one_shot(AudioSystem::MOB_DEATH);
 				}
-
+				else {
+					audio_system->play_one_shot(AudioSystem::MOB_HIT);
+				}
 				// Add weapon effects to the mob
 				weapons_system->applyWeaponEffects(entity, entity_other);
 
@@ -1272,7 +1240,23 @@ void WorldSystem::on_mouse_click(int button, int action, int mods) {
 		if (!registry.deathTimers.has(player_salmon)) {
 			// if theres ammo in current weapon 
 			Motion& player_motion = registry.motions.get(player_salmon);
-			// printf("player x: %f, player y: %f \n", player_motion.position.x, player_motion.position.y);
+
+			if (registry.weapons.has(player_equipped_weapon)) {
+				Weapon& w = registry.weapons.get(player_equipped_weapon);
+
+				// Play appropriate shooting noises if we've just shot
+				if (w.can_fire) {
+					switch (w.weapon_type) {
+					case ITEM_TYPE::WEAPON_SHOTGUN:
+						audio_system->play_one_shot(AudioSystem::SHOT); break;
+					case ITEM_TYPE::WEAPON_MACHINEGUN:
+						audio_system->play_one_shot(AudioSystem::SHOT_MG); break;
+					case ITEM_TYPE::WEAPON_CROSSBOW:
+						audio_system->play_one_shot(AudioSystem::SHOT_CROSSBOW); break;
+					}
+				}
+			}
+
 			weapons_system->fireWeapon(player_motion.position.x, player_motion.position.y, CURSOR_ANGLE);
 		}
 	}

@@ -66,10 +66,10 @@ public:
 		{TERRAIN_TYPE::AIR, 1.f},
 		{TERRAIN_TYPE::GRASS, 1.f},
 		{TERRAIN_TYPE::ROCK, 1.f},
-		{TERRAIN_TYPE::SAND, 0.6f},
-		{TERRAIN_TYPE::MUD, 0.3f},
-		{TERRAIN_TYPE::SHALLOW_WATER, 0.25f},
-		{TERRAIN_TYPE::DEEP_WATER, 0.0625f}
+		{TERRAIN_TYPE::SAND, 0.7f},
+		{TERRAIN_TYPE::MUD, 0.55f},
+		{TERRAIN_TYPE::SHALLOW_WATER, 0.4f},
+		{TERRAIN_TYPE::DEEP_WATER, 0.25f}
 	};
 
 	// Look-up table for zone boundaries. Zones are circular.
