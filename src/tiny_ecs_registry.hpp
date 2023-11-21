@@ -21,6 +21,8 @@ public:
 	ComponentContainer<HealthPowerup> healthPowerup;
 
 
+	ComponentContainer<PlayerKnockbackEffect> playerKnockbackEffects;
+	ComponentContainer<PlayerInaccuracyEffect> playerInaccuracyEffects;
 	ComponentContainer<Weapon> weapons;
 	ComponentContainer<Projectile> projectiles;
 
@@ -60,6 +62,8 @@ public:
 		registry_list.push_back(&speedPowerup);
 		registry_list.push_back(&healthPowerup);
 
+		registry_list.push_back(&playerKnockbackEffects);
+		registry_list.push_back(&playerInaccuracyEffects);
 		registry_list.push_back(&weapons);
 		registry_list.push_back(&projectiles);
 

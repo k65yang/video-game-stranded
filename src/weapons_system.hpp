@@ -154,4 +154,9 @@ class WeaponsSystem
         /// @param test the ITEM_TYPE to be tested
         /// @return bool
         bool isValidWeapon(ITEM_TYPE test);
+
+        /// @brief Changes the angle of a projectile so it is not completely accurate
+        /// @param angle Original angle of the projectile
+        /// @param inaccuracy_percent How much inaccuracy there is for the projectile as a percentage [0, 1.0] (0 means no inaccuracy)
+        void applyProjectileInaccuracy(float& angle, float inaccuracy_percent);
 };

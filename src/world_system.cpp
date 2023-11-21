@@ -298,9 +298,6 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	//for movement, animation, and distance calculation
 	handlePlayerMovement(elapsed_ms_since_last_update);
 		
-		
-
-
 	// Camera movement mode
 	Camera& c = registry.cameras.get(main_camera);
 	Motion& camera_motion = registry.motions.get(main_camera);
@@ -397,12 +394,49 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		}
 	}
 
+	// Player updates
+	for (Entity entity : registry.players.entities) {
+		Motion& motion = registry.motions.get(entity);
+
+		// Knockback updates
+		if (registry.playerKnockbackEffects.has(entity)) {
+			PlayerKnockbackEffect& playerKnockbackEffect = registry.playerKnockbackEffects.get(entity);
+			
+			// Increment duration
+			playerKnockbackEffect.elapsed_knockback_time_ms += elapsed_ms_since_last_update;
+			
+			// Set player velocity to zero and remove the PlayerKnockbackEffect component if knockback effect is over
+			if (playerKnockbackEffect.duration_ms < playerKnockbackEffect.elapsed_knockback_time_ms) {
+				motion.velocity = {0.f, 0.f};
+				registry.playerKnockbackEffects.remove(entity);
+
+				printf("KNOCKBACK REMOVED\n");
+			}
+		}
+
+		// Inaccuracy updates
+		if (registry.playerInaccuracyEffects.has(entity)) {
+			PlayerInaccuracyEffect& playerInaccuracyEffect = registry.playerInaccuracyEffects.get(entity);
+			
+			// Increment duration
+			playerInaccuracyEffect.elapsed_inaccuracy_time_ms += elapsed_ms_since_last_update;
+			
+			// Remove the PlayerInaccuracyEffect component if knockback effect is over
+			if (playerInaccuracyEffect.duration_ms < playerInaccuracyEffect.elapsed_inaccuracy_time_ms) {
+				registry.playerInaccuracyEffects.remove(entity);
+
+				printf("INACCURACY REMOVED\n");
+			}
+		}
+	}
+
 	// Lets the editor drag
 	if (debugging.in_debug_mode && editor_place_tile)
 		map_editor_routine();
 
 	return true;
 }
+
 void WorldSystem::updatePlayerDirection() {
 	if (CURSOR_ANGLE >= -M_PI / 4 && CURSOR_ANGLE < M_PI / 4) {
 		PLAYER_DIRECTION = 2;  // Right
@@ -429,7 +463,7 @@ void WorldSystem::handlePlayerMovement(float elapsed_ms_since_last_update) {
 	// We'll consider moveVelocity existing in player space
 	// Allow movement if player is not dead 
 	// Movement code, build the velocity resulting from player movement
-	if (!registry.deathTimers.has(player_salmon)) {
+	if (!registry.deathTimers.has(player_salmon) && !registry.playerKnockbackEffects.has(player_salmon)) {
 		Motion& m = registry.motions.get(player_salmon);
 		m.velocity = { 0, 0 };
 
@@ -447,19 +481,18 @@ void WorldSystem::handlePlayerMovement(float elapsed_ms_since_last_update) {
 				registry.players.components[0].framex = (registry.players.components[0].framex + 1) % 4;
 				ELAPSED_TIME = 0.0f; // Reset the timer
 				}
-			}
-		else {
+		} else {
 			// No movement keys pressed, set back to the first frame
 			registry.players.components[0].framex = 0;
 			}
 		}
-	else {
+	else if (registry.deathTimers.has(player_salmon)) {
 		// Player is dead, do not allow movement
 		Motion& m = registry.motions.get(player_salmon);
 		m.velocity = { 0, 0 };
 		registry.players.components[0].framey = 1;
-		}
 	}
+}
 
 void WorldSystem::handle_movement(Motion& motion, InputKeyIndex indexStart, bool invertDirection, bool useAbsoluteVelocity)
 {
@@ -656,6 +689,7 @@ void WorldSystem::handle_collisions() {
 
 				Mob& mob = registry.mobs.get(entity_other);
 				player.health -= mob.damage;
+				mob_system->apply_mob_attack_effects(entity, entity_other);
 
 				// Shrink the health bar
 				player.health_decrease_time = IFRAMES; // player's health decays over this period of time, using interpolation
