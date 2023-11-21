@@ -16,6 +16,7 @@ void main()
 	
 	float darkenOutsideFow = 0.25;
 	float magnifier = 3.f;
+	float distanceScaling = 18.f;
 
 	// calculate distance between center pixel and current pixel
 	float disToFOW = distance(texcoord, vec2(0.5f, 0.5f));
@@ -27,7 +28,7 @@ void main()
 
 	// drawing circle with distance in glsl reference: https://www.youtube.com/watch?v=L-BA4nJJ8bQ
 	// change pixel color based on distance to center pixel, if further, the texture color is darker
-	if (disToFOW < 0.25f) {
+	if (disToFOW < (fogRadius / distanceScaling)) {
 		color = (1 - magnifier * disToFOW ) * in_color;
 	} else {
 	// for pixel outside fog, darken but keep them still visible

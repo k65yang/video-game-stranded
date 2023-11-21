@@ -3,6 +3,7 @@
 #include <iostream>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include "render_system.hpp"
 
 Entity createPlayer(RenderSystem* renderer, vec2 pos)
 	{
@@ -142,9 +143,9 @@ Entity createHome(RenderSystem* renderer) {
 	createDefaultCollider(entity);
 	// Add home into spaceship
 	auto& spaceship = registry.spaceship.emplace(entity);
-
+	
 	// Setting initial values, scale is negative to make it face the opposite way
-	motion.scale = vec2({ window_width_px / 50, window_height_px / 50 });
+	motion.scale = vec2({ renderer->window_resolution.x/75 , renderer->window_resolution.y / 50 });
 	registry.renderRequests.insert(
 		entity,
 		{ TEXTURE_ASSET_ID::SPACEHOME,

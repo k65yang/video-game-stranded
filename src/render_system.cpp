@@ -157,6 +157,7 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 // water
 void RenderSystem::drawToScreen()
 {
+	
 	// Setting shaders
 	// get the water texture, sprite mesh, and program
 	glUseProgram(effects[(GLuint)EFFECT_ASSET_ID::WATER]);
@@ -172,7 +173,7 @@ void RenderSystem::drawToScreen()
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	gl_has_errors();
 	// Enabling alpha channel for textures
-	 glDisable(GL_BLEND);
+	glDisable(GL_BLEND);
 	// glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glDisable(GL_DEPTH_TEST);
 
@@ -214,7 +215,7 @@ void RenderSystem::drawToScreen()
 
 	glBindTexture(GL_TEXTURE_2D, off_screen_render_buffer_color);
 	gl_has_errors();
-
+	
 	// Draw
 	glDrawElements(
 		GL_TRIANGLES, 3, GL_UNSIGNED_SHORT,
@@ -441,7 +442,7 @@ void RenderSystem::draw()
 
 	
 	// Truely render to the screen
-	drawToScreen();
+	 drawToScreen();
 
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
