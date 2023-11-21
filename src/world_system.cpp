@@ -250,8 +250,8 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	screen.screen_darken_factor = 1 - min_timer_ms / 3000;
 
 	Motion& m = registry.motions.get(player_salmon);
-	Motion& f = registry.motions.get(fow);
-	f.position = m.position;
+	//Motion& f = registry.motions.get(fow);
+	//f.position = m.position;
 
 	ELAPSED_TIME += elapsed_ms_since_last_update;
 
@@ -262,14 +262,16 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	//for movement, animation, and distance calculation
 	handlePlayerMovement(elapsed_ms_since_last_update);
 		
-		
-
-
 	// Camera movement mode
 	Camera& c = registry.cameras.get(main_camera);
 	Motion& camera_motion = registry.motions.get(main_camera);
 	if (c.mode_follow) {
-		camera_motion.position = m.position;	// why are the positions inverted???
+		/*
+		if (debugging.in_debug_mode)
+			camera_motion.velocity = { 0,0 };
+		else
+		*/
+		camera_motion.position = m.position;
 	}
 	else {
 		handle_movement(camera_motion, CAMERA_LEFT);
@@ -319,8 +321,49 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		}
 	}
 
+	// Player updates
+	for (Entity entity : registry.players.entities) {
+		Motion& motion = registry.motions.get(entity);
+
+		// Knockback updates
+		if (registry.playerKnockbackEffects.has(entity)) {
+			PlayerKnockbackEffect& playerKnockbackEffect = registry.playerKnockbackEffects.get(entity);
+			
+			// Increment duration
+			playerKnockbackEffect.elapsed_knockback_time_ms += elapsed_ms_since_last_update;
+			
+			// Set player velocity to zero and remove the PlayerKnockbackEffect component if knockback effect is over
+			if (playerKnockbackEffect.duration_ms < playerKnockbackEffect.elapsed_knockback_time_ms) {
+				motion.velocity = {0.f, 0.f};
+				registry.playerKnockbackEffects.remove(entity);
+
+				printf("KNOCKBACK REMOVED\n");
+			}
+		}
+
+		// Inaccuracy updates
+		if (registry.playerInaccuracyEffects.has(entity)) {
+			PlayerInaccuracyEffect& playerInaccuracyEffect = registry.playerInaccuracyEffects.get(entity);
+			
+			// Increment duration
+			playerInaccuracyEffect.elapsed_inaccuracy_time_ms += elapsed_ms_since_last_update;
+			
+			// Remove the PlayerInaccuracyEffect component if knockback effect is over
+			if (playerInaccuracyEffect.duration_ms < playerInaccuracyEffect.elapsed_inaccuracy_time_ms) {
+				registry.playerInaccuracyEffects.remove(entity);
+
+				printf("INACCURACY REMOVED\n");
+			}
+		}
+	}
+
+	// Lets the editor drag
+	if (debugging.in_debug_mode && editor_place_tile)
+		map_editor_routine();
+
 	return true;
 }
+
 void WorldSystem::updatePlayerDirection() {
 	if (CURSOR_ANGLE >= -M_PI / 4 && CURSOR_ANGLE < M_PI / 4) {
 		PLAYER_DIRECTION = 2;  // Right
@@ -347,7 +390,7 @@ void WorldSystem::handlePlayerMovement(float elapsed_ms_since_last_update) {
 	// We'll consider moveVelocity existing in player space
 	// Allow movement if player is not dead 
 	// Movement code, build the velocity resulting from player movement
-	if (!registry.deathTimers.has(player_salmon)) {
+	if (!registry.deathTimers.has(player_salmon) && !registry.playerKnockbackEffects.has(player_salmon)) {
 		Motion& m = registry.motions.get(player_salmon);
 		m.velocity = { 0, 0 };
 
@@ -365,19 +408,18 @@ void WorldSystem::handlePlayerMovement(float elapsed_ms_since_last_update) {
 				registry.players.components[0].framex = (registry.players.components[0].framex + 1) % 4;
 				ELAPSED_TIME = 0.0f; // Reset the timer
 				}
-			}
-		else {
+		} else {
 			// No movement keys pressed, set back to the first frame
 			registry.players.components[0].framex = 0;
 			}
 		}
-	else {
+	else if (registry.deathTimers.has(player_salmon)) {
 		// Player is dead, do not allow movement
 		Motion& m = registry.motions.get(player_salmon);
 		m.velocity = { 0, 0 };
 		registry.players.components[0].framey = 1;
-		}
 	}
+}
 
 void WorldSystem::handle_movement(Motion& motion, InputKeyIndex indexStart, bool invertDirection, bool useAbsoluteVelocity)
 {
@@ -472,8 +514,8 @@ void WorldSystem::restart_game() {
 	// Create the main camera
 	main_camera = createCamera({ 0,0 });
 
-	// Create fow
-	fow = createFOW(renderer, { 0,0 });
+	// DISABLE FOW MASK
+	//fow = createFOW(renderer, { 0,0 });
 
 	// Create health bars 
 	health_bar = createHealthBar(renderer, { -8.f, 7.f });
@@ -496,6 +538,8 @@ void WorldSystem::restart_game() {
 	used_spawn_locations.clear();
 
 	// FOR DEMO - to show different types of items being created.	
+ 
+	// TODO: uncomment these after messing w/ map editor
 	spawn_items();
 	mob_system->spawn_mobs();
 
@@ -559,6 +603,7 @@ void WorldSystem::handle_collisions() {
 
 				Mob& mob = registry.mobs.get(entity_other);
 				player.health -= mob.damage;
+				mob_system->apply_mob_attack_effects(entity, entity_other);
 
 				// Shrink the health bar
 				player.health_decrease_time = IFRAMES; // player's health decays over this period of time, using interpolation
@@ -720,11 +765,6 @@ void WorldSystem::handle_collisions() {
 				registry.remove_all_components_of(entity);
 			}
 			
-			// Checking Projectile - Boundary 
-			else if (registry.boundaries.has(entity_other))
-			{
-				registry.remove_all_components_of(entity);
-			}
 		}
 		// Todo: Collision involving Player - Spaceship should not allow player move ?
 			
@@ -994,21 +1034,60 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		if (key == GLFW_KEY_KP_DECIMAL)	// numpad '.'
 			// Saves map data
 			terrain->save_grid(loaded_map_name);	
+		if (key == GLFW_KEY_PAGE_UP) { // PageUp ke
+			// This expands the map to world_size_x, world_size_y.
+			// Make sure you disable item and mob spawning because physics and pathfinding
+			// will break!!
+			terrain->expand_map(world_size_x, world_size_y);
+			//restart_game();
+			renderer->empty_terrain_buffer();
+			
+			std::unordered_map<unsigned, RenderSystem::ORIENTATIONS> orientations;
+			terrain->generate_orientation_map(orientations);
+			renderer->initializeTerrainBuffers(orientations);
+
+			for (unsigned int i = 0; i < registry.terrainCells.entities.size(); i++) {
+				Entity e = registry.terrainCells.entities[i];
+				TerrainCell& cell = registry.terrainCells.components[i];
+
+				if (cell.flag & TERRAIN_FLAGS::COLLIDABLE)
+					createDefaultCollider(e);
+			}
+
+			physics_system->initStaticBVH(registry.colliders.size());
+		}
 	}
 
 	// Press B to toggle debug mode
 	if (key == GLFW_KEY_B && action == GLFW_PRESS) {
 		debugging.in_debug_mode = !debugging.in_debug_mode;
+		if (renderer->enableFow == 0) {
+			renderer->enableFow = 1;
+		}
+		else {
+			renderer->enableFow = 0;
+		}
+		
 	}
 
-	// Control the current speed with `<` `>`
+	// Control the current speed with `<` `>` as well as fow radius
 	if (action == GLFW_RELEASE && (mod & GLFW_MOD_SHIFT) && key == GLFW_KEY_COMMA) {
 		current_speed -= 0.1f;
 		printf("Current speed = %f\n", current_speed);
+
+		renderer->fow_radius -= 0.3f;
+		if (renderer->fow_radius < 0)
+			renderer->fow_radius = 0;
+		std::cout << "current fog radius " << renderer->fow_radius << std::endl;
+
 	}
 	if (action == GLFW_RELEASE && (mod & GLFW_MOD_SHIFT) && key == GLFW_KEY_PERIOD) {
 		current_speed += 0.1f;
 		printf("Current speed = %f\n", current_speed);
+
+		renderer->fow_radius += 0.3f;
+		std::cout << "current fog radius " << renderer->fow_radius << std::endl;
+
 	}
 	current_speed = fmax(0.f, current_speed);
 
@@ -1100,32 +1179,42 @@ void WorldSystem::on_mouse_click(int button, int action, int mods) {
 		}
 	}
 
-	if (debugging.in_debug_mode && button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS) {
-		mat3 view_ = renderer->createModelMatrix(main_camera);
+	if (debugging.in_debug_mode && button == GLFW_MOUSE_BUTTON_RIGHT) {
+		if (action == GLFW_PRESS)
+			editor_place_tile = true;
+		else if (action == GLFW_RELEASE)
+			editor_place_tile = false;
+	}
+}
 
-		// You can cache this to save performance.
-		mat3 proj_ = inverse(renderer->createProjectionMatrix());
+void WorldSystem::map_editor_routine() {
+	mat3 view_ = renderer->createModelMatrix(main_camera);
 
-		double xpos, ypos;
-		glfwGetCursorPos(window, &xpos, &ypos);	// For some reason it only supports doubles!
-		ivec2 window_size = renderer->window_resolution;
+	// You can cache this to save performance.
+	mat3 proj_ = inverse(renderer->createProjectionMatrix());
 
-		// Recall that valid clip coordinates are between [-1, 1]. 
-		// First, we need to turn screen (pixel) coordinates into clip coordinates:
-		vec3 mouse_pos = {
-			(xpos / window_size.x) * 2 - 1,			// Get the fraction of the x pos in the screen, multiply 2 to map range to [0, 2], 
-													// then offset so the range is now [-1, 1].
-			-(ypos / window_size.y) * 2 + 1,		// Same thing, but recall that the y direction is opposite in glfw.
-			1.0 };									// Denote that this is a point.
-		mouse_pos = view_ * proj_ * mouse_pos;
+	double xpos, ypos;
+	glfwGetCursorPos(window, &xpos, &ypos);	// For some reason it only supports doubles!
+	ivec2 screen = renderer->window_resolution;
 
-		Entity tile = terrain->get_cell(mouse_pos);
-		TerrainCell& cell = registry.terrainCells.get(tile);
-		bool to_collidable = (editor_flag & COLLIDABLE);
-		bool from_collidable = (cell.flag & COLLIDABLE);
+	// Recall that valid clip coordinates are between [-1, 1]. 
+	// First, we need to turn screen (pixel) coordinates into clip coordinates:
+	vec3 mouse_pos = {
+		(xpos / screen.x) * 2 - 1,		// Get the fraction of the x pos in the screen, multiply 2 to map range to [0, 2], 
+												// then offset so the range is now [-1, 1].
+		-(ypos / screen.y) * 2 + 1,		// Same thing, but recall that the y direction is opposite in glfw.
+		1.0 };									// Denote that this is a point.
+	mouse_pos = view_ * proj_ * mouse_pos;
 
-		cell.terrain_type = editor_terrain;
-		cell.flag = editor_flag;
+	Entity tile = terrain->get_cell(mouse_pos);
+	TerrainCell& cell = registry.terrainCells.get(tile);
+	bool to_collidable = (editor_flag & COLLIDABLE);
+	bool from_collidable = (cell.flag & COLLIDABLE);
+	uint32_t data = ((uint32_t)editor_terrain << 16) | editor_flag;
+
+
+	if (cell != data) {
+		cell.from_uint32(data);
 
 		// Update collisions
 		if (to_collidable != from_collidable) {
@@ -1261,8 +1350,6 @@ void WorldSystem::load_game(json j) {
 	// Create the main camera
 	main_camera = createCamera(player_location);
 
-	// Create fow
-	fow = createFOW(renderer, player_location);
 
 	// Create health bars 
 	health_bar = createHealthBar(renderer, { -8.f, 7.f }, player.health);

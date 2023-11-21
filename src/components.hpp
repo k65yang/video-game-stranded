@@ -38,6 +38,19 @@ struct Player
 	int framey = 4; 
 };
 
+// Knockback effect for player from mobs
+struct PlayerKnockbackEffect {
+	float duration_ms;				
+	float elapsed_knockback_time_ms;
+};
+
+// Inaccuracy effect for player from mobs
+struct PlayerInaccuracyEffect {
+	float duration_ms;				
+	float elapsed_inaccuracy_time_ms;
+	float inaccuracy_percent;
+};
+
 // The weapon
 struct Weapon {
 	ITEM_TYPE weapon_type;
@@ -63,6 +76,8 @@ struct Projectile {
 enum class MOB_TYPE {
 	SLIME = 0,
 	GHOST = SLIME + 1,
+	BRUTE = GHOST + 1,
+	DISRUPTOR = BRUTE + 1
 };
 
 // Mob component
@@ -182,7 +197,8 @@ enum ZONE_NUMBER {
 	ZONE_0 = 0,
 	ZONE_1 = 1,
 	ZONE_2 = 2,
-	ZONE_COUNT = ZONE_2 + 1,
+	ZONE_3 = 3,
+	ZONE_COUNT = ZONE_3 + 1,
 };
 
 
@@ -229,6 +245,10 @@ struct TerrainCell
 	};
 
 	TerrainCell(uint32_t terrain_cell) {
+		from_uint32(terrain_cell);
+	}
+
+	void from_uint32(uint32_t terrain_cell) {
 		this->flag = (uint16_t)terrain_cell;
 		this->terrain_type = static_cast<TERRAIN_TYPE>((uint16_t)(terrain_cell >> 16));
 	}
@@ -249,9 +269,6 @@ struct Collider
 	int flag;  // for filtering 
 };
 
-struct BoundaryBlock {
-
-};
 
 /**
  * The following enumerators represent global identifiers refering to graphic
@@ -281,8 +298,7 @@ enum class TEXTURE_ASSET_ID {
 	PLAYER = 0,
 	SLIME = PLAYER + 1,
 	REDBLOCK = SLIME + 1,
-	FOW = REDBLOCK + 1,
-	WEAPON_UPGRADE = FOW + 1,
+	WEAPON_UPGRADE = REDBLOCK + 1,
 	FOOD = WEAPON_UPGRADE + 1,
 	WEAPON_SHURIKEN = FOOD + 1,
 	WEAPON_CROSSBOW = WEAPON_SHURIKEN + 1,
@@ -309,12 +325,11 @@ enum class TEXTURE_ASSET_ID {
 	QUEST_1_ITEM = QUEST_2_FOUND + 1,
 	QUEST_2_ITEM = QUEST_1_ITEM +1,
 	GHOST = QUEST_2_ITEM + 1,
-	LOADED = GHOST + 1,
+	BRUTE = GHOST + 1,
+	DISRUPTOR = BRUTE + 1,
+	LOADED = DISRUPTOR + 1,
 	SAVING = LOADED + 1,
 	TEXTURE_COUNT = SAVING + 1,
-	//PLAYER_SPRITE_SHEET = TEXTURE_COUNT +1
-
-
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 
@@ -324,8 +339,8 @@ enum class EFFECT_ASSET_ID {
 	SPRITESHEET = PEBBLE + 1,
 	SALMON = SPRITESHEET + 1,
 	TEXTURED = SALMON + 1,
-	WATER = TEXTURED + 1,
-	TERRAIN = WATER + 1,
+	FOG = TEXTURED + 1,
+	TERRAIN = FOG + 1,
 	EFFECT_COUNT = TERRAIN + 1
 };
 const int effect_count = (int)EFFECT_ASSET_ID::EFFECT_COUNT;
@@ -349,7 +364,7 @@ enum class GEOMETRY_BUFFER_ID {
 enum class RENDER_LAYER_ID {
 	LAYER_1 = 0,
 	LAYER_2 = LAYER_1 + 1,
-	LAYER_3 = LAYER_2 + 1,      // Fog of war
+	LAYER_3 = LAYER_2 + 1,      
 	LAYER_4 = LAYER_3 + 1,      // UI elements
 	LAYER_COUNT = LAYER_4 + 1
 
