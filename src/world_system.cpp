@@ -1367,34 +1367,45 @@ void WorldSystem::map_editor_routine() {
 }
 
 void WorldSystem::spawn_items() {
-	const int NUM_ITEM_TYPES = 2;
+	// lookup table for weapon upgrades per zone
+	std::map<ZONE_NUMBER,int> zone_weapon_upgrades = {
+		{ZONE_0, 0},
+		{ZONE_1, 0},    
+		{ZONE_2, 2},	
+		{ZONE_3, 4},
+	};
 
-	for (int i = 0; i < ITEM_LIMIT; i++) {
-		// Get random spawn location
-		vec2 spawn_location = terrain->get_random_terrain_location();
+	// lookup table for food per zone
+	std::map<ZONE_NUMBER,int> zone_food = {
+		{ZONE_0, 3},
+		{ZONE_1, 10},    
+		{ZONE_2, 20},	
+		{ZONE_3, 40},
+	};
 
-		// Randomly choose item type
-		int item_type = rng() % NUM_ITEM_TYPES;
+	for (int zone_num = ZONE_0; zone_num != ZONE_COUNT; zone_num++) {
+		ZONE_NUMBER zone = static_cast<ZONE_NUMBER>(zone_num);
 
-		switch (item_type) {
-			case 0:
-				createItem(renderer, spawn_location, ITEM_TYPE::WEAPON_UPGRADE);
-				break;
-			case 1:
-				createItem(renderer, spawn_location, ITEM_TYPE::FOOD);
-				break;
+		// spawn the weapon upgrades 
+		for (int i = 0; i < zone_weapon_upgrades[zone]; i++) {
+			createItem(renderer, terrain->get_random_terrain_location(zone), ITEM_TYPE::WEAPON_UPGRADE);
+		}
+
+		// spawn food
+		for (int i = 0; i < zone_food[zone]; i++) {
+			createItem(renderer, terrain->get_random_terrain_location(zone), ITEM_TYPE::FOOD);
 		}
 	}
 
-	// TESTING: Force one spawn of each weapon.
-	 createItem(renderer, terrain->get_random_terrain_location(), ITEM_TYPE::WEAPON_SHURIKEN);
-	 createItem(renderer, terrain->get_random_terrain_location(), ITEM_TYPE::WEAPON_CROSSBOW);
-	 createItem(renderer, terrain->get_random_terrain_location(), ITEM_TYPE::WEAPON_SHOTGUN);
-	 createItem(renderer, terrain->get_random_terrain_location(), ITEM_TYPE::WEAPON_MACHINEGUN);
+	// TESTING: Force one spawn of each weapon in zone 1
+	 createItem(renderer, terrain->get_random_terrain_location(ZONE_1), ITEM_TYPE::WEAPON_SHURIKEN);
+	 createItem(renderer, terrain->get_random_terrain_location(ZONE_1), ITEM_TYPE::WEAPON_CROSSBOW);
+	 createItem(renderer, terrain->get_random_terrain_location(ZONE_1), ITEM_TYPE::WEAPON_SHOTGUN);
+	 createItem(renderer, terrain->get_random_terrain_location(ZONE_1), ITEM_TYPE::WEAPON_MACHINEGUN);
 
-	 // TESTING: Force spawn quest items once
-	 createItem(renderer, terrain->get_random_terrain_location(), ITEM_TYPE::QUEST_ONE);
-	 createItem(renderer, terrain->get_random_terrain_location(), ITEM_TYPE::QUEST_TWO);
+	 // TESTING: Force spawn quest items in zone 2
+	 createItem(renderer, terrain->get_random_terrain_location(ZONE_2), ITEM_TYPE::QUEST_ONE);
+	 createItem(renderer, terrain->get_random_terrain_location(ZONE_2), ITEM_TYPE::QUEST_TWO);
 }
 
 // Adapted from restart_game, BASICALLY alot of optional arguments to change small things :D

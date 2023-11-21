@@ -127,10 +127,6 @@ private:
 	std::default_random_engine rng;
 	std::uniform_real_distribution<float> uniform_dist; // number between 0..1
 
-	// Random item and mob spawning 
-	// Limits on the number of items and mobs
-	const int ITEM_LIMIT = 64;
-
 	// Vector to keep track of locations where an item/mob has been spawned
 	std::vector<vec2> used_spawn_locations;
 
