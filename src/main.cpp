@@ -28,6 +28,7 @@ int main()
 	PathfindingSystem pathfinding_system;
 	WeaponsSystem weapons_system;
 	MobSystem mob_system;
+	AudioSystem audio_system;
 
 	// Initializing window
 	GLFWwindow* window = world_system.create_window();
@@ -40,10 +41,11 @@ int main()
 	}
 
 	// initialize the main systems
+	audio_system.init();
 	render_system.init(window);
 	weapons_system.init(&render_system);
 	mob_system.init(&render_system, &terrain_system);
-	world_system.init(&render_system, &terrain_system, &weapons_system, &physics_system, &mob_system);
+	world_system.init(&render_system, &terrain_system, &weapons_system, &physics_system, &mob_system, &audio_system);
 
 	// Load terrain mesh into the GPU
 	std::unordered_map<unsigned int, RenderSystem::ORIENTATIONS> orientation_map;
