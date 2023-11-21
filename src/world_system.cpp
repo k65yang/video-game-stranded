@@ -999,7 +999,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		std::ifstream f("save.json");
 		json data = json::parse(f);
 
-		std::cout << "Loading ...";
+		std::cout << "Loading ...\n";
 
 		load_game(data);
 	}
@@ -1024,13 +1024,22 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 			quests.push_back(item.second);
 		}
 
-		ITEM_TYPE type = ITEM_TYPE::WEAPON_NONE;
+		ITEM_TYPE w_type = ITEM_TYPE::WEAPON_NONE;
 		if (user_has_first_weapon) {
 			Weapon& weapon = registry.weapons.get(player_equipped_weapon);
-			type = weapon.weapon_type;
+			w_type = weapon.weapon_type;
 		}
 
-		SaveGame(player, player_motion, mobs, items, quests, type);
+		ITEM_TYPE p_type = ITEM_TYPE::POWERUP_NONE;
+		if (user_has_powerup) {
+			if (registry.healthPowerup.has(player_salmon)) {
+				p_type = ITEM_TYPE::POWERUP_HEALTH;
+			} else {
+				p_type = ITEM_TYPE::POWERUP_SPEED;
+			}	
+		} 
+		
+		SaveGame(player, player_motion, mobs, items, quests, w_type, p_type);
 
 		tooltips_on = false;
 		help_bar = createHelp(renderer, { 0.f, -7.f }, TEXTURE_ASSET_ID::SAVING);
@@ -1365,33 +1374,6 @@ void WorldSystem::load_game(json j) {
 	// Reset the weapons system
 	weapons_system->resetWeaponsSystem();
 
-	ITEM_TYPE weapon_type = (ITEM_TYPE)j["weapon"];
-	if (weapon_type == ITEM_TYPE::WEAPON_NONE) {
-		user_has_first_weapon = false;
-		registry.remove_all_components_of(weapon_indicator);
-	}
-	else {
-		// GIVE player their weapon if they have one, and set weapon indicator accordingly
-		player_equipped_weapon = weapons_system->createWeapon(weapon_type);
-		user_has_first_weapon = true;
-
-		switch (weapon_type) {
-		case ITEM_TYPE::WEAPON_CROSSBOW:
-			weapon_indicator = createWeaponIndicator(renderer, { -10.f, -6.f }, TEXTURE_ASSET_ID::ICON_CROSSBOW);
-			break;
-		case ITEM_TYPE::WEAPON_MACHINEGUN:
-			weapon_indicator = createWeaponIndicator(renderer, { -10.f, -6.f }, TEXTURE_ASSET_ID::ICON_MACHINE_GUN);
-			break;
-		case ITEM_TYPE::WEAPON_SHOTGUN:
-			weapon_indicator = createWeaponIndicator(renderer, { -10.f, -6.f }, TEXTURE_ASSET_ID::ICON_SHOTGUN);
-			break;
-		case ITEM_TYPE::WEAPON_SHURIKEN:
-			weapon_indicator = createWeaponIndicator(renderer, { -10.f, -6.f }, TEXTURE_ASSET_ID::WEAPON_SHURIKEN);
-			break;
-		}
-
-	}
-
 	// Reset the terrain system
 	terrain->resetTerrainSystem();
 
@@ -1418,14 +1400,17 @@ void WorldSystem::load_game(json j) {
 	physics_system->initStaticBVH(registry.colliders.size());
 
 	// Create a Spaceship 
-	spaceship = createSpaceship(renderer, { 0,0 });
+	spaceship = createSpaceship(renderer, { 0,-2.5 });
+
+	// Create Home Screen 
+	home = createHome(renderer);
 
 	// Create a new salmon
 	player_salmon = createPlayer(renderer, player_location);
 	Player& player = registry.players.get(player_salmon);
 	player.health = j["player"]["health"];
 	player.food = j["player"]["food"];
-	registry.colors.insert(player_salmon, { 1, 0.8f, 0.8f });
+	registry.colors.insert(player_salmon, { 1, 0.8f, 0.8f, 1.0f});
 
 	// Create the main camera
 	main_camera = createCamera(player_location);
@@ -1439,12 +1424,78 @@ void WorldSystem::load_game(json j) {
 	// Create food bars 
 	food_bar = createFoodBar(renderer, { 8.f, 7.f }, player.food);
 
+	// Tool tips and help bar
 	tooltips_on = false;
 	help_bar = createHelp(renderer, { 0.f, -7.f }, TEXTURE_ASSET_ID::LOADED);
 	current_tooltip = tooltips.size();
 
-	quest_items.clear();
+	// Load Weapons
+	ITEM_TYPE weapon_type = (ITEM_TYPE)j["weapon"];
+	if (weapon_type == ITEM_TYPE::WEAPON_NONE) {
+		user_has_first_weapon = false;
+		registry.remove_all_components_of(weapon_indicator);
+	}
+	else {
+		// GIVE player their weapon if they have one, and set weapon indicator accordingly
+		player_equipped_weapon = weapons_system->createWeapon(weapon_type);
+		user_has_first_weapon = true;
 
+		switch (weapon_type) {
+		case ITEM_TYPE::WEAPON_CROSSBOW:
+			weapon_indicator = createWeaponIndicator(renderer, { -10.f, -6.f }, TEXTURE_ASSET_ID::ICON_CROSSBOW);
+			break;
+		case ITEM_TYPE::WEAPON_MACHINEGUN:
+			weapon_indicator = createWeaponIndicator(renderer, { -10.f, -6.f }, TEXTURE_ASSET_ID::ICON_MACHINE_GUN);
+			break;
+		case ITEM_TYPE::WEAPON_SHOTGUN:
+			weapon_indicator = createWeaponIndicator(renderer, { -10.f, -6.f }, TEXTURE_ASSET_ID::ICON_SHOTGUN);
+			break;
+		case ITEM_TYPE::WEAPON_SHURIKEN:
+			weapon_indicator = createWeaponIndicator(renderer, { -10.f, -6.f }, TEXTURE_ASSET_ID::WEAPON_SHURIKEN);
+			break;
+		}
+
+	}
+	
+	// Load powerups
+	ITEM_TYPE powerup_type = (ITEM_TYPE)j["powerup"];
+	if (powerup_type == ITEM_TYPE::POWERUP_NONE) {
+		printf("loaded no powerup\n");
+		user_has_powerup = false;
+	} else {
+		user_has_powerup = true;
+		printf("powerup type: %i\n", powerup_type);
+
+		switch (powerup_type) {
+			case ITEM_TYPE::POWERUP_SPEED:
+			{
+				// Give the speed power up to the player
+				SpeedPowerup& speedPowerup = registry.speedPowerup.emplace(player_salmon);
+				speedPowerup.old_speed = current_speed;
+				current_speed *= 2;
+
+				// Give a particle trail to the player
+				ParticleTrail& pt = registry.particleTrails.emplace(player_salmon);
+				pt.is_alive = true;
+				pt.texture = TEXTURE_ASSET_ID::PLAYER_PARTICLE;
+				pt.motion_component_ptr = &registry.motions.get(player_salmon);
+
+				// UI Indicator
+				powerup_indicator = createPowerupIndicator(renderer, {-9.5f, 5.f}, TEXTURE_ASSET_ID::ICON_POWERUP_SPEED);
+				break;
+			}
+			case ITEM_TYPE::POWERUP_HEALTH:
+			{
+				// Give health powerup to player. Use default values in struct definition.
+				registry.healthPowerup.emplace(player_salmon);
+				powerup_indicator = createPowerupIndicator(renderer, {-9.5f, 5.f}, TEXTURE_ASSET_ID::ICON_POWERUP_HEALTH);
+				break;
+			}
+		}
+	}
+
+	// Quest items
+	quest_items.clear();
 	if (!j["quests"][0]) {
 		quest_items.push_back({ createQuestItem(renderer, {10.f, -2.f}, TEXTURE_ASSET_ID::QUEST_1_NOT_FOUND), false });
 	}

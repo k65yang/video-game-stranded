@@ -1,5 +1,6 @@
 
 #define GL3W_IMPLEMENTATION
+#pragma GCC diagnostic ignored "-Wswitch"
 #include <gl3w.h>
 
 // stlib
