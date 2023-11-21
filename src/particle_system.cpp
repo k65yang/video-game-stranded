@@ -3,11 +3,19 @@
 void ParticleSystem::step(float elapsed_ms) {
     // Iterate through all existing particle trails
     auto& particle_trail_container = registry.particleTrails;
+    std::vector<int> particle_trails_to_remove;
     std::vector<Entity> particles_to_remove;
     for (uint i = 0; i < particle_trail_container.size(); i++) {
 
         // Iterate through the list of particles for each particle trail
         ParticleTrail& particle_trail = particle_trail_container.components[i];
+
+        // Track completely dead particle trails
+        if (!particle_trail.is_alive && particle_trail.particles.size() == 0) {
+            particle_trails_to_remove.push_back(i);
+            continue;
+        }
+
         for (auto& entity_particle : particle_trail.particles) {
             // Update the alpha of existing particles
             // printf("getting particle entity: %i\n", entity_particle);
@@ -28,14 +36,20 @@ void ParticleSystem::step(float elapsed_ms) {
             particle_trail.particles.erase(p);
         }
 
-        // Now generate new particles for the particle trail
-        if ((int)particle_trail.particles.size() < NUM_PARTICLES - PARTICLES_PER_OBJ_PER_FRAME) {
+        // Now generate new particles for the particle trail if the trail is still alive
+        if (particle_trail.is_alive && (int)particle_trail.particles.size() < NUM_PARTICLES - PARTICLES_PER_OBJ_PER_FRAME) {
             for (int j = 0; j < PARTICLES_PER_OBJ_PER_FRAME; j++) {
                 particle_trail.particles.insert(
                     createParticle(particle_trail.texture, particle_trail.motion_component_ptr)
                 );
             }
         }
+    }
+
+    for (auto& idx_particle_trail: particle_trails_to_remove) {
+        // Erase the particle trails from the container by index
+        particle_trail_container.components.erase(
+            particle_trail_container.components.begin() + idx_particle_trail);
     }
 }
 
@@ -51,7 +65,7 @@ Entity ParticleSystem::createParticle(TEXTURE_ASSET_ID texture, Motion* motion_c
 	auto& motion = registry.motions.emplace(entity);
 	motion.angle = 0.f;
 	motion.velocity = vec2(0.f);
-    motion.scale = vec2({ 0.5f, 0.5f });
+    motion.scale = vec2({ .7f, 1.f });
 
     // Random number generator
     std::random_device rd;
@@ -65,7 +79,7 @@ Entity ParticleSystem::createParticle(TEXTURE_ASSET_ID texture, Motion* motion_c
 
     // Set the colour of the particle
     auto& color = registry.colors.emplace(entity);
-    color = vec4(1.f);
+    color = vec4(1.f, 0.8f, 0.8f, 1.f); // (1, .8, .8) is the rgb colour scheme of the player
 
     // Add the particle to the render requests
     registry.renderRequests.insert(
@@ -73,7 +87,6 @@ Entity ParticleSystem::createParticle(TEXTURE_ASSET_ID texture, Motion* motion_c
         { texture,
             EFFECT_ASSET_ID::TEXTURED,
             GEOMETRY_BUFFER_ID::SPRITE,
-            RENDER_LAYER_ID::LAYER_1 }); // layer 1 for now
-
+            RENDER_LAYER_ID::LAYER_1 });
     return entity;
 }

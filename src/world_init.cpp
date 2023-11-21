@@ -31,7 +31,7 @@ Entity createPlayer(RenderSystem* renderer, vec2 pos)
 		{ TEXTURE_ASSET_ID::PLAYER,
 			EFFECT_ASSET_ID::SPRITESHEET,
 			GEOMETRY_BUFFER_ID::PLAYER_SPRITE,
-			RENDER_LAYER_ID::LAYER_1 });
+			RENDER_LAYER_ID::LAYER_2 });
 
 	return entity;
 }
@@ -83,6 +83,12 @@ Entity createItem(RenderSystem* renderer, vec2 position, ITEM_TYPE type)
 		break;
 	case ITEM_TYPE::WEAPON_MACHINEGUN:
 		texture = TEXTURE_ASSET_ID::WEAPON_MACHINEGUN;
+		break;
+	case ITEM_TYPE::POWERUP_SPEED:
+		texture = TEXTURE_ASSET_ID::POWERUP_SPEED;
+		break;
+	case ITEM_TYPE::POWERUP_HEALTH:
+		texture = TEXTURE_ASSET_ID::POWERUP_HEALTH;
 		break;
 	}
 
@@ -315,6 +321,29 @@ Entity createWeaponIndicator(RenderSystem* renderer, vec2 position, TEXTURE_ASSE
 	registry.renderRequests.insert(
 		entity,
 		{ weapon_texture,
+			EFFECT_ASSET_ID::TEXTURED,
+			GEOMETRY_BUFFER_ID::SPRITE,
+			RENDER_LAYER_ID::LAYER_4 });
+
+	return entity;
+}
+
+Entity createPowerupIndicator(RenderSystem* renderer, vec2 position, TEXTURE_ASSET_ID powerup_texture) {
+	auto entity = Entity();
+
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Initialize the position, scale, and physics components
+	auto& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.velocity = { 0.f, 0.f };
+	motion.position = position;
+	motion.scale = vec2({ 2.f, 2.f });
+
+	registry.renderRequests.insert(
+		entity,
+		{ powerup_texture,
 			EFFECT_ASSET_ID::TEXTURED,
 			GEOMETRY_BUFFER_ID::SPRITE,
 			RENDER_LAYER_ID::LAYER_4 });

@@ -6,6 +6,7 @@
 #include <cassert>
 #include <sstream>
 #include <iostream>
+#include <algorithm>
 #include "physics_system.hpp"
 
 // Game configuration
@@ -349,6 +350,43 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		weapon_ui.position = { -10.f + camera_motion.position.x, -6.f + camera_motion.position.y };
 	}
 
+	if (user_has_powerup) {
+		Motion& powerup_ui = registry.motions.get(powerup_indicator);
+		powerup_ui.position = { -9.5f + camera_motion.position.x, 5.f + camera_motion.position.y };
+	}
+
+	// health updates
+	if (registry.healthPowerup.has(player_salmon)) {
+		HealthPowerup& hp = registry.healthPowerup.get(player_salmon);
+
+		// update the time since last heal and the light up duration
+		hp.remaining_time_for_next_heal -= elapsed_ms_since_last_update;
+		hp.light_up_timer_ms -= elapsed_ms_since_last_update;
+
+		// light up expired
+		if (hp.light_up_timer_ms < 0 && registry.colors.has(health_bar)) {
+			registry.colors.remove(health_bar);
+		}
+		
+		// check if we need and can heal
+		if (player.health < PLAYER_MAX_HEALTH && hp.remaining_time_for_next_heal < 0) {
+			hp.remaining_time_for_next_heal = hp.heal_interval_ms;
+			player.health = std::min(PLAYER_MAX_HEALTH, player.health + hp.heal_amount);
+
+			// light up the health bar
+			if (registry.colors.has(health_bar)) {
+				// can happen when the light up period is longer than the heal interval
+			} else {
+				vec4& color = registry.colors.emplace(health_bar);
+				color = vec4(.5f, .5f, .5f, 1.f);
+			}
+			hp.light_up_timer_ms = hp.light_up_duration_ms;
+
+			vec2 new_health_scale = vec2(((float)player.health / (float)PLAYER_MAX_HEALTH) * HEALTH_BAR_SCALE[0], HEALTH_BAR_SCALE[1]);
+			health.scale = interpolate(health.scale, new_health_scale, 1);
+		}
+	}
+
 	// Mob updates
 	for (Entity entity : registry.mobs.entities) {
 		// slow updates
@@ -430,6 +468,16 @@ void WorldSystem::restart_game() {
 	while (registry.weapons.entities.size() > 0)
 		registry.remove_all_components_of(registry.weapons.entities.back());
 
+	// Remove powerups. 
+	// while (registry.healthPowerup.size() > 0)
+	// 	registry.remove_all_components_of(registry.healthPowerup.entities.back());
+	// while (registry.speedPowerup.size() > 0)
+	// 	registry.remove_all_components_of(registry.speedPowerup.entities.back());
+	
+	// Remove particle trails. Particles have motion, so they are deleted already.
+	// while (registry.particleTrails.size() > 0)
+	// 	registry.remove_all_components_of(registry.particleTrails.entities.back());
+
 	// Reset the weapons system
 	weapons_system->resetWeaponsSystem();
 
@@ -464,6 +512,9 @@ void WorldSystem::restart_game() {
 	// Reset the weapon indicator
 	user_has_first_weapon = false;
 
+	// Reset the power ups
+	user_has_powerup = false;
+
 	// A function that handles the help/tutorial (some tool tips at the top of the screen)
 	help_bar = createHelp(renderer, { 0.f, -7.f }, tooltips[0]);
 	current_tooltip = 1;
@@ -493,15 +544,12 @@ void WorldSystem::restart_game() {
 	// FOR DEMO - to show different types of items being created.	
 	spawn_items();
 	spawn_mobs();
+	createItem(renderer, {5.f, 3.f}, ITEM_TYPE::POWERUP_SPEED);
+	createItem(renderer, {5.f, 5.f}, ITEM_TYPE::POWERUP_HEALTH);
 
 	// for movement velocity
 	for (int i = 0; i < KEYS; i++)
 	  keyDown[i] = false;
-
-	// TESTING: Player particles
-	ParticleTrail& pt = registry.particleTrails.emplace(player_salmon);
-	pt.texture = TEXTURE_ASSET_ID::PLAYER_PARTICLE;
-	pt.motion_component_ptr = &registry.motions.get(player_salmon);
 }
 
 // Compute collisions between entities
@@ -553,6 +601,16 @@ void WorldSystem::handle_collisions() {
 						// TODO: game over screen
 						registry.deathTimers.emplace(entity);
 					}
+				}
+
+				// reset health powerup values
+				if (registry.healthPowerup.has(player_salmon)) {
+					HealthPowerup& hp = registry.healthPowerup.get(player_salmon);
+					hp.remaining_time_for_next_heal = 5000.f;
+					hp.light_up_timer_ms = 0.f;
+
+					if (registry.colors.has(health_bar))
+						registry.colors.remove(health_bar);
 				}
 			}
 
@@ -659,6 +717,55 @@ void WorldSystem::handle_collisions() {
 					break;
 				case ITEM_TYPE::UPGRADE:
 					// Just add to inventory
+					break;
+				case ITEM_TYPE::POWERUP_SPEED:
+				{
+					// remove health power up if already equipped
+					if (registry.healthPowerup.has(player_salmon)) {
+						// check if the health bar is lit up (i.e. the player just healed)
+						HealthPowerup& healthPowerUp = registry.healthPowerup.get(player_salmon);
+						if (healthPowerUp.light_up_timer_ms > 0 || registry.colors.has(health_bar) ) {
+							registry.colors.remove(health_bar);
+						}
+					}
+					
+					// Give the speed power up to the player
+					SpeedPowerup& speedPowerup = registry.speedPowerup.emplace(player_salmon);
+					speedPowerup.old_speed = current_speed;
+					current_speed *= 2;
+
+					// Give a particle trail to the player
+					ParticleTrail& pt = registry.particleTrails.emplace(player_salmon);
+					pt.is_alive = true;
+					pt.texture = TEXTURE_ASSET_ID::PLAYER_PARTICLE;
+					pt.motion_component_ptr = &registry.motions.get(player_salmon);
+
+					// Add the powerup indicator
+					if (user_has_powerup)
+						registry.remove_all_components_of(powerup_indicator);
+					powerup_indicator = createPowerupIndicator(renderer, {-9.5f, 5.f}, TEXTURE_ASSET_ID::ICON_POWERUP_SPEED);
+					user_has_powerup = true;
+					break;
+				}
+				case ITEM_TYPE::POWERUP_HEALTH:
+					// remove the speed power up if already equipped
+					if (registry.speedPowerup.has(player_salmon)) {
+						// reset speed to original speed
+						current_speed = registry.speedPowerup.get(player_salmon).old_speed;
+						registry.speedPowerup.remove(player_salmon);
+
+						// Set the particle trail to dead
+						registry.particleTrails.get(player_salmon).is_alive = false;
+					}
+
+					// Give health powerup to player. Use default values in struct definition.
+					registry.healthPowerup.emplace(player_salmon);
+
+					// Add the powerup indicator
+					if (user_has_powerup)
+						registry.remove_all_components_of(powerup_indicator);
+					powerup_indicator = createPowerupIndicator(renderer, {-9.5f, 5.f}, TEXTURE_ASSET_ID::ICON_POWERUP_HEALTH);
+					user_has_powerup = true;
 					break;
 				}
 
@@ -1028,7 +1135,7 @@ void WorldSystem::spawn_mobs() {
 	// NOTE: do not add more mobs than there are grid cells available in the zone!!!
 	std::map<ZONE_NUMBER,int> zone_mob_numbers = {
 		// {ZONE_0, 5},			// zone 1 has 5 mobs
-		// {ZONE_1, 5},			// zone 2 has 5 mobs
+		{ZONE_1, 5},			// zone 2 has 5 mobs
 	};
 
 	std::vector<vec2> zone_mob_locations = terrain->get_mob_spawn_locations(zone_mob_numbers);

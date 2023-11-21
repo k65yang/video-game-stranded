@@ -15,7 +15,12 @@ public:
 	ComponentContainer<ToolTip> tips;
 	ComponentContainer<Motion> motions;
 	ComponentContainer<Collision> collisions;
+
 	ComponentContainer<Player> players;
+	ComponentContainer<SpeedPowerup> speedPowerup;
+	ComponentContainer<HealthPowerup> healthPowerup;
+
+
 	ComponentContainer<Weapon> weapons;
 	ComponentContainer<Projectile> projectiles;
 
@@ -49,7 +54,11 @@ public:
 		registry_list.push_back(&deathTimers);
 		registry_list.push_back(&motions);
 		registry_list.push_back(&collisions);
+
 		registry_list.push_back(&players);
+		registry_list.push_back(&speedPowerup);
+		registry_list.push_back(&healthPowerup);
+
 		registry_list.push_back(&weapons);
 		registry_list.push_back(&projectiles);
 

@@ -15,6 +15,9 @@ class ParticleSystem
     /// @brief ParticleSystem constructor
     ParticleSystem() {}
 
+    /// @brief ParticleSystem destructor
+    ~ParticleSystem() {};
+
     /// @brief Initializes the particle system
     /// @param renderer_arg The render system
     void init(RenderSystem* renderer_arg) {

@@ -20,6 +20,8 @@ enum class ITEM_TYPE {
 	WEAPON_MACHINEGUN = WEAPON_SHOTGUN + 1,
 	FOOD = WEAPON_MACHINEGUN + 1,
 	UPGRADE = FOOD + 1,
+	POWERUP_SPEED = UPGRADE + 1,
+	POWERUP_HEALTH = POWERUP_SPEED + 1,
 };
 
 // TODO: cool idea for later is to have a customizable difficulty that adjusts food and health.
@@ -34,6 +36,19 @@ struct Player
 	int food = PLAYER_MAX_FOOD;
 	int framex = 0; 
 	int framey = 4; 
+};
+
+struct SpeedPowerup {
+	float old_speed;
+};
+
+// Make sure that the heal interval is always larger than the light up interval
+struct HealthPowerup {
+	float heal_interval_ms = 5000.f;				// Player health will increase after this interval
+	float remaining_time_for_next_heal = 2500.f;	// Time since the player last healed
+	int heal_amount = 10;							// The amount healed
+	float light_up_duration_ms = 1000.f;			// The health bar will light up to indicate healing
+	float light_up_timer_ms = 0.f;					// The time remaining for health bar to be lit up
 };
 
 // The weapon
@@ -277,7 +292,11 @@ enum class TEXTURE_ASSET_ID {
 	ICON_CROSSBOW = ICON_SHURIKEN + 1,
 	ICON_SHOTGUN = ICON_CROSSBOW + 1,
 	ICON_MACHINE_GUN = ICON_SHOTGUN + 1,
-	SPACESHIP = ICON_MACHINE_GUN + 1,
+	ICON_POWERUP_SPEED = ICON_MACHINE_GUN + 1,
+	ICON_POWERUP_HEALTH = ICON_POWERUP_SPEED + 1,
+	POWERUP_HEALTH = ICON_POWERUP_HEALTH + 1,
+	POWERUP_SPEED = POWERUP_HEALTH + 1,
+	SPACESHIP = POWERUP_SPEED + 1,
 	BLUEBLOCK = SPACESHIP + 1,
 	HELP_ONE = BLUEBLOCK + 1,
 	HELP_TWO = HELP_ONE + 1,
@@ -329,7 +348,7 @@ enum class GEOMETRY_BUFFER_ID {
 enum class RENDER_LAYER_ID {
 	LAYER_1 = 0,
 	LAYER_2 = LAYER_1 + 1,
-	LAYER_3 = LAYER_2 + 1,      // Fog of war
+	LAYER_3 = LAYER_2 + 1,      // Fog of war and player
 	LAYER_4 = LAYER_3 + 1,      // UI elements
 	LAYER_COUNT = LAYER_4 + 1
 
@@ -355,5 +374,6 @@ struct Particle {
 struct ParticleTrail {
 	TEXTURE_ASSET_ID texture;
 	Motion* motion_component_ptr;
+	bool is_alive;
 	std::set<Entity> particles;
 };
