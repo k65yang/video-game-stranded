@@ -65,12 +65,10 @@ private:
 
 	// Make sure these paths remain in sync with the associated enumerators.
 	const std::array<std::string, texture_count> texture_paths = {
-			//textures_path("player.png"),
 			textures_path("player_spritesheet.png"),
 			textures_path("player_particle.png"),
 			textures_path("mob_spritesheet.png"),
 			textures_path("redblock.png"),
-			textures_path("fow mask.png"),
 			textures_path("weapon_upgrade.png"),
 			textures_path("food.png"),
 			textures_path("weapon_shuriken.png"),
@@ -105,7 +103,7 @@ private:
 			textures_path("brute.png"),	
 			textures_path("disruptor.png"),
 			textures_path("loaded.png"),
-			textures_path("saving.png")
+			textures_path("saving.png"),
 	};
 
 	// How big one terrain spritesheet is
@@ -180,7 +178,7 @@ private:
 		shader_path("spritesheet"), 
 		shader_path("salmon"),
 		shader_path("textured"),
-		shader_path("water"),
+		shader_path("fog"),
 		shader_path("terrain"),};
 
 	std::array<GLuint, geometry_count> vertex_buffers;
@@ -191,6 +189,18 @@ public:
 
 	// Initialize the window
 	bool init(GLFWwindow* window);
+
+	// fog of war related variable
+
+	// enable/disable fog of war
+	int enableFow = 1;
+
+	// visibil distance limit for mobs and items 
+	float fow_radius = 4.5f;
+
+	// darken factor for outside fog of war
+	float fow_darken_factor = 0.25f;
+
 
 	// Stores the current actual window resolution. You may use this instead of the slower
 	// glfwGetVideoMode(glfwGetPrimaryMonitor()) method.
@@ -316,6 +326,8 @@ private:
 	GLuint texture_array;
 
 	Entity screen_state_entity;
+
+	
 };
 
 bool loadEffectFromFile(

@@ -238,7 +238,7 @@ std::tuple <bool, float, vec2> SATcollides(const Collider& collider1, const Coll
 			overlap1 = overlap1 < overlap2 ? overlap1 : overlap2;
 
 			// if smaller than current than we update overlap and minimal translation vector
-			if (i == 0 || overlap1 < overlap) {
+			if (overlap1 < overlap) {
 				overlap = overlap1;
 				minimalTranslationVector = collider2_worldNormals[i];
 			}
