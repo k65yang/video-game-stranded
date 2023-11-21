@@ -853,6 +853,9 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 
 		SaveGame(player, player_motion, mobs, items, quests, type);
 
+		tooltips_on = false;
+		help_bar = createHelp(renderer, { 0.f, -7.f }, TEXTURE_ASSET_ID::SAVING);
+		current_tooltip = tooltips.size();
 	}
 
 	// Resetting game
