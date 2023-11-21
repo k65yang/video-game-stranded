@@ -144,7 +144,7 @@ Entity createHome(RenderSystem* renderer) {
 	auto& spaceship = registry.spaceship.emplace(entity);
 
 	// Setting initial values, scale is negative to make it face the opposite way
-	motion.scale = vec2({ window_width_px / 50, window_height_px / 50 });
+	motion.scale = vec2({ target_resolution.x / tile_size_px, target_resolution.y / tile_size_px });
 	registry.renderRequests.insert(
 		entity,
 		{ TEXTURE_ASSET_ID::SPACEHOME,
