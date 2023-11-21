@@ -19,6 +19,12 @@ public:
 		id = id_count++;
 		// Note, indices of already deleted entities arent re-used in this simple implementation.
 	}
+
+	// overload for std::set usage
+	bool operator<(const Entity& e) const 
+	{
+	return id < e.id;
+	}
 	operator unsigned int() { return id; } // this enables automatic casting to int
 };
 

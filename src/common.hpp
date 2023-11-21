@@ -47,8 +47,8 @@ inline std::string map_path_builder(const std::string& name) {
 
 #define SMAP_PADDING_BYTES 32
 
-//static int window_width_px;
-//static int window_height_px;
+// static int window_width_px;
+// static int window_height_px;
 // 
 // Actual screen resolution stores iniside render_system as window_resolution
 const ivec2 target_resolution = { 1200, 800 };	// alternative: { 1620, 1080 }

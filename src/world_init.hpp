@@ -35,6 +35,7 @@ Entity createLine(vec2 position, vec2 size);
 Entity createHealthBar(RenderSystem* renderer, vec2 position, int health = PLAYER_MAX_HEALTH);
 Entity createFoodBar(RenderSystem* renderer, vec2 position, int food = PLAYER_MAX_FOOD);
 Entity createWeaponIndicator(RenderSystem* renderer, vec2 position, TEXTURE_ASSET_ID weapon_texture);
+Entity createPowerupIndicator(RenderSystem* renderer, vec2 position, TEXTURE_ASSET_ID powerup_texture);
 
 // Tool tips for ease of use 
 Entity createHelp(RenderSystem* renderer, vec2 position, TEXTURE_ASSET_ID texture);

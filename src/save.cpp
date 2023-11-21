@@ -48,7 +48,7 @@ void from_json(const json& j, Motion& m) {
 }
 
 // NOTE: Currently saving every field of these structs - but this isn't necessary, just for cleanliness of code. If we need more space we can trim here :)
-void SaveGame(Player& player, Motion& player_motion, std::vector<std::pair<Mob&, Motion&>> mobs, std::vector<std::pair<Item&, Motion&>> items, std::vector<bool> quests, ITEM_TYPE weapon) {
+void SaveGame(Player& player, Motion& player_motion, std::vector<std::pair<Mob&, Motion&>> mobs, std::vector<std::pair<Item&, Motion&>> items, std::vector<bool> quests, ITEM_TYPE weapon, ITEM_TYPE powerup) {
  
     json data;
 
@@ -58,6 +58,7 @@ void SaveGame(Player& player, Motion& player_motion, std::vector<std::pair<Mob&,
     data["items"] = items;
     data["quests"] = quests;
     data["weapon"] = weapon;
+    data["powerup"] = powerup;
 
     // std::cout << data.dump(4);
 
