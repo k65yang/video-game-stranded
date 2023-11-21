@@ -69,6 +69,11 @@ struct Spaceship {
 
 	};
 
+// Make a storage component. 
+struct Bar {
+	int amount;
+	};
+
 // The projectile
 struct Projectile {
 	int damage;

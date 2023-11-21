@@ -298,13 +298,14 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	Motion& help = registry.motions.get(help_bar);
 	Motion& q1 = registry.motions.get(quest_items[0].first);
 	Motion& q2 = registry.motions.get(quest_items[1].first);
+	Motion& h_frame = registry.motions.get(health_frame); 
 
 	health.position = { -8.f + camera_motion.position.x, 7.f + camera_motion.position.y };
 	food.position = { 8.f + camera_motion.position.x, 7.f + camera_motion.position.y };
 	help.position = { camera_motion.position.x, -7.f + camera_motion.position.y };
 	q1.position = { 10.f + camera_motion.position.x, -2.f + camera_motion.position.y };
 	q2.position = { 10.f + camera_motion.position.x, 2.f + camera_motion.position.y };
-
+	h_frame.position = { -8.f + camera_motion.position.x, 7.f + camera_motion.position.y };
 	if (user_has_first_weapon) {
 		Motion& weapon_ui = registry.motions.get(weapon_indicator);
 		weapon_ui.position = { -10.f + camera_motion.position.x, -6.f + camera_motion.position.y };
@@ -499,7 +500,7 @@ void WorldSystem::restart_game() {
 	health_frame = createFrame(renderer, { -8.f, 7.f }, FRAME_TYPE::HEALTH_FRAME);
 
 	// Create food bars 
-	food_bar = createBar(renderer, { -8.f, -7.f }, BAR_TYPE::FOOD_BAR);
+	food_bar = createBar(renderer, { 8.f, -7.f }, BAR_TYPE::FOOD_BAR);
 
 	// Create food storage bar
 	// Todo: locate the food storage bar according to screen size and food sprite 
@@ -754,7 +755,6 @@ void WorldSystem::handle_collisions() {
 				registry.remove_all_components_of(entity);
 			}
 		}
-		// Todo: Collision involving Player - Spaceship should not allow player move ?
 			
 	}
 
@@ -895,16 +895,14 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		printf("Near entrance, press E to enter\n");
 		if (action == GLFW_PRESS && key == GLFW_KEY_E ) {
 			Player& player = registry.players.get(player_salmon);
-
 			Spaceship& s = registry.spaceship.get(home);
+
+			// regenerate food and health 
 			player.health = PLAYER_MAX_HEALTH;
-			player.food = PLAYER_MAX_FOOD;
+			//player.food = PLAYER_MAX_FOOD;
 
 			Motion& health = registry.motions.get(health_bar);
 			Motion& food = registry.motions.get(food_bar);
-			//health.scale = HEALTH_BAR_SCALE;
-			food.scale = FOOD_BAR_SCALE;
-
 
 			// no caemra shake 
 			Motion& camera_motion = registry.motions.get(main_camera);
@@ -924,15 +922,52 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 			Motion& s_motion = registry.motions.get(home);
 			s_motion.position = { camera_motion.position.x,camera_motion.position.y };
 
+			// update all the motions of items in spaceship 
+			// Todo: clean up maybe put them in another component for home 
+			// Bars 
 			Motion& fs_motion = registry.motions.get(food_storage);
+			Bar& f_storage = registry.bar.get(food_storage);
 			Motion& a_motion = registry.motions.get(ammo_storage); 
+
+			// storage items 
 			Motion& t_motion = registry.motions.get(turkey);
 			Motion& as_motion = registry.motions.get(ammo);
 
-			fs_motion.position = { fs_motion.position.x + camera_motion.position.x,fs_motion.position.y + camera_motion.position.y };
-			a_motion.position = { a_motion.position.x + camera_motion.position.x,  a_motion.position.y + camera_motion.position.y };
-			t_motion.position = { t_motion.position.x + camera_motion.position.x,t_motion.position.y + camera_motion.position.y };
-			as_motion.position = { as_motion.position.x + camera_motion.position.x,  as_motion.position.y + camera_motion.position.y };
+			fs_motion.position = { -3.5f + camera_motion.position.x, camera_motion.position.y };
+			a_motion.position = { 4.5f + camera_motion.position.x,  0.5f + camera_motion.position.y };
+			t_motion.position = { -5.5f + camera_motion.position.x, 0.f + camera_motion.position.y };
+			as_motion.position = { 1.f + camera_motion.position.x, 0.5f + camera_motion.position.y };
+
+			// Calculate the amount of food needed to fill the player's capacity
+			int foodNeeded = PLAYER_MAX_FOOD - player.food;
+
+			printf("Food before refil: %d \n", player.food);
+			// Check if there is enough food in the home to fill the player's capacity
+			if (foodNeeded <= f_storage.amount) {
+				// Take food from home to fill player's capacity
+				f_storage.amount -= foodNeeded;
+				player.food = PLAYER_MAX_FOOD;
+				printf("Food after refil: %d \n", player.food);
+				printf("The ammount of food storage left: %d \n", f_storage.amount);
+				}
+			else {
+				// Take all available food from home
+				player.food += f_storage.amount;
+				f_storage.amount = 0;
+				printf("Food after refil: %d \n", player.food);
+				printf("The ammount of food storage left: %d \n", f_storage.amount);
+				}
+			// regenerate based on player.food  
+			vec2 new_food_scale = vec2(((float)player.food / (float)PLAYER_MAX_FOOD) * FOOD_BAR_SCALE[0], FOOD_BAR_SCALE[1]);
+			vec2 new_turkey_scale = vec2(TURKEY_BAR_SCALE[0], ((float)f_storage.amount / (float)200) * TURKEY_BAR_SCALE[1]);
+
+			printf("New Turkey scale: (%f, %f)\n", new_turkey_scale.x, new_turkey_scale.y);
+			// do interpolation in step function 
+			health.scale = HEALTH_BAR_SCALE;
+			food.scale = new_food_scale;
+			printf("before Turkey scale: (%f, %f)\n", fs_motion.scale.x, fs_motion.scale.y);
+			fs_motion.scale = new_turkey_scale;
+			printf("after Turkey scale: (%f, %f)\n", fs_motion.scale.x, fs_motion.scale.y);
 
 			printf("You are home\n");
 			s.in_home = true;

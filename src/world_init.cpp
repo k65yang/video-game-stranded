@@ -193,6 +193,9 @@ Entity createBar(RenderSystem* renderer, vec2 position, BAR_TYPE type) {
 	// Initialize the collider
 	createDefaultCollider(entity);
 
+	auto& bar = registry.bar.emplace(entity);
+	bar.amount = 200;
+
 	TEXTURE_ASSET_ID texture = TEXTURE_ASSET_ID::PLAYER;
 	switch (type) {
 			case BAR_TYPE::HEALTH_BAR:
@@ -204,6 +207,7 @@ Entity createBar(RenderSystem* renderer, vec2 position, BAR_TYPE type) {
 			case BAR_TYPE::FOOD_STORAGE:
 				texture = TEXTURE_ASSET_ID::FOOD_BLOCK;
 				motion.scale = vec2({ 0.5, 2 });
+
 				break;
 			case BAR_TYPE::AMMO_STORAGE:
 				texture = TEXTURE_ASSET_ID::AMMO_BLOCK;
@@ -271,7 +275,6 @@ Entity createStorage(RenderSystem* renderer, vec2 position, ITEM_TYPE type) {
 	motion.position = position;
 	motion.scale = vec2({ 7, 5 });
 
-	//auto& spaceship = registry.spaceship.emplace(entity);
 	// Initialize the collider
 	createDefaultCollider(entity);
 
@@ -280,7 +283,6 @@ Entity createStorage(RenderSystem* renderer, vec2 position, ITEM_TYPE type) {
 			case ITEM_TYPE::AMMO:
 				texture = TEXTURE_ASSET_ID::AMMO;
 				motion.scale = vec2({ 8, 6 });
-
 				break;
 			case ITEM_TYPE::TURKEY:
 				texture = TEXTURE_ASSET_ID::TURKEY;
