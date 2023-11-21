@@ -36,6 +36,12 @@ class MobSystem
         /// @brief Spawns mobs at various locations around the map
         void spawn_mobs();
 
+        /// @brief Creates a mob and adds it to the mobs registry
+        /// @param mob_position The initial position of the mob
+        /// @param mob_type The type of mob to be created
+        /// @return The created entity
+        Entity create_mob(vec2 mob_position, MOB_TYPE mob_type, int current_health = 0);
+
     private:
         // Pointer to rendering system
         RenderSystem* renderer;
@@ -76,10 +82,4 @@ class MobSystem
             {MOB_TYPE::GHOST, TEXTURE_ASSET_ID::GHOST},
             {MOB_TYPE::SLIME, TEXTURE_ASSET_ID::SLIME}
         };
-
-        /// @brief Creates a mob and adds it to the mobs registry
-        /// @param mob_position The initial position of the mob
-        /// @param mob_type The type of mob to be created
-        /// @return The created entity
-        Entity create_mob(vec2 mob_position, MOB_TYPE mob_type);
 };

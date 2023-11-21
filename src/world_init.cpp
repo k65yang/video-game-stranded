@@ -147,7 +147,7 @@ Entity createLine(vec2 position, vec2 scale)
 	return entity;
 }
 
-Entity createHealthBar(RenderSystem* renderer, vec2 position) {
+Entity createHealthBar(RenderSystem* renderer, vec2 position, int health) {
 	auto entity = Entity();
 
 	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
@@ -158,7 +158,7 @@ Entity createHealthBar(RenderSystem* renderer, vec2 position) {
 	motion.angle = 0.f;
 	motion.velocity = { 0.f, 0.f };
 	motion.position = position; 
-	motion.scale = vec2({ 5.f, 0.5 });
+	motion.scale = vec2(((float)health / (float)PLAYER_MAX_HEALTH) * HEALTH_BAR_SCALE[0], HEALTH_BAR_SCALE[1]);
 
 	registry.renderRequests.insert(
 		entity,
@@ -170,7 +170,7 @@ Entity createHealthBar(RenderSystem* renderer, vec2 position) {
 	return entity;
 }
 
-Entity createFoodBar(RenderSystem* renderer, vec2 position) {
+Entity createFoodBar(RenderSystem* renderer, vec2 position, int food) {
 	auto entity = Entity();
 
 	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
@@ -181,7 +181,7 @@ Entity createFoodBar(RenderSystem* renderer, vec2 position) {
 	motion.angle = 0.f;
 	motion.velocity = { 0.f, 0.f };
 	motion.position = position;
-	motion.scale = vec2({ 5.5, 0.7 });
+	motion.scale = vec2(((float)food / (float)PLAYER_MAX_FOOD) * FOOD_BAR_SCALE[0], FOOD_BAR_SCALE[1]);
 
 	registry.renderRequests.insert(
 		entity,

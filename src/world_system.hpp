@@ -108,6 +108,7 @@ private:
 	Entity weapon_indicator;
 	Entity spaceship;
 	Entity help_bar;
+	bool tooltips_on = true;
 	std::vector<std::pair<Entity, bool>> quest_items;
 
 	bool user_has_first_weapon = false;
@@ -141,6 +142,8 @@ private:
 	/// Spawns ITEM_LIMIT items randomly across the map
 	///	</summary>
 	void spawn_items();
+
+	void load_spawned_items_mobs(json& j);
 
 	/// <summary>
 	/// Maps the GLFW key into a InputKeyIndex as an int

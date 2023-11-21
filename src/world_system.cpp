@@ -188,7 +188,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		}
 	}
 
-	if (current_tooltip != tooltips.size() && registry.tips.size() == 0) {
+	if (current_tooltip < tooltips.size() && registry.tips.size() == 0 && tooltips_on) {
 		help_bar = createHelp(renderer, { 0.f, -7.f }, tooltips[current_tooltip]);
 		current_tooltip++;
 	}
@@ -1059,12 +1059,11 @@ void WorldSystem::spawn_items() {
 	 // TESTING: Force spawn quest items once
 	 createItem(renderer, terrain->get_random_terrain_location(), ITEM_TYPE::QUEST_ONE);
 	 createItem(renderer, terrain->get_random_terrain_location(), ITEM_TYPE::QUEST_TWO);
-};
+}
 
-// Adapted from restart_game
+// Adapted from restart_game, BASICALLY alot of optional arguments to change small things :D
 void WorldSystem::load_game(json j) {
-	vec2 player_location = j["player_motion"]["position"];
-	printf("x: %f, y: %f", player_location[0], player_location[1]);
+	vec2 player_location = { j["player_motion"]["position_x"], j["player_motion"]["position_y"] };
 
 	// Debugging for memory/component leaks
 	registry.list_all_components();
@@ -1116,28 +1115,33 @@ void WorldSystem::load_game(json j) {
 	spaceship = createSpaceship(renderer, { 0,0 });
 
 	// Create a new salmon
-	player_salmon = createPlayer(renderer, { 0, 0 });
+	player_salmon = createPlayer(renderer, player_location);
+	Player& player = registry.players.get(player_salmon);
+	player.health = j["player"]["health"];
+	player.food = j["player"]["food"];
 	registry.colors.insert(player_salmon, { 1, 0.8f, 0.8f });
 
 	// Create the main camera
-	main_camera = createCamera({ 0,0 });
+	main_camera = createCamera(player_location);
 
 	// Create fow
-	fow = createFOW(renderer, { 0,0 });
+	fow = createFOW(renderer, player_location);
 
 	// Create health bars 
-	health_bar = createHealthBar(renderer, { -8.f, 7.f });
+	health_bar = createHealthBar(renderer, { -8.f, 7.f }, player.health);
 
 	// Create food bars 
-	food_bar = createFoodBar(renderer, { 8.f, 7.f });
+	food_bar = createFoodBar(renderer, { 8.f, 7.f }, player.food);
 
 	// Reset the weapon indicator
 	user_has_first_weapon = false;
 
-	// A function that handles the help/tutorial (some tool tips at the top of the screen)
-	help_bar = createHelp(renderer, { 0.f, -7.f }, tooltips[0]);
-	current_tooltip = 1;
+	// TODO: remove the tooltips successfully
+	tooltips_on = false;
+	help_bar = createHelp(renderer, { 0.f, -7.f }, TEXTURE_ASSET_ID::LOADED);
+	current_tooltip = tooltips.size();
 
+	// TODO: Save the bool for the quest items -> put below
 	quest_items.clear();
 	quest_items.push_back({ createQuestItem(renderer, {10.f, -2.f}, TEXTURE_ASSET_ID::QUEST_1_NOT_FOUND), false });
 	quest_items.push_back({ createQuestItem(renderer, {10.f, 2.f}, TEXTURE_ASSET_ID::QUEST_2_NOT_FOUND), false });
@@ -1145,13 +1149,24 @@ void WorldSystem::load_game(json j) {
 	// clear all used spawn locations
 	used_spawn_locations.clear();
 
-	// FOR DEMO - to show different types of items being created.	
-	spawn_items();
-	mob_system->spawn_mobs();
+	load_spawned_items_mobs(j);
 
 	// for movement velocity
 	for (int i = 0; i < KEYS; i++)
 		keyDown[i] = false;
 
 
+}
+
+void WorldSystem::load_spawned_items_mobs(json& j) {
+	json& mobs = j["mobs"];
+	json& items = j["items"];
+
+	for (auto& item : items) {
+		createItem(renderer, { item[1]["position_x"], item[1]["position_y"] }, item[0]["data"]);
+	}
+
+	for (auto& mob : mobs) {
+		mob_system->create_mob({ mob[1]["position_x"], mob[1]["position_y"] }, mob[0]["type"], mob[0]["health"]);
+	}
 }

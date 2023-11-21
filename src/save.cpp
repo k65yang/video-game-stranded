@@ -1,4 +1,4 @@
-#include "save_load.hpp"
+#include "save.hpp"
 #include <iostream>
 #include <fstream>
 
@@ -47,7 +47,8 @@ void from_json(const json& j, Motion& m) {
     j.at("scale_y").get_to(m.scale[1]);
 }
 
-void SaveGame(Player& player, Motion& player_motion std::vector<std::pair<Mob&, Motion&>> mobs, std::vector<std::pair<Item&, Motion&>> items) {
+// NOTE: Currently saving every field of these structs - but this isn't necessary, just for cleanliness of code. If we need more space we can trim here :)
+void SaveGame(Player& player, Motion& player_motion, std::vector<std::pair<Mob&, Motion&>> mobs, std::vector<std::pair<Item&, Motion&>> items) {
  
     json data;
 
