@@ -18,6 +18,7 @@
 #include "physics_system.hpp"
 #include "save.hpp"
 #include "audio_system.hpp"
+
 #include <nlohmann/json.hpp>
 
 using json = nlohmann::json;
@@ -114,6 +115,7 @@ private:
 	Entity ammo_storage;
 	Entity ammo;
 	Entity weapon_indicator;
+	Entity powerup_indicator;
 	Entity ammo_indicator; 
 	Entity spaceship;
 	Entity home; 
@@ -122,6 +124,7 @@ private:
 	std::vector<std::pair<Entity, bool>> quest_items;
 
 	bool user_has_first_weapon = false;
+	bool user_has_powerup = false;
 
 	int current_tooltip = 0;
 	std::vector<TEXTURE_ASSET_ID> tooltips = { TEXTURE_ASSET_ID::HELP_ONE, TEXTURE_ASSET_ID::HELP_TWO, TEXTURE_ASSET_ID::HELP_THREE, TEXTURE_ASSET_ID::HELP_FOUR };

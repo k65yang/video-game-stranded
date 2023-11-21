@@ -1,6 +1,5 @@
 #pragma once
 #include "common.hpp"
-#include <vector>
 #include <unordered_map>
 #include <unordered_set>
 #include <deque>
@@ -23,7 +22,10 @@ enum class ITEM_TYPE {
 	WEAPON_MACHINEGUN = WEAPON_SHOTGUN + 1,
 	FOOD = WEAPON_MACHINEGUN + 1,
 	WEAPON_UPGRADE = FOOD + 1,
-	UPGRADE = WEAPON_UPGRADE + 1,
+	POWERUP_NONE = WEAPON_UPGRADE + 1,
+	POWERUP_SPEED = POWERUP_NONE + 1,
+	POWERUP_HEALTH = POWERUP_SPEED + 1,
+	UPGRADE = POWERUP_HEALTH + 1,
 	TURKEY = UPGRADE + 1,
 	AMMO = TURKEY + 1,
 
@@ -57,6 +59,19 @@ struct Player
 	int food = PLAYER_MAX_FOOD;
 	int framex = 0; 
 	int framey = 4; 
+};
+
+struct SpeedPowerup {
+	float old_speed;
+};
+
+// Make sure that the heal interval is always larger than the light up interval
+struct HealthPowerup {
+	float heal_interval_ms = 5000.f;				// Player health will increase after this interval
+	float remaining_time_for_next_heal = 2500.f;	// Time since the player last healed
+	int heal_amount = 10;							// The amount healed
+	float light_up_duration_ms = 1000.f;			// The health bar will light up to indicate healing
+	float light_up_timer_ms = 0.f;					// The time remaining for health bar to be lit up
 };
 
 // Knockback effect for player from mobs
@@ -323,7 +338,8 @@ struct Collider
 
 enum class TEXTURE_ASSET_ID {
 	PLAYER = 0,
-	SLIME = PLAYER + 1,
+	PLAYER_PARTICLE = PLAYER + 1,
+	SLIME = PLAYER_PARTICLE + 1,
 	REDBLOCK = SLIME + 1,
 	WEAPON_UPGRADE = REDBLOCK + 1,
 	FOOD = WEAPON_UPGRADE + 1,
@@ -337,7 +353,11 @@ enum class TEXTURE_ASSET_ID {
 	ICON_CROSSBOW = ICON_SHURIKEN + 1,
 	ICON_SHOTGUN = ICON_CROSSBOW + 1,
 	ICON_MACHINE_GUN = ICON_SHOTGUN + 1,
-	SPACESHIP = ICON_MACHINE_GUN + 1,
+	ICON_POWERUP_SPEED = ICON_MACHINE_GUN + 1,
+	ICON_POWERUP_HEALTH = ICON_POWERUP_SPEED + 1,
+	POWERUP_HEALTH = ICON_POWERUP_HEALTH + 1,
+	POWERUP_SPEED = POWERUP_HEALTH + 1,
+	SPACESHIP = POWERUP_SPEED + 1,
 	SPACEHOME = SPACESHIP + 1,
 	BLUEBLOCK = SPACEHOME + 1,
 	//inserting new blocks here
@@ -412,4 +432,20 @@ struct RenderRequest {
 	EFFECT_ASSET_ID used_effect = EFFECT_ASSET_ID::EFFECT_COUNT;
 	GEOMETRY_BUFFER_ID used_geometry = GEOMETRY_BUFFER_ID::GEOMETRY_COUNT;
 	RENDER_LAYER_ID layer_id = RENDER_LAYER_ID::LAYER_COUNT;
+};
+
+// Particle effects
+const int NUM_PARTICLES = 200;
+
+// Struct describing particles 
+struct Particle {
+	
+}; 
+
+// Each entity that has particle effects will have a vector to track individual particles
+struct ParticleTrail {
+	TEXTURE_ASSET_ID texture;
+	Motion* motion_component_ptr;
+	bool is_alive;
+	std::set<Entity> particles;
 };

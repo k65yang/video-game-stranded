@@ -39,6 +39,7 @@ Entity createLine(vec2 position, vec2 size);
 Entity createBar(RenderSystem* renderer, vec2 position, int amount, BAR_TYPE type);
 Entity createFrame(RenderSystem* renderer, vec2 position, FRAME_TYPE type);
 Entity createWeaponIndicator(RenderSystem* renderer, vec2 position, TEXTURE_ASSET_ID weapon_texture);
+Entity createPowerupIndicator(RenderSystem* renderer, vec2 position, TEXTURE_ASSET_ID powerup_texture);
 
 // Tool tips for ease of use 
 Entity createHelp(RenderSystem* renderer, vec2 position, TEXTURE_ASSET_ID texture);
