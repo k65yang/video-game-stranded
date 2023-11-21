@@ -1354,7 +1354,7 @@ void WorldSystem::on_mouse_click(int button, int action, int mods) {
 				Weapon& w = registry.weapons.get(player_equipped_weapon);
 
 				// Play appropriate shooting noises if we've just shot
-				if (w.can_fire) {
+				if (w.can_fire && w.ammo_count>0) {
 					switch (w.weapon_type) {
 					case ITEM_TYPE::WEAPON_SHOTGUN:
 						audio_system->play_one_shot(AudioSystem::SHOT); break;
