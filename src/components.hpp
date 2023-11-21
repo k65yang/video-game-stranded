@@ -41,7 +41,8 @@ enum class BAR_TYPE {
 	};
 enum class FRAME_TYPE {
 	HEALTH_FRAME = 0, 
-	BAR_FRAME = HEALTH_FRAME + 1, 
+	FOOD_FRAME = HEALTH_FRAME + 1,
+	BAR_FRAME = FOOD_FRAME + 1,
 	};
 
 // TODO: cool idea for later is to have a customizable difficulty that adjusts food and health.
@@ -344,12 +345,13 @@ enum class TEXTURE_ASSET_ID {
 	SPACEHOME = SPACESHIP + 1,
 	BLUEBLOCK = SPACEHOME + 1,
 	//inserting new blocks here
-	FOOD_BLOCK = BLUEBLOCK + 1, 
+	FOOD_BLOCK = BLUEBLOCK + 1,
 	BROWNBLOCK = FOOD_BLOCK + 1,
 	AMMO_BLOCK = BROWNBLOCK + 1,
 	BAR_FRAME = AMMO_BLOCK + 1,
-	HEALTH_FRAME = BAR_FRAME +1,
-	AMMO = HEALTH_FRAME +1, 
+	HEALTH_FRAME = BAR_FRAME + 1,
+	FOOD_FRAME = HEALTH_FRAME + 1,
+	AMMO = FOOD_FRAME +1,
 	TURKEY = AMMO + 1, 
 	HELP_ONE = TURKEY + 1,
 	HELP_TWO = HELP_ONE + 1,

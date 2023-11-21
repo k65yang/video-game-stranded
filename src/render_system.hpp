@@ -91,6 +91,7 @@ private:
 			textures_path("ammoblock.png"),
 			textures_path("bar_frame.png"),
 			textures_path("health_empty_bar.png"),
+			textures_path("food_empty_bar.png"),
 			//spaceship items 
 			textures_path("ammos.png"), 
 			textures_path("turkey.png"),

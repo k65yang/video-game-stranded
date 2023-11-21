@@ -318,13 +318,15 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	Motion& q1 = registry.motions.get(quest_items[0].first);
 	Motion& q2 = registry.motions.get(quest_items[1].first);
 	Motion& h_frame = registry.motions.get(health_frame); 
+	Motion& f_frame = registry.motions.get(food_frame); 
 
-	health.position = { -8.f + camera_motion.position.x, 7.f + camera_motion.position.y };
-	food.position = { 8.f + camera_motion.position.x, 7.f + camera_motion.position.y };
+	health.position = { -7.f + camera_motion.position.x, 7.f + camera_motion.position.y };
+	food.position = { 7.f + camera_motion.position.x, 7.f + camera_motion.position.y };
 	help.position = { camera_motion.position.x, -7.f + camera_motion.position.y };
 	q1.position = { 10.f + camera_motion.position.x, -2.f + camera_motion.position.y };
 	q2.position = { 10.f + camera_motion.position.x, 2.f + camera_motion.position.y };
-	h_frame.position = { -8.f + camera_motion.position.x, 7.f + camera_motion.position.y };
+	h_frame.position = { -0.5f + health.position.x , health.position.y };
+	f_frame.position = { -0.3f + food.position.x, food.position.y};
 	if (user_has_first_weapon) {
 		Motion& weapon_ui = registry.motions.get(weapon_indicator);
 		weapon_ui.position = { -10.f + camera_motion.position.x, -6.f + camera_motion.position.y };
@@ -569,15 +571,18 @@ void WorldSystem::restart_game() {
 	// Create health bars
 	health_bar = createBar(renderer, { -8.f, 7.f }, PLAYER_MAX_HEALTH, BAR_TYPE::HEALTH_BAR);
 
-	health_frame = createFrame(renderer, { -8.f, 7.f }, FRAME_TYPE::HEALTH_FRAME);
+	health_frame = createFrame(renderer, { -7.f, 7.f }, FRAME_TYPE::HEALTH_FRAME);
+	food_frame = createFrame(renderer, { 7.f, 7.f }, FRAME_TYPE::FOOD_FRAME);
 
 	// Create food bars 
 	food_bar = createBar(renderer, { 8.f, -7.f }, PLAYER_MAX_FOOD, BAR_TYPE::FOOD_BAR);
 
 	// Create food storage bar
 	food_storage = createBar(renderer, { -3.5f, 0.f }, 200, BAR_TYPE::FOOD_STORAGE);
+	fs_frame = createFrame(renderer, { 0,0 }, FRAME_TYPE::BAR_FRAME); 
 	// Create ammo storage bar
 	ammo_storage = createBar(renderer, { 4.5f, 0.5f }, 200, BAR_TYPE::AMMO_STORAGE);
+	as_frame = createFrame(renderer, { 0,0 }, FRAME_TYPE::BAR_FRAME);
 
 	// Creating spaceship home items 
 	turkey = createStorage(renderer, { -5.5f, 0.f }, ITEM_TYPE::TURKEY);
@@ -1052,10 +1057,13 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 			// Todo: clean up maybe put them in another component for home 
 			// Bars 
 			Motion& fs_motion = registry.motions.get(food_storage);
-			Bar& f_storage = registry.bar.get(food_storage);
-			Motion& as_motion = registry.motions.get(ammo_storage); 
-			Bar& a_storage = registry.bar.get(ammo_storage);
+			Motion& fs_frame_motion = registry.motions.get(fs_frame);
 
+			Motion& as_motion = registry.motions.get(ammo_storage); 
+			Motion& as_frame_motion = registry.motions.get(as_frame); 
+
+			Bar& f_storage = registry.bar.get(food_storage);
+			Bar& a_storage = registry.bar.get(ammo_storage);
 			// storage items 
 			Motion& t_motion = registry.motions.get(turkey);
 			Motion& a_item_motion = registry.motions.get(ammo);
@@ -1064,7 +1072,8 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 			as_motion.position = { 4.5f + camera_motion.position.x,  0.5f + camera_motion.position.y };
 			t_motion.position = { -5.5f + camera_motion.position.x, 0.f + camera_motion.position.y };
 			a_item_motion.position = { 1.f + camera_motion.position.x, 0.5f + camera_motion.position.y };
-
+			fs_frame_motion.position = { -3.5f + camera_motion.position.x, camera_motion.position.y };
+			as_frame_motion.position = { 4.5f + camera_motion.position.x,  0.5f + camera_motion.position.y };
 			// regenerate food and health 
 			player.health = PLAYER_MAX_HEALTH;
 			health.scale = HEALTH_BAR_SCALE;

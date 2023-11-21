@@ -246,7 +246,7 @@ Entity createFrame(RenderSystem* renderer, vec2 position, FRAME_TYPE type) {
 	auto& motion = registry.motions.emplace(entity);
 	motion.angle = 0.f;
 	motion.velocity = { 0.f, 0.f };
-	motion.scale = vec2({ 6, 1 });
+	motion.scale = vec2({ 7, 1 });
 
 	// Initialize the collider
 	createDefaultCollider(entity);
@@ -256,8 +256,14 @@ Entity createFrame(RenderSystem* renderer, vec2 position, FRAME_TYPE type) {
 			case FRAME_TYPE::HEALTH_FRAME:
 				texture = TEXTURE_ASSET_ID::HEALTH_FRAME;
 				break;
+			case FRAME_TYPE::FOOD_FRAME:
+				texture = TEXTURE_ASSET_ID::FOOD_FRAME;
+				motion.scale = vec2({ 6.7, 1 });
+
+				break;
 			case FRAME_TYPE::BAR_FRAME:
 				texture = TEXTURE_ASSET_ID::BAR_FRAME;
+				motion.scale = vec2({ 1.2, 2.2 });
 				break;
 
 		}
