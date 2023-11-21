@@ -40,7 +40,7 @@ Entity createLine(vec2 position, vec2 size);
 Entity createFOW(RenderSystem* renderer, vec2 pos);
 
 // UI Elements
-Entity createBar(RenderSystem* renderer, vec2 position, BAR_TYPE type);
+Entity createBar(RenderSystem* renderer, vec2 position, int amount, BAR_TYPE type);
 Entity createFrame(RenderSystem* renderer, vec2 position, FRAME_TYPE type);
 Entity createWeaponIndicator(RenderSystem* renderer, vec2 position, TEXTURE_ASSET_ID weapon_texture);
 

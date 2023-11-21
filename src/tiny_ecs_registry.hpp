@@ -16,6 +16,8 @@ public:
 	ComponentContainer<Motion> motions;
 	ComponentContainer<Collision> collisions;
 	ComponentContainer<Player> players;
+	ComponentContainer<PlayerKnockbackEffect> playerKnockbackEffects;
+	ComponentContainer<PlayerInaccuracyEffect> playerInaccuracyEffects;
 	ComponentContainer<Weapon> weapons;
 	ComponentContainer<Projectile> projectiles;
 
@@ -49,6 +51,8 @@ public:
 		registry_list.push_back(&motions);
 		registry_list.push_back(&collisions);
 		registry_list.push_back(&players);
+		registry_list.push_back(&playerKnockbackEffects);
+		registry_list.push_back(&playerInaccuracyEffects);
 		registry_list.push_back(&weapons);
 		registry_list.push_back(&projectiles);
 

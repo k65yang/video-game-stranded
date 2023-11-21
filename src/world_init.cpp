@@ -66,8 +66,8 @@ Entity createItem(RenderSystem* renderer, vec2 position, ITEM_TYPE type)
 	case ITEM_TYPE::QUEST_TWO:
 		texture = TEXTURE_ASSET_ID::QUEST_2_ITEM;
 		break;
-	case ITEM_TYPE::UPGRADE:
-		texture = TEXTURE_ASSET_ID::ITEM;
+	case ITEM_TYPE::WEAPON_UPGRADE:
+		texture = TEXTURE_ASSET_ID::WEAPON_UPGRADE;
 		break;
 	case ITEM_TYPE::FOOD:
 		texture = TEXTURE_ASSET_ID::FOOD;
@@ -144,7 +144,7 @@ Entity createHome(RenderSystem* renderer) {
 	auto& spaceship = registry.spaceship.emplace(entity);
 
 	// Setting initial values, scale is negative to make it face the opposite way
-	motion.scale = vec2({ window_width_px / 50, window_height_px / 50 });
+	motion.scale = vec2({ target_resolution.x / tile_size_px, target_resolution.y / tile_size_px });
 	registry.renderRequests.insert(
 		entity,
 		{ TEXTURE_ASSET_ID::SPACEHOME,
@@ -203,6 +203,8 @@ Entity createBar(RenderSystem* renderer, vec2 position, BAR_TYPE type) {
 				break;
 			case BAR_TYPE::FOOD_BAR:
 				texture = TEXTURE_ASSET_ID::BLUEBLOCK;
+				motion.scale = vec2(((float)food / (float)PLAYER_MAX_FOOD) * FOOD_BAR_SCALE[0], FOOD_BAR_SCALE[1]);
+
 				break;
 			case BAR_TYPE:: AMMO_BAR:
 				texture = TEXTURE_ASSET_ID::BROWNBLOCK;
@@ -238,8 +240,6 @@ Entity createFrame(RenderSystem* renderer, vec2 position, FRAME_TYPE type) {
 	auto& motion = registry.motions.emplace(entity);
 	motion.angle = 0.f;
 	motion.velocity = { 0.f, 0.f };
-	motion.position = position;
-	motion.scale = vec2({ 6, 1 });
 
 	// Initialize the collider
 	createDefaultCollider(entity);
@@ -254,6 +254,8 @@ Entity createFrame(RenderSystem* renderer, vec2 position, FRAME_TYPE type) {
 				break;
 
 		}
+	motion.position = position; 
+	motion.scale = vec2(((float)health / (float)PLAYER_MAX_HEALTH) * HEALTH_BAR_SCALE[0], HEALTH_BAR_SCALE[1]);
 
 	registry.renderRequests.insert(
 		entity,

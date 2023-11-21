@@ -77,8 +77,25 @@ GLFWwindow* WorldSystem::create_window() {
 #endif
 	glfwWindowHint(GLFW_RESIZABLE, 0);
 
+	// TODO: make a more elegant solution via manipulating the projection matrix instead of this hack
+	// so UI elements are aspect ratio and resolution independent in theory
+	// Build window size using screen dimensions
+	const GLFWvidmode* mode = glfwGetVideoMode(glfwGetPrimaryMonitor());
+	int y = mode->height;
+	int s = y / aspect_ratio.y;	// scale factor such that s * aspect_ratio = {mode->width, mode->height}. 
+	int x = aspect_ratio.x * s;
+	// Remember: aspect_ratio.y * s = y, aspect_ratio.x * s = x
+
+	GLFWmonitor* monitor_ptr = glfwGetPrimaryMonitor();
+
+	if (windowed_mode) {
+		monitor_ptr = nullptr;
+		x = target_resolution.x;
+		y = target_resolution.y;
+	}
+
 	// Create the main window (for rendering, keyboard, and mouse input)
-	window = glfwCreateWindow(window_width_px, window_height_px, "Stranded", nullptr, nullptr);
+	window = glfwCreateWindow(x, y, "Stranded", monitor_ptr, nullptr);
 	if (window == nullptr) {
 		fprintf(stderr, "Failed to glfwCreateWindow");
 		return nullptr;
@@ -187,7 +204,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		}
 	}
 
-	if (current_tooltip != tooltips.size() && registry.tips.size() == 0) {
+	if (current_tooltip < tooltips.size() && registry.tips.size() == 0 && tooltips_on) {
 		help_bar = createHelp(renderer, { 0.f, -7.f }, tooltips[current_tooltip]);
 		current_tooltip++;
 	}
@@ -280,14 +297,16 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	//for movement, animation, and distance calculation
 	handlePlayerMovement(elapsed_ms_since_last_update);
 		
-		
-
-
 	// Camera movement mode
 	Camera& c = registry.cameras.get(main_camera);
 	Motion& camera_motion = registry.motions.get(main_camera);
 	if (c.mode_follow) {
-		camera_motion.position = m.position;	// why are the positions inverted???
+		/*
+		if (debugging.in_debug_mode)
+			camera_motion.velocity = { 0,0 };
+		else
+		*/
+		camera_motion.position = m.position;
 	}
 	else {
 		handle_movement(camera_motion, CAMERA_LEFT);
@@ -340,8 +359,49 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		}
 	}
 
+	// Player updates
+	for (Entity entity : registry.players.entities) {
+		Motion& motion = registry.motions.get(entity);
+
+		// Knockback updates
+		if (registry.playerKnockbackEffects.has(entity)) {
+			PlayerKnockbackEffect& playerKnockbackEffect = registry.playerKnockbackEffects.get(entity);
+			
+			// Increment duration
+			playerKnockbackEffect.elapsed_knockback_time_ms += elapsed_ms_since_last_update;
+			
+			// Set player velocity to zero and remove the PlayerKnockbackEffect component if knockback effect is over
+			if (playerKnockbackEffect.duration_ms < playerKnockbackEffect.elapsed_knockback_time_ms) {
+				motion.velocity = {0.f, 0.f};
+				registry.playerKnockbackEffects.remove(entity);
+
+				printf("KNOCKBACK REMOVED\n");
+			}
+		}
+
+		// Inaccuracy updates
+		if (registry.playerInaccuracyEffects.has(entity)) {
+			PlayerInaccuracyEffect& playerInaccuracyEffect = registry.playerInaccuracyEffects.get(entity);
+			
+			// Increment duration
+			playerInaccuracyEffect.elapsed_inaccuracy_time_ms += elapsed_ms_since_last_update;
+			
+			// Remove the PlayerInaccuracyEffect component if knockback effect is over
+			if (playerInaccuracyEffect.duration_ms < playerInaccuracyEffect.elapsed_inaccuracy_time_ms) {
+				registry.playerInaccuracyEffects.remove(entity);
+
+				printf("INACCURACY REMOVED\n");
+			}
+		}
+	}
+
+	// Lets the editor drag
+	if (debugging.in_debug_mode && editor_place_tile)
+		map_editor_routine();
+
 	return true;
 }
+
 void WorldSystem::updatePlayerDirection() {
 	if (CURSOR_ANGLE >= -M_PI / 4 && CURSOR_ANGLE < M_PI / 4) {
 		PLAYER_DIRECTION = 2;  // Right
@@ -368,7 +428,7 @@ void WorldSystem::handlePlayerMovement(float elapsed_ms_since_last_update) {
 	// We'll consider moveVelocity existing in player space
 	// Allow movement if player is not dead 
 	// Movement code, build the velocity resulting from player movement
-	if (!registry.deathTimers.has(player_salmon)) {
+	if (!registry.deathTimers.has(player_salmon) && !registry.playerKnockbackEffects.has(player_salmon)) {
 		Motion& m = registry.motions.get(player_salmon);
 		m.velocity = { 0, 0 };
 
@@ -386,19 +446,18 @@ void WorldSystem::handlePlayerMovement(float elapsed_ms_since_last_update) {
 				registry.players.components[0].framex = (registry.players.components[0].framex + 1) % 4;
 				ELAPSED_TIME = 0.0f; // Reset the timer
 				}
-			}
-		else {
+		} else {
 			// No movement keys pressed, set back to the first frame
 			registry.players.components[0].framex = 0;
 			}
 		}
-	else {
+	else if (registry.deathTimers.has(player_salmon)) {
 		// Player is dead, do not allow movement
 		Motion& m = registry.motions.get(player_salmon);
 		m.velocity = { 0, 0 };
 		registry.players.components[0].framey = 1;
-		}
 	}
+}
 
 void WorldSystem::handle_movement(Motion& motion, InputKeyIndex indexStart, bool invertDirection, bool useAbsoluteVelocity)
 {
@@ -530,6 +589,8 @@ void WorldSystem::restart_game() {
 	used_spawn_locations.clear();
 
 	// FOR DEMO - to show different types of items being created.	
+ 
+	// TODO: uncomment these after messing w/ map editor
 	spawn_items();
 	mob_system->spawn_mobs();
 
@@ -593,6 +654,7 @@ void WorldSystem::handle_collisions() {
 
 				Mob& mob = registry.mobs.get(entity_other);
 				player.health -= mob.damage;
+				mob_system->apply_mob_attack_effects(entity, entity_other);
 
 				// Shrink the health bar
 				player.health_decrease_time = IFRAMES; // player's health decays over this period of time, using interpolation
@@ -723,8 +785,8 @@ void WorldSystem::handle_collisions() {
 					ammo_indicator = createBar(renderer, { -10, -4.f }, BAR_TYPE::AMMO_BAR);
 
 					break;
-				case ITEM_TYPE::UPGRADE:
-					// Just add to inventory
+				case ITEM_TYPE::WEAPON_UPGRADE:
+					weapons_system->upgradeCurrentWeapon();
 					break;
 				}
 
@@ -880,6 +942,50 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		}
 	}
 	*/
+
+	// Saving and reloading
+	if (action == GLFW_PRESS && key == GLFW_KEY_L) {
+		// Load the game state 
+		std::ifstream f("save.json");
+		json data = json::parse(f);
+
+		std::cout << "Loading ...";
+
+		load_game(data);
+	}
+	
+	if (action == GLFW_PRESS && key == GLFW_KEY_K) {
+		// Save the game state (player location, weapon, health, food, mobs & location)
+		Player& player = registry.players.get(player_salmon);
+		Motion& player_motion = registry.motions.get(player_salmon);
+
+		std::vector<std::pair<Mob&, Motion&>> mobs;
+		for (auto& mob : registry.mobs.entities) {
+			mobs.push_back({ registry.mobs.get(mob), registry.motions.get(mob) });
+		}
+
+		std::vector<std::pair<Item&, Motion&>> items;
+		for (auto& item : registry.items.entities) {
+			items.push_back({ registry.items.get(item), registry.motions.get(item) });
+		}
+
+		std::vector<bool> quests;
+		for (auto& item : quest_items) {
+			quests.push_back(item.second);
+		}
+
+		ITEM_TYPE type = ITEM_TYPE::WEAPON_NONE;
+		if (user_has_first_weapon) {
+			Weapon& weapon = registry.weapons.get(player_equipped_weapon);
+			type = weapon.weapon_type;
+		}
+
+		SaveGame(player, player_motion, mobs, items, quests, type);
+
+		tooltips_on = false;
+		help_bar = createHelp(renderer, { 0.f, -7.f }, TEXTURE_ASSET_ID::SAVING);
+		current_tooltip = tooltips.size();
+	}
 
 	// Resetting game
 	if (action == GLFW_RELEASE && key == GLFW_KEY_R) {
@@ -1053,6 +1159,28 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		if (key == GLFW_KEY_KP_DECIMAL)	// numpad '.'
 			// Saves map data
 			terrain->save_grid(loaded_map_name);	
+		if (key == GLFW_KEY_PAGE_UP) { // PageUp ke
+			// This expands the map to world_size_x, world_size_y.
+			// Make sure you disable item and mob spawning because physics and pathfinding
+			// will break!!
+			terrain->expand_map(world_size_x, world_size_y);
+			//restart_game();
+			renderer->empty_terrain_buffer();
+			
+			std::unordered_map<unsigned, RenderSystem::ORIENTATIONS> orientations;
+			terrain->generate_orientation_map(orientations);
+			renderer->initializeTerrainBuffers(orientations);
+
+			for (unsigned int i = 0; i < registry.terrainCells.entities.size(); i++) {
+				Entity e = registry.terrainCells.entities[i];
+				TerrainCell& cell = registry.terrainCells.components[i];
+
+				if (cell.flag & TERRAIN_FLAGS::COLLIDABLE)
+					createDefaultCollider(e);
+			}
+
+			physics_system->initStaticBVH(registry.colliders.size());
+		}
 	}
 
 	// Press B to toggle debug mode
@@ -1119,8 +1247,10 @@ void WorldSystem::on_mouse_move(vec2 mouse_position) {
 	if (!registry.deathTimers.has(player_salmon)) {
 		// The player is always in the middle of the screen so we need to compute the 
 		// rotation angle w.r.t. the centre of the screen
-		float screen_centre_x = window_width_px/2;
-		float screen_centre_y = window_height_px/2;
+		ivec2 window_size = renderer->window_resolution;
+
+		float screen_centre_x = window_size.x/2;
+		float screen_centre_y = window_size.y/2;
 
 		Motion& motion = registry.motions.get(player_salmon);
 		CURSOR_ANGLE = atan2(mouse_position.y - screen_centre_y, mouse_position.x - screen_centre_x);
@@ -1142,31 +1272,42 @@ void WorldSystem::on_mouse_click(int button, int action, int mods) {
 		}
 	}
 
-	if (debugging.in_debug_mode && button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS) {
-		mat3 view_ = renderer->createModelMatrix(main_camera);
+	if (debugging.in_debug_mode && button == GLFW_MOUSE_BUTTON_RIGHT) {
+		if (action == GLFW_PRESS)
+			editor_place_tile = true;
+		else if (action == GLFW_RELEASE)
+			editor_place_tile = false;
+	}
+}
 
-		// You can cache this to save performance.
-		mat3 proj_ = inverse(renderer->createProjectionMatrix());
+void WorldSystem::map_editor_routine() {
+	mat3 view_ = renderer->createModelMatrix(main_camera);
 
-		double xpos, ypos;
-		glfwGetCursorPos(window, &xpos, &ypos);	// For some reason it only supports doubles!
+	// You can cache this to save performance.
+	mat3 proj_ = inverse(renderer->createProjectionMatrix());
 
-		// Recall that valid clip coordinates are between [-1, 1]. 
-		// First, we need to turn screen (pixel) coordinates into clip coordinates:
-		vec3 mouse_pos = {
-			(xpos / window_width_px) * 2 - 1,		// Get the fraction of the x pos in the screen, multiply 2 to map range to [0, 2], 
-													// then offset so the range is now [-1, 1].
-			-(ypos / window_height_px) * 2 + 1,		// Same thing, but recall that the y direction is opposite in glfw.
-			1.0 };									// Denote that this is a point.
-		mouse_pos = view_ * proj_ * mouse_pos;
+	double xpos, ypos;
+	glfwGetCursorPos(window, &xpos, &ypos);	// For some reason it only supports doubles!
+	ivec2 screen = renderer->window_resolution;
 
-		Entity tile = terrain->get_cell(mouse_pos);
-		TerrainCell& cell = registry.terrainCells.get(tile);
-		bool to_collidable = (editor_flag & COLLIDABLE);
-		bool from_collidable = (cell.flag & COLLIDABLE);
+	// Recall that valid clip coordinates are between [-1, 1]. 
+	// First, we need to turn screen (pixel) coordinates into clip coordinates:
+	vec3 mouse_pos = {
+		(xpos / screen.x) * 2 - 1,		// Get the fraction of the x pos in the screen, multiply 2 to map range to [0, 2], 
+												// then offset so the range is now [-1, 1].
+		-(ypos / screen.y) * 2 + 1,		// Same thing, but recall that the y direction is opposite in glfw.
+		1.0 };									// Denote that this is a point.
+	mouse_pos = view_ * proj_ * mouse_pos;
 
-		cell.terrain_type = editor_terrain;
-		cell.flag = editor_flag;
+	Entity tile = terrain->get_cell(mouse_pos);
+	TerrainCell& cell = registry.terrainCells.get(tile);
+	bool to_collidable = (editor_flag & COLLIDABLE);
+	bool from_collidable = (cell.flag & COLLIDABLE);
+	uint32_t data = ((uint32_t)editor_terrain << 16) | editor_flag;
+
+
+	if (cell != data) {
+		cell.from_uint32(data);
 
 		// Update collisions
 		if (to_collidable != from_collidable) {
@@ -1184,7 +1325,7 @@ void WorldSystem::on_mouse_click(int button, int action, int mods) {
 }
 
 void WorldSystem::spawn_items() {
-	const int NUM_ITEM_TYPES = 3;
+	const int NUM_ITEM_TYPES = 2;
 
 	for (int i = 0; i < ITEM_LIMIT; i++) {
 		// Get random spawn location
@@ -1195,13 +1336,10 @@ void WorldSystem::spawn_items() {
 
 		switch (item_type) {
 			case 0:
-				createItem(renderer, spawn_location, ITEM_TYPE::UPGRADE);
+				createItem(renderer, spawn_location, ITEM_TYPE::WEAPON_UPGRADE);
 				break;
 			case 1:
 				createItem(renderer, spawn_location, ITEM_TYPE::FOOD);
-				break;
-			case 2:
-				createItem(renderer, spawn_location, ITEM_TYPE::UPGRADE);
 				break;
 		}
 	}
@@ -1215,4 +1353,141 @@ void WorldSystem::spawn_items() {
 	 // TESTING: Force spawn quest items once
 	 createItem(renderer, terrain->get_random_terrain_location(), ITEM_TYPE::QUEST_ONE);
 	 createItem(renderer, terrain->get_random_terrain_location(), ITEM_TYPE::QUEST_TWO);
-};
+}
+
+// Adapted from restart_game, BASICALLY alot of optional arguments to change small things :D
+void WorldSystem::load_game(json j) {
+	vec2 player_location = { j["player_motion"]["position_x"], j["player_motion"]["position_y"] };
+
+	// Debugging for memory/component leaks
+	registry.list_all_components();
+	printf("Restarting\n");
+
+	// Reset the game speed
+	current_speed = 5.f;
+
+	// Remove all entities that we created
+	// All that have a motion, we could also iterate over all fish, turtles, ... but that would be more cumbersome
+	while (registry.motions.entities.size() > 0)
+		registry.remove_all_components_of(registry.motions.entities.back());
+
+	// These weapons don't have a motions so let's kill them all!
+	while (registry.weapons.entities.size() > 0)
+		registry.remove_all_components_of(registry.weapons.entities.back());
+
+	// Reset the weapons system
+	weapons_system->resetWeaponsSystem();
+
+	ITEM_TYPE weapon_type = (ITEM_TYPE)j["weapon"];
+	if (weapon_type == ITEM_TYPE::WEAPON_NONE) {
+		user_has_first_weapon = false;
+		registry.remove_all_components_of(weapon_indicator);
+	}
+	else {
+		// GIVE player their weapon if they have one, and set weapon indicator accordingly
+		player_equipped_weapon = weapons_system->createWeapon(weapon_type);
+		user_has_first_weapon = true;
+
+		switch (weapon_type) {
+		case ITEM_TYPE::WEAPON_CROSSBOW:
+			weapon_indicator = createWeaponIndicator(renderer, { -10.f, -6.f }, TEXTURE_ASSET_ID::ICON_CROSSBOW);
+			break;
+		case ITEM_TYPE::WEAPON_MACHINEGUN:
+			weapon_indicator = createWeaponIndicator(renderer, { -10.f, -6.f }, TEXTURE_ASSET_ID::ICON_MACHINE_GUN);
+			break;
+		case ITEM_TYPE::WEAPON_SHOTGUN:
+			weapon_indicator = createWeaponIndicator(renderer, { -10.f, -6.f }, TEXTURE_ASSET_ID::ICON_SHOTGUN);
+			break;
+		case ITEM_TYPE::WEAPON_SHURIKEN:
+			weapon_indicator = createWeaponIndicator(renderer, { -10.f, -6.f }, TEXTURE_ASSET_ID::WEAPON_SHURIKEN);
+			break;
+		}
+
+	}
+
+	// Reset the terrain system
+	terrain->resetTerrainSystem();
+
+	// Debugging for memory/component leaks
+	registry.list_all_components();
+
+	// Re-initialize the terrain
+	terrain->init(loaded_map_name, renderer);
+
+	// PRESSURE TESTING FOR BVH, can remove later
+	//terrain->init(512, 512, renderer);
+
+	// Add wall of stone around the map
+	for (unsigned int i = 0; i < registry.terrainCells.entities.size(); i++) {
+		Entity e = registry.terrainCells.entities[i];
+		TerrainCell& cell = registry.terrainCells.components[i];
+
+		if (cell.flag & TERRAIN_FLAGS::COLLIDABLE)
+			createDefaultCollider(e);
+	}
+
+	// THIS MUST BE CALL AFTER TERRAIN COLLIDER CREATION AND BEFORE ALL OTHER ENTITY CREATION
+	// build the static BVH with all terrain colliders.
+	physics_system->initStaticBVH(registry.colliders.size());
+
+	// Create a Spaceship 
+	spaceship = createSpaceship(renderer, { 0,0 });
+
+	// Create a new salmon
+	player_salmon = createPlayer(renderer, player_location);
+	Player& player = registry.players.get(player_salmon);
+	player.health = j["player"]["health"];
+	player.food = j["player"]["food"];
+	registry.colors.insert(player_salmon, { 1, 0.8f, 0.8f });
+
+	// Create the main camera
+	main_camera = createCamera(player_location);
+
+	// Create fow
+	fow = createFOW(renderer, player_location);
+
+	// Create health bars 
+	health_bar = createHealthBar(renderer, { -8.f, 7.f }, player.health);
+
+	// Create food bars 
+	food_bar = createFoodBar(renderer, { 8.f, 7.f }, player.food);
+
+	tooltips_on = false;
+	help_bar = createHelp(renderer, { 0.f, -7.f }, TEXTURE_ASSET_ID::LOADED);
+	current_tooltip = tooltips.size();
+
+	quest_items.clear();
+
+	if (!j["quests"][0]) {
+		quest_items.push_back({ createQuestItem(renderer, {10.f, -2.f}, TEXTURE_ASSET_ID::QUEST_1_NOT_FOUND), false });
+	}
+	else {
+		quest_items.push_back({ createQuestItem(renderer, {10.f, -2.f}, TEXTURE_ASSET_ID::QUEST_1_FOUND), true });
+	}
+
+	if (!j["quests"][1]) {
+		quest_items.push_back({ createQuestItem(renderer, {10.f, 2.f}, TEXTURE_ASSET_ID::QUEST_2_NOT_FOUND), false });
+	}
+	else {
+		quest_items.push_back({ createQuestItem(renderer, {10.f, 2.f}, TEXTURE_ASSET_ID::QUEST_2_FOUND), true });
+	}
+
+	// clear all used spawn locations
+	used_spawn_locations.clear();
+
+	load_spawned_items_mobs(j);
+
+	// for movement velocity
+	for (int i = 0; i < KEYS; i++)
+		keyDown[i] = false;
+}
+
+void WorldSystem::load_spawned_items_mobs(json& j) {
+	for (auto& item : j["items"]) {
+		createItem(renderer, { item[1]["position_x"], item[1]["position_y"] }, item[0]["data"]);
+	}
+
+	for (auto& mob : j["mobs"]) {
+		mob_system->create_mob({ mob[1]["position_x"], mob[1]["position_y"] }, mob[0]["type"], mob[0]["health"]);
+	}
+}

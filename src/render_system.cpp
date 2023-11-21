@@ -458,16 +458,24 @@ mat3 RenderSystem::createProjectionMatrix()
 {
 	// Othogonal projection matrix.
 	// Same code as the template since it scales with aspect ratio.
-	float left = -window_width_px / 2.f; // Modified these values so the middle of the screen is now 0,0
-	float top = -window_height_px / 2.f;
-	
-	float right = window_width_px / 2.f;
-	float bottom = window_height_px /2.f;
+	int x = window_resolution.x;
+	int y = window_resolution.y;
 
-	float sx = 2.f / (right - left) * tile_size_px;	// We finally scale the world space -> screen space tile size mappings
-	float sy = 2.f / (top - bottom) * tile_size_px;
-	float tx = -(right + left) / (right - left) * tile_size_px;
-	float ty = -(top + bottom) / (top - bottom) * tile_size_px;
+	// We must scale how each tile is affected by the resolution because:
+	//	1. We don't want the player to see more of the map if they play on a larger resolution
+	const double s = static_cast<double>(x) / target_resolution.x;
+	const float tile_size_px_scaled = tile_size_px * s;
+
+	float left = -x / 2.f; // Modified these values so the middle of the screen is now 0,0
+	float top = -y / 2.f;
+	
+	float right = x / 2.f;
+	float bottom = y /2.f;
+
+	float sx = 2.f / (right - left) * tile_size_px_scaled;	// We finally scale the world space -> screen space tile size mappings
+	float sy = 2.f / (top - bottom) * tile_size_px_scaled;
+	float tx = -(right + left) / (right - left) * tile_size_px_scaled;
+	float ty = -(top + bottom) / (top - bottom) * tile_size_px_scaled;
 
 	return {{sx, 0.f, 0.f}, {0.f, sy, 0.f}, {tx, ty, 1.f}};
 }
@@ -485,5 +493,16 @@ void RenderSystem::changeTerrainData(Entity cell, unsigned int i, TerrainCell& d
 	int y = sizeof(BatchedVertex) * 4;
 	glBufferSubData(GL_ARRAY_BUFFER, i * sizeof(BatchedVertex) * 4, sizeof(BatchedVertex) * 4, vertices.data());
 	gl_has_errors();
+}
+
+void RenderSystem::empty_terrain_buffer()
+{
+	// Tell GPU to deallocate those buffers
+	glDeleteBuffers(1, &vertex_buffers[(GLuint)GEOMETRY_BUFFER_ID::TERRAIN]);
+	glDeleteBuffers(1, &index_buffers[(GLuint)GEOMETRY_BUFFER_ID::TERRAIN]);
+
+	// Tell GPU to reallocate those buffers
+	glGenBuffers(1, &vertex_buffers[(GLuint)GEOMETRY_BUFFER_ID::TERRAIN]);
+	glGenBuffers(1, &index_buffers[(GLuint)GEOMETRY_BUFFER_ID::TERRAIN]);
 }
 

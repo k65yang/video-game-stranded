@@ -70,7 +70,7 @@ private:
 			textures_path("mob_spritesheet.png"),
 			textures_path("redblock.png"),
 			textures_path("fow mask.png"),
-			textures_path("item.png"),
+			textures_path("weapon_upgrade.png"),
 			textures_path("food.png"),
 			textures_path("weapon_shuriken.png"),
 			textures_path("weapon_crossbow.png"),
@@ -106,6 +106,10 @@ private:
 			textures_path("q1.png"),
 			textures_path("q2.png"),
 			textures_path("ghost.png"),
+			textures_path("brute.png"),	
+			textures_path("disruptor.png"),
+			textures_path("loaded.png"),
+			textures_path("saving.png")
 	};
 
 	// How big one terrain spritesheet is
@@ -192,6 +196,10 @@ public:
 	// Initialize the window
 	bool init(GLFWwindow* window);
 
+	// Stores the current actual window resolution. You may use this instead of the slower
+	// glfwGetVideoMode(glfwGetPrimaryMonitor()) method.
+	ivec2 window_resolution;
+
 	/// <summary>
 	/// Binds and allocates a given vertex and index buffer under the "index" that is gid in GPU memory.
 	/// </summary>
@@ -242,6 +250,11 @@ public:
 	/// <param name="i">The tile's index in the Cell array</param>
 	/// <param name="data">The updated render request</param>
 	void changeTerrainData(Entity cell, unsigned int i, TerrainCell& data, uint8_t frameValue = 0);
+
+	/// <summary>
+	/// Releases the frame buffer. Make sure you call initializeTerrainBuffers again.
+	/// </summary>
+	void empty_terrain_buffer();
 
 	// Do not modify this. READ ONLY!!
 	bool is_terrain_mesh_loaded = false;
