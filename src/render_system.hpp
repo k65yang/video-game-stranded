@@ -183,6 +183,18 @@ public:
 	// Initialize the window
 	bool init(GLFWwindow* window);
 
+	// fog of war related variable
+
+	// enable/disable fog of war
+	int enableFow = 1;
+
+	// visibil distance limit for mobs and items 
+	float fow_radius = 4.5f;
+
+	// darken factor for outside fog of war
+	float fow_darken_factor = 0.25f;
+
+
 	// Stores the current actual window resolution. You may use this instead of the slower
 	// glfwGetVideoMode(glfwGetPrimaryMonitor()) method.
 	ivec2 window_resolution;
@@ -303,8 +315,7 @@ private:
 
 	Entity screen_state_entity;
 
-	// Distance limit to render mobs and items 
-	float fog_radius = 4.5f;
+	
 };
 
 bool loadEffectFromFile(

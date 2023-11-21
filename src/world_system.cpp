@@ -987,16 +987,33 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	// Press B to toggle debug mode
 	if (key == GLFW_KEY_B && action == GLFW_PRESS) {
 		debugging.in_debug_mode = !debugging.in_debug_mode;
+		if (renderer->enableFow == 0) {
+			renderer->enableFow = 1;
+		}
+		else {
+			renderer->enableFow = 0;
+		}
+		
 	}
 
-	// Control the current speed with `<` `>`
+	// Control the current speed with `<` `>` as well as fow radius
 	if (action == GLFW_RELEASE && (mod & GLFW_MOD_SHIFT) && key == GLFW_KEY_COMMA) {
 		current_speed -= 0.1f;
 		printf("Current speed = %f\n", current_speed);
+
+		renderer->fow_radius -= 0.3f;
+		if (renderer->fow_radius < 0)
+			renderer->fow_radius = 0;
+		std::cout << "current fog radius " << renderer->fow_radius << std::endl;
+
 	}
 	if (action == GLFW_RELEASE && (mod & GLFW_MOD_SHIFT) && key == GLFW_KEY_PERIOD) {
 		current_speed += 0.1f;
 		printf("Current speed = %f\n", current_speed);
+
+		renderer->fow_radius += 0.3f;
+		std::cout << "current fog radius " << renderer->fow_radius << std::endl;
+
 	}
 	current_speed = fmax(0.f, current_speed);
 

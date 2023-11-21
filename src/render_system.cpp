@@ -187,21 +187,19 @@ void RenderSystem::drawToScreen()
 	gl_has_errors();
 	const GLuint water_program = effects[(GLuint)EFFECT_ASSET_ID::WATER];
 
-	// set player position uniform 
-	auto playerEntity = registry.players.entities[0];
+	// set fog of war radius uniform
 
+	GLuint fowRadius_uloc = glGetUniformLocation(water_program, "fowRadius");
+	glUniform1fv(fowRadius_uloc,1, (float*) &fow_radius);
 
-	GLuint fogRadius_uloc = glGetUniformLocation(water_program, "fogRadius");
-	glUniform1fv(fogRadius_uloc,1, (float*) &fog_radius);
+	// set fow darken factor uniforms
+	GLuint fow_Darken_factor_uloc = glGetUniformLocation(water_program, "fow_darken_factor");
+	glUniform1fv(fow_Darken_factor_uloc, 1, (float*)&fow_darken_factor);
+	 
+	// set enableFow uniforms
+	GLuint enable_fow_uloc = glGetUniformLocation(water_program, "enableFow");
+	glUniform1iv(enable_fow_uloc, 1, (int*)&enableFow);
 
-	
-
-	// Set clock
-	GLuint time_uloc = glGetUniformLocation(water_program, "time");
-	GLuint dead_timer_uloc = glGetUniformLocation(water_program, "screen_darken_factor");
-	glUniform1f(time_uloc, (float)(glfwGetTime() * 10.0f));
-	ScreenState &screen = registry.screenStates.get(screen_state_entity);
-	glUniform1f(dead_timer_uloc, screen.screen_darken_factor);
 	gl_has_errors();
 	// Set the vertex position and vertex texture coordinates (both stored in the
 	// same VBO)
@@ -397,7 +395,7 @@ void RenderSystem::draw()
 			if (registry.items.has(entity) || (registry.mobs.has(entity))) {
 
 				// put in draw array if distance to player is close enough
-				if (distance(registry.motions.get(player_entity).position, registry.motions.get(entity).position) < fog_radius) {
+				if ((distance(registry.motions.get(player_entity).position, registry.motions.get(entity).position) < fow_radius) || enableFow == 0) {
 					layer_1_entities.push_back(entity);
 				}
 			}
