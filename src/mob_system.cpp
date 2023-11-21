@@ -18,7 +18,7 @@ void MobSystem::spawn_mobs() {
 	}
 }
 
-Entity MobSystem::create_mob(vec2 mob_position, MOB_TYPE mob_type) {
+Entity MobSystem::create_mob(vec2 mob_position, MOB_TYPE mob_type, int current_health) {
     auto entity = Entity();
 
 	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
@@ -39,7 +39,13 @@ Entity MobSystem::create_mob(vec2 mob_position, MOB_TYPE mob_type) {
 	auto& mob_info = registry.mobs.emplace(entity);
 	mob_info.damage = mob_damage_map.at(mob_type);
 	mob_info.aggro_range = mob_aggro_range_map.at(mob_type);
-	mob_info.health = mob_health_map.at(mob_type);
+	mob_info.is_tracking_player = false;
+	if (current_health != 0) {
+		mob_info.health = current_health;
+	}
+	else {
+		mob_info.health = mob_health_map.at(mob_type);
+	}
 	mob_info.speed_ratio = mob_speed_ratio_map.at(mob_type);
 	mob_info.curr_cell = terrain->get_cell(motion.position);
 	mob_info.type = mob_type;

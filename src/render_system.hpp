@@ -97,6 +97,8 @@ private:
 			textures_path("q1.png"),
 			textures_path("q2.png"),
 			textures_path("ghost.png"),
+			textures_path("loaded.png"),
+			textures_path("saving.png")
 	};
 
 	// How big one terrain spritesheet is
