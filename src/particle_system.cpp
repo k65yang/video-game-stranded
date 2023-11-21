@@ -3,18 +3,11 @@
 void ParticleSystem::step(float elapsed_ms) {
     // Iterate through all existing particle trails
     auto& particle_trail_container = registry.particleTrails;
-    std::vector<int> particle_trails_to_remove;
     std::vector<Entity> particles_to_remove;
     for (uint i = 0; i < particle_trail_container.size(); i++) {
 
         // Iterate through the list of particles for each particle trail
         ParticleTrail& particle_trail = particle_trail_container.components[i];
-
-        // Track completely dead particle trails
-        if (!particle_trail.is_alive && particle_trail.particles.size() == 0) {
-            particle_trails_to_remove.push_back(i);
-            continue;
-        }
 
         for (auto& entity_particle : particle_trail.particles) {
             // Update the alpha of existing particles
@@ -46,11 +39,14 @@ void ParticleSystem::step(float elapsed_ms) {
         }
     }
 
-    for (auto& idx_particle_trail: particle_trails_to_remove) {
-        // Erase the particle trails from the container by index
-        particle_trail_container.components.erase(
-            particle_trail_container.components.begin() + idx_particle_trail);
+    for (auto& particle_trail_entity: registry.particleTrails.entities) {
+        if (registry.particleTrails.get(particle_trail_entity).particles.size() == 0) {
+            registry.particleTrails.remove(particle_trail_entity);
+        }
     }
+
+    // particle_trails_to_remove.clear();
+    particles_to_remove.clear();
 }
 
 Entity ParticleSystem::createParticle(TEXTURE_ASSET_ID texture, Motion* motion_component_ptr) {
