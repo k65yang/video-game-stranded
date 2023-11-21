@@ -21,7 +21,7 @@ enum class ITEM_TYPE {
 	WEAPON_SHOTGUN = WEAPON_CROSSBOW + 1,
 	WEAPON_MACHINEGUN = WEAPON_SHOTGUN + 1,
 	FOOD = WEAPON_MACHINEGUN + 1,
-	UPGRADE = FOOD + 1,
+	WEAPON_UPGRADE = FOOD + 1,
 };
 
 // TODO: cool idea for later is to have a customizable difficulty that adjusts food and health.
@@ -282,8 +282,8 @@ enum class TEXTURE_ASSET_ID {
 	SLIME = PLAYER + 1,
 	REDBLOCK = SLIME + 1,
 	FOW = REDBLOCK + 1,
-	ITEM = FOW + 1,
-	FOOD = ITEM + 1,
+	WEAPON_UPGRADE = FOW + 1,
+	FOOD = WEAPON_UPGRADE + 1,
 	WEAPON_SHURIKEN = FOOD + 1,
 	WEAPON_CROSSBOW = WEAPON_SHURIKEN + 1,
 	WEAPON_ARROW = WEAPON_CROSSBOW + 1,

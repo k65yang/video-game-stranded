@@ -70,7 +70,7 @@ private:
 			textures_path("mob_spritesheet.png"),
 			textures_path("redblock.png"),
 			textures_path("fow mask.png"),
-			textures_path("item.png"),
+			textures_path("weapon_upgrade.png"),
 			textures_path("food.png"),
 			textures_path("weapon_shuriken.png"),
 			textures_path("weapon_crossbow.png"),

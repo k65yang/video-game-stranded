@@ -713,8 +713,8 @@ void WorldSystem::handle_collisions() {
 					}
 					weapon_indicator = createWeaponIndicator(renderer, {-10.f, -6.f}, TEXTURE_ASSET_ID::ICON_MACHINE_GUN);
 					break;
-				case ITEM_TYPE::UPGRADE:
-					// Just add to inventory
+				case ITEM_TYPE::WEAPON_UPGRADE:
+					weapons_system->upgradeCurrentWeapon();
 					break;
 				}
 
@@ -1159,7 +1159,7 @@ void WorldSystem::on_mouse_click(int button, int action, int mods) {
 }
 
 void WorldSystem::spawn_items() {
-	const int NUM_ITEM_TYPES = 3;
+	const int NUM_ITEM_TYPES = 2;
 
 	for (int i = 0; i < ITEM_LIMIT; i++) {
 		// Get random spawn location
@@ -1170,13 +1170,10 @@ void WorldSystem::spawn_items() {
 
 		switch (item_type) {
 			case 0:
-				createItem(renderer, spawn_location, ITEM_TYPE::UPGRADE);
+				createItem(renderer, spawn_location, ITEM_TYPE::WEAPON_UPGRADE);
 				break;
 			case 1:
 				createItem(renderer, spawn_location, ITEM_TYPE::FOOD);
-				break;
-			case 2:
-				createItem(renderer, spawn_location, ITEM_TYPE::UPGRADE);
 				break;
 		}
 	}
