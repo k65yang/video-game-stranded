@@ -7,6 +7,7 @@ int DOWN = 1;
 int LEFT = 2;
 int RIGHT = 3; 
 int DIRECTION_CHANGE = 0;
+const int MAX_NUM_CELLS_TO_SEARCH = 200;
 
 void PathfindingSystem::init(TerrainSystem* terrain_arg)
 {
@@ -170,6 +171,9 @@ std::deque<Entity> PathfindingSystem::find_shortest_path(Entity player, Entity m
 
 bool PathfindingSystem::BFS(Entity player_cell, Entity mob_cell, std::unordered_map<int, int>& predecessor)
 {
+    // Accumulator for number of cells searched
+    int num_cells_searched = 0;
+
     // Initialize queue for BFS
     std::queue<Entity> bfs_queue;
 
@@ -184,6 +188,11 @@ bool PathfindingSystem::BFS(Entity player_cell, Entity mob_cell, std::unordered_
 
     // BFS algorithm
     while (!bfs_queue.empty()) {
+        // Stop search if going for too long
+        if (num_cells_searched++ > MAX_NUM_CELLS_TO_SEARCH) {
+            return true;
+        }
+
         // Get and remove first cell from queue
         Entity curr = bfs_queue.front();
         int curr_cell_index = terrain->get_cell_index(curr);
@@ -215,6 +224,9 @@ bool PathfindingSystem::BFS(Entity player_cell, Entity mob_cell, std::unordered_
 
 bool PathfindingSystem::A_star(Entity player_cell, Entity mob_cell, std::unordered_map<int, int>& predecessor)
 {
+    // Limit number of cells to search
+    int num_cells_searched = 0;
+
     // Resusable values
     Motion& player_cell_motion = registry.motions.get(player_cell);
 
@@ -244,6 +256,11 @@ bool PathfindingSystem::A_star(Entity player_cell, Entity mob_cell, std::unorder
 
     // A* algorithm
     while (!open.empty()) {
+        // Stop search if going for too long
+        if (num_cells_searched++ > MAX_NUM_CELLS_TO_SEARCH) {
+            return true;
+        }
+
         // Get and remove top cell (i.e. cell with min total cost) from open
         std::pair<float, int> p = open.top();
         open.pop();
@@ -337,7 +354,7 @@ void PathfindingSystem::stop_tracking_player(Entity mob)
     Motion& mob_motion = registry.motions.get(mob);
     Mob& mob_mob = registry.mobs.get(mob);
     Path& mob_path = registry.paths.get(mob);
-    Entity& mob_curr_cell = mob_path.path.front();
+    Entity mob_curr_cell = terrain->get_cell(mob_motion.position);
     Motion& mob_curr_cell_motion = registry.motions.get(mob_curr_cell);
 
     // Set mob's position to the center of their current cell, velocity to 0, tracking player flag to false, and clear the path 
@@ -402,7 +419,7 @@ void PathfindingSystem::update_velocity_to_next_cell(Entity mob, float elapsed_m
     Motion& mob_motion = registry.motions.get(mob);
 
     // Stop mob from tracking the player if it has reached the last cell in its path
-    if (mob_path.path.size() == 1) {
+    if (mob_path.path.size() <= 1) {
         stop_tracking_player(mob);
         return;
     }
