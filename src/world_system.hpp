@@ -114,7 +114,7 @@ private:
 	Entity weapon_indicator;
 	Entity ammo_indicator; 
 	Entity spaceship;
-	Entity home; 
+	Entity spaceship_home; 
 	Entity help_bar;
 	bool tooltips_on = true;
 	std::vector<std::pair<Entity, bool>> quest_items;

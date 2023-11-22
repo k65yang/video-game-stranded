@@ -12,6 +12,8 @@
 const int PLAYER_MAX_FOOD = 100;
 const int PLAYER_MAX_HEALTH = 100;
 const int PLAYER_MAX_AMMO = 10;
+const int SPACESHIP_HOME_MAX_FOOD_STORAGE = 500;
+const int SPACESHIP_HOME_MAX_AMMO_STORAGE = 100;
 
 enum class ITEM_TYPE {
 	QUEST_ONE = 0,
@@ -84,15 +86,11 @@ struct Weapon {
 };
 
 // The spaceship 
-struct Spaceship {
-	bool in_home; // controls if player exit home or enter home
-
-	};
-
-// Make a storage component. 
-struct Bar {
-	int amount;
-	};
+struct SpaceshipHome {
+	bool is_inside;
+	int food_storage;
+	int ammo_storage;
+};
 
 // The projectile
 struct Projectile {

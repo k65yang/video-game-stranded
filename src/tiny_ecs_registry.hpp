@@ -22,11 +22,10 @@ public:
 	ComponentContainer<Projectile> projectiles;
 
 	ComponentContainer<Mob> mobs;
-	ComponentContainer<Spaceship> spaceship; 
+	ComponentContainer<SpaceshipHome> spaceshipHomes; 
 	ComponentContainer<MobSlowEffect> mobSlowEffects;
 	ComponentContainer<Path> paths;
 	ComponentContainer<Item> items;
-	ComponentContainer<Bar> bar;
 
 	// Rendering related
 	ComponentContainer<Mesh*> meshPtrs;
@@ -56,11 +55,10 @@ public:
 		registry_list.push_back(&projectiles);
 
 		registry_list.push_back(&mobs);
-		registry_list.push_back(&spaceship);
+		registry_list.push_back(&spaceshipHomes);
 		registry_list.push_back(&mobSlowEffects);
 		registry_list.push_back(&paths);
 		registry_list.push_back(&items);
-		registry_list.push_back(&bar);
 
 		registry_list.push_back(&meshPtrs);
 		registry_list.push_back(&renderRequests);

@@ -126,7 +126,7 @@ Entity createSpaceship(RenderSystem* renderer, vec2 position) {
 	return entity;
 }
 
-Entity createHome(RenderSystem* renderer) {
+Entity createSpaceshipHome(RenderSystem* renderer, bool is_inside, int food_storage, int ammo_storage) {
 	auto entity = Entity();
 
 	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
@@ -138,11 +138,14 @@ Entity createHome(RenderSystem* renderer) {
 	motion.angle = 0.f;
 	motion.velocity = { 0.f, 0.f };
 	motion.position = { 0,-1.6 };
-	//motion.position = { 2,2 };
 
 	createDefaultCollider(entity);
-	// Add home into spaceship
-	auto& spaceship = registry.spaceship.emplace(entity);
+
+	// Add spaceship home to spaceship home registry
+	auto& spaceshipHome = registry.spaceshipHomes.emplace(entity);
+	spaceshipHome.is_inside = is_inside;
+	spaceshipHome.food_storage = food_storage;
+	spaceshipHome.ammo_storage = ammo_storage;
 	
 	// Setting initial values, scale is negative to make it face the opposite way
 	motion.scale = vec2({ target_resolution.x / tile_size_px, target_resolution.y / tile_size_px });
@@ -155,7 +158,7 @@ Entity createHome(RenderSystem* renderer) {
 			RENDER_LAYER_ID::LAYER_4 });
 
 	return entity;
-	}
+}
 
 Entity createLine(vec2 position, vec2 scale)
 {
@@ -195,38 +198,31 @@ Entity createBar(RenderSystem* renderer, vec2 position, int amount, BAR_TYPE typ
 	// Initialize the collider
 	createDefaultCollider(entity);
 
-	auto& bar = registry.bar.emplace(entity);
-
 	TEXTURE_ASSET_ID texture = TEXTURE_ASSET_ID::PLAYER;
 	switch (type) {
-			case BAR_TYPE::HEALTH_BAR:
-				texture = TEXTURE_ASSET_ID::REDBLOCK;
-				motion.scale = vec2(((float)amount / (float)PLAYER_MAX_HEALTH) * HEALTH_BAR_SCALE[0], HEALTH_BAR_SCALE[1]);
+		case BAR_TYPE::HEALTH_BAR:
+			texture = TEXTURE_ASSET_ID::REDBLOCK;
+			motion.scale = vec2(((float)amount / (float)PLAYER_MAX_HEALTH) * HEALTH_BAR_SCALE[0], HEALTH_BAR_SCALE[1]);
 
-				break;
-			case BAR_TYPE::FOOD_BAR:
-				texture = TEXTURE_ASSET_ID::BLUEBLOCK;
-				motion.scale = vec2(((float)amount / (float)PLAYER_MAX_FOOD) * FOOD_BAR_SCALE[0], FOOD_BAR_SCALE[1]);
+			break;
+		case BAR_TYPE::FOOD_BAR:
+			texture = TEXTURE_ASSET_ID::BLUEBLOCK;
+			motion.scale = vec2(((float)amount / (float)PLAYER_MAX_FOOD) * FOOD_BAR_SCALE[0], FOOD_BAR_SCALE[1]);
 
-				break;
-			case BAR_TYPE:: AMMO_BAR:
-				texture = TEXTURE_ASSET_ID::BROWNBLOCK;
-				motion.scale = vec2({ 3, 0.4 }); 
-				break; 
-				// Turkey at home 
-			case BAR_TYPE::FOOD_STORAGE:
-				texture = TEXTURE_ASSET_ID::FOOD_BLOCK;
-				motion.scale = vec2({ 0.5, 2 });
-				bar.amount = 200;
-
-
-				break;
-			case BAR_TYPE::AMMO_STORAGE:
-				texture = TEXTURE_ASSET_ID::AMMO_BLOCK;
-				motion.scale = vec2({ 0.5, 2 });
-				bar.amount = 200;
-				break;
-		}
+			break;
+		case BAR_TYPE::AMMO_BAR:
+			texture = TEXTURE_ASSET_ID::BROWNBLOCK;
+			motion.scale = vec2({ 3, 0.4 }); 
+			break; 
+		case BAR_TYPE::FOOD_STORAGE:
+			texture = TEXTURE_ASSET_ID::FOOD_BLOCK;
+			motion.scale = vec2({ 0.5, 2 });
+			break;
+		case BAR_TYPE::AMMO_STORAGE:
+			texture = TEXTURE_ASSET_ID::AMMO_BLOCK;
+			motion.scale = vec2({ 0.5, 2 });
+			break;
+	}
 
 	registry.renderRequests.insert(
 		entity,
@@ -236,7 +232,7 @@ Entity createBar(RenderSystem* renderer, vec2 position, int amount, BAR_TYPE typ
 			RENDER_LAYER_ID::LAYER_4 });
 
 	return entity;
-	}
+}
 
 Entity createFrame(RenderSystem* renderer, vec2 position, FRAME_TYPE type) {
 	auto entity = Entity();

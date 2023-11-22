@@ -547,12 +547,11 @@ void WorldSystem::restart_game() {
 	// build the static BVH with all terrain colliders.
 	physics_system->initStaticBVH(registry.colliders.size());
 
-	// Create a Spaceship 
-
+	// Create Spaceship
 	spaceship = createSpaceship(renderer, { 0,-2.5 });
 
-	// Create Home Screen 
-	home = createHome(renderer);
+	// Create Spaceship home
+	spaceship_home = createSpaceshipHome(renderer, false, 500, 100);
 
 	// Create a new salmon
 	player_salmon = createPlayer(renderer, { 0, 0 });
@@ -564,19 +563,19 @@ void WorldSystem::restart_game() {
 	// DISABLE FOW MASK
 	//fow = createFOW(renderer, { 0,0 });
 
-	// Create health bars
+	// Create player health bar
 	health_bar = createBar(renderer, { -8.f, 7.f }, PLAYER_MAX_HEALTH, BAR_TYPE::HEALTH_BAR);
-
 	health_frame = createFrame(renderer, { -7.f, 7.f }, FRAME_TYPE::HEALTH_FRAME);
+
+	// Create player food bar
+	food_bar = createBar(renderer, { 8.f, -7.f }, PLAYER_MAX_FOOD, BAR_TYPE::FOOD_BAR);
 	food_frame = createFrame(renderer, { 7.f, 7.f }, FRAME_TYPE::FOOD_FRAME);
 
-	// Create food bars 
-	food_bar = createBar(renderer, { 8.f, -7.f }, PLAYER_MAX_FOOD, BAR_TYPE::FOOD_BAR);
-
-	// Create food storage bar
+	// Create spaceship home food storage bar
 	food_storage = createBar(renderer, { -3.5f, 0.f }, 200, BAR_TYPE::FOOD_STORAGE);
 	fs_frame = createFrame(renderer, { 0,0 }, FRAME_TYPE::BAR_FRAME); 
-	// Create ammo storage bar
+
+	// Create spaceship home ammo storage bar
 	ammo_storage = createBar(renderer, { 4.5f, 0.5f }, 200, BAR_TYPE::AMMO_STORAGE);
 	as_frame = createFrame(renderer, { 0,0 }, FRAME_TYPE::BAR_FRAME);
 
@@ -853,11 +852,10 @@ bool WorldSystem::is_over() const {
 	return bool(glfwWindowShouldClose(window));
 }
 
-// check if player is home and pause the game in main
+// Check if player is in spaceship home
 bool WorldSystem::is_home() const {
-	return registry.spaceship.get(home).in_home; 
-	}
-
+	return registry.spaceshipHomes.get(spaceship_home).is_inside; 
+}
 
 int WorldSystem::key_to_index(int key) {
 	switch (key) {
@@ -931,7 +929,8 @@ void WorldSystem::checkAndRegenerate(int& resource, int& storage, int max_capaci
 // On key callback
 void WorldSystem::on_key(int key, int, int action, int mod) {
 	Motion& player_motion = registry.motions.get(player_salmon);
-	Spaceship& s = registry.spaceship.get(home);
+	SpaceshipHome& spaceshipHome = registry.spaceshipHomes.get(spaceship_home);
+
 	// Movement with velocity handled in step function  
 	update_key_presses(key, action);
 
@@ -1012,81 +1011,70 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	}
 
 	if (action == GLFW_PRESS && key == GLFW_KEY_ESCAPE) {
-		if (s.in_home) {
+		if (spaceshipHome.is_inside) {
 			// Exit home screen and go back to world 
-			// Todo: Regenerate after exit
-			s.in_home = false;
+			spaceshipHome.is_inside = false;
 			player_motion.position = { 0,0 };
-
-			}
-		else {
+		} else {
 			// Close the window if not in home screen
 			glfwSetWindowShouldClose(window, true);
-			}
+		}
 	}
 
 	// Enter ship if player is near
-	if (length(registry.motions.get(player_salmon).position - registry.motions.get(spaceship).position) < 1.0f && s.in_home == false) {
+	if (length(registry.motions.get(player_salmon).position - registry.motions.get(spaceship).position) < 1.0f && spaceshipHome.is_inside == false) {
 		printf("Near entrance, press E to enter\n");
 		if (action == GLFW_PRESS && key == GLFW_KEY_E ) {
-			Player& player = registry.players.get(player_salmon);
-			Spaceship& s = registry.spaceship.get(home);
-			//bars
-			Motion& health = registry.motions.get(health_bar);
-			Motion& food = registry.motions.get(food_bar);
-
-			// no caemra shake 
+			// No camera shake 
 			Motion& camera_motion = registry.motions.get(main_camera);
 			camera_motion.angle = 0;
 			camera_motion.scale = vec2(1, 1);
 
-			//update Spaceship home movement 
-			Motion& s_motion = registry.motions.get(home);
+			// Update Spaceship home position based on camera 
+			Motion& s_motion = registry.motions.get(spaceship_home);
 			s_motion.position = { camera_motion.position.x,camera_motion.position.y };
 
-			// update all the motions of items in spaceship 
-			// Todo: clean up maybe put them in another component for home 
-			// Bars 
+			// Update position of bars based on camera
 			Motion& fs_motion = registry.motions.get(food_storage);
 			Motion& fs_frame_motion = registry.motions.get(fs_frame);
-
 			Motion& as_motion = registry.motions.get(ammo_storage); 
 			Motion& as_frame_motion = registry.motions.get(as_frame); 
-
-			Bar& f_storage = registry.bar.get(food_storage);
-			Bar& a_storage = registry.bar.get(ammo_storage);
-			// storage items 
-			Motion& t_motion = registry.motions.get(turkey);
-			Motion& a_item_motion = registry.motions.get(ammo);
-
-			// bar movements 
 			fs_motion.position = { -3.5f + camera_motion.position.x, camera_motion.position.y };
 			as_motion.position = { 4.5f + camera_motion.position.x,  0.5f + camera_motion.position.y };
-			t_motion.position = { -5.5f + camera_motion.position.x, 0.f + camera_motion.position.y };
-			a_item_motion.position = { 1.f + camera_motion.position.x, 0.5f + camera_motion.position.y };
 			fs_frame_motion.position = { -3.49f + camera_motion.position.x, camera_motion.position.y };
 			as_frame_motion.position = { 4.51f + camera_motion.position.x,  0.5f + camera_motion.position.y };
-			// regenerate food and health 
+
+			// Update position of spaceship home items based on camera 
+			Motion& t_motion = registry.motions.get(turkey);
+			Motion& a_item_motion = registry.motions.get(ammo);
+			t_motion.position = { -5.5f + camera_motion.position.x, 0.f + camera_motion.position.y };
+			a_item_motion.position = { 1.f + camera_motion.position.x, 0.5f + camera_motion.position.y };
+			
+			// Regenerate health
+			Player& player = registry.players.get(player_salmon);
+			Motion& health = registry.motions.get(health_bar);
+			Motion& food = registry.motions.get(food_bar);
 			player.health = PLAYER_MAX_HEALTH;
 			health.scale = HEALTH_BAR_SCALE;
-			// Calculate the amount of food needed to fill the player's capacity
-			checkAndRegenerate(player.food, f_storage.amount, PLAYER_MAX_FOOD);
-			// update food bar scales based on the regen  
+
+			// Regenerate food
+			checkAndRegenerate(player.food, spaceshipHome.food_storage, PLAYER_MAX_FOOD);
 			food.scale = vec2(((float)player.food / (float)PLAYER_MAX_FOOD) * FOOD_BAR_SCALE[0], FOOD_BAR_SCALE[1]);
-			fs_motion.scale = vec2(TURKEY_BAR_SCALE[0], ((float)f_storage.amount / (float)200) * TURKEY_BAR_SCALE[1]);
-			// check has weapon 
+			fs_motion.scale = vec2(TURKEY_BAR_SCALE[0], ((float)spaceshipHome.food_storage / (float) SPACESHIP_HOME_MAX_FOOD_STORAGE) * TURKEY_BAR_SCALE[1]);
+
+			// Check if player has weapon equipped
 			if (registry.weapons.has(player_equipped_weapon)) {
 				auto& weapon = registry.weapons.get(player_equipped_weapon);
 				auto& w_motion = registry.motions.get(ammo_indicator);
-				//regen ammo
-				checkAndRegenerate(weapon.ammo_count, a_storage.amount, PLAYER_MAX_AMMO);
-				// update ammo bar scales based on regen
+				
+				// Regenerate ammo
+				checkAndRegenerate(weapon.ammo_count, spaceshipHome.ammo_storage, PLAYER_MAX_AMMO);
 				w_motion.scale = vec2(((float)weapon.ammo_count / (float)PLAYER_MAX_AMMO) * AMMO_BAR_SCALE[0], AMMO_BAR_SCALE[1]);
-				as_motion.scale = vec2(AMMO_STORAGE_SCALE[0], ((float)a_storage.amount / (float)200) * AMMO_STORAGE_SCALE[1]);
+				as_motion.scale = vec2(AMMO_STORAGE_SCALE[0], ((float)spaceshipHome.ammo_storage / (float) SPACESHIP_HOME_MAX_AMMO_STORAGE) * AMMO_STORAGE_SCALE[1]);
 			}
 
 			printf("You are home\n");
-			s.in_home = true;
+			spaceshipHome.is_inside = true;
 		}
 	}
 

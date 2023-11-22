@@ -45,7 +45,7 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 			|| render_request.used_texture == TEXTURE_ASSET_ID::AMMO_BLOCK || render_request.used_texture == TEXTURE_ASSET_ID:: AMMO
 			|| render_request.used_texture == TEXTURE_ASSET_ID::TURKEY
 			|| render_request.used_texture == TEXTURE_ASSET_ID::BAR_FRAME) {
-			if (!registry.spaceship.components[0].in_home) {
+			if (!registry.spaceshipHomes.components[0].is_inside) {
 				//printf("Player is outside, skip rending home \n");
 				return;
 				}
