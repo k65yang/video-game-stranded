@@ -35,5 +35,19 @@ Milestone 2
 
 <b>Pathfinding with A*:</b> "A_star" in pathfinding_system.cpp <br>
 
+<br/>
+<br/>
+
+Milestone 3
+
+<b>Precise collision w/ bounding volume hierarchy</b>"PhysicsSystem::buildBVH()"<br>
+
+<b>Audio feedback</b> audio_system.hpp, audio_system.cpp <br>
+
+<b>Reloadability</b> save.cpp, save.hpp <br>
+
+<b>Consistent game resolution</b> "aspect_ratio" , "targetResolution" in common.hpp, "RenderSystem::createProjectionMatrix()"
+
+<b></b> <br>
 ## How to start
 Build instructions are exactly the same as A1/A2. The .exe is even named salmon.exe! Make sure to regenerate the CMake cache if you are having build errors.
