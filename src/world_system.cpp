@@ -826,6 +826,7 @@ void WorldSystem::handle_collisions() {
 						if (healthPowerUp.light_up_timer_ms > 0 || registry.colors.has(health_bar) ) {
 							registry.colors.remove(health_bar);
 						}
+						registry.healthPowerup.remove(player_salmon);
 					}
 					
 					// Give the speed power up to the player
