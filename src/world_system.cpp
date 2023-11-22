@@ -667,16 +667,13 @@ void WorldSystem::handle_collisions() {
 				player_motion.position = player_motion.position + correctionVec;
 				*/
 
-
 				if (player.iframes_timer > 0 || registry.deathTimers.has(entity)) {
 					// Don't damage and discard all other collisions for a bit
 					collisionsRegistry.clear();
 					return;
 				}
 
-			
 				Mob& mob = registry.mobs.get(entity_other);
-				
 				player.health -= mob.damage;
 				mob_system->apply_mob_attack_effects(entity, entity_other);
 
@@ -718,7 +715,6 @@ void WorldSystem::handle_collisions() {
 				motion.position = motion.position + correctionVec;
 				hasCorrectedDirection = registry.collisions.components[i].MTV;
 			}
-
 
 			// Checking Player - Items
 			if (registry.items.has(entity_other)) {
@@ -880,18 +876,6 @@ void WorldSystem::handle_collisions() {
 			}
 		}
 
-		// mob vs terrain collision resolution - making sure mob doesnt stuck/go through in terrain
-
-		if (registry.mobs.has(entity)) {
-			if (registry.terrainCells.has(entity_other))
-			{
-				Motion& motion = registry.motions.get(entity);
-				vec2 correctionVec = registry.collisions.components[i].MTV * registry.collisions.components[i].overlap;
-				motion.position = motion.position + correctionVec;
-			}
-		}
-
-
 		// Collisions involving projectiles. 
 		// For now, the projectile will be removed upon any collisions with mobs/terrain
 		// In the future, an idea could be "pass-through weapons", weapons that can collateral?
@@ -904,7 +888,6 @@ void WorldSystem::handle_collisions() {
 
 				// Mob takes damage. Kill if no hp left.
 				mob.health -= projectile.damage;
-				
 				// printf("mob health: %i", mob.health);
 				if (mob.health <= 0) {
 					registry.remove_all_components_of(entity_other);

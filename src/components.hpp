@@ -98,8 +98,6 @@ struct Weapon {
 	float projectile_velocity;           // speed of projectiles of this weapon
 	int projectile_damage;               // weapon damage
 	int ammo_count = PLAYER_MAX_AMMO;
-	float knockback_force;				 // magnitude of knockback on enemy
-
 };
 
 // The spaceship 
