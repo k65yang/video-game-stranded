@@ -660,6 +660,10 @@ void WorldSystem::handle_collisions() {
 			// Checking Player - Mobs
 			if (registry.mobs.has(entity_other)) {
 
+				// prevent player stack on top of mob upon colliding
+				Motion& player_motion = registry.motions.get(entity);
+				vec2 correctionVec = registry.collisions.components[i].MTV * registry.collisions.components[i].overlap;
+				player_motion.position = player_motion.position + correctionVec;
 
 				if (player.iframes_timer > 0 || registry.deathTimers.has(entity)) {
 					// Don't damage and discard all other collisions for a bit
