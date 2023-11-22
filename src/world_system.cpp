@@ -629,6 +629,11 @@ void WorldSystem::handle_collisions() {
 			// Checking Player - Mobs
 			if (registry.mobs.has(entity_other)) {
 
+				// prevent mob stacking on top of player
+				Motion& mob_motion = registry.motions.get(entity_other);
+				vec2 correctionVec = -1.f * registry.collisions.components[i].MTV * registry.collisions.components[i].overlap;
+				mob_motion.position = mob_motion.position + correctionVec;
+
 
 				if (player.iframes_timer > 0 || registry.deathTimers.has(entity)) {
 					// Don't damage and discard all other collisions for a bit
@@ -636,7 +641,9 @@ void WorldSystem::handle_collisions() {
 					return;
 				}
 
+			
 				Mob& mob = registry.mobs.get(entity_other);
+				
 				player.health -= mob.damage;
 				mob_system->apply_mob_attack_effects(entity, entity_other);
 
@@ -779,6 +786,7 @@ void WorldSystem::handle_collisions() {
 				motion.position = motion.position + correctionVec;
 			}
 		}
+
 
 		// Collisions involving projectiles. 
 		// For now, the projectile will be removed upon any collisions with mobs/terrain
