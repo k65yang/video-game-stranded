@@ -1342,7 +1342,7 @@ void WorldSystem::on_mouse_move(vec2 mouse_position) {
 /// </summary>
 void WorldSystem::on_mouse_click(int button, int action, int mods) {
 	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
-		if (!registry.deathTimers.has(player_salmon)) {
+		if (!registry.deathTimers.has(player_salmon) && !is_home()) {
 			// if theres ammo in current weapon 
 			Motion& player_motion = registry.motions.get(player_salmon);
 
