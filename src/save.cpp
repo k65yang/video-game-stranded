@@ -47,9 +47,27 @@ void from_json(const json& j, Motion& m) {
     j.at("scale_y").get_to(m.scale[1]);
 }
 
+void to_json(json& j, const Weapon& weapon) {
+    j = json{ {"weapon_type", weapon.weapon_type }, {"ammo_count", weapon.ammo_count} };
+}
+
+void from_json(const json& j, Weapon& weapon) {
+    j.at("weapon_type").get_to(weapon.weapon_type);
+    j.at("ammo_count").get_to(weapon.ammo_count);
+}
+
+void to_json(json& j, const SpaceshipHome& spaceshipHome) {
+    j = json{ {"is_inside", spaceshipHome.is_inside }, {"food_storage", spaceshipHome.food_storage}, {"ammo_storage", spaceshipHome.ammo_storage} };
+}
+
+void from_json(const json& j, SpaceshipHome& spaceshipHome) {
+    j.at("is_inside").get_to(spaceshipHome.is_inside);
+    j.at("food_storage").get_to(spaceshipHome.food_storage);
+    j.at("ammo_storage").get_to(spaceshipHome.ammo_storage);
+}
+
 // NOTE: Currently saving every field of these structs - but this isn't necessary, just for cleanliness of code. If we need more space we can trim here :)
-void SaveGame(Player& player, Motion& player_motion, std::vector<std::pair<Mob&, Motion&>> mobs, std::vector<std::pair<Item&, Motion&>> items, std::vector<bool> quests, ITEM_TYPE weapon, ITEM_TYPE powerup) {
- 
+void SaveGame(Player& player, Motion& player_motion, std::vector<std::pair<Mob&, Motion&>> mobs, std::vector<std::pair<Item&, Motion&>> items, std::vector<bool> quests, Weapon& weapon, SpaceshipHome& spaceshipHome, ITEM_TYPE powerup) {
     json data;
 
     data["player"] = player;
@@ -58,6 +76,7 @@ void SaveGame(Player& player, Motion& player_motion, std::vector<std::pair<Mob&,
     data["items"] = items;
     data["quests"] = quests;
     data["weapon"] = weapon;
+    data["spaceshipHome"] = spaceshipHome;
     data["powerup"] = powerup;
 
     // std::cout << data.dump(4);
