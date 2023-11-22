@@ -1218,6 +1218,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		if (key == GLFW_KEY_KP_DECIMAL)	// numpad '.'
 			// Saves map data
 			terrain->save_grid(loaded_map_name);	
+		/*
 		if (key == GLFW_KEY_PAGE_UP) { // PageUp ke
 			// This expands the map to world_size_x, world_size_y.
 			// Make sure you disable item and mob spawning because physics and pathfinding
@@ -1240,6 +1241,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 
 			physics_system->initStaticBVH(registry.colliders.size());
 		}
+		*/
 	}
 
 	// Press B to toggle debug mode
