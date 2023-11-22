@@ -551,7 +551,7 @@ void WorldSystem::restart_game() {
 	spaceship = createSpaceship(renderer, { 0,-2.5 });
 
 	// Create Spaceship home
-	spaceship_home = createSpaceshipHome(renderer, false, 500, 100);
+	spaceship_home = createSpaceshipHome(renderer, { 0, 0 }, false, 500, 100);
 
 	// Create a new salmon
 	player_salmon = createPlayer(renderer, { 0, 0 });
@@ -1373,35 +1373,6 @@ void WorldSystem::load_game(json j) {
 	// Reset the weapons system
 	weapons_system->resetWeaponsSystem();
 
-	ITEM_TYPE weapon_type = (ITEM_TYPE) j["weapon"]["weapon_type"];
-	if (weapon_type == ITEM_TYPE::WEAPON_NONE) {
-		user_has_first_weapon = false;
-		registry.remove_all_components_of(weapon_indicator);
-	} else {
-		// GIVE player their weapon if they have one, and set weapon indicator accordingly
-		int ammo_count = (int) j["weapon"]["ammo_count"];
-		player_equipped_weapon = weapons_system->createWeapon(weapon_type, ammo_count);
-		user_has_first_weapon = true;
-
-		switch (weapon_type) {
-			case ITEM_TYPE::WEAPON_CROSSBOW:
-				weapon_indicator = createWeaponIndicator(renderer, { -10.f, -6.f }, TEXTURE_ASSET_ID::ICON_CROSSBOW);
-				ammo_indicator = createBar(renderer, { -10, -4.f }, registry.weapons.get(player_equipped_weapon).ammo_count, BAR_TYPE::AMMO_BAR);
-				break;
-			case ITEM_TYPE::WEAPON_MACHINEGUN:
-				weapon_indicator = createWeaponIndicator(renderer, { -10.f, -6.f }, TEXTURE_ASSET_ID::ICON_MACHINE_GUN);
-				break;
-			case ITEM_TYPE::WEAPON_SHOTGUN:
-				weapon_indicator = createWeaponIndicator(renderer, { -10.f, -6.f }, TEXTURE_ASSET_ID::ICON_SHOTGUN);
-				break;
-			case ITEM_TYPE::WEAPON_SHURIKEN:
-				weapon_indicator = createWeaponIndicator(renderer, { -10.f, -6.f }, TEXTURE_ASSET_ID::WEAPON_SHURIKEN);
-				break;
-		}
-
-		ammo_indicator = createBar(renderer, { -10, -4.f }, ammo_count, BAR_TYPE::AMMO_BAR);
-	}
-
 	// Reset the terrain system
 	terrain->resetTerrainSystem();
 
@@ -1428,13 +1399,7 @@ void WorldSystem::load_game(json j) {
 	physics_system->initStaticBVH(registry.colliders.size());
 
 	// Create a Spaceship 
-	spaceship = createSpaceship(renderer, { 0,0 });
-
-	// Create Spaceship home
-	bool sh_is_inside = j["spaceshipHome"]["is_inside"];
-	int sh_food_storage = j["spaceshipHome"]["food_storage"];
-	int sh_ammo_storage = j["spaceshipHome"]["ammo_storage"];
-	spaceship_home = createSpaceshipHome(renderer, sh_is_inside, sh_food_storage, sh_ammo_storage);
+	spaceship = createSpaceship(renderer, { 0, -2.5 });
 
 	// Create a new salmon
 	player_salmon = createPlayer(renderer, player_location);
@@ -1445,46 +1410,83 @@ void WorldSystem::load_game(json j) {
 
 	// Create the main camera
 	main_camera = createCamera(player_location);
+	Motion& camera_motion = registry.motions.get(main_camera);
+
+	// Create Spaceship home
+	bool sh_is_inside = j["spaceshipHome"]["is_inside"];
+	int sh_food_storage = j["spaceshipHome"]["food_storage"];
+	int sh_ammo_storage = j["spaceshipHome"]["ammo_storage"];
+	spaceship_home = createSpaceshipHome(renderer, camera_motion.position, sh_is_inside, sh_food_storage, sh_ammo_storage);
 
 	// Create player health bar
-	health_bar = createBar(renderer, { -8.f, 7.f }, PLAYER_MAX_HEALTH, BAR_TYPE::HEALTH_BAR);
-	health_frame = createFrame(renderer, { -7.f, 7.f }, FRAME_TYPE::HEALTH_FRAME);
+	health_bar = createBar(renderer, { -7.f + camera_motion.position.x, 7.f + camera_motion.position.y }, PLAYER_MAX_HEALTH, BAR_TYPE::HEALTH_BAR);
+	Motion& health = registry.motions.get(health_bar);
+	health_frame = createFrame(renderer, { -0.5f + health.position.x , health.position.y }, FRAME_TYPE::HEALTH_FRAME);
 
 	// Create player food bar
-	food_bar = createBar(renderer, { 8.f, -7.f }, PLAYER_MAX_FOOD, BAR_TYPE::FOOD_BAR);
-	food_frame = createFrame(renderer, { 7.f, 7.f }, FRAME_TYPE::FOOD_FRAME);
+	food_bar = createBar(renderer, { 7.f + camera_motion.position.x, 7.f + camera_motion.position.y }, PLAYER_MAX_FOOD, BAR_TYPE::FOOD_BAR);
+	Motion& food = registry.motions.get(food_bar);
+	food_frame = createFrame(renderer, { -0.3f + food.position.x, food.position.y}, FRAME_TYPE::FOOD_FRAME);
 
 	// Create spaceship home food storage bar
-	food_storage = createBar(renderer, { -3.5f, 0.f }, sh_food_storage, BAR_TYPE::FOOD_STORAGE);
-	fs_frame = createFrame(renderer, { 0,0 }, FRAME_TYPE::BAR_FRAME); 
+	food_storage = createBar(renderer, { -3.5f + camera_motion.position.x, camera_motion.position.y }, sh_food_storage, BAR_TYPE::FOOD_STORAGE);
+	fs_frame = createFrame(renderer, { -3.49f + camera_motion.position.x, camera_motion.position.y }, FRAME_TYPE::BAR_FRAME); 
 
 	// Create spaceship home ammo storage bar
-	ammo_storage = createBar(renderer, { 4.5f, 0.5f }, sh_ammo_storage, BAR_TYPE::AMMO_STORAGE);
-	as_frame = createFrame(renderer, { 0,0 }, FRAME_TYPE::BAR_FRAME);
+	ammo_storage = createBar(renderer, { 4.5f + camera_motion.position.x,  0.5f + camera_motion.position.y }, sh_ammo_storage, BAR_TYPE::AMMO_STORAGE);
+	as_frame = createFrame(renderer, { 4.51f + camera_motion.position.x,  0.5f + camera_motion.position.y }, FRAME_TYPE::BAR_FRAME);
 
 	// Creating spaceship home items 
-	turkey = createStorage(renderer, { -5.5f, 0.f }, ITEM_TYPE::TURKEY);
-	ammo = createStorage(renderer, { 1.f, 0.5f }, ITEM_TYPE::AMMO);
+	turkey = createStorage(renderer, { -5.5f + camera_motion.position.x, 0.f + camera_motion.position.y }, ITEM_TYPE::TURKEY);
+	ammo = createStorage(renderer, { 1.f + camera_motion.position.x, 0.5f + camera_motion.position.y }, ITEM_TYPE::AMMO);
 
 	tooltips_on = false;
-	help_bar = createHelp(renderer, { 0.f, -7.f }, TEXTURE_ASSET_ID::LOADED);
+	help_bar = createHelp(renderer, { camera_motion.position.x, -7.f + camera_motion.position.y }, TEXTURE_ASSET_ID::LOADED);
 	current_tooltip = tooltips.size();
 
 	quest_items.clear();
 
 	if (!j["quests"][0]) {
-		quest_items.push_back({ createQuestItem(renderer, {10.f, -2.f}, TEXTURE_ASSET_ID::QUEST_1_NOT_FOUND), false });
+		quest_items.push_back({ createQuestItem(renderer, { 10.f + camera_motion.position.x, -2.f + camera_motion.position.y }, TEXTURE_ASSET_ID::QUEST_1_NOT_FOUND), false });
 	}
 	else {
-		quest_items.push_back({ createQuestItem(renderer, {10.f, -2.f}, TEXTURE_ASSET_ID::QUEST_1_FOUND), true });
+		quest_items.push_back({ createQuestItem(renderer, { 10.f + camera_motion.position.x, -2.f + camera_motion.position.y }, TEXTURE_ASSET_ID::QUEST_1_FOUND), true });
 	}
 
 	if (!j["quests"][1]) {
-		quest_items.push_back({ createQuestItem(renderer, {10.f, 2.f}, TEXTURE_ASSET_ID::QUEST_2_NOT_FOUND), false });
+		quest_items.push_back({ createQuestItem(renderer, { 10.f + camera_motion.position.x, 2.f + camera_motion.position.y }, TEXTURE_ASSET_ID::QUEST_2_NOT_FOUND), false });
 	}
 	else {
-		quest_items.push_back({ createQuestItem(renderer, {10.f, 2.f}, TEXTURE_ASSET_ID::QUEST_2_FOUND), true });
+		quest_items.push_back({ createQuestItem(renderer, { 10.f + camera_motion.position.x, 2.f + camera_motion.position.y }, TEXTURE_ASSET_ID::QUEST_2_FOUND), true });
 	}
+
+	ITEM_TYPE weapon_type = (ITEM_TYPE) j["weapon"]["weapon_type"];
+	if (weapon_type == ITEM_TYPE::WEAPON_NONE) {
+		user_has_first_weapon = false;
+		registry.remove_all_components_of(weapon_indicator);
+	} else {
+		// GIVE player their weapon if they have one, and set weapon indicator accordingly
+		int ammo_count = (int) j["weapon"]["ammo_count"];
+		player_equipped_weapon = weapons_system->createWeapon(weapon_type, ammo_count);
+		user_has_first_weapon = true;
+
+		switch (weapon_type) {
+			case ITEM_TYPE::WEAPON_CROSSBOW:
+				weapon_indicator = createWeaponIndicator(renderer, { -10.f + camera_motion.position.x, -6.f + camera_motion.position.y }, TEXTURE_ASSET_ID::ICON_CROSSBOW);
+				break;
+			case ITEM_TYPE::WEAPON_MACHINEGUN:
+				weapon_indicator = createWeaponIndicator(renderer, { -10.f + camera_motion.position.x, -6.f + camera_motion.position.y }, TEXTURE_ASSET_ID::ICON_MACHINE_GUN);
+				break;
+			case ITEM_TYPE::WEAPON_SHOTGUN:
+				weapon_indicator = createWeaponIndicator(renderer, { -10.f + camera_motion.position.x, -6.f + camera_motion.position.y }, TEXTURE_ASSET_ID::ICON_SHOTGUN);
+				break;
+			case ITEM_TYPE::WEAPON_SHURIKEN:
+				weapon_indicator = createWeaponIndicator(renderer, { -10.f + camera_motion.position.x, -6.f + camera_motion.position.y }, TEXTURE_ASSET_ID::WEAPON_SHURIKEN);
+				break;
+		}
+
+		ammo_indicator = createBar(renderer, { -10 + camera_motion.position.x, -4.f + camera_motion.position.y}, ammo_count, BAR_TYPE::AMMO_BAR);
+}
 
 	// clear all used spawn locations
 	used_spawn_locations.clear();

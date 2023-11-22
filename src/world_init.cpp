@@ -126,7 +126,7 @@ Entity createSpaceship(RenderSystem* renderer, vec2 position) {
 	return entity;
 }
 
-Entity createSpaceshipHome(RenderSystem* renderer, bool is_inside, int food_storage, int ammo_storage) {
+Entity createSpaceshipHome(RenderSystem* renderer, vec2 position, bool is_inside, int food_storage, int ammo_storage) {
 	auto entity = Entity();
 
 	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
@@ -137,7 +137,7 @@ Entity createSpaceshipHome(RenderSystem* renderer, bool is_inside, int food_stor
 	auto& motion = registry.motions.emplace(entity);
 	motion.angle = 0.f;
 	motion.velocity = { 0.f, 0.f };
-	motion.position = { 0,-1.6 };
+	motion.position = position;
 
 	createDefaultCollider(entity);
 

@@ -27,7 +27,7 @@ Entity createItem(RenderSystem* renderer, vec2 position, ITEM_TYPE type);
 Entity createSpaceship(RenderSystem* renderer, vec2 position);
 
 // the spaceship home
-Entity createSpaceshipHome(RenderSystem* renderer, bool is_inside, int food_storage, int ammo_storage); 
+Entity createSpaceshipHome(RenderSystem* renderer, vec2 position, bool is_inside, int food_storage, int ammo_storage); 
 
 Entity createStorage(RenderSystem* renderer, vec2 position, ITEM_TYPE type);
 // a red line for debugging purposes
