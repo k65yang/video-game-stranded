@@ -46,7 +46,7 @@ Milestone 3
 
 <b>Reloadability</b> save.cpp, save.hpp <br>
 
-<b>Consistent game resolution</b> "aspect_ratio" , "targetResolution" in common.hpp, "RenderSystem::createProjectionMatrix()"
+<b>Consistent game resolution</b> "aspect_ratio" , "targetResolution" in common.hpp, "RenderSystem::createProjectionMatrix()", "WorldSystem::create_window()"
 
 <b></b> <br>
 ## How to start
