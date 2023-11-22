@@ -1,6 +1,7 @@
 #include <string> 
 #include <stdexcept>
 #include <random>
+
 #include "weapons_system.hpp"
 
 void WeaponsSystem::step(float elapsed_ms) {
@@ -28,8 +29,7 @@ Entity WeaponsSystem::createWeapon(ITEM_TYPE weapon_type, int ammo_count) {
 	weapon.projectile_velocity = weapon_projectile_velocity_map[weapon_type];
 	weapon.projectile_damage = weapon_damage_map[weapon_type];
 	weapon.ammo_count = ammo_count; 
-	weapon.knockback_force = weapon_knockback_map[weapon_type];
-
+	
 	// Set tracking for the newly created weapon
 	active_weapon_type = weapon_type;
 	active_weapon_entity = entity;
@@ -152,21 +152,10 @@ void WeaponsSystem::applyWeaponEffects(Entity proj, Entity mob) {
 	// Determine the weapon (and upgrade level) that the projectile came from
 	Projectile& projectile = registry.projectiles.get(proj);
 	Weapon& weapon = registry.weapons.get(projectile.weapon);
-	
-	applyKnockback(proj, mob, weapon.knockback_force);
-	
+
 	// Apply the weapon effects to the mob if necessary
 	if (weapon.weapon_type == ITEM_TYPE::WEAPON_CROSSBOW && weapon_level[weapon.weapon_type] >= 1) {
 		applySlow(mob, 10000.f, 0.1);
-	}
-}
-
-void WeaponsSystem::applyKnockback(Entity proj, Entity mob, float knockback_force) {
-	// Apply pushback to mob 
-	if (registry.motions.has(proj) && registry.motions.has(mob)) {
-		Motion& mob_motion = registry.motions.get(mob);
-		Motion& proj_motion = registry.motions.get(proj);
-		mob_motion.position = mob_motion.position + (knockback_force * normalize(proj_motion.velocity));
 	}
 }
 

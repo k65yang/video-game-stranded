@@ -270,14 +270,13 @@ std::tuple <bool, float, vec2> SATcollides(const Collider& collider1, const Coll
 /// </summary>
 /// <param name="entity1"></param>
 /// <param name="entity2"></param>
-bool PhysicsSystem::collides(Entity entity1, Entity entity2) {
-	bool isCollide = false;
+void PhysicsSystem::collides(Entity entity1, Entity entity2) {
 	auto& c1 = registry.colliders.get(entity1);
 	auto& c2 = registry.colliders.get(entity2);
 	if (distance(c1.position, c2.position) < detectRange) {
 		if (AABBCollides(c1, c2)) {
 			auto result = SATcollides(c1, c2);
-		
+			bool isCollide;
 			float overlap;
 			vec2 MTV;
 			std::tie(isCollide, overlap, MTV) = result;
@@ -290,13 +289,11 @@ bool PhysicsSystem::collides(Entity entity1, Entity entity2) {
 
 				// inverting correction vector for other entites
 				registry.collisions.emplace_with_duplicates(entity2, entity1, overlap, invertHelper(MTV));
-				
 			}
 
 		}
 	}
 
-	return isCollide;
 }
 
 /// <summary>
@@ -503,30 +500,27 @@ void PhysicsSystem::step(float elapsed_ms)
 	// POSITION UPDATE FROM VELOCITY
 	auto& motion_container = registry.motions;
 	auto& collider_container = registry.colliders;
-	auto& terrainCell_container = registry.terrainCells;
+
 	for (uint i = 0; i < motion_container.size(); i++)
 	{
+		Motion& motion = motion_container.components[i];
 		Entity entity = motion_container.entities[i];
+		motion.position += motion.velocity * elapsed_ms / 1000.f;
 
-		if (!terrainCell_container.has(motion_container.entities[i])) {
-			Motion& motion = motion_container.components[i];
+		// adjusting collider center for moving object
+		if (collider_container.has(entity))
+		{
+			collider_container.get(entity).position = motion.position;
 
-			motion.position += motion.velocity * elapsed_ms / 1000.f;
-
-			// adjusting collider center for moving object
-			if (collider_container.has(entity))
+			auto& player_container = registry.players;
+			if (player_container.has(entity))
 			{
-				collider_container.get(entity).position = motion.position;
-
-				auto& player_container = registry.players;
-				if (player_container.has(entity))
-				{
-					// update collider rotation matrix since player angle changes
-					collider_container.get(entity).rotation = mat2(cos(motion.angle), -sin(motion.angle), sin(motion.angle), cos(motion.angle));
-				}
-
+				// update collider rotation matrix since player angle changes
+				collider_container.get(entity).rotation = mat2(cos(motion.angle), -sin(motion.angle), sin(motion.angle), cos(motion.angle));
 			}
+
 		}
+
 	}
 
 	// COLLISION DETECTION 
@@ -542,13 +536,6 @@ void PhysicsSystem::step(float elapsed_ms)
 		intersectBVH(projectile_entity_container[i], rootNodeIndex);
 	}
 
-	// mob against terrain - uses static BVH
-	auto& mob_entity_container = registry.mobs.entities;
-
-	for (int i = 0; i < mob_entity_container.size(); i++) {
-		intersectBVH(mob_entity_container[i], rootNodeIndex);
-	}
-
 	// player against item - brute force for now since BVH is not dynamic...
 	auto& item_entity_container = registry.items.entities;
 
@@ -556,7 +543,8 @@ void PhysicsSystem::step(float elapsed_ms)
 		collides(player_entity, item_entity_container[i]);
 	}
 
-	// player against mob
+	// player against mob - brute force...
+	auto& mob_entity_container = registry.mobs.entities;
 
 	for (int i = 0; i < mob_entity_container.size(); i++) {
 		collides(player_entity, mob_entity_container[i]);
