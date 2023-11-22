@@ -572,11 +572,11 @@ void WorldSystem::restart_game() {
 	food_frame = createFrame(renderer, { 7.f, 7.f }, FRAME_TYPE::FOOD_FRAME);
 
 	// Create spaceship home food storage bar
-	food_storage = createBar(renderer, { -3.5f, 0.f }, 200, BAR_TYPE::FOOD_STORAGE);
+	food_storage = createBar(renderer, { -3.5f, 0.f }, SPACESHIP_HOME_MAX_FOOD_STORAGE, BAR_TYPE::FOOD_STORAGE);
 	fs_frame = createFrame(renderer, { 0,0 }, FRAME_TYPE::BAR_FRAME); 
 
 	// Create spaceship home ammo storage bar
-	ammo_storage = createBar(renderer, { 4.5f, 0.5f }, 200, BAR_TYPE::AMMO_STORAGE);
+	ammo_storage = createBar(renderer, { 4.5f, 0.5f }, SPACESHIP_HOME_MAX_AMMO_STORAGE, BAR_TYPE::AMMO_STORAGE);
 	as_frame = createFrame(renderer, { 0,0 }, FRAME_TYPE::BAR_FRAME);
 
 	// Creating spaceship home items 
@@ -973,6 +973,8 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		// Save the game state (player location, weapon, health, food, mobs & location)
 		Player& player = registry.players.get(player_salmon);
 		Motion& player_motion = registry.motions.get(player_salmon);
+		SpaceshipHome& spaceshipHome = registry.spaceshipHomes.get(spaceship_home);
+		Weapon& weapon = user_has_first_weapon ? registry.weapons.get(player_equipped_weapon) : registry.weapons.emplace(Entity());
 
 		std::vector<std::pair<Mob&, Motion&>> mobs;
 		for (auto& mob : registry.mobs.entities) {
@@ -989,13 +991,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 			quests.push_back(item.second);
 		}
 
-		ITEM_TYPE type = ITEM_TYPE::WEAPON_NONE;
-		if (user_has_first_weapon) {
-			Weapon& weapon = registry.weapons.get(player_equipped_weapon);
-			type = weapon.weapon_type;
-		}
-
-		SaveGame(player, player_motion, mobs, items, quests, type);
+		SaveGame(player, player_motion, mobs, items, quests, weapon, spaceshipHome);
 
 		tooltips_on = false;
 		help_bar = createHelp(renderer, { 0.f, -7.f }, TEXTURE_ASSET_ID::SAVING);
@@ -1049,6 +1045,9 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 			Motion& a_item_motion = registry.motions.get(ammo);
 			t_motion.position = { -5.5f + camera_motion.position.x, 0.f + camera_motion.position.y };
 			a_item_motion.position = { 1.f + camera_motion.position.x, 0.5f + camera_motion.position.y };
+
+			printf("Food before: %d\n", spaceshipHome.food_storage);
+			printf("Ammo before: %d\n", spaceshipHome.ammo_storage);
 			
 			// Regenerate health
 			Player& player = registry.players.get(player_salmon);
@@ -1072,6 +1071,9 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 				w_motion.scale = vec2(((float)weapon.ammo_count / (float)PLAYER_MAX_AMMO) * AMMO_BAR_SCALE[0], AMMO_BAR_SCALE[1]);
 				as_motion.scale = vec2(AMMO_STORAGE_SCALE[0], ((float)spaceshipHome.ammo_storage / (float) SPACESHIP_HOME_MAX_AMMO_STORAGE) * AMMO_STORAGE_SCALE[1]);
 			}
+
+			printf("Food after: %d\n", spaceshipHome.food_storage);
+			printf("Ammo after: %d\n", spaceshipHome.ammo_storage);
 
 			printf("You are home\n");
 			spaceshipHome.is_inside = true;
@@ -1371,31 +1373,33 @@ void WorldSystem::load_game(json j) {
 	// Reset the weapons system
 	weapons_system->resetWeaponsSystem();
 
-	ITEM_TYPE weapon_type = (ITEM_TYPE)j["weapon"];
+	ITEM_TYPE weapon_type = (ITEM_TYPE) j["weapon"]["weapon_type"];
 	if (weapon_type == ITEM_TYPE::WEAPON_NONE) {
 		user_has_first_weapon = false;
 		registry.remove_all_components_of(weapon_indicator);
-	}
-	else {
+	} else {
 		// GIVE player their weapon if they have one, and set weapon indicator accordingly
-		player_equipped_weapon = weapons_system->createWeapon(weapon_type);
+		int ammo_count = (int) j["weapon"]["ammo_count"];
+		player_equipped_weapon = weapons_system->createWeapon(weapon_type, ammo_count);
 		user_has_first_weapon = true;
 
 		switch (weapon_type) {
-		case ITEM_TYPE::WEAPON_CROSSBOW:
-			weapon_indicator = createWeaponIndicator(renderer, { -10.f, -6.f }, TEXTURE_ASSET_ID::ICON_CROSSBOW);
-			break;
-		case ITEM_TYPE::WEAPON_MACHINEGUN:
-			weapon_indicator = createWeaponIndicator(renderer, { -10.f, -6.f }, TEXTURE_ASSET_ID::ICON_MACHINE_GUN);
-			break;
-		case ITEM_TYPE::WEAPON_SHOTGUN:
-			weapon_indicator = createWeaponIndicator(renderer, { -10.f, -6.f }, TEXTURE_ASSET_ID::ICON_SHOTGUN);
-			break;
-		case ITEM_TYPE::WEAPON_SHURIKEN:
-			weapon_indicator = createWeaponIndicator(renderer, { -10.f, -6.f }, TEXTURE_ASSET_ID::WEAPON_SHURIKEN);
-			break;
+			case ITEM_TYPE::WEAPON_CROSSBOW:
+				weapon_indicator = createWeaponIndicator(renderer, { -10.f, -6.f }, TEXTURE_ASSET_ID::ICON_CROSSBOW);
+				ammo_indicator = createBar(renderer, { -10, -4.f }, registry.weapons.get(player_equipped_weapon).ammo_count, BAR_TYPE::AMMO_BAR);
+				break;
+			case ITEM_TYPE::WEAPON_MACHINEGUN:
+				weapon_indicator = createWeaponIndicator(renderer, { -10.f, -6.f }, TEXTURE_ASSET_ID::ICON_MACHINE_GUN);
+				break;
+			case ITEM_TYPE::WEAPON_SHOTGUN:
+				weapon_indicator = createWeaponIndicator(renderer, { -10.f, -6.f }, TEXTURE_ASSET_ID::ICON_SHOTGUN);
+				break;
+			case ITEM_TYPE::WEAPON_SHURIKEN:
+				weapon_indicator = createWeaponIndicator(renderer, { -10.f, -6.f }, TEXTURE_ASSET_ID::WEAPON_SHURIKEN);
+				break;
 		}
 
+		ammo_indicator = createBar(renderer, { -10, -4.f }, ammo_count, BAR_TYPE::AMMO_BAR);
 	}
 
 	// Reset the terrain system
@@ -1426,6 +1430,12 @@ void WorldSystem::load_game(json j) {
 	// Create a Spaceship 
 	spaceship = createSpaceship(renderer, { 0,0 });
 
+	// Create Spaceship home
+	bool sh_is_inside = j["spaceshipHome"]["is_inside"];
+	int sh_food_storage = j["spaceshipHome"]["food_storage"];
+	int sh_ammo_storage = j["spaceshipHome"]["ammo_storage"];
+	spaceship_home = createSpaceshipHome(renderer, sh_is_inside, sh_food_storage, sh_ammo_storage);
+
 	// Create a new salmon
 	player_salmon = createPlayer(renderer, player_location);
 	Player& player = registry.players.get(player_salmon);
@@ -1436,12 +1446,25 @@ void WorldSystem::load_game(json j) {
 	// Create the main camera
 	main_camera = createCamera(player_location);
 
+	// Create player health bar
+	health_bar = createBar(renderer, { -8.f, 7.f }, PLAYER_MAX_HEALTH, BAR_TYPE::HEALTH_BAR);
+	health_frame = createFrame(renderer, { -7.f, 7.f }, FRAME_TYPE::HEALTH_FRAME);
 
-	// Create health bars 
-	health_bar = createBar(renderer, { -8.f, 7.f }, player.health, BAR_TYPE::HEALTH_BAR);
+	// Create player food bar
+	food_bar = createBar(renderer, { 8.f, -7.f }, PLAYER_MAX_FOOD, BAR_TYPE::FOOD_BAR);
+	food_frame = createFrame(renderer, { 7.f, 7.f }, FRAME_TYPE::FOOD_FRAME);
 
-	// Create food bars 
-	food_bar = createBar(renderer, { 8.f, 7.f }, player.food, BAR_TYPE:: FOOD_BAR);
+	// Create spaceship home food storage bar
+	food_storage = createBar(renderer, { -3.5f, 0.f }, sh_food_storage, BAR_TYPE::FOOD_STORAGE);
+	fs_frame = createFrame(renderer, { 0,0 }, FRAME_TYPE::BAR_FRAME); 
+
+	// Create spaceship home ammo storage bar
+	ammo_storage = createBar(renderer, { 4.5f, 0.5f }, sh_ammo_storage, BAR_TYPE::AMMO_STORAGE);
+	as_frame = createFrame(renderer, { 0,0 }, FRAME_TYPE::BAR_FRAME);
+
+	// Creating spaceship home items 
+	turkey = createStorage(renderer, { -5.5f, 0.f }, ITEM_TYPE::TURKEY);
+	ammo = createStorage(renderer, { 1.f, 0.5f }, ITEM_TYPE::AMMO);
 
 	tooltips_on = false;
 	help_bar = createHelp(renderer, { 0.f, -7.f }, TEXTURE_ASSET_ID::LOADED);

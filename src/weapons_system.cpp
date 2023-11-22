@@ -13,7 +13,7 @@ void WeaponsSystem::step(float elapsed_ms) {
 		weapon_component->can_fire = true;
 }
 
-Entity WeaponsSystem::createWeapon(ITEM_TYPE weapon_type) {
+Entity WeaponsSystem::createWeapon(ITEM_TYPE weapon_type, int ammo_count) {
 	// Item must be a weapon
 	assert((isValidWeapon(weapon_type)) && "Error: Attempted to create weapon from non-weapon type");
 
@@ -28,8 +28,8 @@ Entity WeaponsSystem::createWeapon(ITEM_TYPE weapon_type) {
 	weapon.fire_rate = weapon_fire_rate_map[weapon_type];
 	weapon.projectile_velocity = weapon_projectile_velocity_map[weapon_type];
 	weapon.projectile_damage = weapon_damage_map[weapon_type];
-	// can change the amount ammo 
-	weapon.ammo_count = 10; 
+	weapon.ammo_count = ammo_count; 
+	
 	// Set tracking for the newly created weapon
 	active_weapon_type = weapon_type;
 	active_weapon_entity = entity;

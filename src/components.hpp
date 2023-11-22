@@ -76,7 +76,7 @@ struct PlayerInaccuracyEffect {
 
 // The weapon
 struct Weapon {
-	ITEM_TYPE weapon_type;
+	ITEM_TYPE weapon_type = ITEM_TYPE::WEAPON_NONE;
 	bool can_fire;
 	float fire_rate;                     // controls fire rate, the interval between weapon shots
 	float elapsed_last_shot_time_ms;     // controls fire rate, the time that the weapon was fired last
