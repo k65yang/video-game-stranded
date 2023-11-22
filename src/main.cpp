@@ -1,5 +1,6 @@
 
 #define GL3W_IMPLEMENTATION
+#pragma GCC diagnostic ignored "-Wswitch"
 #include <gl3w.h>
 
 // stlib
@@ -12,6 +13,7 @@
 #include "terrain_system.hpp"
 #include "pathfinding_system.hpp"
 #include "weapons_system.hpp"
+#include "particle_system.hpp"
 #include "mob_system.hpp"
 #include "common.hpp"
 
@@ -27,7 +29,9 @@ int main()
 	TerrainSystem terrain_system;
 	PathfindingSystem pathfinding_system;
 	WeaponsSystem weapons_system;
+	ParticleSystem particle_system;
 	MobSystem mob_system;
+	AudioSystem audio_system;
 
 	// Initializing window
 	GLFWwindow* window = world_system.create_window();
@@ -40,10 +44,11 @@ int main()
 	}
 
 	// initialize the main systems
+	audio_system.init();
 	render_system.init(window);
 	weapons_system.init(&render_system);
 	mob_system.init(&render_system, &terrain_system);
-	world_system.init(&render_system, &terrain_system, &weapons_system, &physics_system, &mob_system);
+	world_system.init(&render_system, &terrain_system, &weapons_system, &physics_system, &mob_system, &audio_system);
 
 	// Load terrain mesh into the GPU
 	std::unordered_map<unsigned int, RenderSystem::ORIENTATIONS> orientation_map;
@@ -51,7 +56,7 @@ int main()
 	render_system.initializeTerrainBuffers(orientation_map);
 
 	pathfinding_system.init(&terrain_system);
-	
+	particle_system.init(&render_system);
 
 	// variable timestep loop
 	auto t = Clock::now();
@@ -72,9 +77,10 @@ int main()
 			terrain_system.step(elapsed_ms);
 			pathfinding_system.step(elapsed_ms);
 			weapons_system.step(elapsed_ms);
+			particle_system.step(elapsed_ms);
 			mob_system.step(elapsed_ms);
 			world_system.handle_collisions();
-			}
+		}
 		render_system.draw();
 
 		//else do home step function

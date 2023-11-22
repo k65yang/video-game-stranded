@@ -99,7 +99,10 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 			glUniform2f(frameDimensions_uloc, mob_frame_w, mob_frame_h);
 			gl_has_errors();
 
-			}
+		}
+		// else if (render_request.used_texture == TEXTURE_ASSET_ID::PLAYER_PARTICLE) {
+		// 	GLint isPlayer_uloc = glGetUniformLocation(program, "isPlayer");
+		// }
 
 	}
 	else if (render_request.used_effect == EFFECT_ASSET_ID::SALMON || render_request.used_effect == EFFECT_ASSET_ID::PEBBLE)
@@ -125,8 +128,8 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 
 	// Getting uniform locations for glUniform* calls
 	GLint color_uloc = glGetUniformLocation(program, "fcolor");
-	const vec3 color = registry.colors.has(entity) ? registry.colors.get(entity) : vec3(1);
-	glUniform3fv(color_uloc, 1, (float *)&color);
+	const vec4 color = registry.colors.has(entity) ? registry.colors.get(entity) : vec4(1);
+	glUniform4fv(color_uloc, 1, (float *)&color);
 	gl_has_errors();
 
 	// Get number of indices from index buffer, which has elements uint16_t

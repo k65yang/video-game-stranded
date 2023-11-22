@@ -6,6 +6,7 @@
 #include <cassert>
 #include <sstream>
 #include <iostream>
+#include <algorithm>
 #include "physics_system.hpp"
 
 // Game configuration
@@ -30,15 +31,6 @@ WorldSystem::WorldSystem()
 	}
 
 WorldSystem::~WorldSystem() {
-	// Destroy music components
-	if (background_music != nullptr)
-		Mix_FreeMusic(background_music);
-	if (salmon_dead_sound != nullptr)
-		Mix_FreeChunk(salmon_dead_sound);
-	if (salmon_eat_sound != nullptr)
-		Mix_FreeChunk(salmon_eat_sound);
-	Mix_CloseAudio();
-
 	// Destroy all created components
 	registry.clear_all_components();
 
@@ -112,42 +104,16 @@ GLFWwindow* WorldSystem::create_window() {
 	glfwSetCursorPosCallback(window, cursor_pos_redirect);
 	glfwSetMouseButtonCallback(window, cursor_button_redirect);
 
-	//////////////////////////////////////
-	// Loading music and sounds with SDL
-	if (SDL_Init(SDL_INIT_AUDIO) < 0) {
-		fprintf(stderr, "Failed to initialize SDL Audio");
-		return nullptr;
-	}
-	if (Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048) == -1) {
-		fprintf(stderr, "Failed to open audio device");
-		return nullptr;
-	}
-
-	background_music = Mix_LoadMUS(audio_path("music.wav").c_str());
-	salmon_dead_sound = Mix_LoadWAV(audio_path("salmon_dead.wav").c_str());
-	salmon_eat_sound = Mix_LoadWAV(audio_path("salmon_eat.wav").c_str());
-
-	if (background_music == nullptr || salmon_dead_sound == nullptr || salmon_eat_sound == nullptr) {
-		fprintf(stderr, "Failed to load sounds\n %s\n %s\n %s\n make sure the data directory is present",
-			audio_path("music.wav").c_str(),
-			audio_path("salmon_dead.wav").c_str(),
-			audio_path("salmon_eat.wav").c_str());
-		return nullptr;
-	}
-
 	return window;
 }
 
-void WorldSystem::init(RenderSystem* renderer_arg, TerrainSystem* terrain_arg, WeaponsSystem* weapons_system_arg, PhysicsSystem* physics_system_arg, MobSystem* mob_system_arg) {
+void WorldSystem::init(RenderSystem* renderer_arg, TerrainSystem* terrain_arg, WeaponsSystem* weapons_system_arg, PhysicsSystem* physics_system_arg, MobSystem* mob_system_arg, AudioSystem* audio_system_arg) {
 	this->renderer = renderer_arg;
 	this->terrain = terrain_arg;
 	this->weapons_system = weapons_system_arg;
 	this->mob_system = mob_system_arg;
 	this->physics_system = physics_system_arg;
-	
-	// Playing background music indefinitely
-	Mix_PlayMusic(background_music, -1);
-	fprintf(stderr, "Loaded music\n");
+	this->audio_system = audio_system_arg;
 
 	// Set all states to default
 	restart_game();
@@ -327,6 +293,43 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	if (user_has_first_weapon) {
 		Motion& weapon_ui = registry.motions.get(weapon_indicator);
 		weapon_ui.position = { -10.f + camera_motion.position.x, -6.f + camera_motion.position.y };
+	}
+
+	if (user_has_powerup) {
+		Motion& powerup_ui = registry.motions.get(powerup_indicator);
+		powerup_ui.position = { -9.5f + camera_motion.position.x, 5.f + camera_motion.position.y };
+	}
+
+	// health updates
+	if (registry.healthPowerup.has(player_salmon)) {
+		HealthPowerup& hp = registry.healthPowerup.get(player_salmon);
+
+		// update the time since last heal and the light up duration
+		hp.remaining_time_for_next_heal -= elapsed_ms_since_last_update;
+		hp.light_up_timer_ms -= elapsed_ms_since_last_update;
+
+		// light up expired
+		if (hp.light_up_timer_ms < 0 && registry.colors.has(health_bar)) {
+			registry.colors.remove(health_bar);
+		}
+		
+		// check if we need and can heal
+		if (player.health < PLAYER_MAX_HEALTH && hp.remaining_time_for_next_heal < 0) {
+			hp.remaining_time_for_next_heal = hp.heal_interval_ms;
+			player.health = std::min(PLAYER_MAX_HEALTH, player.health + hp.heal_amount);
+
+			// light up the health bar
+			if (registry.colors.has(health_bar)) {
+				// can happen when the light up period is longer than the heal interval
+			} else {
+				vec4& color = registry.colors.emplace(health_bar);
+				color = vec4(.5f, .5f, .5f, 1.f);
+			}
+			hp.light_up_timer_ms = hp.light_up_duration_ms;
+
+			vec2 new_health_scale = vec2(((float)player.health / (float)PLAYER_MAX_HEALTH) * HEALTH_BAR_SCALE[0], HEALTH_BAR_SCALE[1]);
+			health.scale = interpolate(health.scale, new_health_scale, 1);
+		}
 	}
 
 	// Mob updates
@@ -544,7 +547,7 @@ void WorldSystem::restart_game() {
 
 	// Create a new salmon
 	player_salmon = createPlayer(renderer, { 0, 0 });
-	registry.colors.insert(player_salmon, { 1, 0.8f, 0.8f });
+	registry.colors.insert(player_salmon, { 1, 0.8f, 0.8f , 1.f});
 
 	// Create the main camera
 	main_camera = createCamera({ 0,0 });
@@ -560,6 +563,9 @@ void WorldSystem::restart_game() {
 
 	// Reset the weapon indicator
 	user_has_first_weapon = false;
+
+	// Reset the power ups
+	user_has_powerup = false;
 
 	// A function that handles the help/tutorial (some tool tips at the top of the screen)
 	help_bar = createHelp(renderer, { 0.f, -7.f }, tooltips[0]);
@@ -577,12 +583,12 @@ void WorldSystem::restart_game() {
 	// TODO: uncomment these after messing w/ map editor
 	spawn_items();
 	mob_system->spawn_mobs();
+	createItem(renderer, {5.f, 3.f}, ITEM_TYPE::POWERUP_SPEED);
+	createItem(renderer, {5.f, 5.f}, ITEM_TYPE::POWERUP_HEALTH);
 
 	// for movement velocity
 	for (int i = 0; i < KEYS; i++)
 	  keyDown[i] = false;
-
-	
 }
 
 // Compute collisions between entities
@@ -659,6 +665,16 @@ void WorldSystem::handle_collisions() {
 						// TODO: game over screen
 						registry.deathTimers.emplace(entity);
 					}
+				}
+
+				// reset health powerup values
+				if (registry.healthPowerup.has(player_salmon)) {
+					HealthPowerup& hp = registry.healthPowerup.get(player_salmon);
+					hp.remaining_time_for_next_heal = 5000.f;
+					hp.light_up_timer_ms = 0.f;
+
+					if (registry.colors.has(health_bar))
+						registry.colors.remove(health_bar);
 				}
 			}
 
@@ -769,6 +785,55 @@ void WorldSystem::handle_collisions() {
 				case ITEM_TYPE::WEAPON_UPGRADE:
 					weapons_system->upgradeCurrentWeapon();
 					break;
+				case ITEM_TYPE::POWERUP_SPEED:
+				{
+					// remove health power up if already equipped
+					if (registry.healthPowerup.has(player_salmon)) {
+						// check if the health bar is lit up (i.e. the player just healed)
+						HealthPowerup& healthPowerUp = registry.healthPowerup.get(player_salmon);
+						if (healthPowerUp.light_up_timer_ms > 0 || registry.colors.has(health_bar) ) {
+							registry.colors.remove(health_bar);
+						}
+					}
+					
+					// Give the speed power up to the player
+					SpeedPowerup& speedPowerup = registry.speedPowerup.emplace(player_salmon);
+					speedPowerup.old_speed = current_speed;
+					current_speed *= 2;
+
+					// Give a particle trail to the player
+					ParticleTrail& pt = registry.particleTrails.emplace(player_salmon);
+					pt.is_alive = true;
+					pt.texture = TEXTURE_ASSET_ID::PLAYER_PARTICLE;
+					pt.motion_component_ptr = &registry.motions.get(player_salmon);
+
+					// Add the powerup indicator
+					if (user_has_powerup)
+						registry.remove_all_components_of(powerup_indicator);
+					powerup_indicator = createPowerupIndicator(renderer, {-9.5f, 5.f}, TEXTURE_ASSET_ID::ICON_POWERUP_SPEED);
+					user_has_powerup = true;
+					break;
+				}
+				case ITEM_TYPE::POWERUP_HEALTH:
+					// remove the speed power up if already equipped
+					if (registry.speedPowerup.has(player_salmon)) {
+						// reset speed to original speed
+						current_speed = registry.speedPowerup.get(player_salmon).old_speed;
+						registry.speedPowerup.remove(player_salmon);
+
+						// Set the particle trail to dead
+						registry.particleTrails.get(player_salmon).is_alive = false;
+					}
+
+					// Give health powerup to player. Use default values in struct definition.
+					registry.healthPowerup.emplace(player_salmon);
+
+					// Add the powerup indicator
+					if (user_has_powerup)
+						registry.remove_all_components_of(powerup_indicator);
+					powerup_indicator = createPowerupIndicator(renderer, {-9.5f, 5.f}, TEXTURE_ASSET_ID::ICON_POWERUP_HEALTH);
+					user_has_powerup = true;
+					break;
 				}
 
 				// remove item from map
@@ -804,8 +869,11 @@ void WorldSystem::handle_collisions() {
 				// printf("mob health: %i", mob.health);
 				if (mob.health <= 0) {
 					registry.remove_all_components_of(entity_other);
+					audio_system->play_one_shot(AudioSystem::MOB_DEATH);
 				}
-
+				else {
+					audio_system->play_one_shot(AudioSystem::MOB_HIT);
+				}
 				// Add weapon effects to the mob
 				weapons_system->applyWeaponEffects(entity, entity_other);
 
@@ -939,7 +1007,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		std::ifstream f("save.json");
 		json data = json::parse(f);
 
-		std::cout << "Loading ...";
+		std::cout << "Loading ...\n";
 
 		load_game(data);
 	}
@@ -964,13 +1032,22 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 			quests.push_back(item.second);
 		}
 
-		ITEM_TYPE type = ITEM_TYPE::WEAPON_NONE;
+		ITEM_TYPE w_type = ITEM_TYPE::WEAPON_NONE;
 		if (user_has_first_weapon) {
 			Weapon& weapon = registry.weapons.get(player_equipped_weapon);
-			type = weapon.weapon_type;
+			w_type = weapon.weapon_type;
 		}
 
-		SaveGame(player, player_motion, mobs, items, quests, type);
+		ITEM_TYPE p_type = ITEM_TYPE::POWERUP_NONE;
+		if (user_has_powerup) {
+			if (registry.healthPowerup.has(player_salmon)) {
+				p_type = ITEM_TYPE::POWERUP_HEALTH;
+			} else {
+				p_type = ITEM_TYPE::POWERUP_SPEED;
+			}	
+		} 
+		
+		SaveGame(player, player_motion, mobs, items, quests, w_type, p_type);
 
 		tooltips_on = false;
 		help_bar = createHelp(renderer, { 0.f, -7.f }, TEXTURE_ASSET_ID::SAVING);
@@ -1211,7 +1288,23 @@ void WorldSystem::on_mouse_click(int button, int action, int mods) {
 	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
 		if (!registry.deathTimers.has(player_salmon)) {
 			Motion& player_motion = registry.motions.get(player_salmon);
-			// printf("player x: %f, player y: %f \n", player_motion.position.x, player_motion.position.y);
+
+			if (registry.weapons.has(player_equipped_weapon)) {
+				Weapon& w = registry.weapons.get(player_equipped_weapon);
+
+				// Play appropriate shooting noises if we've just shot
+				if (w.can_fire) {
+					switch (w.weapon_type) {
+					case ITEM_TYPE::WEAPON_SHOTGUN:
+						audio_system->play_one_shot(AudioSystem::SHOT); break;
+					case ITEM_TYPE::WEAPON_MACHINEGUN:
+						audio_system->play_one_shot(AudioSystem::SHOT_MG); break;
+					case ITEM_TYPE::WEAPON_CROSSBOW:
+						audio_system->play_one_shot(AudioSystem::SHOT_CROSSBOW); break;
+					}
+				}
+			}
+
 			weapons_system->fireWeapon(player_motion.position.x, player_motion.position.y, CURSOR_ANGLE);
 		}
 	}
@@ -1322,33 +1415,6 @@ void WorldSystem::load_game(json j) {
 	// Reset the weapons system
 	weapons_system->resetWeaponsSystem();
 
-	ITEM_TYPE weapon_type = (ITEM_TYPE)j["weapon"];
-	if (weapon_type == ITEM_TYPE::WEAPON_NONE) {
-		user_has_first_weapon = false;
-		registry.remove_all_components_of(weapon_indicator);
-	}
-	else {
-		// GIVE player their weapon if they have one, and set weapon indicator accordingly
-		player_equipped_weapon = weapons_system->createWeapon(weapon_type);
-		user_has_first_weapon = true;
-
-		switch (weapon_type) {
-		case ITEM_TYPE::WEAPON_CROSSBOW:
-			weapon_indicator = createWeaponIndicator(renderer, { -10.f, -6.f }, TEXTURE_ASSET_ID::ICON_CROSSBOW);
-			break;
-		case ITEM_TYPE::WEAPON_MACHINEGUN:
-			weapon_indicator = createWeaponIndicator(renderer, { -10.f, -6.f }, TEXTURE_ASSET_ID::ICON_MACHINE_GUN);
-			break;
-		case ITEM_TYPE::WEAPON_SHOTGUN:
-			weapon_indicator = createWeaponIndicator(renderer, { -10.f, -6.f }, TEXTURE_ASSET_ID::ICON_SHOTGUN);
-			break;
-		case ITEM_TYPE::WEAPON_SHURIKEN:
-			weapon_indicator = createWeaponIndicator(renderer, { -10.f, -6.f }, TEXTURE_ASSET_ID::WEAPON_SHURIKEN);
-			break;
-		}
-
-	}
-
 	// Reset the terrain system
 	terrain->resetTerrainSystem();
 
@@ -1375,14 +1441,17 @@ void WorldSystem::load_game(json j) {
 	physics_system->initStaticBVH(registry.colliders.size());
 
 	// Create a Spaceship 
-	spaceship = createSpaceship(renderer, { 0,0 });
+	spaceship = createSpaceship(renderer, { 0,-2.5 });
+
+	// Create Home Screen 
+	home = createHome(renderer);
 
 	// Create a new salmon
 	player_salmon = createPlayer(renderer, player_location);
 	Player& player = registry.players.get(player_salmon);
 	player.health = j["player"]["health"];
 	player.food = j["player"]["food"];
-	registry.colors.insert(player_salmon, { 1, 0.8f, 0.8f });
+	registry.colors.insert(player_salmon, { 1, 0.8f, 0.8f, 1.0f});
 
 	// Create the main camera
 	main_camera = createCamera(player_location);
@@ -1394,12 +1463,78 @@ void WorldSystem::load_game(json j) {
 	// Create food bars 
 	food_bar = createFoodBar(renderer, { 8.f, 7.f }, player.food);
 
+	// Tool tips and help bar
 	tooltips_on = false;
 	help_bar = createHelp(renderer, { 0.f, -7.f }, TEXTURE_ASSET_ID::LOADED);
 	current_tooltip = tooltips.size();
 
-	quest_items.clear();
+	// Load Weapons
+	ITEM_TYPE weapon_type = (ITEM_TYPE)j["weapon"];
+	if (weapon_type == ITEM_TYPE::WEAPON_NONE) {
+		user_has_first_weapon = false;
+		registry.remove_all_components_of(weapon_indicator);
+	}
+	else {
+		// GIVE player their weapon if they have one, and set weapon indicator accordingly
+		player_equipped_weapon = weapons_system->createWeapon(weapon_type);
+		user_has_first_weapon = true;
 
+		switch (weapon_type) {
+		case ITEM_TYPE::WEAPON_CROSSBOW:
+			weapon_indicator = createWeaponIndicator(renderer, { -10.f, -6.f }, TEXTURE_ASSET_ID::ICON_CROSSBOW);
+			break;
+		case ITEM_TYPE::WEAPON_MACHINEGUN:
+			weapon_indicator = createWeaponIndicator(renderer, { -10.f, -6.f }, TEXTURE_ASSET_ID::ICON_MACHINE_GUN);
+			break;
+		case ITEM_TYPE::WEAPON_SHOTGUN:
+			weapon_indicator = createWeaponIndicator(renderer, { -10.f, -6.f }, TEXTURE_ASSET_ID::ICON_SHOTGUN);
+			break;
+		case ITEM_TYPE::WEAPON_SHURIKEN:
+			weapon_indicator = createWeaponIndicator(renderer, { -10.f, -6.f }, TEXTURE_ASSET_ID::WEAPON_SHURIKEN);
+			break;
+		}
+
+	}
+	
+	// Load powerups
+	ITEM_TYPE powerup_type = (ITEM_TYPE)j["powerup"];
+	if (powerup_type == ITEM_TYPE::POWERUP_NONE) {
+		printf("loaded no powerup\n");
+		user_has_powerup = false;
+	} else {
+		user_has_powerup = true;
+		printf("powerup type: %i\n", powerup_type);
+
+		switch (powerup_type) {
+			case ITEM_TYPE::POWERUP_SPEED:
+			{
+				// Give the speed power up to the player
+				SpeedPowerup& speedPowerup = registry.speedPowerup.emplace(player_salmon);
+				speedPowerup.old_speed = current_speed;
+				current_speed *= 2;
+
+				// Give a particle trail to the player
+				ParticleTrail& pt = registry.particleTrails.emplace(player_salmon);
+				pt.is_alive = true;
+				pt.texture = TEXTURE_ASSET_ID::PLAYER_PARTICLE;
+				pt.motion_component_ptr = &registry.motions.get(player_salmon);
+
+				// UI Indicator
+				powerup_indicator = createPowerupIndicator(renderer, {-9.5f, 5.f}, TEXTURE_ASSET_ID::ICON_POWERUP_SPEED);
+				break;
+			}
+			case ITEM_TYPE::POWERUP_HEALTH:
+			{
+				// Give health powerup to player. Use default values in struct definition.
+				registry.healthPowerup.emplace(player_salmon);
+				powerup_indicator = createPowerupIndicator(renderer, {-9.5f, 5.f}, TEXTURE_ASSET_ID::ICON_POWERUP_HEALTH);
+				break;
+			}
+		}
+	}
+
+	// Quest items
+	quest_items.clear();
 	if (!j["quests"][0]) {
 		quest_items.push_back({ createQuestItem(renderer, {10.f, -2.f}, TEXTURE_ASSET_ID::QUEST_1_NOT_FOUND), false });
 	}
