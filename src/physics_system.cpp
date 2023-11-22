@@ -270,13 +270,14 @@ std::tuple <bool, float, vec2> SATcollides(const Collider& collider1, const Coll
 /// </summary>
 /// <param name="entity1"></param>
 /// <param name="entity2"></param>
-void PhysicsSystem::collides(Entity entity1, Entity entity2) {
+bool PhysicsSystem::collides(Entity entity1, Entity entity2) {
+	bool isCollide = false;
 	auto& c1 = registry.colliders.get(entity1);
 	auto& c2 = registry.colliders.get(entity2);
 	if (distance(c1.position, c2.position) < detectRange) {
 		if (AABBCollides(c1, c2)) {
 			auto result = SATcollides(c1, c2);
-			bool isCollide;
+		
 			float overlap;
 			vec2 MTV;
 			std::tie(isCollide, overlap, MTV) = result;
@@ -289,11 +290,13 @@ void PhysicsSystem::collides(Entity entity1, Entity entity2) {
 
 				// inverting correction vector for other entites
 				registry.collisions.emplace_with_duplicates(entity2, entity1, overlap, invertHelper(MTV));
+				
 			}
 
 		}
 	}
 
+	return isCollide;
 }
 
 /// <summary>
