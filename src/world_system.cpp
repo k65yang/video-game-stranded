@@ -659,13 +659,15 @@ void WorldSystem::handle_collisions() {
 
 			// Checking Player - Mobs
 			if (registry.mobs.has(entity_other)) {
-
+				std::cout << "hi" << std::endl;
 				// prevent player stack on top of mob upon colliding
-				/* TODO for m4
 				Motion& player_motion = registry.motions.get(entity);
+				Motion& mob_motion = registry.motions.get(entity_other);
+
 				vec2 correctionVec = registry.collisions.components[i].MTV * registry.collisions.components[i].overlap;
 				player_motion.position = player_motion.position + correctionVec;
-				*/
+				mob_motion.position = mob_motion.position + -1.f * correctionVec;
+				
 
 				if (player.iframes_timer > 0 || registry.deathTimers.has(entity)) {
 					// Don't damage and discard all other collisions for a bit
@@ -873,6 +875,17 @@ void WorldSystem::handle_collisions() {
 
 				// remove item from map
 				registry.remove_all_components_of(entity_other);
+			}
+		}
+
+		// mob vs terrain collision resolution - making sure mob doesnt stuck/go through in terrain
+
+		if (registry.mobs.has(entity)) {
+			if (registry.terrainCells.has(entity_other))
+			{
+				Motion& motion = registry.motions.get(entity);
+				vec2 correctionVec = registry.collisions.components[i].MTV * registry.collisions.components[i].overlap;
+				motion.position = motion.position + correctionVec;
 			}
 		}
 
