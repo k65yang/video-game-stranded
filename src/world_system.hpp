@@ -105,11 +105,20 @@ private:
 	Entity main_camera;
 	Entity fow;
 	Entity health_bar;
+	Entity health_frame; 
+	Entity food_frame; 
+	Entity fs_frame; 
+	Entity as_frame; 
 	Entity food_bar;
+	Entity food_storage; 
+	Entity turkey;
+	Entity ammo_storage;
+	Entity ammo;
 	Entity weapon_indicator;
 	Entity powerup_indicator;
+	Entity ammo_indicator; 
 	Entity spaceship;
-	Entity home; 
+	Entity spaceship_home; 
 	Entity help_bar;
 	bool tooltips_on = true;
 	std::vector<std::pair<Entity, bool>> quest_items;
@@ -123,10 +132,6 @@ private:
 	// C++ random number generator
 	std::default_random_engine rng;
 	std::uniform_real_distribution<float> uniform_dist; // number between 0..1
-
-	// Random item and mob spawning 
-	// Limits on the number of items and mobs
-	const int ITEM_LIMIT = 64;
 
 	// Vector to keep track of locations where an item/mob has been spawned
 	std::vector<vec2> used_spawn_locations;
@@ -171,6 +176,14 @@ private:
 	///  Sets the player's facing direction based on the cursor angle (aiming direction)
 	/// </summary>
 	void updatePlayerDirection();
+
+	/// <summary>
+	/// Regenerate from storage 
+	/// </summary>
+	/// <param name="resource"></param>
+	/// <param name="storage"></param>
+	/// <param name="max_capacity"></param>
+	void checkAndRegenerate(int& resource, int& storage, int max_capacity); 
 
 	/// <summary>
 	// Handles various aspects related to player movement, 

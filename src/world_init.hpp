@@ -11,8 +11,11 @@ const float FISH_BB_WIDTH = 0.4f * 296.f;
 const float FISH_BB_HEIGHT = 0.4f * 165.f;
 const float TURTLE_BB_WIDTH = 0.4f * 300.f;
 const float TURTLE_BB_HEIGHT = 0.4f * 202.f;
-const vec2 HEALTH_BAR_SCALE = vec2(5.f, 0.5);
+const vec2 HEALTH_BAR_SCALE = vec2(5.5, 0.7);
 const vec2 FOOD_BAR_SCALE = vec2(5.5, 0.7);
+const vec2 AMMO_BAR_SCALE = vec2({ 3, 0.4 }); 
+const vec2 TURKEY_BAR_SCALE = vec2({ 0.5, 2 });
+const vec2 AMMO_STORAGE_SCALE = vec2({ 0.5, 2 });
 
 // the player
 Entity createPlayer(RenderSystem* renderer, vec2 pos);
@@ -23,17 +26,18 @@ Entity createItem(RenderSystem* renderer, vec2 position, ITEM_TYPE type);
 // the spaceship 
 Entity createSpaceship(RenderSystem* renderer, vec2 position);
 
-// the space home
-Entity createHome(RenderSystem* renderer); 
+// the spaceship home
+Entity createSpaceshipHome(RenderSystem* renderer, vec2 position, bool is_inside, int food_storage, int ammo_storage); 
 
+Entity createStorage(RenderSystem* renderer, vec2 position, ITEM_TYPE type);
 // a red line for debugging purposes
 Entity createLine(vec2 position, vec2 size);
 
 
 
 // UI Elements
-Entity createHealthBar(RenderSystem* renderer, vec2 position, int health = PLAYER_MAX_HEALTH);
-Entity createFoodBar(RenderSystem* renderer, vec2 position, int food = PLAYER_MAX_FOOD);
+Entity createBar(RenderSystem* renderer, vec2 position, int amount, BAR_TYPE type);
+Entity createFrame(RenderSystem* renderer, vec2 position, FRAME_TYPE type);
 Entity createWeaponIndicator(RenderSystem* renderer, vec2 position, TEXTURE_ASSET_ID weapon_texture);
 Entity createPowerupIndicator(RenderSystem* renderer, vec2 position, TEXTURE_ASSET_ID powerup_texture);
 

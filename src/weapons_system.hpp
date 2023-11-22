@@ -43,8 +43,9 @@ class WeaponsSystem
         /// NOTE: Does not check if the weapon exists already. 
         ///       (If we do not limit weapon spawns we can create/equip the same weapon multiple times)
         /// @param weapon_type The type of weapon to be created
+        /// @param ammo_count The ammo of weapon to be created
         /// @return The created entity
-        Entity createWeapon(ITEM_TYPE weapon_type);
+        Entity createWeapon(ITEM_TYPE weapon_type, int ammo_count = 10);
 
         /// @brief Create the weapon projectile and sets its motion
         /// @param player_x The x coordinate of the player
@@ -98,15 +99,6 @@ class WeaponsSystem
             {ITEM_TYPE::WEAPON_MACHINEGUN, 5},
         };
 
-        // Weapon knockbacks
-        std::map<ITEM_TYPE, float> weapon_knockback_map{
-            {ITEM_TYPE::WEAPON_NONE, 0.f},
-            {ITEM_TYPE::WEAPON_SHURIKEN, 0.4f},
-            {ITEM_TYPE::WEAPON_CROSSBOW, 0.2f},
-            {ITEM_TYPE::WEAPON_SHOTGUN, 0.f},
-            {ITEM_TYPE::WEAPON_MACHINEGUN, 0.1f},
-        };
-
         // Weapon projectile textures
         std::map<ITEM_TYPE, TEXTURE_ASSET_ID> projectile_textures_map{
             {ITEM_TYPE::WEAPON_SHURIKEN, TEXTURE_ASSET_ID::WEAPON_SHURIKEN},
@@ -152,11 +144,6 @@ class WeaponsSystem
         /// @param slow_ratio How much to slow it by [0.0, 1.0] (1.0 is no slow)
         void applySlow(Entity mob, float duration_ms, float slow_ratio);
         
-        /// @brief Applies a knoback to the mob
-        /// @param mob Entity to apply the knockback to
-        /// @param knockback_force How much position to push it 
-        void applyKnockback(Entity proj, Entity mob, float knockback_force);
-
         /// @brief Creates a projectile
         /// @param renderer Pointer to the render system
         /// @param pos Position to draw the projectile

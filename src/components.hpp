@@ -10,6 +10,9 @@
 
 const int PLAYER_MAX_FOOD = 100;
 const int PLAYER_MAX_HEALTH = 100;
+const int PLAYER_MAX_AMMO = 10;
+const int SPACESHIP_HOME_MAX_FOOD_STORAGE = 500;
+const int SPACESHIP_HOME_MAX_AMMO_STORAGE = 100;
 
 enum class ITEM_TYPE {
 	QUEST_ONE = 0,
@@ -24,7 +27,27 @@ enum class ITEM_TYPE {
 	POWERUP_NONE = WEAPON_UPGRADE + 1,
 	POWERUP_SPEED = POWERUP_NONE + 1,
 	POWERUP_HEALTH = POWERUP_SPEED + 1,
+	UPGRADE = POWERUP_HEALTH + 1,
+	TURKEY = UPGRADE + 1,
+	AMMO = TURKEY + 1,
+
 };
+
+enum class BAR_TYPE {
+	// UI bars
+	HEALTH_BAR = 0,
+	FOOD_BAR = HEALTH_BAR + 1,
+	AMMO_BAR = FOOD_BAR + 1,
+	// bars inside the home 
+	FOOD_STORAGE = AMMO_BAR +1,
+	AMMO_STORAGE = FOOD_STORAGE + 1,
+
+	};
+enum class FRAME_TYPE {
+	HEALTH_FRAME = 0, 
+	FOOD_FRAME = HEALTH_FRAME + 1,
+	BAR_FRAME = FOOD_FRAME + 1,
+	};
 
 // TODO: cool idea for later is to have a customizable difficulty that adjusts food and health.
 struct Player
@@ -68,20 +91,21 @@ struct PlayerInaccuracyEffect {
 
 // The weapon
 struct Weapon {
-	ITEM_TYPE weapon_type;
+	ITEM_TYPE weapon_type = ITEM_TYPE::WEAPON_NONE;
 	bool can_fire;
 	float fire_rate;                     // controls fire rate, the interval between weapon shots
 	float elapsed_last_shot_time_ms;     // controls fire rate, the time that the weapon was fired last
 	float projectile_velocity;           // speed of projectiles of this weapon
 	int projectile_damage;               // weapon damage
-	float knockback_force;				 // magnitude of knockback on enemy
+	int ammo_count = PLAYER_MAX_AMMO;
 };
 
 // The spaceship 
-struct Spaceship {
-	bool in_home; // controls if player exit home or enter home
-
-	};
+struct SpaceshipHome {
+	bool is_inside;
+	int food_storage;
+	int ammo_storage;
+};
 
 // The projectile
 struct Projectile {
@@ -93,7 +117,8 @@ enum class MOB_TYPE {
 	SLIME = 0,
 	GHOST = SLIME + 1,
 	BRUTE = GHOST + 1,
-	DISRUPTOR = BRUTE + 1
+	DISRUPTOR = BRUTE + 1,
+	TURRET = DISRUPTOR + 1,
 };
 
 // Mob component
@@ -334,7 +359,16 @@ enum class TEXTURE_ASSET_ID {
 	SPACESHIP = POWERUP_SPEED + 1,
 	SPACEHOME = SPACESHIP + 1,
 	BLUEBLOCK = SPACEHOME + 1,
-	HELP_ONE = BLUEBLOCK + 1,
+	//inserting new blocks here
+	FOOD_BLOCK = BLUEBLOCK + 1,
+	BROWNBLOCK = FOOD_BLOCK + 1,
+	AMMO_BLOCK = BROWNBLOCK + 1,
+	BAR_FRAME = AMMO_BLOCK + 1,
+	HEALTH_FRAME = BAR_FRAME + 1,
+	FOOD_FRAME = HEALTH_FRAME + 1,
+	AMMO = FOOD_FRAME +1,
+	TURKEY = AMMO + 1, 
+	HELP_ONE = TURKEY + 1,
 	HELP_TWO = HELP_ONE + 1,
 	HELP_THREE = HELP_TWO + 1,
 	HELP_FOUR = HELP_THREE + 1,
@@ -348,7 +382,8 @@ enum class TEXTURE_ASSET_ID {
 	GHOST = QUEST_2_ITEM + 1,
 	BRUTE = GHOST + 1,
 	DISRUPTOR = BRUTE + 1,
-	LOADED = DISRUPTOR + 1,
+	TURRET = DISRUPTOR + 1,
+	LOADED = TURRET + 1,
 	SAVING = LOADED + 1,
 	TEXTURE_COUNT = SAVING + 1,
 };

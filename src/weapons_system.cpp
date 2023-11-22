@@ -1,6 +1,7 @@
 #include <string> 
 #include <stdexcept>
 #include <random>
+
 #include "weapons_system.hpp"
 
 void WeaponsSystem::step(float elapsed_ms) {
@@ -12,7 +13,7 @@ void WeaponsSystem::step(float elapsed_ms) {
 		weapon_component->can_fire = true;
 }
 
-Entity WeaponsSystem::createWeapon(ITEM_TYPE weapon_type) {
+Entity WeaponsSystem::createWeapon(ITEM_TYPE weapon_type, int ammo_count) {
 	// Item must be a weapon
 	assert((isValidWeapon(weapon_type)) && "Error: Attempted to create weapon from non-weapon type");
 
@@ -27,9 +28,8 @@ Entity WeaponsSystem::createWeapon(ITEM_TYPE weapon_type) {
 	weapon.fire_rate = weapon_fire_rate_map[weapon_type];
 	weapon.projectile_velocity = weapon_projectile_velocity_map[weapon_type];
 	weapon.projectile_damage = weapon_damage_map[weapon_type];
-	weapon.knockback_force = weapon_knockback_map[weapon_type];
-
-
+	weapon.ammo_count = ammo_count; 
+	
 	// Set tracking for the newly created weapon
 	active_weapon_type = weapon_type;
 	active_weapon_entity = entity;
@@ -40,7 +40,7 @@ Entity WeaponsSystem::createWeapon(ITEM_TYPE weapon_type) {
 void WeaponsSystem::fireWeapon(float player_x, float player_y, float player_angle) {
 	if (active_weapon_type == ITEM_TYPE::WEAPON_NONE)
 		return;
-	if (!weapon_component || !weapon_component->can_fire)
+	if (!weapon_component || !weapon_component->can_fire || weapon_component->ammo_count <= 0)
 		return;
 
 	Entity player = registry.players.entities[0];
@@ -52,20 +52,34 @@ void WeaponsSystem::fireWeapon(float player_x, float player_y, float player_angl
 	// TODO: offset projectile location a little so it doesn't get created on top of player
 	switch(active_weapon_type){
 		case ITEM_TYPE::WEAPON_SHURIKEN:
+			weapon_component->ammo_count--;
 			fireShuriken(player_x, player_y, player_angle);
 			break;
 		case ITEM_TYPE::WEAPON_CROSSBOW:
+			weapon_component->ammo_count--;
 			fireCrossbow(player_x, player_y, player_angle);
 			break;
 		case ITEM_TYPE::WEAPON_SHOTGUN:
+			// decrement ammunition count
+			weapon_component->ammo_count -= 5;
 			fireShotgun(player_x, player_y, player_angle);
 			break;
 		case ITEM_TYPE::WEAPON_MACHINEGUN:
+			weapon_component->ammo_count--;
 			fireMachineGun(player_x, player_y, player_angle);
 			break;
 		default:
 			throw(std::runtime_error("Error: Failed to fire weapon because unknown weapon equipped"));
 	}
+
+
+	//printf("Ammunition count: %d\n", weapon_component->ammo_count);
+
+	// disable firing if ammo is empty 
+	if (weapon_component->ammo_count == 0) {
+		weapon_component->can_fire = false;
+		}
+
 		
 }
 
@@ -81,10 +95,11 @@ void WeaponsSystem::fireShuriken(float player_x, float player_y, float angle) {
 			weapon_component->elapsed_last_shot_time_ms = 0.f;
 			break;
 		default:
-			createProjectile(renderer, {player_x, player_y}, angle);
-			createProjectile(renderer, {player_x + offset * cos(angle), player_y + offset * sin(angle)}, angle);
+			createProjectile(renderer, { player_x, player_y }, angle);
+			createProjectile(renderer, { player_x + offset * cos(angle), player_y + offset * sin(angle) }, angle);
 			weapon_component->can_fire = false;
 			weapon_component->elapsed_last_shot_time_ms = 0.f;
+				
 			break;
 	}
 }
@@ -137,21 +152,10 @@ void WeaponsSystem::applyWeaponEffects(Entity proj, Entity mob) {
 	// Determine the weapon (and upgrade level) that the projectile came from
 	Projectile& projectile = registry.projectiles.get(proj);
 	Weapon& weapon = registry.weapons.get(projectile.weapon);
-	
-	applyKnockback(proj, mob, weapon.knockback_force);
-	
+
 	// Apply the weapon effects to the mob if necessary
 	if (weapon.weapon_type == ITEM_TYPE::WEAPON_CROSSBOW && weapon_level[weapon.weapon_type] >= 1) {
 		applySlow(mob, 10000.f, 0.1);
-	}
-}
-
-void WeaponsSystem::applyKnockback(Entity proj, Entity mob, float knockback_force) {
-	// Apply pushback to mob 
-	if (registry.motions.has(proj) && registry.motions.has(mob)) {
-		Motion& mob_motion = registry.motions.get(mob);
-		Motion& proj_motion = registry.motions.get(proj);
-		mob_motion.position = mob_motion.position + (knockback_force * normalize(proj_motion.velocity));
 	}
 }
 

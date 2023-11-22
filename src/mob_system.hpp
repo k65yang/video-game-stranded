@@ -63,7 +63,8 @@ class MobSystem
             {MOB_TYPE::GHOST, 10},
             {MOB_TYPE::SLIME, 15},
             {MOB_TYPE::BRUTE, 50},
-            {MOB_TYPE::DISRUPTOR, 5}
+            {MOB_TYPE::DISRUPTOR, 5},
+            {MOB_TYPE::TURRET, 5}
         };
 
         // Aggro range for each mob
@@ -71,7 +72,8 @@ class MobSystem
             {MOB_TYPE::GHOST, 10},
             {MOB_TYPE::SLIME, 10},
             {MOB_TYPE::BRUTE, 10},
-            {MOB_TYPE::DISRUPTOR, 10}
+            {MOB_TYPE::DISRUPTOR, 10},
+            {MOB_TYPE::TURRET, 5}
         };
 
         // Health for each mob
@@ -79,7 +81,8 @@ class MobSystem
             {MOB_TYPE::GHOST, 50},
             {MOB_TYPE::SLIME, 30},
             {MOB_TYPE::BRUTE, 100},
-            {MOB_TYPE::DISRUPTOR, 50}
+            {MOB_TYPE::DISRUPTOR, 50},
+            {MOB_TYPE::TURRET, 10}
         };
 
         // Speed for each mob
@@ -87,7 +90,8 @@ class MobSystem
             {MOB_TYPE::GHOST, 2.5f},
             {MOB_TYPE::SLIME, 2.f},
             {MOB_TYPE::BRUTE, 0.5f},
-            {MOB_TYPE::DISRUPTOR, 1.5f}
+            {MOB_TYPE::DISRUPTOR, 1.5f},
+            {MOB_TYPE::TURRET, 0.f}
         };
 
         // Texture for each mob
@@ -95,7 +99,8 @@ class MobSystem
             {MOB_TYPE::GHOST, TEXTURE_ASSET_ID::GHOST},
             {MOB_TYPE::SLIME, TEXTURE_ASSET_ID::SLIME},
             {MOB_TYPE::BRUTE, TEXTURE_ASSET_ID::BRUTE},
-            {MOB_TYPE::DISRUPTOR, TEXTURE_ASSET_ID::DISRUPTOR}
+            {MOB_TYPE::DISRUPTOR, TEXTURE_ASSET_ID::DISRUPTOR},
+            {MOB_TYPE::TURRET, TEXTURE_ASSET_ID::TURRET}
         };
 
         /// @brief Applies knockback effect to the player

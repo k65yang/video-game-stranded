@@ -88,6 +88,16 @@ private:
 			textures_path("spaceship.png"), 
 			textures_path("spacehome.png"),
 			textures_path("blueblock.png"),
+			//inserting new blocks here
+			textures_path("foodblock.png"),
+			textures_path("brownblock.png"),
+			textures_path("ammoblock.png"),
+			textures_path("bar_frame.png"),
+			textures_path("health_empty_bar.png"),
+			textures_path("food_empty_bar.png"),
+			//spaceship items 
+			textures_path("ammos.png"),
+			textures_path("turkey.png"),
 			textures_path("help1.png"),
 			textures_path("help2.png"),
 			textures_path("help3.png"),
@@ -100,8 +110,9 @@ private:
 			textures_path("q1.png"),
 			textures_path("q2.png"),
 			textures_path("ghost.png"),
-			textures_path("brute.png"),	
+			textures_path("brute.png"),
 			textures_path("disruptor.png"),
+			textures_path("mob_turret.png"),
 			textures_path("loaded.png"),
 			textures_path("saving.png"),
 	};

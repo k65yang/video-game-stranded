@@ -4,19 +4,69 @@ void MobSystem::step(float elapsed_ms) {
     
 };
 
+// NOTE: do not add more mobs than there are grid cells available in the zone!!!
 void MobSystem::spawn_mobs() {
-    // NOTE: do not add more mobs than there are grid cells available in the zone!!!
-	std::map<ZONE_NUMBER,int> zone_mob_numbers = {
-		{ZONE_1, 5},    // zone 1 has 5 mobs
-		{ZONE_2, 10},	// zone 2 has 5 mobs
-		{ZONE_3, 50},	// zone 2 has 5 mobs
+	// spawn slimes
+	std::map<ZONE_NUMBER,int> zone_mob_slime = {
+		{ZONE_1, 5},    
+		{ZONE_2, 10},	
+		{ZONE_3, 10},	
 	};
+	std::vector<vec2> zone_slime_locations = terrain->get_mob_spawn_locations(zone_mob_slime);
 
-	std::vector<vec2> zone_mob_locations = terrain->get_mob_spawn_locations(zone_mob_numbers);
-
-	for (const auto& spawn_location: zone_mob_locations) {
-		create_mob(spawn_location, rng() % 2 ? MOB_TYPE::DISRUPTOR : MOB_TYPE::BRUTE);
+	for (const auto& spawn_location: zone_slime_locations) {
+		create_mob(spawn_location, MOB_TYPE::SLIME);
 	}
+
+	// spawn ghosts
+	std::map<ZONE_NUMBER,int> zone_mob_ghost = {
+		{ZONE_1, 0},    
+		{ZONE_2, 7},	
+		{ZONE_3, 10},
+	};
+	std::vector<vec2> zone_ghost_locations = terrain->get_mob_spawn_locations(zone_mob_ghost);
+
+	for (const auto& spawn_location: zone_ghost_locations) {
+		create_mob(spawn_location, MOB_TYPE::GHOST);
+	}
+
+	// spawn brutes
+	std::map<ZONE_NUMBER,int> zone_mob_brute = {
+		{ZONE_1, 0},    
+		{ZONE_2, 5},	
+		{ZONE_3, 15},
+	};
+	std::vector<vec2> zone_brute_locations = terrain->get_mob_spawn_locations(zone_mob_brute);
+
+	for (const auto& spawn_location: zone_brute_locations) {
+		create_mob(spawn_location, MOB_TYPE::BRUTE);
+	}
+
+	// spawn DISRUPTOR
+	std::map<ZONE_NUMBER,int> zone_mob_disruptor = {
+		{ZONE_1, 0},    
+		{ZONE_2, 0},	
+		{ZONE_3, 30},		// I'm in danger
+	};
+	std::vector<vec2> zone_disruptor_locations = terrain->get_mob_spawn_locations(zone_mob_disruptor);
+
+	for (const auto& spawn_location: zone_disruptor_locations) {
+		create_mob(spawn_location, MOB_TYPE::DISRUPTOR);
+	}
+
+	// TODO: for milestone 4
+	// // spawn turret
+	// std::map<ZONE_NUMBER,int> zone_mob_turret = {
+	// 	{ZONE_0, 5},
+	// 	{ZONE_1, 0},    
+	// 	{ZONE_2, 0},	
+	// 	{ZONE_3, 0},
+	// };
+	// std::vector<vec2> zone_turret_locations = terrain->get_mob_spawn_locations(zone_mob_turret);
+
+	// for (const auto& spawn_location: zone_turret_locations) {
+	// 	create_mob(spawn_location, MOB_TYPE::TURRET);
+	// }
 }
 
 void MobSystem::apply_mob_attack_effects(Entity player, Entity mob) {
