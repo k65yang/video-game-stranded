@@ -17,6 +17,8 @@
 #include "mob_system.hpp"
 #include "physics_system.hpp"
 #include "save.hpp"
+#include "audio_system.hpp"
+
 #include <nlohmann/json.hpp>
 
 using json = nlohmann::json;
@@ -45,7 +47,7 @@ public:
 	GLFWwindow* create_window();
 
 	// starts the game
-	void init(RenderSystem* renderer, TerrainSystem* terrain_arg, WeaponsSystem* weapons_system_arg, PhysicsSystem* physics_system_arg, MobSystem* mob_system_arg);
+	void init(RenderSystem* renderer, TerrainSystem* terrain_arg, WeaponsSystem* weapons_system_arg, PhysicsSystem* physics_system_arg, MobSystem* mob_system_arg, AudioSystem* audio_system_arg);
 
 	// Releases all associated resources
 	~WorldSystem();
@@ -94,6 +96,7 @@ private:
 	WeaponsSystem* weapons_system;
 	MobSystem* mob_system;
 	PhysicsSystem* physics_system;
+	AudioSystem* audio_system;
 	float current_speed;
 	float next_turtle_spawn;
 	float next_fish_spawn;
@@ -112,6 +115,7 @@ private:
 	Entity ammo_storage;
 	Entity ammo;
 	Entity weapon_indicator;
+	Entity powerup_indicator;
 	Entity ammo_indicator; 
 	Entity spaceship;
 	Entity spaceship_home; 
@@ -120,14 +124,10 @@ private:
 	std::vector<std::pair<Entity, bool>> quest_items;
 
 	bool user_has_first_weapon = false;
+	bool user_has_powerup = false;
 
 	int current_tooltip = 0;
 	std::vector<TEXTURE_ASSET_ID> tooltips = { TEXTURE_ASSET_ID::HELP_ONE, TEXTURE_ASSET_ID::HELP_TWO, TEXTURE_ASSET_ID::HELP_THREE, TEXTURE_ASSET_ID::HELP_FOUR };
-
-	// music references
-	Mix_Music* background_music;
-	Mix_Chunk* salmon_dead_sound;
-	Mix_Chunk* salmon_eat_sound;
 
 	// C++ random number generator
 	std::default_random_engine rng;

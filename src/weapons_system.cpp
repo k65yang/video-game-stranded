@@ -73,7 +73,7 @@ void WeaponsSystem::fireWeapon(float player_x, float player_y, float player_angl
 	}
 
 
-	printf("Ammunition count: %d\n", weapon_component->ammo_count);
+	//printf("Ammunition count: %d\n", weapon_component->ammo_count);
 
 	// disable firing if ammo is empty 
 	if (weapon_component->ammo_count == 0) {

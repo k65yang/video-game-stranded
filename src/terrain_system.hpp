@@ -18,20 +18,20 @@ private:
 	/// <summary>
 	/// Corresponds to the underlying index each element in every indices[orientations_n_indices] you see in TerrainSystem
 	/// </summary>
-	const enum ori_index : uint8_t {
+	enum ori_index : uint8_t {
 		TOP, RIGHT, BOTTOM, LEFT, TR, BR, BL, TL, orientations_n_indices
 	};
 
-	inline void TerrainSystem::deallocate_terrain_grid(uint32_t*& terraincell_grid_pointer)	{ // cursed type 
+	inline void deallocate_terrain_grid(uint32_t*& terraincell_grid_pointer)	{ // cursed type 
 		delete[] terraincell_grid_pointer;
 		terraincell_grid_pointer = nullptr;
 	}
 
-	inline void TerrainSystem::deallocate_terrain_grid() {
+	inline void deallocate_terrain_grid() {
 		deallocate_terrain_grid(terraincell_grid);
 	}
 
-	inline void TerrainSystem::deallocate_entity_grid(Entity*& entity_grid_pointer, size_t x, size_t y) {
+	inline void deallocate_entity_grid(Entity*& entity_grid_pointer, size_t x, size_t y) {
 
 		for (size_t i = 0; i < x * y; i++) {
 			registry.remove_all_components_of(entity_grid_pointer[i]);
@@ -40,7 +40,7 @@ private:
 		entity_grid_pointer = nullptr;
 	}
 
-	inline void TerrainSystem::deallocate_entity_grid() {
+	inline void deallocate_entity_grid() {
 		deallocate_entity_grid(entity_grid, size_x, size_y);
 	}
 
@@ -66,10 +66,10 @@ public:
 		{TERRAIN_TYPE::AIR, 1.f},
 		{TERRAIN_TYPE::GRASS, 1.f},
 		{TERRAIN_TYPE::ROCK, 1.f},
-		{TERRAIN_TYPE::SAND, 0.6f},
-		{TERRAIN_TYPE::MUD, 0.3f},
-		{TERRAIN_TYPE::SHALLOW_WATER, 0.25f},
-		{TERRAIN_TYPE::DEEP_WATER, 0.0625f}
+		{TERRAIN_TYPE::SAND, 0.7f},
+		{TERRAIN_TYPE::MUD, 0.55f},
+		{TERRAIN_TYPE::SHALLOW_WATER, 0.4f},
+		{TERRAIN_TYPE::DEEP_WATER, 0.25f}
 	};
 
 	// Look-up table for zone boundaries. Zones are circular.

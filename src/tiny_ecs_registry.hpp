@@ -15,7 +15,12 @@ public:
 	ComponentContainer<ToolTip> tips;
 	ComponentContainer<Motion> motions;
 	ComponentContainer<Collision> collisions;
+
 	ComponentContainer<Player> players;
+	ComponentContainer<SpeedPowerup> speedPowerup;
+	ComponentContainer<HealthPowerup> healthPowerup;
+
+
 	ComponentContainer<PlayerKnockbackEffect> playerKnockbackEffects;
 	ComponentContainer<PlayerInaccuracyEffect> playerInaccuracyEffects;
 	ComponentContainer<Weapon> weapons;
@@ -27,6 +32,9 @@ public:
 	ComponentContainer<Path> paths;
 	ComponentContainer<Item> items;
 
+	ComponentContainer<ParticleTrail> particleTrails;
+	ComponentContainer<Particle> particles;
+
 	// Rendering related
 	ComponentContainer<Mesh*> meshPtrs;
 	ComponentContainer<RenderRequest> renderRequests;
@@ -34,7 +42,7 @@ public:
 
 	ComponentContainer<ScreenState> screenStates;
 	ComponentContainer<DebugComponent> debugComponents;
-	ComponentContainer<vec3> colors;
+	ComponentContainer<vec4> colors;
 	ComponentContainer<Collider> colliders;
 
 
@@ -48,7 +56,11 @@ public:
 		registry_list.push_back(&deathTimers);
 		registry_list.push_back(&motions);
 		registry_list.push_back(&collisions);
+
 		registry_list.push_back(&players);
+		registry_list.push_back(&speedPowerup);
+		registry_list.push_back(&healthPowerup);
+
 		registry_list.push_back(&playerKnockbackEffects);
 		registry_list.push_back(&playerInaccuracyEffects);
 		registry_list.push_back(&weapons);
@@ -59,6 +71,9 @@ public:
 		registry_list.push_back(&mobSlowEffects);
 		registry_list.push_back(&paths);
 		registry_list.push_back(&items);
+
+		registry_list.push_back(&particleTrails);
+		registry_list.push_back(&particles);
 
 		registry_list.push_back(&meshPtrs);
 		registry_list.push_back(&renderRequests);
