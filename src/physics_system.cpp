@@ -556,128 +556,154 @@ void PhysicsSystem::step(float elapsed_ms)
 			collides(projectile_entity_container[i], mob_entity_container[j]);
 		}
 	}
+}
 
+/// <summary>
+/// create coord of a box given a scale(width/height). Points are in local coord and center is 0,0. 
+/// points are added in clockwise direction starting from top left point
+/// </summary>
+/// <param name="points">destination buffer to store the points</param>
+/// <param name="scale">width and height of the box</param>
+/// <returns>void</returns>
+void createBoundingBox(std::vector<vec2>& points, vec2 scale) {
 
+	// calculate top left x position by center(0) - width/2, similar on y position etc..
+	vec2 b1_topLeft = { (0 - (scale.x / 2.f)), (0 - (scale.y / 2.f)) };
+	vec2 b1_topRight = { (0 + (scale.x / 2.f)), (0 - (scale.y / 2.f)) };
+	vec2 b1_bottomRight = { (0 + (scale.x / 2.f)), (0 + (scale.y / 2.f)) };
+	vec2 b1_bottomLeft = { (0 - (scale.x / 2.f)), (0 + (scale.y / 2.f)) };
 
+	points.push_back(b1_topLeft);
+	points.push_back(b1_topRight);
+	points.push_back(b1_bottomRight);
+	points.push_back(b1_bottomLeft);
 
 }
 
+// reference:: https://gamedev.stackexchange.com/questions/105296/calculation-correct-position-of-object-after-collision-2d
 
-/*
-void PhysicsSystem::step(float elapsed_ms)
-	{
-	// Move fish based on how much time has passed, this is to (partially) avoid
-	// having entities move at different speed based on the machine.
-	auto& motion_container = registry.motions;
-	auto& collider_container = registry.colliders;
+/// <summary>
+/// Create a convex hull collider based on polygon given. 
+//	The shape is hard coded to be box shape with entity's scale for now 
+/// </summary>
+/// <param name="entity">entity to attach this collider</param>
+/// <returns>void</returns>
+void createDefaultCollider(Entity entity) {
 
-	for (uint i = 0; i < motion_container.size(); i++)
-		{
-		Motion& motion = motion_container.components[i];
-		Entity entity = motion_container.entities[i];
-		motion.position += motion.velocity * elapsed_ms / 1000.f;
-	
-		// adjusting collider center for moving object
-		if (collider_container.has(entity))
-			{
-			collider_container.get(entity).position = motion.position;
+	auto& motion = registry.motions.get(entity);
+	auto& collider = registry.colliders.emplace(entity);
 
-			auto& player_container = registry.players;
-			if (player_container.has(entity)) 
-			{
-				// update collider rotation matrix since player angle changes
-				collider_container.get(entity).rotation = mat2(cos(motion.angle), -sin(motion.angle), sin(motion.angle), cos(motion.angle));
-			}
-			
-		}
+	// world position, used in collision detection. This needs to be updated by physics::step
+	collider.position = motion.position;
 
-		}
+	// generating points in local coord(center at 0,0)
+	std::vector<glm::vec2> points;
 
-	// Check for collisions between all entities with collider
-	for (uint i = 0; i < collider_container.components.size(); i++)
-		{
+	// HARDCODED TO BOX NOW. Assuming all entity will use a box collider
+	createBoundingBox(points, motion.scale);
 
-		Collider& collider_i = collider_container.components[i];
-		Entity entity_i = collider_container.entities[i];
-		bool is_terrain = registry.terrainCells.has(entity_i);
+	// generating normals
+	vec2 edge;
+	for (int i = 0; i < points.size(); i++) {
+		edge = points[(i + 1) % points.size()] - points[i];
 
-		// note starting j at i+1 to compare all (i,j) pairs only once (and to not compare with itself)
-		for (uint j = i + 1; j < collider_container.components.size(); j++)
-			{
-			Entity entity_j = collider_container.entities[j];
-
-			if (is_terrain && registry.terrainCells.has(entity_j))
-				continue;
-
-			Collider& collider_j = collider_container.components[j];
-
-			// Broad phase collision detection with AABB first
-			
-			if (AABBCollides(collider_i, collider_j)) 
-				{
-
-				bool isCollide;
-				float overlap;
-				vec2 MTV;
-
-				// Narrow phase collision detection with SAT
-				auto result = SATcollides(collider_i, collider_j);
-				std::tie(isCollide, overlap, MTV) = result;
-
-				if (isCollide)
-					{
-					// Create a collisions event
-					// We are abusing the ECS system a bit in that we potentially insert muliple collisions for the same entity
-					registry.collisions.emplace_with_duplicates(entity_i, entity_j, overlap, MTV);
-
-					// inverting correction vector for other entites
-					registry.collisions.emplace_with_duplicates(entity_j, entity_i, overlap, invertHelper(MTV));
-					}
-			
-				}
-				
-			}
-			
-		}
-	
-	}
-*/
-
-/*
-* 
-*  OLD step function from the template
-void PhysicsSystem::step(float elapsed_ms)
-{
-	// Move fish based on how much time has passed, this is to (partially) avoid
-	// having entities move at different speed based on the machine.
-	auto& motion_container = registry.motions;
-	for(uint i = 0; i < motion_container.size(); i++)
-	{
-		Motion& motion = motion_container.components[i];
-		Entity entity = motion_container.entities[i];
-		
-		motion.position += motion.velocity * elapsed_ms / 1000.f;
+		// We can obtain the normal by swapping <x,y> with <-y, x>. Normalizing vector to ease later calculation.
+		collider.normals.push_back(glm::normalize(vec2(-edge.y, edge.x)));
 	}
 
-	// Check for collisions between all moving entities
-	for(uint i = 0; i < motion_container.components.size(); i++)
-	{
-		Motion& motion_i = motion_container.components[i];
-		Entity entity_i = motion_container.entities[i];
-		
-		// note starting j at i+1 to compare all (i,j) pairs only once (and to not compare with itself)
-		for(uint j = i+1; j < motion_container.components.size(); j++)
-		{
-			Motion& motion_j = motion_container.components[j];
-			if (collidesV2(motion_i, motion_j))
-			{
-				Entity entity_j = motion_container.entities[j];
-				// Create a collisions event
-				// We are abusing the ECS system a bit in that we potentially insert muliple collisions for the same entity
-				registry.collisions.emplace_with_duplicates(entity_i, entity_j);
-				registry.collisions.emplace_with_duplicates(entity_j, entity_i);
-			}
-		}
+	// move all points over to collider
+	collider.points = std::move(points);
+
+	// rotation
+	collider.rotation = mat2(cos(motion.angle), -sin(motion.angle), sin(motion.angle), cos(motion.angle));
+
+	// scale
+	collider.scale = motion.scale;
+
+	// flags
+	collider.flag = 0;
+
+}
+
+void createMeshCollider(Entity entity, GEOMETRY_BUFFER_ID geom_id, RenderSystem* renderer) {
+
+	auto& motion = registry.motions.get(entity);
+	auto& collider = registry.colliders.emplace(entity);
+
+	// world position, used in collision detection. This needs to be updated by physics::step
+	collider.position = motion.position;
+
+	std::vector<vec2> points;
+
+	// grabing vertice from corresponding mesh
+	auto& mesh = renderer->getMesh(geom_id);
+
+	for (int i = 0; i < mesh.vertices.size(); i++) {
+		points.push_back(vec2{ mesh.vertices[i].position.x, mesh.vertices[i].position.y });
+
 	}
-	*/
+
+	// generating normals
+	vec2 edge;
+	for (int i = 0; i < points.size(); i++) {
+		edge = points[(i + 1) % points.size()] - points[i];
+
+		// We can obtain the normal by swapping <x,y> with <-y, x>. Normalizing vector to ease later calculation.
+		collider.normals.push_back(glm::normalize(vec2(-edge.y, edge.x)));
+
+	}
+
+	// move all points over to collider
+	collider.points = std::move(points);
+
+	// DISABLE rotation FOR NOW SINCE MESH HITBOX DOESNT ROTATE
+
+	//collider.rotation = mat2(cos(motion.angle), -sin(motion.angle), sin(motion.angle), cos(motion.angle));
+	collider.rotation = mat2(cos(0.f), -sin(0.f), sin(0.f), cos(0.f));
+
+	// scale
+	collider.scale = motion.scale;
+
+	// flags
+	collider.flag = 0;
+
+}
+
+// use a given scale instead since changing motion.scale interfer with the texture rendering
+void createProjectileCollider(Entity entity, vec2 scale) {
+
+	auto& motion = registry.motions.get(entity);
+	auto& collider = registry.colliders.emplace(entity);
+
+	// world position, used in collision detection. This needs to be updated by physics::step
+	collider.position = motion.position;
+
+	// generating points in local coord(center at 0,0)
+	std::vector<glm::vec2> points;
+
+	// HARDCODED TO BOX NOW. Assuming all entity will use a box collider
+	createBoundingBox(points, scale);
+
+	// generating normals
+	vec2 edge;
+	for (int i = 0; i < points.size(); i++) {
+		edge = points[(i + 1) % points.size()] - points[i];
+
+		// We can obtain the normal by swapping <x,y> with <-y, x>. Normalizing vector to ease later calculation.
+		collider.normals.push_back(glm::normalize(vec2(-edge.y, edge.x)));
+	}
+
+	// move all points over to collider
+	collider.points = std::move(points);
+
+	// rotation
+	collider.rotation = mat2(cos(motion.angle), -sin(motion.angle), sin(motion.angle), cos(motion.angle));
+
+	// scale
+	collider.scale = scale;
+
+	// flags
+	collider.flag = 0;
+
+}
 

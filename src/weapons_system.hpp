@@ -6,7 +6,7 @@
 #include "components.hpp"
 #include "tiny_ecs_registry.hpp"
 #include "render_system.hpp"
-#include "world_init.hpp"
+#include "physics_system.hpp"
 
 //  A weapons system class that handles everything weapons related
 class WeaponsSystem
