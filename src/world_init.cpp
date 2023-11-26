@@ -4,8 +4,9 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include "render_system.hpp"
+#include "physics_system.hpp"
 
-Entity createPlayer(RenderSystem* renderer, vec2 pos)
+Entity createPlayer(RenderSystem* renderer, PhysicsSystem* physics, vec2 pos)
 	{
 	auto entity = Entity();
 
@@ -22,7 +23,7 @@ Entity createPlayer(RenderSystem* renderer, vec2 pos)
 
 	// Initialize the collider
 	
-	createMeshCollider(entity, GEOMETRY_BUFFER_ID::PLAYER_MESH, renderer);
+	physics->createMeshCollider(entity, GEOMETRY_BUFFER_ID::PLAYER_MESH, renderer);
 
 	// Add the player to the players registry
 	Player& player = registry.players.emplace(entity);
@@ -37,7 +38,7 @@ Entity createPlayer(RenderSystem* renderer, vec2 pos)
 	return entity;
 }
 
-Entity createItem(RenderSystem* renderer, vec2 position, ITEM_TYPE type)
+Entity createItem(RenderSystem* renderer, PhysicsSystem* physics, vec2 position, ITEM_TYPE type)
 {
 	// Reserve en entity
 	auto entity = Entity();
@@ -57,7 +58,7 @@ Entity createItem(RenderSystem* renderer, vec2 position, ITEM_TYPE type)
 	item.data = type;
 
 	// Initialize the collider
-	createDefaultCollider(entity);
+	physics->createDefaultCollider(entity);
 
 	TEXTURE_ASSET_ID texture = TEXTURE_ASSET_ID::PLAYER;
 	switch (type) {
@@ -117,7 +118,7 @@ Entity createSpaceship(RenderSystem* renderer, vec2 position) {
 	motion.velocity = { 0.f, 0.f };
 	motion.position = position;
 
-	createDefaultCollider(entity);
+	//physics->createDefaultCollider(entity);
 
 	// Setting initial values, scale is negative to make it face the opposite way
 	motion.scale = vec2({ 3, 4 });
@@ -145,7 +146,7 @@ Entity createSpaceshipHome(RenderSystem* renderer, vec2 position, bool is_inside
 	motion.velocity = { 0.f, 0.f };
 	motion.position = position;
 
-	createDefaultCollider(entity);
+	//physics_system->createDefaultCollider(entity);
 
 	// Add spaceship home to spaceship home registry
 	auto& spaceshipHome = registry.spaceshipHomes.emplace(entity);
@@ -202,7 +203,7 @@ Entity createBar(RenderSystem* renderer, vec2 position, int amount, BAR_TYPE typ
 	motion.scale = vec2({ 5.5, 0.7 });
 
 	// Initialize the collider
-	createDefaultCollider(entity);
+	//createDefaultCollider(entity);
 
 	TEXTURE_ASSET_ID texture = TEXTURE_ASSET_ID::PLAYER;
 	switch (type) {
@@ -253,7 +254,7 @@ Entity createFrame(RenderSystem* renderer, vec2 position, FRAME_TYPE type) {
 	motion.scale = vec2({ 7, 1 });
 
 	// Initialize the collider
-	createDefaultCollider(entity);
+	//physics_system->createDefaultCollider(entity);
 
 	TEXTURE_ASSET_ID texture = TEXTURE_ASSET_ID::PLAYER;
 	switch (type) {
@@ -296,7 +297,7 @@ Entity createStorage(RenderSystem* renderer, vec2 position, ITEM_TYPE type) {
 	motion.scale = vec2({ 7, 5 });
 
 	// Initialize the collider
-	createDefaultCollider(entity);
+	//physics_system->createDefaultCollider(entity);
 
 	TEXTURE_ASSET_ID texture = TEXTURE_ASSET_ID::PLAYER;
 	switch (type) {

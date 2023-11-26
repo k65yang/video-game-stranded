@@ -46,8 +46,8 @@ int main()
 	// initialize the main systems
 	audio_system.init();
 	render_system.init(window);
-	weapons_system.init(&render_system);
-	mob_system.init(&render_system, &terrain_system);
+	weapons_system.init(&render_system, &physics_system);
+	mob_system.init(&render_system, &terrain_system, &physics_system);
 	world_system.init(&render_system, &terrain_system, &weapons_system, &physics_system, &mob_system, &audio_system);
 
 	// Load terrain mesh into the GPU

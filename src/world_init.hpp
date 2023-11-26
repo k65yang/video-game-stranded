@@ -1,6 +1,5 @@
 #pragma once
 #include <map>
-
 #include "common.hpp"
 #include "tiny_ecs.hpp"
 #include "render_system.hpp"
@@ -19,10 +18,10 @@ const vec2 TURKEY_BAR_SCALE = vec2({ 0.5, 2 });
 const vec2 AMMO_STORAGE_SCALE = vec2({ 0.5, 2 });
 
 // the player
-Entity createPlayer(RenderSystem* renderer, vec2 pos);
+Entity createPlayer(RenderSystem* renderer, PhysicsSystem* physics, vec2 pos);
 
 // the prey
-Entity createItem(RenderSystem* renderer, vec2 position, ITEM_TYPE type);
+Entity createItem(RenderSystem* renderer, PhysicsSystem* physics, vec2 position, ITEM_TYPE type);
 
 // the spaceship 
 Entity createSpaceship(RenderSystem* renderer, vec2 position);

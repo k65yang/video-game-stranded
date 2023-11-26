@@ -1,17 +1,152 @@
 // internal
 #include "physics_system.hpp"
-#include "world_init.hpp"
-#include <vector>
-#include <iostream>
-#include <cmath>
 
-vec2 invertHelper(vec2 MTV)
-	{
-	return MTV *= -1.0f;
+#pragma region Collider creation related function
+
+void PhysicsSystem::createBoundingBox(std::vector<vec2>& points, vec2 scale) {
+
+	// calculate top left x position by center(0) - width/2, similar on y position etc..
+	vec2 b1_topLeft = { (0 - (scale.x / 2.f)), (0 - (scale.y / 2.f)) };
+	vec2 b1_topRight = { (0 + (scale.x / 2.f)), (0 - (scale.y / 2.f)) };
+	vec2 b1_bottomRight = { (0 + (scale.x / 2.f)), (0 + (scale.y / 2.f)) };
+	vec2 b1_bottomLeft = { (0 - (scale.x / 2.f)), (0 + (scale.y / 2.f)) };
+
+	points.push_back(b1_topLeft);
+	points.push_back(b1_topRight);
+	points.push_back(b1_bottomRight);
+	points.push_back(b1_bottomLeft);
+
+}
+
+void PhysicsSystem::createDefaultCollider(Entity entity) {
+
+	auto& motion = registry.motions.get(entity);
+	auto& collider = registry.colliders.emplace(entity);
+
+	// world position, used in collision detection. This needs to be updated by physics::step
+	collider.position = motion.position;
+
+	// generating points in local coord(center at 0,0)
+	std::vector<glm::vec2> points;
+
+	// HARDCODED TO BOX NOW. Assuming all entity will use a box collider
+	createBoundingBox(points, motion.scale);
+
+	// generating normals
+	vec2 edge;
+	for (int i = 0; i < points.size(); i++) {
+		edge = points[(i + 1) % points.size()] - points[i];
+
+		// We can obtain the normal by swapping <x,y> with <-y, x>. Normalizing vector to ease later calculation.
+		collider.normals.push_back(glm::normalize(vec2(-edge.y, edge.x)));
 	}
 
+	// move all points over to collider
+	collider.points = std::move(points);
+
+	// rotation
+	collider.rotation = mat2(cos(motion.angle), -sin(motion.angle), sin(motion.angle), cos(motion.angle));
+
+	// scale
+	collider.scale = motion.scale;
+
+	// flags
+	collider.flag = 0;
+
+}
+
+void PhysicsSystem::createMeshCollider(Entity entity, GEOMETRY_BUFFER_ID geom_id, RenderSystem* renderer) {
+
+	auto& motion = registry.motions.get(entity);
+	auto& collider = registry.colliders.emplace(entity);
+
+	// world position, used in collision detection. This needs to be updated by physics::step
+	collider.position = motion.position;
+
+	std::vector<vec2> points;
+
+	// grabing vertice from corresponding mesh
+	auto& mesh = renderer->getMesh(geom_id);
+
+	for (int i = 0; i < mesh.vertices.size(); i++) {
+		points.push_back(vec2{ mesh.vertices[i].position.x, mesh.vertices[i].position.y });
+
+	}
+
+	// generating normals
+	vec2 edge;
+	for (int i = 0; i < points.size(); i++) {
+		edge = points[(i + 1) % points.size()] - points[i];
+
+		// We can obtain the normal by swapping <x,y> with <-y, x>. Normalizing vector to ease later calculation.
+		collider.normals.push_back(glm::normalize(vec2(-edge.y, edge.x)));
+
+	}
+
+	// move all points over to collider
+	collider.points = std::move(points);
+
+	// DISABLE rotation FOR NOW SINCE MESH HITBOX DOESNT ROTATE
+
+	//collider.rotation = mat2(cos(motion.angle), -sin(motion.angle), sin(motion.angle), cos(motion.angle));
+	collider.rotation = mat2(cos(0.f), -sin(0.f), sin(0.f), cos(0.f));
+
+	// scale
+	collider.scale = motion.scale;
+
+	// flags
+	collider.flag = 0;
+
+}
+
+void PhysicsSystem::createCustomsizeBoxCollider(Entity entity, vec2 scale) {
+
+	auto& motion = registry.motions.get(entity);
+	auto& collider = registry.colliders.emplace(entity);
+
+	// world position, used in collision detection. This needs to be updated by physics::step
+	collider.position = motion.position;
+
+	// generating points in local coord(center at 0,0)
+	std::vector<glm::vec2> points;
+
+	// HARDCODED TO BOX NOW. Assuming all entity will use a box collider
+	createBoundingBox(points, scale);
+
+	// generating normals
+	vec2 edge;
+	for (int i = 0; i < points.size(); i++) {
+		edge = points[(i + 1) % points.size()] - points[i];
+
+		// We can obtain the normal by swapping <x,y> with <-y, x>. Normalizing vector to ease later calculation.
+		collider.normals.push_back(glm::normalize(vec2(-edge.y, edge.x)));
+	}
+
+	// move all points over to collider
+	collider.points = std::move(points);
+
+	// rotation
+	collider.rotation = mat2(cos(motion.angle), -sin(motion.angle), sin(motion.angle), cos(motion.angle));
+
+	// scale
+	collider.scale = scale;
+
+	// flags
+	collider.flag = 0;
+
+}
+
+#pragma endregion
+
+#pragma region Collision Detection
+
+vec2 invertHelper(vec2 MTV)
+{
+	return MTV *= -1.0f;
+}
+
 // Broad phase collision detection in Axis Aligned Bounding Box (AABB)
-bool AABBCollides(const Collider& collider1, const Collider& collider2) 
+bool AABBCollides(const Collider& collider1, const Collider& collider2)
 {
 	float xPos1 = collider1.position.x;
 	float yPos1 = collider1.position.y;
@@ -108,7 +243,7 @@ std::tuple <bool, float, vec2> SATcollides(const Collider& collider1, const Coll
 	}
 
 
-	
+
 	// for every normal, we project all points from collider onto this axis and find the max and min 
 	// basically we want to find out the interval (min and max point) after projection all point to the normal
 	// if the intervals on the same normal from both collider intercept, then it mean they are colliding
@@ -134,14 +269,14 @@ std::tuple <bool, float, vec2> SATcollides(const Collider& collider1, const Coll
 
 		// initialize min max from the first point
 		min1 = max1 = glm::dot(collider1_worldPoints[0], collider1_worldNormals[i]);
-		
+
 		for (int j = 1; j < c1_numOfPoints; j++) {
 
 			float current = glm::dot(collider1_worldPoints[j], collider1_worldNormals[i]);
 			if (current < min1) {
 				min1 = current;
 			}
-			else if(current > max1) {
+			else if (current > max1) {
 				max1 = current;
 			}
 
@@ -166,7 +301,7 @@ std::tuple <bool, float, vec2> SATcollides(const Collider& collider1, const Coll
 
 		// checking if two interval overlaps
 		if (min1 < max2 && max1 > min2) {
-			
+
 			// compute the two overlap
 			float overlap1 = max2 - min1;
 			float overlap2 = max1 - min2;
@@ -181,11 +316,11 @@ std::tuple <bool, float, vec2> SATcollides(const Collider& collider1, const Coll
 			}
 		}
 		else {
-		// if no interval overlaps, then we found an axis that separates the two collider, hence no collision
+			// if no interval overlaps, then we found an axis that separates the two collider, hence no collision
 			return std::make_tuple(false, 0.f, vec2{ 0.f,0.f });
-		
+
 		}
-	
+
 	}
 
 	// check all normals from collider 2
@@ -296,11 +431,10 @@ void PhysicsSystem::collides(Entity entity1, Entity entity2) {
 
 }
 
-/// <summary>
-/// Initializes the static BVH with N:number of colliders (all terrain colliders). Total number of tree nodes is 2N - 1.
-/// ColliderMapping is used for indirect reference to avoid tempering with actual collider containers.
-/// </summary>
-/// <param name="numberOfColliders">Number of colliders</param>
+#pragma endregion
+
+#pragma region Bounding Volume Hierarchy for static collider
+
 void PhysicsSystem::initStaticBVH(size_t numberOfColliders) {
 	this->numberOfColliders = numberOfColliders;
 	this->bvhTree.clear();
@@ -312,8 +446,7 @@ void PhysicsSystem::initStaticBVH(size_t numberOfColliders) {
 	std::cout << "done building BVH" << std::endl;
 }
 
-// internal functions: update the AABB of the BVH node based on all colliders it holds
-void PhysicsSystem::updateNodeBounds(int nodeIndex) 
+void PhysicsSystem::updateNodeBounds(int nodeIndex)
 {
 	BVHNode& node = bvhTree[nodeIndex];
 
@@ -322,7 +455,7 @@ void PhysicsSystem::updateNodeBounds(int nodeIndex)
 	node.aabbMin = { -1e30f, -1e30f };
 
 	// loop through each collider under the node
-	for (int first = node.leftFirst, i = 0; i < node.primitiveCount; i++) 
+	for (int first = node.leftFirst, i = 0; i < node.primitiveCount; i++)
 	{
 		auto& collider = registry.colliders.components[this->colliderMapping[first + i]];
 
@@ -334,8 +467,7 @@ void PhysicsSystem::updateNodeBounds(int nodeIndex)
 	}
 }
 
-// internal functions: recursively divide nodes during tree construction. 
-void PhysicsSystem::subDivide(int nodeIndex) 
+void PhysicsSystem::subDivide(int nodeIndex)
 {
 	// leafnode: terminate recursion when only one primitive(collider) left in the node
 	BVHNode& node = bvhTree[nodeIndex];
@@ -344,7 +476,7 @@ void PhysicsSystem::subDivide(int nodeIndex)
 	}
 
 	// Midpoint split approach, could be optimize with surface area heuristic approach later on.
-	
+
 	// step1. determine split plane axis and position
 	vec2 bb = node.aabbMax - node.aabbMin;
 	int axis = 0;
@@ -363,27 +495,27 @@ void PhysicsSystem::subDivide(int nodeIndex)
 	// index for last primitive on the node
 	int j = i + node.primitiveCount - 1;
 
-	while (i <= j) 
+	while (i <= j)
 	{
 		// if the collider center is to the left of split axis, it belong to left child
 		if (registry.colliders.components[colliderMapping[i]].position[axis] < splitPos) {
 			i++;
 		}
 		else {
-		// if collider center is to the right, we move the index of such collider to the end and update j to one before it
+			// if collider center is to the right, we move the index of such collider to the end and update j to one before it
 			std::swap(colliderMapping[i], colliderMapping[j--]);
 		}
-		
+
 	}
 	// now index before i are for colliders belong to left child, after (including i) are colliders that belongs to right child
 
-	
+
 	// check if any of the side is empty, dont need to split if thats the case
 	int leftCount = i - node.leftFirst;
 	if (leftCount == 0 || leftCount == node.primitiveCount) {
 		return;
 	}
-	
+
 	//step3. split group of primitives into two halves with the split plane for left/right child
 
 	// since i separates the two group, using i and primitive count splits them easily
@@ -403,21 +535,13 @@ void PhysicsSystem::subDivide(int nodeIndex)
 	//step4. updating AABB for both child nodes.
 	updateNodeBounds(leftChildIndex);
 	updateNodeBounds(rightChildIndex);
-	
+
 	// subdivise by recursing into each of child node
 	subDivide(leftChildIndex);
 	subDivide(rightChildIndex);
 }
 
-
-
-/// <summary>
-/// building a static BVH tree for all terrain colliders in a top down approach.
-/// This must be call after creating terrain colliders and before all other colliders such as items, mobs....
-/// citation for reference1: https://jacco.ompf2.com/2022/04/13/how-to-build-a-bvh-part-1-basics/
-/// reference2: https://box2d.org/files/ErinCatto_DynamicBVH_Full.pdf
-/// </summary>
-void PhysicsSystem::buildBVH() 
+void PhysicsSystem::buildBVH()
 {
 	auto& collider_container = registry.colliders.components;
 
@@ -430,7 +554,7 @@ void PhysicsSystem::buildBVH()
 	// set up root node's child node
 	BVHNode& root = bvhTree[rootNodeIndex];
 	root.leftFirst = 0;
-	
+
 	// adding all colliders under root node
 	root.primitiveCount = numberOfColliders;
 
@@ -441,11 +565,6 @@ void PhysicsSystem::buildBVH()
 	subDivide(rootNodeIndex);
 }
 
-/// <summary>
-// Collision detection for entity against terrain collider using the static BVH. Creates corresponding collision component for the entities
-/// </summary>
-/// <param name="entity"></param>
-/// <param name="nodeIndex">This is always the rootnode index</param>
 void PhysicsSystem::intersectBVH(Entity entity, const int nodeIndex) {
 	BVHNode& node = bvhTree[nodeIndex];
 	auto& collider = registry.colliders.get(entity);
@@ -453,19 +572,19 @@ void PhysicsSystem::intersectBVH(Entity entity, const int nodeIndex) {
 	// if does not collide with bounding box of this node, abort
 	if (!AABBCollides(collider, node.aabbMin, node.aabbMax))
 		return;
-	
+
 	// if node is a leaf node
-	if (node.primitiveCount > 0) 
+	if (node.primitiveCount > 0)
 	{
 		// check target collider against all collider under this node
-		for (int i = 0; i < node.primitiveCount; i++) 
+		for (int i = 0; i < node.primitiveCount; i++)
 		{
-			auto entity_j = registry.colliders.entities[colliderMapping[node.leftFirst + i]];
+			Entity entity_j = registry.colliders.entities[colliderMapping[node.leftFirst + i]];
 
 			// Checking if the entity is itself 
-			if (entity != entity_j) 
+			if (entity != entity_j)
 			{
-				if (AABBCollides(collider, registry.colliders.components[colliderMapping[node.leftFirst + i]])) 
+				if (AABBCollides(collider, registry.colliders.components[colliderMapping[node.leftFirst + i]]))
 				{
 					auto result = SATcollides(collider, registry.colliders.components[colliderMapping[node.leftFirst + i]]);
 					bool isCollide;
@@ -482,9 +601,9 @@ void PhysicsSystem::intersectBVH(Entity entity, const int nodeIndex) {
 						// inverting correction vector for other entites
 						registry.collisions.emplace_with_duplicates(entity_j, entity, overlap, invertHelper(MTV));
 					}
-				
+
 				}
-				
+
 			}
 		}
 	}
@@ -494,6 +613,8 @@ void PhysicsSystem::intersectBVH(Entity entity, const int nodeIndex) {
 		intersectBVH(entity, node.leftFirst + 1);
 	}
 }
+
+#pragma endregion
 
 void PhysicsSystem::step(float elapsed_ms)
 {
@@ -556,154 +677,5 @@ void PhysicsSystem::step(float elapsed_ms)
 			collides(projectile_entity_container[i], mob_entity_container[j]);
 		}
 	}
-}
-
-/// <summary>
-/// create coord of a box given a scale(width/height). Points are in local coord and center is 0,0. 
-/// points are added in clockwise direction starting from top left point
-/// </summary>
-/// <param name="points">destination buffer to store the points</param>
-/// <param name="scale">width and height of the box</param>
-/// <returns>void</returns>
-void createBoundingBox(std::vector<vec2>& points, vec2 scale) {
-
-	// calculate top left x position by center(0) - width/2, similar on y position etc..
-	vec2 b1_topLeft = { (0 - (scale.x / 2.f)), (0 - (scale.y / 2.f)) };
-	vec2 b1_topRight = { (0 + (scale.x / 2.f)), (0 - (scale.y / 2.f)) };
-	vec2 b1_bottomRight = { (0 + (scale.x / 2.f)), (0 + (scale.y / 2.f)) };
-	vec2 b1_bottomLeft = { (0 - (scale.x / 2.f)), (0 + (scale.y / 2.f)) };
-
-	points.push_back(b1_topLeft);
-	points.push_back(b1_topRight);
-	points.push_back(b1_bottomRight);
-	points.push_back(b1_bottomLeft);
-
-}
-
-// reference:: https://gamedev.stackexchange.com/questions/105296/calculation-correct-position-of-object-after-collision-2d
-
-/// <summary>
-/// Create a convex hull collider based on polygon given. 
-//	The shape is hard coded to be box shape with entity's scale for now 
-/// </summary>
-/// <param name="entity">entity to attach this collider</param>
-/// <returns>void</returns>
-void createDefaultCollider(Entity entity) {
-
-	auto& motion = registry.motions.get(entity);
-	auto& collider = registry.colliders.emplace(entity);
-
-	// world position, used in collision detection. This needs to be updated by physics::step
-	collider.position = motion.position;
-
-	// generating points in local coord(center at 0,0)
-	std::vector<glm::vec2> points;
-
-	// HARDCODED TO BOX NOW. Assuming all entity will use a box collider
-	createBoundingBox(points, motion.scale);
-
-	// generating normals
-	vec2 edge;
-	for (int i = 0; i < points.size(); i++) {
-		edge = points[(i + 1) % points.size()] - points[i];
-
-		// We can obtain the normal by swapping <x,y> with <-y, x>. Normalizing vector to ease later calculation.
-		collider.normals.push_back(glm::normalize(vec2(-edge.y, edge.x)));
-	}
-
-	// move all points over to collider
-	collider.points = std::move(points);
-
-	// rotation
-	collider.rotation = mat2(cos(motion.angle), -sin(motion.angle), sin(motion.angle), cos(motion.angle));
-
-	// scale
-	collider.scale = motion.scale;
-
-	// flags
-	collider.flag = 0;
-
-}
-
-void createMeshCollider(Entity entity, GEOMETRY_BUFFER_ID geom_id, RenderSystem* renderer) {
-
-	auto& motion = registry.motions.get(entity);
-	auto& collider = registry.colliders.emplace(entity);
-
-	// world position, used in collision detection. This needs to be updated by physics::step
-	collider.position = motion.position;
-
-	std::vector<vec2> points;
-
-	// grabing vertice from corresponding mesh
-	auto& mesh = renderer->getMesh(geom_id);
-
-	for (int i = 0; i < mesh.vertices.size(); i++) {
-		points.push_back(vec2{ mesh.vertices[i].position.x, mesh.vertices[i].position.y });
-
-	}
-
-	// generating normals
-	vec2 edge;
-	for (int i = 0; i < points.size(); i++) {
-		edge = points[(i + 1) % points.size()] - points[i];
-
-		// We can obtain the normal by swapping <x,y> with <-y, x>. Normalizing vector to ease later calculation.
-		collider.normals.push_back(glm::normalize(vec2(-edge.y, edge.x)));
-
-	}
-
-	// move all points over to collider
-	collider.points = std::move(points);
-
-	// DISABLE rotation FOR NOW SINCE MESH HITBOX DOESNT ROTATE
-
-	//collider.rotation = mat2(cos(motion.angle), -sin(motion.angle), sin(motion.angle), cos(motion.angle));
-	collider.rotation = mat2(cos(0.f), -sin(0.f), sin(0.f), cos(0.f));
-
-	// scale
-	collider.scale = motion.scale;
-
-	// flags
-	collider.flag = 0;
-
-}
-
-// use a given scale instead since changing motion.scale interfer with the texture rendering
-void createProjectileCollider(Entity entity, vec2 scale) {
-
-	auto& motion = registry.motions.get(entity);
-	auto& collider = registry.colliders.emplace(entity);
-
-	// world position, used in collision detection. This needs to be updated by physics::step
-	collider.position = motion.position;
-
-	// generating points in local coord(center at 0,0)
-	std::vector<glm::vec2> points;
-
-	// HARDCODED TO BOX NOW. Assuming all entity will use a box collider
-	createBoundingBox(points, scale);
-
-	// generating normals
-	vec2 edge;
-	for (int i = 0; i < points.size(); i++) {
-		edge = points[(i + 1) % points.size()] - points[i];
-
-		// We can obtain the normal by swapping <x,y> with <-y, x>. Normalizing vector to ease later calculation.
-		collider.normals.push_back(glm::normalize(vec2(-edge.y, edge.x)));
-	}
-
-	// move all points over to collider
-	collider.points = std::move(points);
-
-	// rotation
-	collider.rotation = mat2(cos(motion.angle), -sin(motion.angle), sin(motion.angle), cos(motion.angle));
-
-	// scale
-	collider.scale = scale;
-
-	// flags
-	collider.flag = 0;
-
 }
 

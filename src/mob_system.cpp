@@ -111,7 +111,7 @@ Entity MobSystem::create_mob(vec2 mob_position, MOB_TYPE mob_type, int current_h
 	mob_info.type = mob_type;
 
 	// Initialize the collider
-	createMeshCollider(entity, GEOMETRY_BUFFER_ID::MOB001_MESH, renderer);
+	physics->createMeshCollider(entity, GEOMETRY_BUFFER_ID::MOB001_MESH, renderer);
 
 	TEXTURE_ASSET_ID texture = mob_textures_map.at(mob_type);
 	switch (mob_type) {

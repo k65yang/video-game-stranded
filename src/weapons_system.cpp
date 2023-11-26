@@ -90,13 +90,13 @@ void WeaponsSystem::fireShuriken(float player_x, float player_y, float angle) {
 
 	switch(weapon_level[active_weapon_type]) {
 		case 0:
-			createProjectile(renderer, {player_x, player_y}, angle);
+			createProjectile(renderer, physics,  {player_x, player_y}, angle);
 			weapon_component->can_fire = false;
 			weapon_component->elapsed_last_shot_time_ms = 0.f;
 			break;
 		default:
-			createProjectile(renderer, { player_x, player_y }, angle);
-			createProjectile(renderer, { player_x + offset * cos(angle), player_y + offset * sin(angle) }, angle);
+			createProjectile(renderer, physics, { player_x, player_y }, angle);
+			createProjectile(renderer, physics, { player_x + offset * cos(angle), player_y + offset * sin(angle) }, angle);
 			weapon_component->can_fire = false;
 			weapon_component->elapsed_last_shot_time_ms = 0.f;
 				
@@ -105,7 +105,7 @@ void WeaponsSystem::fireShuriken(float player_x, float player_y, float angle) {
 }
 
 void WeaponsSystem::fireCrossbow(float player_x, float player_y, float angle) {
-	createProjectile(renderer, {player_x, player_y}, angle);
+	createProjectile(renderer, physics, {player_x, player_y}, angle);
 	weapon_component->can_fire = false;
 	weapon_component->elapsed_last_shot_time_ms = 0.f;
 }
@@ -125,7 +125,7 @@ void WeaponsSystem::fireShotgun(float player_x, float player_y, float angle) {
 
 	for (int i=0; i < num_bullets; i++){
 		float bullet_angle = angle -(max_spread_angle/2) + (max_spread_angle/num_bullets)*i;
-		createProjectile(renderer, {player_x, player_y}, bullet_angle);
+		createProjectile(renderer, physics, {player_x, player_y}, bullet_angle);
 	}
 
 	weapon_component->can_fire = false;
@@ -145,7 +145,7 @@ void WeaponsSystem::fireMachineGun(float player_x, float player_y, float angle) 
 	
 	applyProjectileInaccuracy(angle, inaccuracy_percent);
 	
-	createProjectile(renderer, {player_x, player_y}, angle);
+	createProjectile(renderer, physics, {player_x, player_y}, angle);
 }
 
 void WeaponsSystem::applyWeaponEffects(Entity proj, Entity mob) {
@@ -172,7 +172,7 @@ void WeaponsSystem::applySlow(Entity mob, float duration_ms, float slow_ratio) {
 	mobSlowEffect.slow_ratio = slow_ratio;
 }
 
-Entity WeaponsSystem::createProjectile(RenderSystem* renderer, vec2 pos, float angle) {
+Entity WeaponsSystem::createProjectile(RenderSystem* renderer, PhysicsSystem* physics, vec2 pos, float angle) {
 	// Reserve an entity
 	auto entity = Entity();
 
@@ -199,8 +199,7 @@ Entity WeaponsSystem::createProjectile(RenderSystem* renderer, vec2 pos, float a
 	
 	// Set projectile to use a hard coded smaller box collider instead of scale from motion. 
 	// Will change when projectile texture are filalized.
-
-	createProjectileCollider(entity, vec2{0.2f,0.2f});
+	physics->createCustomsizeBoxCollider(entity, vec2{0.2f,0.2f});
 
 	// Add this projectile to the projectiles registry
 	auto& projectile = registry.projectiles.emplace(entity);

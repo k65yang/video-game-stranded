@@ -10,6 +10,7 @@
 #include "tiny_ecs.hpp"
 #include "tiny_ecs_registry.hpp"
 #include "world_init.hpp"
+#include "physics_system.hpp"
 
 // A mob system class that handles everything mob related
 class MobSystem
@@ -23,9 +24,10 @@ class MobSystem
         /// @brief Initializes the render and terrain systems that the mob system uses
         /// @param renderer_arg Pointer to the render system
         /// @param terrain_arg Pointer to the terrain system
-        void init(RenderSystem* renderer_arg, TerrainSystem* terrain_arg) {
+        void init(RenderSystem* renderer_arg, TerrainSystem* terrain_arg, PhysicsSystem* physics_arg) {
             this->renderer = renderer_arg;
             this->terrain = terrain_arg;
+            this->physics = physics_arg;
             this->rng = std::default_random_engine(std::random_device()());
         }
 
@@ -53,6 +55,9 @@ class MobSystem
 
         // Pointer to terrain system
         TerrainSystem* terrain;
+
+        // Pointer to physics system
+        PhysicsSystem* physics;
 
         // C++ random number generator
 	    std::default_random_engine rng;
