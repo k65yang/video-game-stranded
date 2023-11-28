@@ -17,11 +17,21 @@
 #include "mob_system.hpp"
 #include "common.hpp"
 
+#include <ft2build.h>
+#include FT_FREETYPE_H
+
+FT_Library library;
+
 using Clock = std::chrono::high_resolution_clock;
 
 // Entry point
 int main()
 {
+	bool error = FT_Init_FreeType(&library);
+	if (error) {
+		printf("...an error occurred during library initialization...");
+	}
+
 	// Global systems
 	WorldSystem world_system;
 	RenderSystem render_system;
