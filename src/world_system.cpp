@@ -7,7 +7,7 @@
 #include <sstream>
 #include <iostream>
 #include <algorithm>
-#include "physics_system.hpp"
+
 
 // Game configuration
 const float IFRAMES = 1500;
@@ -543,7 +543,7 @@ void WorldSystem::restart_game() {
 		TerrainCell& cell = registry.terrainCells.components[i];
 
 		if (cell.flag & TERRAIN_FLAGS::COLLIDABLE)
-			createDefaultCollider(e);
+			physics_system->createDefaultCollider(e);
 	}
 
 	// THIS MUST BE CALL AFTER TERRAIN COLLIDER CREATION AND BEFORE ALL OTHER ENTITY CREATION
@@ -557,7 +557,7 @@ void WorldSystem::restart_game() {
 	spaceship_home = createSpaceshipHome(renderer, { 0, 0 }, false, 500, 100);
 
 	// Create a new salmon
-	player_salmon = createPlayer(renderer, { 0, 0 });
+	player_salmon = createPlayer(renderer, physics_system, { 0, 0 });
 	registry.colors.insert(player_salmon, { 1, 0.8f, 0.8f , 1.f});
 
 	// Create the main camera
@@ -608,8 +608,8 @@ void WorldSystem::restart_game() {
 	// TODO: uncomment these after messing w/ map editor
 	spawn_items();
 	mob_system->spawn_mobs();
-	createItem(renderer, {5.f, 3.f}, ITEM_TYPE::POWERUP_SPEED);
-	createItem(renderer, {5.f, 5.f}, ITEM_TYPE::POWERUP_HEALTH);
+	createItem(renderer, physics_system, {5.f, 3.f}, ITEM_TYPE::POWERUP_SPEED);
+	createItem(renderer, physics_system, {5.f, 5.f}, ITEM_TYPE::POWERUP_HEALTH);
 
 	// for movement velocity
 	for (int i = 0; i < KEYS; i++)
@@ -1409,7 +1409,7 @@ void WorldSystem::map_editor_routine() {
 		// Update collisions
 		if (to_collidable != from_collidable) {
 			if (to_collidable) {
-				createDefaultCollider(tile);
+				physics_system->createDefaultCollider(tile);
 			}
 			else {
 				registry.colliders.remove(tile);
@@ -1443,24 +1443,24 @@ void WorldSystem::spawn_items() {
 
 		// spawn the weapon upgrades 
 		for (int i = 0; i < zone_weapon_upgrades[zone]; i++) {
-			createItem(renderer, terrain->get_random_terrain_location(zone), ITEM_TYPE::WEAPON_UPGRADE);
+			createItem(renderer, physics_system, terrain->get_random_terrain_location(zone), ITEM_TYPE::WEAPON_UPGRADE);
 		}
 
 		// spawn food
 		for (int i = 0; i < zone_food[zone]; i++) {
-			createItem(renderer, terrain->get_random_terrain_location(zone), ITEM_TYPE::FOOD);
+			createItem(renderer, physics_system, terrain->get_random_terrain_location(zone), ITEM_TYPE::FOOD);
 		}
 	}
 
 	// TESTING: Force one spawn of each weapon in zone 1
-	 createItem(renderer, terrain->get_random_terrain_location(ZONE_1), ITEM_TYPE::WEAPON_SHURIKEN);
-	 createItem(renderer, terrain->get_random_terrain_location(ZONE_1), ITEM_TYPE::WEAPON_CROSSBOW);
-	 createItem(renderer, terrain->get_random_terrain_location(ZONE_1), ITEM_TYPE::WEAPON_SHOTGUN);
-	 createItem(renderer, terrain->get_random_terrain_location(ZONE_1), ITEM_TYPE::WEAPON_MACHINEGUN);
+	 createItem(renderer, physics_system, terrain->get_random_terrain_location(ZONE_1), ITEM_TYPE::WEAPON_SHURIKEN);
+	 createItem(renderer, physics_system, terrain->get_random_terrain_location(ZONE_1), ITEM_TYPE::WEAPON_CROSSBOW);
+	 createItem(renderer, physics_system, terrain->get_random_terrain_location(ZONE_1), ITEM_TYPE::WEAPON_SHOTGUN);
+	 createItem(renderer, physics_system, terrain->get_random_terrain_location(ZONE_1), ITEM_TYPE::WEAPON_MACHINEGUN);
 
 	 // TESTING: Force spawn quest items in zone 2
-	 createItem(renderer, terrain->get_random_terrain_location(ZONE_2), ITEM_TYPE::QUEST_ONE);
-	 createItem(renderer, terrain->get_random_terrain_location(ZONE_2), ITEM_TYPE::QUEST_TWO);
+	 createItem(renderer, physics_system, terrain->get_random_terrain_location(ZONE_2), ITEM_TYPE::QUEST_ONE);
+	 createItem(renderer, physics_system, terrain->get_random_terrain_location(ZONE_2), ITEM_TYPE::QUEST_TWO);
 }
 
 // Adapted from restart_game, BASICALLY alot of optional arguments to change small things :D
@@ -1504,7 +1504,7 @@ void WorldSystem::load_game(json j) {
 		TerrainCell& cell = registry.terrainCells.components[i];
 
 		if (cell.flag & TERRAIN_FLAGS::COLLIDABLE)
-			createDefaultCollider(e);
+			physics_system->createDefaultCollider(e);
 	}
 
 	// THIS MUST BE CALL AFTER TERRAIN COLLIDER CREATION AND BEFORE ALL OTHER ENTITY CREATION
@@ -1515,7 +1515,7 @@ void WorldSystem::load_game(json j) {
 	spaceship = createSpaceship(renderer, { 0, -2.5 });
 
 	// Create a new salmon
-	player_salmon = createPlayer(renderer, player_location);
+	player_salmon = createPlayer(renderer, physics_system, player_location);
 	Player& player = registry.players.get(player_salmon);
 	player.health = j["player"]["health"];
 	player.food = j["player"]["food"];
@@ -1652,7 +1652,7 @@ void WorldSystem::load_game(json j) {
 
 void WorldSystem::load_spawned_items_mobs(json& j) {
 	for (auto& item : j["items"]) {
-		createItem(renderer, { item[1]["position_x"], item[1]["position_y"] }, item[0]["data"]);
+		createItem(renderer, physics_system, { item[1]["position_x"], item[1]["position_y"] }, item[0]["data"]);
 	}
 
 	for (auto& mob : j["mobs"]) {

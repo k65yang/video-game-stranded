@@ -6,7 +6,7 @@
 #include "components.hpp"
 #include "tiny_ecs_registry.hpp"
 #include "render_system.hpp"
-#include "world_init.hpp"
+#include "physics_system.hpp"
 
 //  A weapons system class that handles everything weapons related
 class WeaponsSystem
@@ -30,8 +30,9 @@ class WeaponsSystem
 
         /// @brief  Initializes the render system that the weapon system needs to draw projectiles
         /// @param renderer_arg Pointer to the render system
-        void init(RenderSystem* renderer_arg) {
+        void init(RenderSystem* renderer_arg, PhysicsSystem* physics_arg) {
             this->renderer = renderer_arg;
+            this->physics = physics_arg;
         }
 
         /// @brief Function to update weapon systems in world time.
@@ -70,6 +71,9 @@ class WeaponsSystem
 
         // Pointer to rendering system for projectiles
         RenderSystem* renderer;
+
+        // Pointer to physics system for projectiles
+        PhysicsSystem* physics;
 
         // Hardcoded weapons data
         // Fire rates for each weapon
@@ -149,7 +153,7 @@ class WeaponsSystem
         /// @param pos Position to draw the projectile
         /// @param angle Angle of the drawn projectile
         /// @return The projectile entity
-        Entity createProjectile(RenderSystem* renderer, vec2 pos, float angle);
+        Entity WeaponsSystem::createProjectile(RenderSystem* renderer, PhysicsSystem* physics, vec2 pos, float angle);
 
         /// @brief Checks if the given ITEM_TYPE is a weapon
         /// @param test the ITEM_TYPE to be tested

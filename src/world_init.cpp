@@ -4,8 +4,9 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include "render_system.hpp"
+#include "physics_system.hpp"
 
-Entity createPlayer(RenderSystem* renderer, vec2 pos)
+Entity createPlayer(RenderSystem* renderer, PhysicsSystem* physics, vec2 pos)
 	{
 	auto entity = Entity();
 
@@ -22,7 +23,7 @@ Entity createPlayer(RenderSystem* renderer, vec2 pos)
 
 	// Initialize the collider
 	
-	createMeshCollider(entity, GEOMETRY_BUFFER_ID::PLAYER_MESH, renderer);
+	physics->createMeshCollider(entity, GEOMETRY_BUFFER_ID::PLAYER_MESH, renderer);
 
 	// Add the player to the players registry
 	Player& player = registry.players.emplace(entity);
@@ -37,7 +38,7 @@ Entity createPlayer(RenderSystem* renderer, vec2 pos)
 	return entity;
 }
 
-Entity createItem(RenderSystem* renderer, vec2 position, ITEM_TYPE type)
+Entity createItem(RenderSystem* renderer, PhysicsSystem* physics, vec2 position, ITEM_TYPE type)
 {
 	// Reserve en entity
 	auto entity = Entity();
@@ -57,7 +58,7 @@ Entity createItem(RenderSystem* renderer, vec2 position, ITEM_TYPE type)
 	item.data = type;
 
 	// Initialize the collider
-	createDefaultCollider(entity);
+	physics->createDefaultCollider(entity);
 
 	TEXTURE_ASSET_ID texture = TEXTURE_ASSET_ID::PLAYER;
 	switch (type) {
@@ -117,7 +118,7 @@ Entity createSpaceship(RenderSystem* renderer, vec2 position) {
 	motion.velocity = { 0.f, 0.f };
 	motion.position = position;
 
-	createDefaultCollider(entity);
+	//physics->createDefaultCollider(entity);
 
 	// Setting initial values, scale is negative to make it face the opposite way
 	motion.scale = vec2({ 3, 4 });
@@ -145,7 +146,7 @@ Entity createSpaceshipHome(RenderSystem* renderer, vec2 position, bool is_inside
 	motion.velocity = { 0.f, 0.f };
 	motion.position = position;
 
-	createDefaultCollider(entity);
+	//physics_system->createDefaultCollider(entity);
 
 	// Add spaceship home to spaceship home registry
 	auto& spaceshipHome = registry.spaceshipHomes.emplace(entity);
@@ -202,7 +203,7 @@ Entity createBar(RenderSystem* renderer, vec2 position, int amount, BAR_TYPE typ
 	motion.scale = vec2({ 5.5, 0.7 });
 
 	// Initialize the collider
-	createDefaultCollider(entity);
+	//createDefaultCollider(entity);
 
 	TEXTURE_ASSET_ID texture = TEXTURE_ASSET_ID::PLAYER;
 	switch (type) {
@@ -253,7 +254,7 @@ Entity createFrame(RenderSystem* renderer, vec2 position, FRAME_TYPE type) {
 	motion.scale = vec2({ 7, 1 });
 
 	// Initialize the collider
-	createDefaultCollider(entity);
+	//physics_system->createDefaultCollider(entity);
 
 	TEXTURE_ASSET_ID texture = TEXTURE_ASSET_ID::PLAYER;
 	switch (type) {
@@ -296,7 +297,7 @@ Entity createStorage(RenderSystem* renderer, vec2 position, ITEM_TYPE type) {
 	motion.scale = vec2({ 7, 5 });
 
 	// Initialize the collider
-	createDefaultCollider(entity);
+	//physics_system->createDefaultCollider(entity);
 
 	TEXTURE_ASSET_ID texture = TEXTURE_ASSET_ID::PLAYER;
 	switch (type) {
@@ -438,156 +439,13 @@ Entity createCamera(vec2 pos)
 
 
 
-/// <summary>
-/// create coord of a box given a scale(width/height). Points are in local coord and center is 0,0. 
-/// points are added in clockwise direction starting from top left point
-/// </summary>
-/// <param name="points">destination buffer to store the points</param>
-/// <param name="scale">width and height of the box</param>
-/// <returns>void</returns>
-void createBoundingBox(std::vector<vec2>& points, vec2 scale) {
-
-	// calculate top left x position by center(0) - width/2, similar on y position etc..
-	vec2 b1_topLeft = {(0 - (scale.x / 2.f)), (0 - (scale.y / 2.f))};
-	vec2 b1_topRight = { (0 + (scale.x / 2.f)), (0 - (scale.y / 2.f)) };
-	vec2 b1_bottomRight = {(0 + (scale.x / 2.f)), (0 + (scale.y / 2.f))};
-	vec2 b1_bottomLeft = {(0 - (scale.x / 2.f)), (0 + (scale.y / 2.f)) };
-
-	points.push_back(b1_topLeft);
-	points.push_back(b1_topRight);
-	points.push_back(b1_bottomRight);
-	points.push_back(b1_bottomLeft);
-
-}
 
 
 
-// NIT: this might be better suited in the physics system. Weapons system imports world_init.hpp to create colliders for projectiles.
-// reference:: https://gamedev.stackexchange.com/questions/105296/calculation-correct-position-of-object-after-collision-2d
-
-/// <summary>
-/// Create a convex hull collider based on polygon given. 
-//	The shape is hard coded to be box shape with entity's scale for now 
-/// </summary>
-/// <param name="entity">entity to attach this collider</param>
-/// <returns>void</returns>
-void createDefaultCollider(Entity entity) {
-
-	auto& motion = registry.motions.get(entity);
-	auto& collider = registry.colliders.emplace(entity);
-
-	// world position, used in collision detection. This needs to be updated by physics::step
-	collider.position = motion.position;
-
-	// generating points in local coord(center at 0,0)
-	std::vector<glm::vec2> points;
-
-	// HARDCODED TO BOX NOW. Assuming all entity will use a box collider
-	createBoundingBox(points, motion.scale);
-
-	// generating normals
-	vec2 edge;
-	for (int i = 0; i < points.size(); i++) {
-		edge = points[(i + 1) % points.size()] - points[i];
-
-		// We can obtain the normal by swapping <x,y> with <-y, x>. Normalizing vector to ease later calculation.
-		collider.normals.push_back(glm::normalize(vec2(-edge.y, edge.x)));
-	}
-
-	// move all points over to collider
-	collider.points = std::move(points);
-	
-	// rotation
-	collider.rotation = mat2(cos(motion.angle), -sin(motion.angle), sin(motion.angle), cos(motion.angle));
-
-	// scale
-	collider.scale = motion.scale;
-
-	// flags
-	collider.flag = 0;
-
-}
 
 
-void createMeshCollider(Entity entity, GEOMETRY_BUFFER_ID geom_id, RenderSystem* renderer) {
 
-	auto& motion = registry.motions.get(entity);
-	auto& collider = registry.colliders.emplace(entity);
 
-	// world position, used in collision detection. This needs to be updated by physics::step
-	collider.position = motion.position;
 
-	std::vector<vec2> points;
 
-	// grabing vertice from corresponding mesh
-	auto& mesh = renderer->getMesh(geom_id);
-
-	for (int i = 0; i < mesh.vertices.size(); i++) {
-		points.push_back(vec2{ mesh.vertices[i].position.x, mesh.vertices[i].position.y });
-	
-	}
-
-	// generating normals
-	vec2 edge;
-	for (int i = 0; i < points.size(); i++) {
-		edge = points[(i + 1) % points.size()] - points[i];
-
-		// We can obtain the normal by swapping <x,y> with <-y, x>. Normalizing vector to ease later calculation.
-		collider.normals.push_back(glm::normalize(vec2(-edge.y, edge.x)));
-
-	}
-
-	// move all points over to collider
-	collider.points = std::move(points);
-
-	// DISABLE rotation FOR NOW SINCE MESH HITBOX DOESNT ROTATE
-	
-	//collider.rotation = mat2(cos(motion.angle), -sin(motion.angle), sin(motion.angle), cos(motion.angle));
-	collider.rotation = mat2(cos(0.f), -sin(0.f), sin(0.f), cos(0.f));
-
-	// scale
-	collider.scale = motion.scale;
-
-	// flags
-	collider.flag = 0;
-
-}
-
-// use a given scale instead since changing motion.scale interfer with the texture rendering
-void createProjectileCollider(Entity entity, vec2 scale) {
-
-	auto& motion = registry.motions.get(entity);
-	auto& collider = registry.colliders.emplace(entity);
-
-	// world position, used in collision detection. This needs to be updated by physics::step
-	collider.position = motion.position;
-
-	// generating points in local coord(center at 0,0)
-	std::vector<glm::vec2> points;
-
-	// HARDCODED TO BOX NOW. Assuming all entity will use a box collider
-	createBoundingBox(points, scale);
-
-	// generating normals
-	vec2 edge;
-	for (int i = 0; i < points.size(); i++) {
-		edge = points[(i + 1) % points.size()] - points[i];
-
-		// We can obtain the normal by swapping <x,y> with <-y, x>. Normalizing vector to ease later calculation.
-		collider.normals.push_back(glm::normalize(vec2(-edge.y, edge.x)));
-	}
-
-	// move all points over to collider
-	collider.points = std::move(points);
-
-	// rotation
-	collider.rotation = mat2(cos(motion.angle), -sin(motion.angle), sin(motion.angle), cos(motion.angle));
-
-	// scale
-	collider.scale = scale;
-
-	// flags
-	collider.flag = 0;
-
-}
 
