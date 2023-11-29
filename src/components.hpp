@@ -397,7 +397,8 @@ enum class EFFECT_ASSET_ID {
 	TEXTURED = SALMON + 1,
 	FOG = TEXTURED + 1,
 	TERRAIN = FOG + 1,
-	EFFECT_COUNT = TERRAIN + 1
+	TEXT = TERRAIN + 1,
+	EFFECT_COUNT = TEXT + 1
 };
 const int effect_count = (int)EFFECT_ASSET_ID::EFFECT_COUNT;
 

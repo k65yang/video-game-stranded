@@ -190,7 +190,8 @@ private:
 		shader_path("salmon"),
 		shader_path("textured"),
 		shader_path("fog"),
-		shader_path("terrain"),};
+		shader_path("terrain"),
+		shader_path("text")};
 
 	std::array<GLuint, geometry_count> vertex_buffers;
 	std::array<GLuint, geometry_count> index_buffers;

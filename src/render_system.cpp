@@ -379,6 +379,9 @@ void RenderSystem::draw()
 	// Generate projection matrix. This maps camera-relative coords to pixel/window coordinates.
 	mat3 projection_2D = createProjectionMatrix();
 
+	mat4 projection_t = ortho(0.0f, 800.0f, 0.0f, 600.0f);
+
+
 	std::vector<Entity> layer_1_entities;
 	std::vector<Entity> layer_2_entities;
 	std::vector<Entity> layer_3_entities;
