@@ -133,40 +133,6 @@ Entity createSpaceship(RenderSystem* renderer, vec2 position) {
 	return entity;
 }
 
-Entity createSpaceshipHome(RenderSystem* renderer, vec2 position, bool is_inside, int food_storage, int ammo_storage) {
-	auto entity = Entity();
-
-	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
-	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
-	registry.meshPtrs.emplace(entity, &mesh);
-
-	// Initialize the motion
-	auto& motion = registry.motions.emplace(entity);
-	motion.angle = 0.f;
-	motion.velocity = { 0.f, 0.f };
-	motion.position = position;
-
-	//physics_system->createDefaultCollider(entity);
-
-	// Add spaceship home to spaceship home registry
-	auto& spaceshipHome = registry.spaceshipHomes.emplace(entity);
-	spaceshipHome.is_inside = is_inside;
-	spaceshipHome.food_storage = food_storage;
-	spaceshipHome.ammo_storage = ammo_storage;
-	
-	// Setting initial values, scale is negative to make it face the opposite way
-	motion.scale = vec2({ target_resolution.x / tile_size_px, target_resolution.y / tile_size_px });
-
-	registry.renderRequests.insert(
-		entity,
-		{ TEXTURE_ASSET_ID::SPACEHOME,
-		 EFFECT_ASSET_ID::TEXTURED,
-		 GEOMETRY_BUFFER_ID::SPRITE,
-			RENDER_LAYER_ID::LAYER_4 });
-
-	return entity;
-}
-
 Entity createLine(vec2 position, vec2 scale)
 {
 	Entity entity = Entity();
@@ -282,44 +248,6 @@ Entity createFrame(RenderSystem* renderer, vec2 position, FRAME_TYPE type) {
 
 	return entity;
 	}
-
-Entity createStorage(RenderSystem* renderer, vec2 position, ITEM_TYPE type) {
-	auto entity = Entity();
-
-	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
-	registry.meshPtrs.emplace(entity, &mesh);
-
-	// Initialize the position, scale, and physics components
-	auto& motion = registry.motions.emplace(entity);
-	motion.angle = 0.f;
-	motion.velocity = { 0.f, 0.f };
-	motion.position = position;
-	motion.scale = vec2({ 7, 5 });
-
-	// Initialize the collider
-	//physics_system->createDefaultCollider(entity);
-
-	TEXTURE_ASSET_ID texture = TEXTURE_ASSET_ID::PLAYER;
-	switch (type) {
-			case ITEM_TYPE::AMMO:
-				texture = TEXTURE_ASSET_ID::AMMO;
-				motion.scale = vec2({ 8, 6 });
-				break;
-			case ITEM_TYPE::TURKEY:
-				texture = TEXTURE_ASSET_ID::TURKEY;
-				break;
-		}
-
-	registry.renderRequests.insert(
-		entity,
-		{ texture,
-			EFFECT_ASSET_ID::TEXTURED,
-			GEOMETRY_BUFFER_ID::SPRITE,
-			RENDER_LAYER_ID::LAYER_4 });
-
-	return entity;
-	}
-
 
 Entity createHelp(RenderSystem* renderer, vec2 position, TEXTURE_ASSET_ID texture) {
 	auto entity = Entity();

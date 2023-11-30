@@ -35,9 +35,9 @@ class SpaceshipHomeSystem
 
         /// @brief Creates a spaceship home item
         /// @param position Position of the item
-        /// @param type The type of item to create
+        /// @param texture The texture for the item to create
         /// @return The created entity
-        Entity createSpaceshipHomeItem(vec2 position, ITEM_TYPE type);
+        Entity createSpaceshipHomeItem(vec2 position, TEXTURE_ASSET_ID texture);
 
         /// @brief Executes various actions when player enters spaceship
         void enterSpaceship();

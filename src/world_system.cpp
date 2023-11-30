@@ -107,13 +107,22 @@ GLFWwindow* WorldSystem::create_window() {
 	return window;
 }
 
-void WorldSystem::init(RenderSystem* renderer_arg, TerrainSystem* terrain_arg, WeaponsSystem* weapons_system_arg, PhysicsSystem* physics_system_arg, MobSystem* mob_system_arg, AudioSystem* audio_system_arg) {
+void WorldSystem::init(
+	RenderSystem* renderer_arg, 
+	TerrainSystem* terrain_arg, 
+	WeaponsSystem* weapons_system_arg, 
+	PhysicsSystem* physics_system_arg, 
+	MobSystem* mob_system_arg, 
+	AudioSystem* audio_system_arg,
+	SpaceshipHomeSystem* spaceship_home_system_arg
+) {
 	this->renderer = renderer_arg;
 	this->terrain = terrain_arg;
 	this->weapons_system = weapons_system_arg;
 	this->mob_system = mob_system_arg;
 	this->physics_system = physics_system_arg;
 	this->audio_system = audio_system_arg;
+	this->spaceship_home_system = spaceship_home_system_arg;
 
 	// Set all states to default
 	restart_game();
@@ -554,7 +563,7 @@ void WorldSystem::restart_game() {
 	spaceship = createSpaceship(renderer, { 0,-2.5 });
 
 	// Create Spaceship home
-	spaceship_home = createSpaceshipHome(renderer, { 0, 0 }, false, 500, 100);
+	spaceship_home = spaceship_home_system->createSpaceshipHome({0, 0}, false, 500, 100);
 
 	// Create a new salmon
 	player_salmon = createPlayer(renderer, physics_system, { 0, 0 });
@@ -583,8 +592,8 @@ void WorldSystem::restart_game() {
 	as_frame = createFrame(renderer, { 0,0 }, FRAME_TYPE::BAR_FRAME);
 
 	// Creating spaceship home items 
-	turkey = createStorage(renderer, { -5.5f, 0.f }, ITEM_TYPE::TURKEY);
-	ammo = createStorage(renderer, { 1.f, 0.5f }, ITEM_TYPE::AMMO);
+	turkey = spaceship_home_system->createSpaceshipHomeItem({ -5.5f, 0.f }, TEXTURE_ASSET_ID::SPACESHIP_HOME_FOOD);
+	ammo = spaceship_home_system->createSpaceshipHomeItem({1.f, 0.5f }, TEXTURE_ASSET_ID::SPACESHIP_HOME_AMMO);
 
 	// Reset the weapon indicator
 	user_has_first_weapon = false;
@@ -1529,7 +1538,7 @@ void WorldSystem::load_game(json j) {
 	bool sh_is_inside = j["spaceshipHome"]["is_inside"];
 	int sh_food_storage = j["spaceshipHome"]["food_storage"];
 	int sh_ammo_storage = j["spaceshipHome"]["ammo_storage"];
-	spaceship_home = createSpaceshipHome(renderer, camera_motion.position, sh_is_inside, sh_food_storage, sh_ammo_storage);
+	spaceship_home = spaceship_home_system->createSpaceshipHome(camera_motion.position, sh_is_inside, sh_food_storage, sh_ammo_storage);
 
 	// Create player health bar
 	health_bar = createBar(renderer, { -7.f + camera_motion.position.x, 7.f + camera_motion.position.y }, PLAYER_MAX_HEALTH, BAR_TYPE::HEALTH_BAR);
@@ -1550,8 +1559,8 @@ void WorldSystem::load_game(json j) {
 	as_frame = createFrame(renderer, { 4.51f + camera_motion.position.x,  0.5f + camera_motion.position.y }, FRAME_TYPE::BAR_FRAME);
 
 	// Creating spaceship home items 
-	turkey = createStorage(renderer, { -5.5f + camera_motion.position.x, 0.f + camera_motion.position.y }, ITEM_TYPE::TURKEY);
-	ammo = createStorage(renderer, { 1.f + camera_motion.position.x, 0.5f + camera_motion.position.y }, ITEM_TYPE::AMMO);
+	turkey = spaceship_home_system->createSpaceshipHomeItem({ -5.5f + camera_motion.position.x, 0.f + camera_motion.position.y }, TEXTURE_ASSET_ID::SPACESHIP_HOME_FOOD);
+	ammo = spaceship_home_system->createSpaceshipHomeItem({ 1.f + camera_motion.position.x, 0.5f + camera_motion.position.y }, TEXTURE_ASSET_ID::SPACESHIP_HOME_AMMO);
 
 	// Tool tips and help bar
 	tooltips_on = false;
