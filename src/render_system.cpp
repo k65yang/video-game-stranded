@@ -4,8 +4,6 @@
 #include <iostream>
 #include "tiny_ecs_registry.hpp"
 
-
-
 void RenderSystem::drawTexturedMesh(Entity entity,
 									const mat3& view_matrix,
 									const mat3& projection)
@@ -379,9 +377,6 @@ void RenderSystem::draw()
 	// Generate projection matrix. This maps camera-relative coords to pixel/window coordinates.
 	mat3 projection_2D = createProjectionMatrix();
 
-	mat4 projection_t = ortho(0.0f, 800.0f, 0.0f, 600.0f);
-
-
 	std::vector<Entity> layer_1_entities;
 	std::vector<Entity> layer_2_entities;
 	std::vector<Entity> layer_3_entities;
@@ -541,3 +536,51 @@ void RenderSystem::empty_terrain_buffer()
 	glGenBuffers(1, &index_buffers[(GLuint)GEOMETRY_BUFFER_ID::TERRAIN]);
 }
 
+void RenderSystem::renderText(std::string text, float x, float y, float scale, glm::vec3 color) {
+	mat4 projection = ortho(0.0f, 800.0f, 0.0f, 600.0f);
+
+	// activate corresponding render state	
+	const GLuint program = effects[(GLuint)EFFECT_ASSET_ID::TEXT];
+	glUseProgram(program);
+	gl_has_errors();
+    glUniform3f(glGetUniformLocation(program, "textColor"), color.x, color.y, color.z);
+	GLuint projection_loc = glGetUniformLocation(program, "projection");
+	glUniformMatrix4fv(projection_loc, 1, GL_FALSE, (float *)&projection);
+    glActiveTexture(GL_TEXTURE0);
+    glBindVertexArray(VAO);
+
+    // iterate through all characters
+    std::string::const_iterator c;
+    for (c = text.begin(); c != text.end(); c++)
+    {
+        Character ch = characters[*c];
+
+        float xpos = x + ch.bearing.x * scale;
+        float ypos = y - (ch.size.y - ch.bearing.y) * scale;
+
+        float w = ch.size.x * scale;
+        float h = ch.size.y * scale;
+        // update VBO for each character
+        float vertices[6][4] = {
+            { xpos,     ypos + h,   0.0f, 0.0f },            
+            { xpos,     ypos,       0.0f, 1.0f },
+            { xpos + w, ypos,       1.0f, 1.0f },
+
+            { xpos,     ypos + h,   0.0f, 0.0f },
+            { xpos + w, ypos,       1.0f, 1.0f },
+            { xpos + w, ypos + h,   1.0f, 0.0f }           
+        };
+        // render glyph texture over quad
+        glBindTexture(GL_TEXTURE_2D, ch.textureID);
+        // update content of VBO memory
+        glBindBuffer(GL_ARRAY_BUFFER, VBO);
+        glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertices), vertices); 
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+        // render quad
+        glDrawArrays(GL_TRIANGLES, 0, 6);
+        // now advance cursors for next glyph (note that advance is number of 1/64 pixels)
+        x += (ch.advance >> 6) * scale; // bitshift by 6 to get value in pixels (2^6 = 64)
+    }
+    glBindVertexArray(0);
+    glBindTexture(GL_TEXTURE_2D, 0);
+}

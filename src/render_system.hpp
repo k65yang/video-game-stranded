@@ -201,7 +201,6 @@ private:
 	std::array<Mesh, geometry_count> meshes;
 
 public:
-
 	// Initialize the window
 	bool init(GLFWwindow* window);
 
@@ -277,6 +276,9 @@ public:
 	/// </summary>
 	void empty_terrain_buffer();
 
+	// Render text to screen using freetype
+	void renderText(std::string text, float x, float y, float scale, glm::vec3 color);
+
 	// Do not modify this. READ ONLY!!
 	bool is_terrain_mesh_loaded = false;
 
@@ -290,14 +292,16 @@ public:
 private:
 	// Freetype stuff
 	typedef struct {
-		unsigned int TextureID;  // ID handle of the glyph texture
-		glm::ivec2   Size;       // Size of glyph
-		glm::ivec2   Bearing;    // Offset from baseline to left/top of glyph
-		unsigned int Advance;    // Offset to advance to next glyph
+		unsigned int textureID;  // ID handle of the glyph texture
+		glm::ivec2   size;       // Size of glyph
+		glm::ivec2   bearing;    // Offset from baseline to left/top of glyph
+		unsigned int advance;    // Offset to advance to next glyph
 	} Character;
 
-	std::map<char, Character> Characters;
+	std::map<char, Character> characters;
 
+	unsigned int VAO, VBO;
+	
 	// Internal vertex data structure used for batched rendering
 	struct BatchedVertex {
 		vec3 position;
