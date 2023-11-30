@@ -15,6 +15,7 @@
 #include "weapons_system.hpp"
 #include "particle_system.hpp"
 #include "mob_system.hpp"
+#include "spaceship_home_system.hpp"
 #include "common.hpp"
 
 using Clock = std::chrono::high_resolution_clock;
@@ -32,6 +33,7 @@ int main()
 	ParticleSystem particle_system;
 	MobSystem mob_system;
 	AudioSystem audio_system;
+	SpaceshipHomeSystem spaceship_home_system;
 
 	// Initializing window
 	GLFWwindow* window = world_system.create_window();
@@ -57,6 +59,7 @@ int main()
 
 	pathfinding_system.init(&terrain_system);
 	particle_system.init(&render_system);
+	spaceship_home_system.init(&render_system);
 
 	// variable timestep loop
 	auto t = Clock::now();
@@ -70,7 +73,7 @@ int main()
 			(float)(std::chrono::duration_cast<std::chrono::microseconds>(now - t)).count() / 1000;
 		t = now;
 
-		// this pauses the world system when player is at home  
+		// Pause game when player is in spaceship home  
 		if (!world_system.is_home()) {
 			world_system.step(elapsed_ms);
 			physics_system.step(elapsed_ms);
@@ -80,11 +83,11 @@ int main()
 			particle_system.step(elapsed_ms);
 			mob_system.step(elapsed_ms);
 			world_system.handle_collisions();
+		} else {
+			spaceship_home_system.step(elapsed_ms);
 		}
+
 		render_system.draw();
-
-		//else do home step function
-
 	}
 
 	return EXIT_SUCCESS;
