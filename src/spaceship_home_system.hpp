@@ -46,6 +46,12 @@ class SpaceshipHomeSystem
     private:
         const vec2 FOOD_STORAGE_BAR_SCALE = { 0.5f, 2.f };
         const vec2 AMMO_STORAGE_BAR_SCALE = { 0.5f, 2.f };   
+        const vec2 FOOD_ITEM_OFFSET = { -5.6f, 0.f };
+        const vec2 FOOD_STORAGE_BAR_OFFSET = { -3.5f, 0.f };
+        const vec2 FOOD_STORAGE_BAR_FRAME_OFFSET = { -3.49f, 0.f };
+        const vec2 AMMO_ITEM_OFFSET = { 1.f, 0.5f };
+        const vec2 AMMO_STORAGE_BAR_OFFSET = { 4.5f, 0.5f };
+        const vec2 AMMO_STORAGE_BAR_FRAME_OFFSET = { 4.51f, 0.5f };
 
         RenderSystem* renderer;
         Entity spaceship_home;
@@ -85,4 +91,10 @@ class SpaceshipHomeSystem
         /// @param scale_factor The scale factor for the bar
         /// @param is_stat If true, the bar that is being updated is a player stat bar. Otherwise, the bar that is being updated is a spaceship resource storage bar
         void updateBar(int new_val, Motion& bar, int max_bar_value, vec2 scale_factor, bool is_stat=true);
+
+        /// @brief Gets a new (x, y) position offset from some base position
+        /// @param pos The base position
+        /// @param offset A vec2 storing the horizontal and vertical offset 
+        /// @return The new position 
+        vec2 getNewPosition(vec2 pos, vec2 offset);
 };
