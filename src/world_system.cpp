@@ -16,7 +16,7 @@ float PLAYER_TOTAL_DISTANCE = 0;
 const float FOOD_DECREASE_THRESHOLD  = 5.0f; // Adjust this value as needed
 const float FOOD_DECREASE_RATE = 10.f;	// Decreases by 10 units per second (when moving)
 float CURSOR_ANGLE = 0;
-int PLAYER_DIRECTION = 4;  // Default to facing up
+int PLAYER_DIRECTION = 2;  // Default to facing up
 float ELAPSED_TIME = 0;
 
 
@@ -416,16 +416,28 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 void WorldSystem::updatePlayerDirection() {
 	if (CURSOR_ANGLE >= -M_PI / 4 && CURSOR_ANGLE < M_PI / 4) {
-		PLAYER_DIRECTION = 2;  // Right
+		if (user_has_first_weapon) 
+			PLAYER_DIRECTION = 8;  // Weapom, Right
+		else 
+			PLAYER_DIRECTION = 4;  // Right
 		}
 	else if (CURSOR_ANGLE >= M_PI / 4 && CURSOR_ANGLE < 3 * M_PI / 4) {
-		PLAYER_DIRECTION = 4;  // Down
+		if (user_has_first_weapon)
+			PLAYER_DIRECTION = 5;  // Weapom, Down
+		else
+			PLAYER_DIRECTION = 2;  // Down
 		}
 	else if (CURSOR_ANGLE >= -3 * M_PI / 4 && CURSOR_ANGLE < -M_PI / 4) {
-		PLAYER_DIRECTION = 0;  // Up
+		if (user_has_first_weapon)
+			PLAYER_DIRECTION = 6;  // Weapom, UP
+		else
+			PLAYER_DIRECTION = 0;  // Up
 		}
 	else {
-		PLAYER_DIRECTION = 3;  // Left
+		if (user_has_first_weapon)
+			PLAYER_DIRECTION = 7;  // Weapom, left
+		else
+			PLAYER_DIRECTION = 3;  // Left
 		}
 
 	// Update player's direction
