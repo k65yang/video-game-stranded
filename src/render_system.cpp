@@ -40,16 +40,18 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 	if (render_request.used_effect == EFFECT_ASSET_ID::TEXTURED ||render_request.used_effect == EFFECT_ASSET_ID::SPRITESHEET)
 	{
 
-		// Skip rendering home screen if player is at world 
-		if (render_request.used_texture == TEXTURE_ASSET_ID::SPACEHOME|| render_request.used_texture == TEXTURE_ASSET_ID::FOOD_BLOCK 
-			|| render_request.used_texture == TEXTURE_ASSET_ID::AMMO_BLOCK || render_request.used_texture == TEXTURE_ASSET_ID::SPACESHIP_HOME_AMMO
-			|| render_request.used_texture == TEXTURE_ASSET_ID::SPACESHIP_HOME_FOOD
-			|| render_request.used_texture == TEXTURE_ASSET_ID::BAR_FRAME) {
-			if (!registry.spaceshipHomes.components[0].is_inside) {
-				//printf("Player is outside, skip rending home \n");
+		// Skip rendering spaceship home screen if player is at world 
+		if (render_request.used_texture == TEXTURE_ASSET_ID::SPACEHOME || 
+			render_request.used_texture == TEXTURE_ASSET_ID::FOOD_BLOCK || 
+			render_request.used_texture == TEXTURE_ASSET_ID::AMMO_BLOCK || 
+			render_request.used_texture == TEXTURE_ASSET_ID::SPACESHIP_HOME_AMMO || 
+			render_request.used_texture == TEXTURE_ASSET_ID::SPACESHIP_HOME_FOOD || 
+			render_request.used_texture == TEXTURE_ASSET_ID::BAR_FRAME
+		) {
+			if (!registry.players.components[0].is_home) {
 				return;
-				}
 			}
+		}
 
 		GLint in_position_loc = glGetAttribLocation(program, "in_position");
 		GLint in_texcoord_loc = glGetAttribLocation(program, "in_texcoord");

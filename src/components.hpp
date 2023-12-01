@@ -58,6 +58,7 @@ struct Player
 	int food = PLAYER_MAX_FOOD;
 	int framex = 0; 
 	int framey = 4; 
+	bool is_home = false;
 };
 
 struct SpeedPowerup {
@@ -99,7 +100,6 @@ struct Weapon {
 
 // The spaceship 
 struct SpaceshipHome {
-	bool is_inside;
 	int food_storage;
 	int ammo_storage;
 };

@@ -5,12 +5,13 @@
 using json = nlohmann::json;
 
 void to_json(json& j, const Player& p) {
-    j = json{ {"health", p.health}, {"food", p.food} };
+    j = json{ {"health", p.health}, {"food", p.food}, {"is_home", p.is_home} };
 }
 
 void from_json(const json& j, Player& p) {
     j.at("health").get_to(p.health);
     j.at("food").get_to(p.food);
+    j.at("is_home").get_to(p.is_home);
 }
 
 void to_json(json& j, const Mob& mob) {
@@ -57,11 +58,10 @@ void from_json(const json& j, Weapon& weapon) {
 }
 
 void to_json(json& j, const SpaceshipHome& spaceshipHome) {
-    j = json{ {"is_inside", spaceshipHome.is_inside }, {"food_storage", spaceshipHome.food_storage}, {"ammo_storage", spaceshipHome.ammo_storage} };
+    j = json{ {"food_storage", spaceshipHome.food_storage}, {"ammo_storage", spaceshipHome.ammo_storage} };
 }
 
 void from_json(const json& j, SpaceshipHome& spaceshipHome) {
-    j.at("is_inside").get_to(spaceshipHome.is_inside);
     j.at("food_storage").get_to(spaceshipHome.food_storage);
     j.at("ammo_storage").get_to(spaceshipHome.ammo_storage);
 }

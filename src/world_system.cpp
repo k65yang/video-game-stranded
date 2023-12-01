@@ -570,7 +570,7 @@ void WorldSystem::restart_game() {
 	main_camera = createCamera({ 0,0 });
 
 	// Reset the spaceship home system
-	spaceship_home_system->resetSpaceshipHomeSystem(main_camera, false, spaceship_home_system->SPACESHIP_MAX_FOOD_STORAGE, spaceship_home_system->SPACESHIP_MAX_AMMO_STORAGE);
+	spaceship_home_system->resetSpaceshipHomeSystem(spaceship_home_system->SPACESHIP_MAX_FOOD_STORAGE, spaceship_home_system->SPACESHIP_MAX_AMMO_STORAGE);
 
 	// DISABLE FOW MASK
 	//fow = createFOW(renderer, { 0,0 });
@@ -984,7 +984,7 @@ void WorldSystem::update_camera_follow() {
 // On key callback
 void WorldSystem::on_key(int key, int, int action, int mod) {
 	Motion& player_motion = registry.motions.get(player_salmon);
-	SpaceshipHome& spaceship_home_info = registry.spaceshipHomes.components[0];
+	Player& player = registry.players.get(player_salmon);
 
 	// Movement with velocity handled in step function  
 	update_key_presses(key, action);
@@ -1026,8 +1026,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	
 	if (action == GLFW_PRESS && key == GLFW_KEY_K) {
 		// Save the game state (player location, weapon, health, food, mobs & location)
-		Player& player = registry.players.get(player_salmon);
-		Motion& player_motion = registry.motions.get(player_salmon);
+		SpaceshipHome& spaceship_home_info = registry.spaceshipHomes.components[0];
 		Weapon& weapon = user_has_first_weapon ? registry.weapons.get(player_equipped_weapon) : registry.weapons.emplace(Entity());
 
 		std::vector<std::pair<Mob&, Motion&>> mobs;
@@ -1070,9 +1069,9 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	}
 
 	if (action == GLFW_PRESS && key == GLFW_KEY_ESCAPE) {
-		if (spaceship_home_info.is_inside) {
+		if (player.is_home) {
 			// Exit home screen and go back to world 
-			spaceship_home_info.is_inside = false;
+			player.is_home = false;
 			player_motion.position = { 0,0 };
 		} else {
 			// Close the window if not in home screen
@@ -1081,7 +1080,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	}
 
 	// Enter ship if player is near
-	if (length(registry.motions.get(player_salmon).position - registry.motions.get(spaceship).position) < 1.0f && spaceship_home_info.is_inside == false) {
+	if (length(player_motion.position - registry.motions.get(spaceship).position) < 1.0f && !player.is_home) {
 		printf("Near entrance, press E to enter\n");
 
 		if (action == GLFW_PRESS && key == GLFW_KEY_E ) {
@@ -1444,6 +1443,7 @@ void WorldSystem::load_game(json j) {
 	Player& player = registry.players.get(player_salmon);
 	player.health = j["player"]["health"];
 	player.food = j["player"]["food"];
+	player.is_home = j["player"]["is_home"];
 	registry.colors.insert(player_salmon, { 1, 0.8f, 0.8f, 1.0f});
 
 	// Create the main camera
@@ -1451,10 +1451,9 @@ void WorldSystem::load_game(json j) {
 	Motion& camera_motion = registry.motions.get(main_camera);
 
  	// Reset spaceship home system
-	bool sh_is_inside = j["spaceshipHome"]["is_inside"];
 	int sh_food_storage = j["spaceshipHome"]["food_storage"];
 	int sh_ammo_storage = j["spaceshipHome"]["ammo_storage"];
-	spaceship_home_system->resetSpaceshipHomeSystem(main_camera, sh_is_inside, sh_food_storage, sh_ammo_storage);
+	spaceship_home_system->resetSpaceshipHomeSystem(sh_food_storage, sh_ammo_storage);
 
 	// Create player health bar
 	health_bar = createBar(renderer, { -7.f + camera_motion.position.x, 7.f + camera_motion.position.y }, PLAYER_MAX_HEALTH, BAR_TYPE::HEALTH_BAR);

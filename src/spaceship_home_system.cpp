@@ -8,13 +8,14 @@ void SpaceshipHomeSystem::init(RenderSystem* renderer_arg) {
 	this->renderer = renderer_arg;
 }
 
-void SpaceshipHomeSystem::resetSpaceshipHomeSystem(Entity camera, bool is_home, int food_storage, int ammo_storage) {
+void SpaceshipHomeSystem::resetSpaceshipHomeSystem(int food_storage, int ammo_storage) {
+	Entity camera = registry.cameras.entities[0];
 	Motion& camera_motion = registry.motions.get(camera);
 	float camera_pos_x = camera_motion.position.x;
 	float camera_pos_y = camera_motion.position.y;
 
 	// Create spaceship home
-	spaceship_home = createSpaceshipHome(camera_motion.position, is_home, food_storage, ammo_storage);
+	spaceship_home = createSpaceshipHome(camera_motion.position, food_storage, ammo_storage);
 
 	// Create food storage elements
 	food_item = createSpaceshipHomeItem({ -5.5f + camera_pos_x, 0.f + camera_pos_y }, TEXTURE_ASSET_ID::SPACESHIP_HOME_FOOD);
@@ -80,15 +81,15 @@ void SpaceshipHomeSystem::enterSpaceship(Entity player_health_bar, Entity player
 		as_motion.scale = vec2(AMMO_STORAGE_SCALE[0], ((float)spaceship_home_info.ammo_storage / (float) SPACESHIP_HOME_MAX_AMMO_STORAGE) * AMMO_STORAGE_SCALE[1]);
 	}
 
-	spaceship_home_info.is_inside = true;
+	player_info.is_home = true;
 };
 
 bool SpaceshipHomeSystem::isHome() {
-    return registry.spaceshipHomes.get(spaceship_home).is_inside;
+    return registry.players.components[0].is_home;
 };
 
 
-Entity SpaceshipHomeSystem::createSpaceshipHome(vec2 position, bool is_inside, int food_storage, int ammo_storage) {
+Entity SpaceshipHomeSystem::createSpaceshipHome(vec2 position, int food_storage, int ammo_storage) {
     auto entity = Entity();
 
 	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
@@ -104,7 +105,6 @@ Entity SpaceshipHomeSystem::createSpaceshipHome(vec2 position, bool is_inside, i
 
 	// Add spaceship home to spaceship home registry
 	auto& spaceshipHome = registry.spaceshipHomes.emplace(entity);
-	spaceshipHome.is_inside = is_inside;
 	spaceshipHome.food_storage = food_storage;
 	spaceshipHome.ammo_storage = ammo_storage;
 	

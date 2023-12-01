@@ -28,11 +28,9 @@ class SpaceshipHomeSystem
         void init(RenderSystem* renderer_arg);
 
         /// @brief Initializes spaceship home elements 
-        /// @param camera The entity for the camera
-        /// @param is_home Whether the player is in the spaceship home or not 
         /// @param food_storage Initial amount of food the spaceship home stores
         /// @param ammo_storage Initial amount of ammo the spaceship home stores
-        void resetSpaceshipHomeSystem(Entity camera, bool is_home, int food_storage, int ammo_storage);
+        void resetSpaceshipHomeSystem(int food_storage, int ammo_storage);
 
         /// @brief Executes various actions when player enters spaceship
         /// @param player_health_bar The entity for the player's health bar
@@ -60,11 +58,10 @@ class SpaceshipHomeSystem
 
         /// @brief Creates the spaceship home
         /// @param position Position of the spaceship home
-        /// @param is_inside Whether the player is in the spaceship home or not
         /// @param food_storage Initial amount of food the spaceship home stores 
         /// @param ammo_storage Initial amount of ammo the spaceship home stores
         /// @return The created entity
-        Entity createSpaceshipHome(vec2 position, bool is_inside, int food_storage, int ammo_storage);
+        Entity createSpaceshipHome(vec2 position, int food_storage, int ammo_storage);
 
         /// @brief Creates a spaceship home item
         /// @param position Position of the item
