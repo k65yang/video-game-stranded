@@ -44,18 +44,17 @@ void SpaceshipHomeSystem::enterSpaceship(Entity player_health_bar, Entity player
 
 	// Regenerate food
 	regenerateStat(player_info.food, spaceship_home_info.food_storage, PLAYER_MAX_FOOD);
-	player_food_bar_motion.scale = vec2(((float)player_info.food / (float)PLAYER_MAX_FOOD) * FOOD_BAR_SCALE[0], FOOD_BAR_SCALE[1]);
-	food_storage_bar_motion.scale = vec2(TURKEY_BAR_SCALE[0], ((float)spaceship_home_info.food_storage / (float) SPACESHIP_HOME_MAX_FOOD_STORAGE) * TURKEY_BAR_SCALE[1]);
+	updateStatBar(player_info.food, player_food_bar_motion, PLAYER_MAX_FOOD, FOOD_BAR_SCALE);
+	updateStorageBar(spaceship_home_info.food_storage, food_storage_bar_motion, SPACESHIP_MAX_FOOD_STORAGE, FOOD_STORAGE_BAR_SCALE);
 
-	// Check if player has weapon equipped
+	// Regenerate ammo if player has weapon equipped
 	if (registry.weapons.has(player_weapon)) {
-		auto& weapon = registry.weapons.get(player_weapon);
-		auto& w_motion = registry.motions.get(player_ammo_bar);
+		Weapon& weapon = registry.weapons.get(player_weapon);
+		Motion& weapon_motion = registry.motions.get(player_ammo_bar);
 		
-		// Regenerate ammo
 		regenerateStat(weapon.ammo_count, spaceship_home_info.ammo_storage, PLAYER_MAX_AMMO);
-		w_motion.scale = vec2(((float)weapon.ammo_count / (float)PLAYER_MAX_AMMO) * AMMO_BAR_SCALE[0], AMMO_BAR_SCALE[1]);
-		ammo_storage_bar_motion.scale = vec2(AMMO_STORAGE_SCALE[0], ((float)spaceship_home_info.ammo_storage / (float) SPACESHIP_HOME_MAX_AMMO_STORAGE) * AMMO_STORAGE_SCALE[1]);
+		updateStatBar(weapon.ammo_count, weapon_motion, PLAYER_MAX_AMMO, AMMO_BAR_SCALE);
+		updateStorageBar(spaceship_home_info.ammo_storage, ammo_storage_bar_motion, SPACESHIP_MAX_FOOD_STORAGE, AMMO_STORAGE_BAR_SCALE);
 	}
 
 	player_info.is_home = true;
@@ -124,7 +123,6 @@ Entity SpaceshipHomeSystem::createSpaceshipHomeItem(vec2 position, TEXTURE_ASSET
 	return entity;
 };
 
-
 void SpaceshipHomeSystem::updateSpaceshipHomeUI() {
 	Entity camera = registry.cameras.entities[0];
 	Motion& camera_motion = registry.motions.get(camera);
@@ -167,10 +165,14 @@ void SpaceshipHomeSystem::regenerateStat(int& stat, int& storage, int max_stat_v
 	}
 };
 
-void SpaceshipHomeSystem::updateBar(int new_val, Motion& bar, int max_bar_value, vec2 scale_factor, bool is_stat) {
+void SpaceshipHomeSystem::updateStatBar(int new_val, Motion& bar, int max_bar_value, vec2 scale_factor) {
+	bar.scale = vec2(((float) new_val / (float) max_bar_value) * scale_factor.x, scale_factor.y);
+};
 
+void SpaceshipHomeSystem::updateStorageBar(int new_val, Motion& bar, int max_bar_value, vec2 scale_factor) {
+	bar.scale = vec2(scale_factor.x, ((float) new_val / (float) max_bar_value) * scale_factor.y);
 };
 
 vec2 SpaceshipHomeSystem::getNewPosition(vec2 camera_pos, vec2 offset) {
 	return { camera_pos.x + offset.x, camera_pos.y + offset.y };
-}
+};

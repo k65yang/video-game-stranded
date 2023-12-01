@@ -11,8 +11,6 @@
 const int PLAYER_MAX_FOOD = 100;
 const int PLAYER_MAX_HEALTH = 100;
 const int PLAYER_MAX_AMMO = 10;
-const int SPACESHIP_HOME_MAX_FOOD_STORAGE = 500;
-const int SPACESHIP_HOME_MAX_AMMO_STORAGE = 100;
 
 enum class ITEM_TYPE {
 	QUEST_ONE = 0,

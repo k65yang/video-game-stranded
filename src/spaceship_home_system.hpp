@@ -84,13 +84,19 @@ class SpaceshipHomeSystem
         /// @param max_stat_value The max value the player can have for the stat
         void regenerateStat(int& stat, int& storage, int max_stat_value);
 
-        /// @brief Updates the scale of a UI bar
+        /// @brief Updates the scale of a player stat bar
         /// @param new_val The new value for the bar
         /// @param bar The motion component of the bar
         /// @param max_bar_value The max value the bar can be
         /// @param scale_factor The scale factor for the bar
-        /// @param is_stat If true, the bar that is being updated is a player stat bar. Otherwise, the bar that is being updated is a spaceship resource storage bar
-        void updateBar(int new_val, Motion& bar, int max_bar_value, vec2 scale_factor, bool is_stat=true);
+        void updateStatBar(int new_val, Motion& bar, int max_bar_value, vec2 scale_factor);
+
+        /// @brief Updates the scale of a spaceship sstorage bar
+        /// @param new_val The new value for the bar
+        /// @param bar The motion component of the bar
+        /// @param max_bar_value The max value the bar can be
+        /// @param scale_factor The scale factor for the bar
+        void updateStorageBar(int new_val, Motion& bar, int max_bar_value, vec2 scale_factor);
 
         /// @brief Gets a new (x, y) position offset from some base position
         /// @param pos The base position
