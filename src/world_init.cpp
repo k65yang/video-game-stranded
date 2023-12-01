@@ -168,41 +168,39 @@ Entity createBar(RenderSystem* renderer, vec2 position, int amount, BAR_TYPE typ
 	motion.position = position;
 	motion.scale = vec2({ 5.5, 0.7 });
 
-	// Initialize the collider
-	//createDefaultCollider(entity);
-
 	TEXTURE_ASSET_ID texture = TEXTURE_ASSET_ID::PLAYER;
 	switch (type) {
 		case BAR_TYPE::HEALTH_BAR:
 			texture = TEXTURE_ASSET_ID::REDBLOCK;
 			motion.scale = vec2(((float)amount / (float)PLAYER_MAX_HEALTH) * HEALTH_BAR_SCALE[0], HEALTH_BAR_SCALE[1]);
-
 			break;
 		case BAR_TYPE::FOOD_BAR:
 			texture = TEXTURE_ASSET_ID::BLUEBLOCK;
 			motion.scale = vec2(((float)amount / (float)PLAYER_MAX_FOOD) * FOOD_BAR_SCALE[0], FOOD_BAR_SCALE[1]);
-
 			break;
 		case BAR_TYPE::AMMO_BAR:
 			texture = TEXTURE_ASSET_ID::BROWNBLOCK;
-			motion.scale = vec2({ 3, 0.4 }); 
+			motion.scale = vec2(((float)amount / (float)PLAYER_MAX_AMMO) * AMMO_BAR_SCALE[0], AMMO_BAR_SCALE[1]); 
 			break; 
 		case BAR_TYPE::FOOD_STORAGE:
 			texture = TEXTURE_ASSET_ID::FOOD_BLOCK;
-			motion.scale = vec2({ 0.5, 2 });
+			motion.scale = vec2(FOOD_STORAGE_BAR_SCALE[0], ((float)amount / (float)SPACESHIP_MAX_FOOD_STORAGE) * FOOD_STORAGE_BAR_SCALE[1]);
 			break;
 		case BAR_TYPE::AMMO_STORAGE:
 			texture = TEXTURE_ASSET_ID::AMMO_BLOCK;
-			motion.scale = vec2({ 0.5, 2 });
+			motion.scale = vec2(AMMO_STORAGE_BAR_SCALE[0], ((float)amount / (float)SPACESHIP_MAX_AMMO_STORAGE) * AMMO_STORAGE_BAR_SCALE[1]);
 			break;
 	}
 
 	registry.renderRequests.insert(
 		entity,
-		{ texture,
+		{
+			texture,
 			EFFECT_ASSET_ID::TEXTURED,
 			GEOMETRY_BUFFER_ID::SPRITE,
-			RENDER_LAYER_ID::LAYER_4 });
+			RENDER_LAYER_ID::LAYER_4 
+		}
+	);
 
 	return entity;
 }
@@ -343,11 +341,6 @@ Entity createPowerupIndicator(RenderSystem* renderer, vec2 position, TEXTURE_ASS
 	return entity;
 }
 
-/// <summary>
-/// Creates a camera centred on a position
-/// </summary>
-/// <param name="pos">World space position where the camera is facing</param>
-/// <returns>The camera entity</returns>
 Entity createCamera(vec2 pos)
 {
 	auto entity = Entity();
@@ -364,16 +357,3 @@ Entity createCamera(vec2 pos)
 	motion.scale = { 1 , 1 };
 	return entity;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-

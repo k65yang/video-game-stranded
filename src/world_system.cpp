@@ -570,7 +570,7 @@ void WorldSystem::restart_game() {
 	main_camera = createCamera({ 0,0 });
 
 	// Reset the spaceship home system
-	spaceship_home_system->resetSpaceshipHomeSystem(spaceship_home_system->SPACESHIP_MAX_FOOD_STORAGE, spaceship_home_system->SPACESHIP_MAX_AMMO_STORAGE);
+	spaceship_home_system->resetSpaceshipHomeSystem(SPACESHIP_MAX_FOOD_STORAGE, SPACESHIP_MAX_AMMO_STORAGE);
 
 	// DISABLE FOW MASK
 	//fow = createFOW(renderer, { 0,0 });

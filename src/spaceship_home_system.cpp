@@ -54,7 +54,7 @@ void SpaceshipHomeSystem::enterSpaceship(Entity player_health_bar, Entity player
 		
 		regenerateStat(weapon.ammo_count, spaceship_home_info.ammo_storage, PLAYER_MAX_AMMO);
 		updateStatBar(weapon.ammo_count, weapon_motion, PLAYER_MAX_AMMO, AMMO_BAR_SCALE);
-		updateStorageBar(spaceship_home_info.ammo_storage, ammo_storage_bar_motion, SPACESHIP_MAX_FOOD_STORAGE, AMMO_STORAGE_BAR_SCALE);
+		updateStorageBar(spaceship_home_info.ammo_storage, ammo_storage_bar_motion, SPACESHIP_MAX_AMMO_STORAGE, AMMO_STORAGE_BAR_SCALE);
 	}
 
 	player_info.is_home = true;

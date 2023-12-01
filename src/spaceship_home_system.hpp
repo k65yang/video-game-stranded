@@ -11,9 +11,6 @@
 class SpaceshipHomeSystem
 {
     public:
-        const int SPACESHIP_MAX_FOOD_STORAGE = 500;
-        const int SPACESHIP_MAX_AMMO_STORAGE = 100;
-
         /// @brief SpaceshipHomeSystem constructor
         SpaceshipHomeSystem()
         {
@@ -44,8 +41,6 @@ class SpaceshipHomeSystem
         bool isHome();
 
     private:
-        const vec2 FOOD_STORAGE_BAR_SCALE = { 0.5f, 2.f };
-        const vec2 AMMO_STORAGE_BAR_SCALE = { 0.5f, 2.f };   
         const vec2 FOOD_ITEM_OFFSET = { -5.6f, 0.f };
         const vec2 FOOD_STORAGE_BAR_OFFSET = { -3.5f, 0.f };
         const vec2 FOOD_STORAGE_BAR_FRAME_OFFSET = { -3.49f, 0.f };
