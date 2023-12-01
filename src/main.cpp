@@ -82,7 +82,6 @@ int main()
 			world_system.handle_collisions();
 		}
 		render_system.draw();
-		render_system.renderText("This is sample text", 25.0f, 25.0f, 1.0f, glm::vec3(0.5, 0.8f, 0.2f));
 
 		//else do home step function
 

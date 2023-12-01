@@ -254,6 +254,9 @@ public:
 	// shader
 	bool initScreenTexture();
 
+	// Initialize text vertex buffers and text vao
+	void initializeTextRenderer();
+
 	// Destroy resources associated to one or all entities created by the system
 	~RenderSystem();
 
@@ -277,7 +280,7 @@ public:
 	void empty_terrain_buffer();
 
 	// Render text to screen using freetype
-	void renderText(std::string text, float x, float y, float scale, glm::vec3 color);
+	void renderText(std::string text, float x, float y, float scale, glm::vec3 color, mat3& projection_matrix, mat3& view_matrix);
 
 	// Do not modify this. READ ONLY!!
 	bool is_terrain_mesh_loaded = false;
@@ -300,7 +303,8 @@ private:
 
 	std::map<char, Character> characters;
 
-	unsigned int VAO, VBO;
+	// Define VAOs here
+	GLuint global_vao, text_vao;
 	
 	// Internal vertex data structure used for batched rendering
 	struct BatchedVertex {
