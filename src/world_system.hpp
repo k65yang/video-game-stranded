@@ -77,16 +77,12 @@ public:
 	void handle_collisions();
 	// Should the game be over ?
 	bool is_over()const;
-	bool is_home()const; 
 private:
 	// Input callback functions
 	void on_key(int key, int, int action, int mod);
 	void on_mouse_move(vec2 pos);
 	void on_mouse_click(int button, int action, int mods);
 	vec2 interpolate(vec2 p1, vec2 p2, float param);
-
-
-
 
 	// restart level
 	void restart_game();
@@ -117,13 +113,7 @@ private:
 	Entity health_bar;
 	Entity health_frame; 
 	Entity food_frame; 
-	Entity fs_frame; 
-	Entity as_frame; 
 	Entity food_bar;
-	Entity food_storage; 
-	Entity turkey;
-	Entity ammo_storage;
-	Entity ammo;
 	Entity weapon_indicator;
 	Entity powerup_indicator;
 	Entity ammo_indicator; 
@@ -186,14 +176,6 @@ private:
 	///  Sets the player's facing direction based on the cursor angle (aiming direction)
 	/// </summary>
 	void updatePlayerDirection();
-
-	/// <summary>
-	/// Regenerate from storage 
-	/// </summary>
-	/// <param name="resource"></param>
-	/// <param name="storage"></param>
-	/// <param name="max_capacity"></param>
-	void checkAndRegenerate(int& resource, int& storage, int max_capacity); 
 
 	/// <summary>
 	// Handles various aspects related to player movement, 

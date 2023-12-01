@@ -74,7 +74,7 @@ int main()
 		t = now;
 
 		// Pause game when player is in spaceship home  
-		if (!world_system.is_home()) {
+		if (!spaceship_home_system.isHome()) {
 			world_system.step(elapsed_ms);
 			physics_system.step(elapsed_ms);
 			terrain_system.step(elapsed_ms);
