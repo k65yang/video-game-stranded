@@ -133,40 +133,6 @@ Entity createSpaceship(RenderSystem* renderer, vec2 position) {
 	return entity;
 }
 
-Entity createSpaceshipHome(RenderSystem* renderer, vec2 position, bool is_inside, int food_storage, int ammo_storage) {
-	auto entity = Entity();
-
-	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
-	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
-	registry.meshPtrs.emplace(entity, &mesh);
-
-	// Initialize the motion
-	auto& motion = registry.motions.emplace(entity);
-	motion.angle = 0.f;
-	motion.velocity = { 0.f, 0.f };
-	motion.position = position;
-
-	//physics_system->createDefaultCollider(entity);
-
-	// Add spaceship home to spaceship home registry
-	auto& spaceshipHome = registry.spaceshipHomes.emplace(entity);
-	spaceshipHome.is_inside = is_inside;
-	spaceshipHome.food_storage = food_storage;
-	spaceshipHome.ammo_storage = ammo_storage;
-	
-	// Setting initial values, scale is negative to make it face the opposite way
-	motion.scale = vec2({ target_resolution.x / tile_size_px, target_resolution.y / tile_size_px });
-
-	registry.renderRequests.insert(
-		entity,
-		{ TEXTURE_ASSET_ID::SPACEHOME,
-		 EFFECT_ASSET_ID::TEXTURED,
-		 GEOMETRY_BUFFER_ID::SPRITE,
-			RENDER_LAYER_ID::LAYER_4 });
-
-	return entity;
-}
-
 Entity createLine(vec2 position, vec2 scale)
 {
 	Entity entity = Entity();
@@ -202,41 +168,39 @@ Entity createBar(RenderSystem* renderer, vec2 position, int amount, BAR_TYPE typ
 	motion.position = position;
 	motion.scale = vec2({ 5.5, 0.7 });
 
-	// Initialize the collider
-	//createDefaultCollider(entity);
-
 	TEXTURE_ASSET_ID texture = TEXTURE_ASSET_ID::PLAYER;
 	switch (type) {
 		case BAR_TYPE::HEALTH_BAR:
 			texture = TEXTURE_ASSET_ID::REDBLOCK;
 			motion.scale = vec2(((float)amount / (float)PLAYER_MAX_HEALTH) * HEALTH_BAR_SCALE[0], HEALTH_BAR_SCALE[1]);
-
 			break;
 		case BAR_TYPE::FOOD_BAR:
 			texture = TEXTURE_ASSET_ID::BLUEBLOCK;
 			motion.scale = vec2(((float)amount / (float)PLAYER_MAX_FOOD) * FOOD_BAR_SCALE[0], FOOD_BAR_SCALE[1]);
-
 			break;
 		case BAR_TYPE::AMMO_BAR:
 			texture = TEXTURE_ASSET_ID::BROWNBLOCK;
-			motion.scale = vec2({ 3, 0.4 }); 
+			motion.scale = vec2(((float)amount / (float)PLAYER_MAX_AMMO) * AMMO_BAR_SCALE[0], AMMO_BAR_SCALE[1]); 
 			break; 
 		case BAR_TYPE::FOOD_STORAGE:
 			texture = TEXTURE_ASSET_ID::FOOD_BLOCK;
-			motion.scale = vec2({ 0.5, 2 });
+			motion.scale = vec2(FOOD_STORAGE_BAR_SCALE[0], ((float)amount / (float)SPACESHIP_MAX_FOOD_STORAGE) * FOOD_STORAGE_BAR_SCALE[1]);
 			break;
 		case BAR_TYPE::AMMO_STORAGE:
 			texture = TEXTURE_ASSET_ID::AMMO_BLOCK;
-			motion.scale = vec2({ 0.5, 2 });
+			motion.scale = vec2(AMMO_STORAGE_BAR_SCALE[0], ((float)amount / (float)SPACESHIP_MAX_AMMO_STORAGE) * AMMO_STORAGE_BAR_SCALE[1]);
 			break;
 	}
 
 	registry.renderRequests.insert(
 		entity,
-		{ texture,
+		{
+			texture,
 			EFFECT_ASSET_ID::TEXTURED,
 			GEOMETRY_BUFFER_ID::SPRITE,
-			RENDER_LAYER_ID::LAYER_4 });
+			RENDER_LAYER_ID::LAYER_4 
+		}
+	);
 
 	return entity;
 }
@@ -282,44 +246,6 @@ Entity createFrame(RenderSystem* renderer, vec2 position, FRAME_TYPE type) {
 
 	return entity;
 	}
-
-Entity createStorage(RenderSystem* renderer, vec2 position, ITEM_TYPE type) {
-	auto entity = Entity();
-
-	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
-	registry.meshPtrs.emplace(entity, &mesh);
-
-	// Initialize the position, scale, and physics components
-	auto& motion = registry.motions.emplace(entity);
-	motion.angle = 0.f;
-	motion.velocity = { 0.f, 0.f };
-	motion.position = position;
-	motion.scale = vec2({ 7, 5 });
-
-	// Initialize the collider
-	//physics_system->createDefaultCollider(entity);
-
-	TEXTURE_ASSET_ID texture = TEXTURE_ASSET_ID::PLAYER;
-	switch (type) {
-			case ITEM_TYPE::AMMO:
-				texture = TEXTURE_ASSET_ID::AMMO;
-				motion.scale = vec2({ 8, 6 });
-				break;
-			case ITEM_TYPE::TURKEY:
-				texture = TEXTURE_ASSET_ID::TURKEY;
-				break;
-		}
-
-	registry.renderRequests.insert(
-		entity,
-		{ texture,
-			EFFECT_ASSET_ID::TEXTURED,
-			GEOMETRY_BUFFER_ID::SPRITE,
-			RENDER_LAYER_ID::LAYER_4 });
-
-	return entity;
-	}
-
 
 Entity createHelp(RenderSystem* renderer, vec2 position, TEXTURE_ASSET_ID texture) {
 	auto entity = Entity();
@@ -415,11 +341,6 @@ Entity createPowerupIndicator(RenderSystem* renderer, vec2 position, TEXTURE_ASS
 	return entity;
 }
 
-/// <summary>
-/// Creates a camera centred on a position
-/// </summary>
-/// <param name="pos">World space position where the camera is facing</param>
-/// <returns>The camera entity</returns>
 Entity createCamera(vec2 pos)
 {
 	auto entity = Entity();
@@ -436,16 +357,3 @@ Entity createCamera(vec2 pos)
 	motion.scale = { 1 , 1 };
 	return entity;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-

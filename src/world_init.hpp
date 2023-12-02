@@ -14,8 +14,8 @@ const float TURTLE_BB_HEIGHT = 0.4f * 202.f;
 const vec2 HEALTH_BAR_SCALE = vec2(5.5, 0.7);
 const vec2 FOOD_BAR_SCALE = vec2(5.5, 0.7);
 const vec2 AMMO_BAR_SCALE = vec2({ 3, 0.4 }); 
-const vec2 TURKEY_BAR_SCALE = vec2({ 0.5, 2 });
-const vec2 AMMO_STORAGE_SCALE = vec2({ 0.5, 2 });
+const vec2 FOOD_STORAGE_BAR_SCALE = { 0.5f, 2.f };
+const vec2 AMMO_STORAGE_BAR_SCALE = { 0.5f, 2.f }; 
 
 // the player
 Entity createPlayer(RenderSystem* renderer, PhysicsSystem* physics, vec2 pos);
@@ -26,10 +26,6 @@ Entity createItem(RenderSystem* renderer, PhysicsSystem* physics, vec2 position,
 // the spaceship 
 Entity createSpaceship(RenderSystem* renderer, vec2 position);
 
-// the spaceship home
-Entity createSpaceshipHome(RenderSystem* renderer, vec2 position, bool is_inside, int food_storage, int ammo_storage); 
-
-Entity createStorage(RenderSystem* renderer, vec2 position, ITEM_TYPE type);
 // a red line for debugging purposes
 Entity createLine(vec2 position, vec2 size);
 

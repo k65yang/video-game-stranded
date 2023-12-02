@@ -15,6 +15,7 @@
 #include "weapons_system.hpp"
 #include "particle_system.hpp"
 #include "mob_system.hpp"
+#include "spaceship_home_system.hpp"
 #include "common.hpp"
 
 using Clock = std::chrono::high_resolution_clock;
@@ -32,6 +33,7 @@ int main()
 	ParticleSystem particle_system;
 	MobSystem mob_system;
 	AudioSystem audio_system;
+	SpaceshipHomeSystem spaceship_home_system;
 
 	// Initializing window
 	GLFWwindow* window = world_system.create_window();
@@ -48,7 +50,8 @@ int main()
 	render_system.init(window);
 	weapons_system.init(&render_system, &physics_system);
 	mob_system.init(&render_system, &terrain_system, &physics_system);
-	world_system.init(&render_system, &terrain_system, &weapons_system, &physics_system, &mob_system, &audio_system);
+	spaceship_home_system.init(&render_system);
+	world_system.init(&render_system, &terrain_system, &weapons_system, &physics_system, &mob_system, &audio_system, &spaceship_home_system);
 
 	// Load terrain mesh into the GPU
 	std::unordered_map<unsigned int, RenderSystem::ORIENTATIONS> orientation_map;
@@ -70,8 +73,8 @@ int main()
 			(float)(std::chrono::duration_cast<std::chrono::microseconds>(now - t)).count() / 1000;
 		t = now;
 
-		// this pauses the world system when player is at home  
-		if (!world_system.is_home()) {
+		// Pause game when player is in spaceship home  
+		if (!spaceship_home_system.isHome()) {
 			world_system.step(elapsed_ms);
 			physics_system.step(elapsed_ms);
 			terrain_system.step(elapsed_ms);
@@ -80,11 +83,11 @@ int main()
 			particle_system.step(elapsed_ms);
 			mob_system.step(elapsed_ms);
 			world_system.handle_collisions();
+		} else {
+			spaceship_home_system.step(elapsed_ms);
 		}
+
 		render_system.draw();
-
-		//else do home step function
-
 	}
 
 	return EXIT_SUCCESS;
