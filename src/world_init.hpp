@@ -11,9 +11,12 @@ const float FISH_BB_WIDTH = 0.4f * 296.f;
 const float FISH_BB_HEIGHT = 0.4f * 165.f;
 const float TURTLE_BB_WIDTH = 0.4f * 300.f;
 const float TURTLE_BB_HEIGHT = 0.4f * 202.f;
-const vec2 HEALTH_BAR_SCALE = vec2(5.5, 0.7);
-const vec2 FOOD_BAR_SCALE = vec2(5.5, 0.7);
-const vec2 AMMO_BAR_SCALE = vec2({ 3, 0.4 }); 
+const vec2 HEALTH_BAR_SCALE = vec2(8, 1.2);
+const vec2 FOOD_BAR_SCALE = vec2(8, 1.2);
+// adjust health and food bar here
+const vec2 HEALTH_BAR_POS = vec2{ -5.f, 6.5f };
+const vec2 FOOD_BAR_POS = vec2{ 5.f, 6.5f };
+const vec2 AMMO_BAR_SCALE = vec2({ 3, 0.4 });
 const vec2 TURKEY_BAR_SCALE = vec2({ 0.5, 2 });
 const vec2 AMMO_STORAGE_SCALE = vec2({ 0.5, 2 });
 

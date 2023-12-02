@@ -285,13 +285,13 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	Motion& h_frame = registry.motions.get(health_frame); 
 	Motion& f_frame = registry.motions.get(food_frame); 
 
-	health.position = { -7.f + camera_motion.position.x, 7.f + camera_motion.position.y };
-	food.position = { 7.f + camera_motion.position.x, 7.f + camera_motion.position.y };
+	health.position = HEALTH_BAR_POS + camera_motion.position;
+	food.position = FOOD_BAR_POS + camera_motion.position;
 	help.position = { camera_motion.position.x, -7.f + camera_motion.position.y };
 	q1.position = { 10.f + camera_motion.position.x, -2.f + camera_motion.position.y };
 	q2.position = { 10.f + camera_motion.position.x, 2.f + camera_motion.position.y };
-	h_frame.position = { -0.5f + health.position.x , health.position.y };
-	f_frame.position = { -0.3f + food.position.x, food.position.y};
+	h_frame.position = health.position;
+	f_frame.position = food.position;
 	if (user_has_first_weapon) {
 		Motion& weapon_ui = registry.motions.get(weapon_indicator);
 		weapon_ui.position = { -10.f + camera_motion.position.x, -6.f + camera_motion.position.y };
@@ -478,8 +478,14 @@ void WorldSystem::handlePlayerMovement(float elapsed_ms_since_last_update) {
 	else if (registry.deathTimers.has(player_salmon)) {
 		// Player is dead, do not allow movement
 		Motion& m = registry.motions.get(player_salmon);
+		Player& player = registry.players.get(player_salmon);
 		m.velocity = { 0, 0 };
 		registry.players.components[0].framey = 1;
+		if (player.health <=  0) {
+			Motion& health = registry.motions.get(health_bar);
+			health.scale = { 0,0 };
+		}
+
 	}
 }
 
@@ -579,12 +585,12 @@ void WorldSystem::restart_game() {
 	//fow = createFOW(renderer, { 0,0 });
 
 	// Create player health bar
-	health_bar = createBar(renderer, { -8.f, 7.f }, PLAYER_MAX_HEALTH, BAR_TYPE::HEALTH_BAR);
-	health_frame = createFrame(renderer, { -7.f, 7.f }, FRAME_TYPE::HEALTH_FRAME);
+	health_frame = createFrame(renderer, HEALTH_BAR_POS, FRAME_TYPE::HEALTH_FRAME);
+	health_bar = createBar(renderer, HEALTH_BAR_POS, PLAYER_MAX_HEALTH, BAR_TYPE::HEALTH_BAR);
 
 	// Create player food bar
-	food_bar = createBar(renderer, { 8.f, -7.f }, PLAYER_MAX_FOOD, BAR_TYPE::FOOD_BAR);
-	food_frame = createFrame(renderer, { 7.f, 7.f }, FRAME_TYPE::FOOD_FRAME);
+	food_bar = createBar(renderer, FOOD_BAR_POS, PLAYER_MAX_FOOD, BAR_TYPE::FOOD_BAR);
+	food_frame = createFrame(renderer, FOOD_BAR_POS, FRAME_TYPE::FOOD_FRAME);
 
 	// Create spaceship home food storage bar
 	food_storage = createBar(renderer, { -3.5f, 0.f }, SPACESHIP_HOME_MAX_FOOD_STORAGE, BAR_TYPE::FOOD_STORAGE);
@@ -644,8 +650,9 @@ void WorldSystem::handle_collisions() {
 			Player& player = registry.players.get(entity);
 			// Checking Player - Spaceship (For regen)
 			// only regnerate after spaceship exit 
-			/*
+			
 			if (entity_other == spaceship) {
+				/*
 				player.health = PLAYER_MAX_HEALTH;
 				player.food = PLAYER_MAX_FOOD;
 
@@ -662,12 +669,12 @@ void WorldSystem::handle_collisions() {
 				Motion& s_motion = registry.motions.get(home);
 				s_motion.position = { camera_motion.position.x,camera_motion.position.y };
 
-
-				printf("nearhome\n");
+				*/
+				printf("Collide with spaceship\n");
 
 
 			}
-			*/
+			
 
 			// Checking Player - Mobs
 			if (registry.mobs.has(entity_other)) {
@@ -1544,14 +1551,14 @@ void WorldSystem::load_game(json j) {
 	spaceship_home = createSpaceshipHome(renderer, camera_motion.position, sh_is_inside, sh_food_storage, sh_ammo_storage);
 
 	// Create player health bar
-	health_bar = createBar(renderer, { -7.f + camera_motion.position.x, 7.f + camera_motion.position.y }, PLAYER_MAX_HEALTH, BAR_TYPE::HEALTH_BAR);
+	health_bar = createBar(renderer, HEALTH_BAR_POS + camera_motion.position, PLAYER_MAX_HEALTH, BAR_TYPE::HEALTH_BAR);
 	Motion& health = registry.motions.get(health_bar);
-	health_frame = createFrame(renderer, { -0.5f + health.position.x , health.position.y }, FRAME_TYPE::HEALTH_FRAME);
+	health_frame = createFrame(renderer, health.position, FRAME_TYPE::HEALTH_FRAME);
 
 	// Create player food bar
-	food_bar = createBar(renderer, { 7.f + camera_motion.position.x, 7.f + camera_motion.position.y }, PLAYER_MAX_FOOD, BAR_TYPE::FOOD_BAR);
+	food_bar = createBar(renderer, FOOD_BAR_POS + camera_motion.position, PLAYER_MAX_FOOD, BAR_TYPE::FOOD_BAR);
 	Motion& food = registry.motions.get(food_bar);
-	food_frame = createFrame(renderer, { -0.3f + food.position.x, food.position.y}, FRAME_TYPE::FOOD_FRAME);
+	food_frame = createFrame(renderer, food.position, FRAME_TYPE::FOOD_FRAME);
 
 	// Create spaceship home food storage bar
 	food_storage = createBar(renderer, { -3.5f + camera_motion.position.x, camera_motion.position.y }, sh_food_storage, BAR_TYPE::FOOD_STORAGE);
