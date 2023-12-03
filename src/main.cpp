@@ -54,7 +54,7 @@ int main()
 	mob_system.init(&render_system, &terrain_system, &physics_system);
 	spaceship_home_system.init(&render_system, &weapons_system);
 	quest_system.init(&render_system);
-	world_system.init(&render_system, &terrain_system, &weapons_system, &physics_system, &mob_system, &audio_system, &spaceship_home_system);
+	world_system.init(&render_system, &terrain_system, &weapons_system, &physics_system, &mob_system, &audio_system, &spaceship_home_system, &quest_system);
 
 	// Load terrain mesh into the GPU
 	std::unordered_map<unsigned int, RenderSystem::ORIENTATIONS> orientation_map;

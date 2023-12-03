@@ -26,8 +26,8 @@ class QuestSystem
         void init(RenderSystem* renderer_arg);
 
         /// @brief Resets the quest system
-        /// @param status Status for quest items
-        void resetQuestSystem(std::vector<QUEST_ITEM_STATUS> status);
+        /// @param statuses Statuses for quest items
+        void resetQuestSystem(std::vector<QUEST_ITEM_STATUS> statuses);
 
         /// @brief Marks a quest item as found and updates its indicator
         /// @param type The quest item that was found

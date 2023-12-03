@@ -114,7 +114,8 @@ void WorldSystem::init(
 	PhysicsSystem* physics_system_arg, 
 	MobSystem* mob_system_arg, 
 	AudioSystem* audio_system_arg,
-	SpaceshipHomeSystem* spaceship_home_system_arg
+	SpaceshipHomeSystem* spaceship_home_system_arg,
+	QuestSystem* quest_system_arg
 ) {
 	this->renderer = renderer_arg;
 	this->terrain = terrain_arg;
@@ -123,6 +124,7 @@ void WorldSystem::init(
 	this->physics_system = physics_system_arg;
 	this->audio_system = audio_system_arg;
 	this->spaceship_home_system = spaceship_home_system_arg;
+	this->quest_system = quest_system_arg;
 
 	// Set all states to default
 	restart_game();
@@ -580,11 +582,9 @@ void WorldSystem::restart_game() {
 	help_bar = createHelp(renderer, { 0.f, -7.f }, tooltips[0]);
 	current_tooltip = 1;
 
-	quest_items.clear();
-	quest_items.push_back({ createQuestItem(renderer, {10.f, -2.f}, TEXTURE_ASSET_ID::QUEST_1_NOT_FOUND), false });
-	quest_items.push_back({ createQuestItem(renderer, {10.f, 2.f}, TEXTURE_ASSET_ID::QUEST_2_NOT_FOUND), false });
-	registry.screenUI.insert(quest_items[0].first, {10.f, -2.f});
-	registry.screenUI.insert(quest_items[1].first, {10.f, 2.f});
+	// Reset quest system
+	std::vector<QUEST_ITEM_STATUS> statuses(2, QUEST_ITEM_STATUS::NOT_FOUND);
+	quest_system->resetQuestSystem(statuses);
 
 	// clear all used spawn locations
 	used_spawn_locations.clear();
@@ -709,101 +709,87 @@ void WorldSystem::handle_collisions() {
 
 				// Handle the item based on its function
 				switch (item.data) {
-				case ITEM_TYPE::QUEST_ONE:
-					registry.remove_all_components_of(quest_items[0].first);
-					quest_items[0].first = createQuestItem(renderer, {10.f, -2.f}, TEXTURE_ASSET_ID::QUEST_1_FOUND);
-					quest_items[0].second = true;
-
-					for (auto& item : quest_items) {
-						if (!item.second) break;
-						// end game
-					}
-					break;
-				case ITEM_TYPE::QUEST_TWO:
-					registry.remove_all_components_of(quest_items[1].first);
-					quest_items[1].first = createQuestItem(renderer, {10.f, 2.f}, TEXTURE_ASSET_ID::QUEST_2_FOUND);
-					quest_items[1].second = true;
-
-					for (auto& item : quest_items) {
-						if (!item.second) break;
-						// end game
-					}
-					break;
-				case ITEM_TYPE::FOOD:
-					// Add to food bar
-					player.food += FOOD_PICKUP_AMOUNT;
-					if (player.food > PLAYER_MAX_FOOD) {
-						player.food = PLAYER_MAX_FOOD;
-					}
-					break;
-				case ITEM_TYPE::WEAPON_NONE:
-					// Do nothing
-					break;
-				case ITEM_TYPE::WEAPON_SHURIKEN:
-					weapons_system->increaseAmmo(ITEM_TYPE::WEAPON_SHURIKEN, 5);
-					break;
-				case ITEM_TYPE::WEAPON_CROSSBOW:
-					weapons_system->increaseAmmo(ITEM_TYPE::WEAPON_CROSSBOW, 5);
-					break;
-				case ITEM_TYPE::WEAPON_SHOTGUN:
-					weapons_system->increaseAmmo(ITEM_TYPE::WEAPON_SHOTGUN, 3);
-					break;
-				case ITEM_TYPE::WEAPON_MACHINEGUN:
-					weapons_system->increaseAmmo(ITEM_TYPE::WEAPON_MACHINEGUN, 10);
-					break;
-				case ITEM_TYPE::WEAPON_UPGRADE:
-					weapons_system->upgradeWeapon();
-					break;
-				case ITEM_TYPE::POWERUP_SPEED:
-				{
-					// remove health power up if already equipped
-					if (registry.healthPowerup.has(player_salmon)) {
-						// check if the health bar is lit up (i.e. the player just healed)
-						HealthPowerup& healthPowerUp = registry.healthPowerup.get(player_salmon);
-						if (healthPowerUp.light_up_timer_ms > 0 || registry.colors.has(health_bar) ) {
-							registry.colors.remove(health_bar);
+					case ITEM_TYPE::QUEST_ONE:
+						quest_system->foundQuestItem(item.data);
+						break;
+					case ITEM_TYPE::QUEST_TWO:
+						quest_system->foundQuestItem(item.data);
+						break;
+					case ITEM_TYPE::FOOD:
+						// Add to food bar
+						player.food += FOOD_PICKUP_AMOUNT;
+						if (player.food > PLAYER_MAX_FOOD) {
+							player.food = PLAYER_MAX_FOOD;
 						}
-						registry.healthPowerup.remove(player_salmon);
+						break;
+					case ITEM_TYPE::WEAPON_NONE:
+						// Do nothing
+						break;
+					case ITEM_TYPE::WEAPON_SHURIKEN:
+						weapons_system->increaseAmmo(ITEM_TYPE::WEAPON_SHURIKEN, 5);
+						break;
+					case ITEM_TYPE::WEAPON_CROSSBOW:
+						weapons_system->increaseAmmo(ITEM_TYPE::WEAPON_CROSSBOW, 5);
+						break;
+					case ITEM_TYPE::WEAPON_SHOTGUN:
+						weapons_system->increaseAmmo(ITEM_TYPE::WEAPON_SHOTGUN, 3);
+						break;
+					case ITEM_TYPE::WEAPON_MACHINEGUN:
+						weapons_system->increaseAmmo(ITEM_TYPE::WEAPON_MACHINEGUN, 10);
+						break;
+					case ITEM_TYPE::WEAPON_UPGRADE:
+						weapons_system->upgradeWeapon();
+						break;
+					case ITEM_TYPE::POWERUP_SPEED:
+					{
+						// remove health power up if already equipped
+						if (registry.healthPowerup.has(player_salmon)) {
+							// check if the health bar is lit up (i.e. the player just healed)
+							HealthPowerup& healthPowerUp = registry.healthPowerup.get(player_salmon);
+							if (healthPowerUp.light_up_timer_ms > 0 || registry.colors.has(health_bar) ) {
+								registry.colors.remove(health_bar);
+							}
+							registry.healthPowerup.remove(player_salmon);
+						}
+						
+						// Give the speed power up to the player
+						SpeedPowerup& speedPowerup = registry.speedPowerup.emplace(player_salmon);
+						speedPowerup.old_speed = current_speed;
+						current_speed *= 2;
+
+						// Give a particle trail to the player
+						ParticleTrail& pt = registry.particleTrails.emplace(player_salmon);
+						pt.is_alive = true;
+						pt.texture = TEXTURE_ASSET_ID::PLAYER_PARTICLE;
+						pt.motion_component_ptr = &registry.motions.get(player_salmon);
+
+						// Add the powerup indicator
+						if (user_has_powerup)
+							registry.remove_all_components_of(powerup_indicator);
+						powerup_indicator = createPowerupIndicator(renderer, {-9.5f, 5.f}, TEXTURE_ASSET_ID::ICON_POWERUP_SPEED);
+						user_has_powerup = true;
+						break;
 					}
-					
-					// Give the speed power up to the player
-					SpeedPowerup& speedPowerup = registry.speedPowerup.emplace(player_salmon);
-					speedPowerup.old_speed = current_speed;
-					current_speed *= 2;
+					case ITEM_TYPE::POWERUP_HEALTH:
+						// remove the speed power up if already equipped
+						if (registry.speedPowerup.has(player_salmon)) {
+							// reset speed to original speed
+							current_speed = registry.speedPowerup.get(player_salmon).old_speed;
+							registry.speedPowerup.remove(player_salmon);
 
-					// Give a particle trail to the player
-					ParticleTrail& pt = registry.particleTrails.emplace(player_salmon);
-					pt.is_alive = true;
-					pt.texture = TEXTURE_ASSET_ID::PLAYER_PARTICLE;
-					pt.motion_component_ptr = &registry.motions.get(player_salmon);
+							// Set the particle trail to dead
+							registry.particleTrails.get(player_salmon).is_alive = false;
+						}
 
-					// Add the powerup indicator
-					if (user_has_powerup)
-						registry.remove_all_components_of(powerup_indicator);
-					powerup_indicator = createPowerupIndicator(renderer, {-9.5f, 5.f}, TEXTURE_ASSET_ID::ICON_POWERUP_SPEED);
-					user_has_powerup = true;
-					break;
-				}
-				case ITEM_TYPE::POWERUP_HEALTH:
-					// remove the speed power up if already equipped
-					if (registry.speedPowerup.has(player_salmon)) {
-						// reset speed to original speed
-						current_speed = registry.speedPowerup.get(player_salmon).old_speed;
-						registry.speedPowerup.remove(player_salmon);
+						// Give health powerup to player. Use default values in struct definition.
+						registry.healthPowerup.emplace(player_salmon);
 
-						// Set the particle trail to dead
-						registry.particleTrails.get(player_salmon).is_alive = false;
-					}
-
-					// Give health powerup to player. Use default values in struct definition.
-					registry.healthPowerup.emplace(player_salmon);
-
-					// Add the powerup indicator
-					if (user_has_powerup)
-						registry.remove_all_components_of(powerup_indicator);
-					powerup_indicator = createPowerupIndicator(renderer, {-9.5f, 5.f}, TEXTURE_ASSET_ID::ICON_POWERUP_HEALTH);
-					user_has_powerup = true;
-					break;
+						// Add the powerup indicator
+						if (user_has_powerup)
+							registry.remove_all_components_of(powerup_indicator);
+						powerup_indicator = createPowerupIndicator(renderer, {-9.5f, 5.f}, TEXTURE_ASSET_ID::ICON_POWERUP_HEALTH);
+						user_has_powerup = true;
+						break;
 				}
 
 				// remove item from map
@@ -967,6 +953,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		Player& player = registry.players.get(player_salmon);
 		Motion& player_motion = registry.motions.get(player_salmon);
 		SpaceshipHome& spaceship_home_info = registry.spaceshipHomes.components[0];
+		Inventory& inventory = registry.inventories.get(player_salmon);
 		ITEM_TYPE active_weapon = weapons_system->getActiveWeapon();
 
 		std::vector<Weapon> weapons;
@@ -984,10 +971,10 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 			items.push_back({ registry.items.get(item), registry.motions.get(item) });
 		}
 
-		std::vector<bool> quests;
-		for (auto& item : quest_items) {
-			quests.push_back(item.second);
-		}
+		std::vector<QUEST_ITEM_STATUS> quest_item_statuses {
+			inventory.quest_items[ITEM_TYPE::QUEST_ONE],
+			inventory.quest_items[ITEM_TYPE::QUEST_TWO],
+		};
 
 		ITEM_TYPE p_type = ITEM_TYPE::POWERUP_NONE;
 		if (user_has_powerup) {
@@ -998,7 +985,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 			}	
 		} 
 		
-		SaveGame(player, player_motion, active_weapon, weapons, mobs, items, quests, spaceship_home_info, p_type);
+		SaveGame(player, player_motion, active_weapon, weapons, mobs, items, quest_item_statuses, spaceship_home_info, p_type);
 
 		tooltips_on = false;
 		help_bar = createHelp(renderer, { 0.f, -7.f }, TEXTURE_ASSET_ID::SAVING);
@@ -1314,8 +1301,11 @@ void WorldSystem::spawn_items() {
 	 createItem(renderer, physics_system, terrain->get_random_terrain_location(ZONE_1), ITEM_TYPE::WEAPON_MACHINEGUN);
 
 	 // TESTING: Force spawn quest items in zone 2
-	 createItem(renderer, physics_system, terrain->get_random_terrain_location(ZONE_2), ITEM_TYPE::QUEST_ONE);
-	 createItem(renderer, physics_system, terrain->get_random_terrain_location(ZONE_2), ITEM_TYPE::QUEST_TWO);
+	//  createItem(renderer, physics_system, terrain->get_random_terrain_location(ZONE_2), ITEM_TYPE::QUEST_ONE);
+	//  createItem(renderer, physics_system, terrain->get_random_terrain_location(ZONE_2), ITEM_TYPE::QUEST_TWO);
+
+	createItem(renderer, physics_system, {1.f, 1.f}, ITEM_TYPE::QUEST_ONE);
+	createItem(renderer, physics_system, {-1.f, -1.f}, ITEM_TYPE::QUEST_TWO);
 }
 
 // Adapted from restart_game, BASICALLY a lot of optional arguments to change small things :D
@@ -1458,22 +1448,7 @@ void WorldSystem::load_game(json j) {
 	}
 
 	// Quest items
-	quest_items.clear();
-	if (!j["quests"][0]) {
-		quest_items.push_back({ createQuestItem(renderer, { 10.f + camera_motion.position.x, -2.f + camera_motion.position.y }, TEXTURE_ASSET_ID::QUEST_1_NOT_FOUND), false });
-	}
-	else {
-		quest_items.push_back({ createQuestItem(renderer, { 10.f + camera_motion.position.x, -2.f + camera_motion.position.y }, TEXTURE_ASSET_ID::QUEST_1_FOUND), true });
-	}
-
-	if (!j["quests"][1]) {
-		quest_items.push_back({ createQuestItem(renderer, { 10.f + camera_motion.position.x, 2.f + camera_motion.position.y }, TEXTURE_ASSET_ID::QUEST_2_NOT_FOUND), false });
-	}
-	else {
-		quest_items.push_back({ createQuestItem(renderer, { 10.f + camera_motion.position.x, 2.f + camera_motion.position.y }, TEXTURE_ASSET_ID::QUEST_2_FOUND), true });
-	}
-	registry.screenUI.insert(quest_items[0].first, {10.f, -2.f});
-	registry.screenUI.insert(quest_items[1].first, {10.f, 2.f});
+	quest_system->resetQuestSystem(j["quest_item_statuses"]);
 
 	// clear all used spawn locations
 	used_spawn_locations.clear();

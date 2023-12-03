@@ -8,20 +8,23 @@ void QuestSystem::init(RenderSystem* render_system_arg) {
 
 };
 
-void QuestSystem::resetQuestSystem(std::vector<QUEST_ITEM_STATUS> status) {
+void QuestSystem::resetQuestSystem(std::vector<QUEST_ITEM_STATUS> statsues) {
     Entity player = registry.players.entities[0];
     
     // Set quest item status
     Inventory& inventory = registry.inventories.get(player);
-    inventory.quest_items[ITEM_TYPE::QUEST_ONE] = status[0];
-    inventory.quest_items[ITEM_TYPE::QUEST_TWO] = status[1];
+    inventory.quest_items[ITEM_TYPE::QUEST_ONE] = statsues[0];
+    inventory.quest_items[ITEM_TYPE::QUEST_TWO] = statsues[1];
 
     // Create quest item indicators
-    createQuestItemIndicator(QUEST_1_INDICATOR_POSITION, ITEM_TYPE::QUEST_ONE, status[0]);
-    createQuestItemIndicator(QUEST_2_INDICATOR_POSITION, ITEM_TYPE::QUEST_TWO, status[1]);
+    createQuestItemIndicator(QUEST_1_INDICATOR_POSITION, ITEM_TYPE::QUEST_ONE, statsues[0]);
+    createQuestItemIndicator(QUEST_2_INDICATOR_POSITION, ITEM_TYPE::QUEST_TWO, statsues[1]);
 };
 
 void QuestSystem::foundQuestItem(ITEM_TYPE type) {
+    // registry.remove_all_components_of(quest_items[0].first);
+    // quest_items[0].first = createQuestItem(renderer, {10.f, -2.f}, TEXTURE_ASSET_ID::QUEST_1_FOUND);
+    // quest_items[0].second = true;
 
 };
 
