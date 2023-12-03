@@ -710,10 +710,10 @@ void WorldSystem::handle_collisions() {
 				// Handle the item based on its function
 				switch (item.data) {
 					case ITEM_TYPE::QUEST_ONE:
-						quest_system->foundQuestItem(item.data);
+						quest_system->processQuestItem(item.data, QUEST_ITEM_STATUS::FOUND);
 						break;
 					case ITEM_TYPE::QUEST_TWO:
-						quest_system->foundQuestItem(item.data);
+						quest_system->processQuestItem(item.data, QUEST_ITEM_STATUS::FOUND);
 						break;
 					case ITEM_TYPE::FOOD:
 						// Add to food bar

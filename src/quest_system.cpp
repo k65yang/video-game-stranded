@@ -21,11 +21,26 @@ void QuestSystem::resetQuestSystem(std::vector<QUEST_ITEM_STATUS> statsues) {
     createQuestItemIndicator(QUEST_2_INDICATOR_POSITION, ITEM_TYPE::QUEST_TWO, statsues[1]);
 };
 
-void QuestSystem::foundQuestItem(ITEM_TYPE type) {
-    // registry.remove_all_components_of(quest_items[0].first);
-    // quest_items[0].first = createQuestItem(renderer, {10.f, -2.f}, TEXTURE_ASSET_ID::QUEST_1_FOUND);
-    // quest_items[0].second = true;
+void QuestSystem::processQuestItem(ITEM_TYPE type, QUEST_ITEM_STATUS new_status) {
+    // Remove current indicator
+    for (uint i = 0; i < registry.questItemIndicators.size(); i++) {
+        Entity e = registry.questItemIndicators.entities[i];
+        QuestItemIndicator& c = registry.questItemIndicators.components[i];
+        
+        if (c.quest_item == type) {
+            registry.remove_all_components_of(e);
+            break;
+        }
+    }
 
+    // Create new indicator
+    vec2 position = type == ITEM_TYPE::QUEST_ONE ? QUEST_1_INDICATOR_POSITION : QUEST_2_INDICATOR_POSITION;
+    createQuestItemIndicator(position, type, new_status);
+
+    // Update quest item status
+    Entity player = registry.players.entities[0];
+    Inventory& inventory = registry.inventories.get(player);
+    inventory.quest_items[type] = new_status;
 };
 
 void QuestSystem::submitQuestItems() {
@@ -74,8 +89,4 @@ Entity QuestSystem::createQuestItemIndicator(vec2 position, ITEM_TYPE type, QUES
     );
 
 	return entity;
-};
-
-void QuestSystem::submitQuestItem(ITEM_TYPE type) {
-
 };

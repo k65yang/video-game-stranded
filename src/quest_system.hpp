@@ -29,9 +29,10 @@ class QuestSystem
         /// @param statuses Statuses for quest items
         void resetQuestSystem(std::vector<QUEST_ITEM_STATUS> statuses);
 
-        /// @brief Marks a quest item as found and updates its indicator
+        /// @brief Marks a quest item as found or submitted depending on new_status and updates its indicator
         /// @param type The quest item that was found
-        void foundQuestItem(ITEM_TYPE type);
+        /// @param new_status The new status of the quest item
+        void processQuestItem(ITEM_TYPE type, QUEST_ITEM_STATUS new_status);
 
         /// @brief Marks quest item(s) as submitted and updates quest item indicator(s)
         void submitQuestItems();
@@ -62,8 +63,4 @@ class QuestSystem
         /// @param type The quest item the indicator is for
         /// @param status The status of the quest item
         Entity createQuestItemIndicator(vec2 position, ITEM_TYPE type, QUEST_ITEM_STATUS status);
-
-        /// @brief Marks a quest item as submitted and updates its indicator
-        /// @param type The quest item that was submitted
-        void submitQuestItem(ITEM_TYPE type);
 };

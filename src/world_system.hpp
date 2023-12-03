@@ -124,7 +124,6 @@ private:
 	Entity spaceship_home; 
 	Entity help_bar;
 	bool tooltips_on = true;
-	std::vector<std::pair<Entity, bool>> quest_items;
 
 	bool user_has_first_weapon = false;
 	bool user_has_powerup = false;
