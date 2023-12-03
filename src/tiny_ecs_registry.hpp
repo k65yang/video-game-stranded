@@ -36,6 +36,7 @@ public:
 	ComponentContainer<Particle> particles;
 
 	ComponentContainer<vec2> screenUI;
+	ComponentContainer<QuestItemIndicator> questItemIndicators;
 
 	// Rendering related
 	ComponentContainer<Mesh*> meshPtrs;

@@ -70,6 +70,10 @@ struct SpeedPowerup {
 	float old_speed;
 };
 
+struct QuestItemIndicator {
+	ITEM_TYPE quest_item;
+};
+
 // Make sure that the heal interval is always larger than the light up interval
 struct HealthPowerup {
 	float heal_interval_ms = 5000.f;				// Player health will increase after this interval

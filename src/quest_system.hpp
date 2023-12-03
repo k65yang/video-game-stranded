@@ -56,8 +56,9 @@ class QuestSystem
 
         /// @brief Creates a quest item indicator
         /// @param position The position of the indicator
+        /// @param type The quest item the indicator is for
         /// @param texture The texture to use for the indicator
-        Entity createQuestItemIndicator(vec2 position, TEXTURE_ASSET_ID texture);
+        Entity createQuestItemIndicator(vec2 position, ITEM_TYPE type, TEXTURE_ASSET_ID texture);
 
         /// @brief Marks a quest item as submitted and updates its indicator
         /// @param type The quest item that was submitted
