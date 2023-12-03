@@ -407,30 +407,15 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 }
 
 void WorldSystem::updatePlayerDirection() {
-	if (CURSOR_ANGLE >= -M_PI / 4 && CURSOR_ANGLE < M_PI / 4) {
-		if (user_has_first_weapon) 
-			PLAYER_DIRECTION = 8;  // Weapom, Right
-		else 
-			PLAYER_DIRECTION = 4;  // Right
-		}
-	else if (CURSOR_ANGLE >= M_PI / 4 && CURSOR_ANGLE < 3 * M_PI / 4) {
-		if (user_has_first_weapon)
-			PLAYER_DIRECTION = 5;  // Weapom, Down
-		else
-			PLAYER_DIRECTION = 2;  // Down
-		}
-	else if (CURSOR_ANGLE >= -3 * M_PI / 4 && CURSOR_ANGLE < -M_PI / 4) {
-		if (user_has_first_weapon)
-			PLAYER_DIRECTION = 6;  // Weapom, UP
-		else
-			PLAYER_DIRECTION = 0;  // Up
-		}
-	else {
-		if (user_has_first_weapon)
-			PLAYER_DIRECTION = 7;  // Weapom, left
-		else
-			PLAYER_DIRECTION = 3;  // Left
-		}
+	if (CURSOR_ANGLE >= -M_PI / 4 && CURSOR_ANGLE < M_PI / 4) 
+		PLAYER_DIRECTION = 8;  // Weapom, Right
+	else if (CURSOR_ANGLE >= M_PI / 4 && CURSOR_ANGLE < 3 * M_PI / 4) 
+		PLAYER_DIRECTION = 5;  // Weapom, Down
+	else if (CURSOR_ANGLE >= -3 * M_PI / 4 && CURSOR_ANGLE < -M_PI / 4) 
+		PLAYER_DIRECTION = 6;  // Weapom, UP
+	else 
+		PLAYER_DIRECTION = 7;  // Weapom, left
+
 
 	// Update player's direction
 	registry.players.components[0].framey = PLAYER_DIRECTION;
@@ -577,17 +562,16 @@ void WorldSystem::restart_game() {
 	//fow = createFOW(renderer, { 0,0 });
 
 	// Create player health bar
-	// update health and food pos here
-	health_bar = createBar(renderer, { -7.5f, 7.f }, PLAYER_MAX_HEALTH, BAR_TYPE::HEALTH_BAR);
-	health_frame = createFrame(renderer, { -8.f, 7.f }, FRAME_TYPE::HEALTH_FRAME);
-	registry.screenUI.insert(health_bar, { -7.5f, 7.f });
-	registry.screenUI.insert(health_frame, { -8.f, 7.f });
+	health_bar = createBar(renderer, HEALTH_BAR_FRAME_POS, PLAYER_MAX_HEALTH, BAR_TYPE::HEALTH_BAR);
+	health_frame = createFrame(renderer, HEALTH_BAR_FRAME_POS, FRAME_TYPE::HEALTH_FRAME);
+	registry.screenUI.insert(health_bar, HEALTH_BAR_FRAME_POS);
+	registry.screenUI.insert(health_frame, HEALTH_BAR_FRAME_POS);
 
 	// Create player food bar
-	food_bar = createBar(renderer, { 7.3f, 7.f }, PLAYER_MAX_FOOD, BAR_TYPE::FOOD_BAR);
-	food_frame = createFrame(renderer, { 7.f, 7.f }, FRAME_TYPE::FOOD_FRAME);
-	registry.screenUI.insert(food_bar, { 7.3f, 7.f });
-	registry.screenUI.insert(food_frame, { 7.f, 7.f });
+	food_bar = createBar(renderer, FOOD_BAR_FRAME_POS, PLAYER_MAX_FOOD, BAR_TYPE::FOOD_BAR);
+	food_frame = createFrame(renderer, FOOD_BAR_FRAME_POS, FRAME_TYPE::FOOD_FRAME);
+	registry.screenUI.insert(food_bar, FOOD_BAR_FRAME_POS);
+	registry.screenUI.insert(food_frame, FOOD_BAR_FRAME_POS);
 
 	// Reset the weapon indicator
 	user_has_first_weapon = false;
@@ -1406,17 +1390,16 @@ void WorldSystem::load_game(json j) {
 	spaceship_home_system->resetSpaceshipHomeSystem(sh_food_storage, sh_ammo_storage);
 
 	// Create player health bar
-	// update health and food pos here
-	health_bar = createBar(renderer, { -7.5f, 7.f }, PLAYER_MAX_HEALTH, BAR_TYPE::HEALTH_BAR);
-	health_frame = createFrame(renderer, { -8.f, 7.f }, FRAME_TYPE::HEALTH_FRAME);
-	registry.screenUI.insert(health_bar, { -7.5f, 7.f });
-	registry.screenUI.insert(health_frame, { -8.f, 7.f });
+	health_bar = createBar(renderer, HEALTH_BAR_FRAME_POS, PLAYER_MAX_HEALTH, BAR_TYPE::HEALTH_BAR);
+	health_frame = createFrame(renderer, HEALTH_BAR_FRAME_POS, FRAME_TYPE::HEALTH_FRAME);
+	registry.screenUI.insert(health_bar, HEALTH_BAR_FRAME_POS);
+	registry.screenUI.insert(health_frame, HEALTH_BAR_FRAME_POS);
 
 	// Create player food bar
-	food_bar = createBar(renderer, { 7.3f, 7.f }, PLAYER_MAX_FOOD, BAR_TYPE::FOOD_BAR);
-	food_frame = createFrame(renderer, { 7.f, 7.f }, FRAME_TYPE::FOOD_FRAME);
-	registry.screenUI.insert(food_bar, { 7.3f, 7.f });
-	registry.screenUI.insert(food_frame, { 7.f, 7.f });
+	food_bar = createBar(renderer, FOOD_BAR_FRAME_POS, PLAYER_MAX_FOOD, BAR_TYPE::FOOD_BAR);
+	food_frame = createFrame(renderer, FOOD_BAR_FRAME_POS, FRAME_TYPE::FOOD_FRAME);
+	registry.screenUI.insert(food_bar, FOOD_BAR_FRAME_POS);
+	registry.screenUI.insert(food_frame, FOOD_BAR_FRAME_POS);
 
 	// Tool tips and help bar
 	tooltips_on = false;

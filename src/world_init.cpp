@@ -19,7 +19,8 @@ Entity createPlayer(RenderSystem* renderer, PhysicsSystem* physics, vec2 pos)
 	motion.position = pos;
 	motion.angle = 0.f;
 	motion.velocity = { 0.f, 0.f };
-	motion.scale = vec2({ 100/49, 1 });
+	//motion.scale = vec2({ 100/49, 1 });
+	motion.scale = vec2({ target_resolution.x / tile_size_px * 0.08503401, target_resolution.y / tile_size_px * 0.0625 });
 
 	// Initialize the collider
 	
@@ -117,9 +118,7 @@ Entity createSpaceship(RenderSystem* renderer, vec2 position) {
 	motion.angle = 0.f;
 	motion.velocity = { 0.f, 0.f };
 	motion.position = position;
-
-	// Setting initial values, scale is negative to make it face the opposite way
-	motion.scale = vec2({ 5, 5 });
+	motion.scale = vec2({ target_resolution.x / tile_size_px * 0.20833333, target_resolution.y / tile_size_px * 0.3125});
 
 	registry.renderRequests.insert(
 		entity,
@@ -164,7 +163,6 @@ Entity createBar(RenderSystem* renderer, vec2 position, int amount, BAR_TYPE typ
 	motion.angle = 0.f;
 	motion.velocity = { 0.f, 0.f };
 	motion.position = position;
-	motion.scale = vec2({ 5.5, 0.7 });
 
 	TEXTURE_ASSET_ID texture = TEXTURE_ASSET_ID::PLAYER;
 	switch (type) {
@@ -212,8 +210,7 @@ Entity createFrame(RenderSystem* renderer, vec2 position, FRAME_TYPE type) {
 	auto& motion = registry.motions.emplace(entity);
 	motion.angle = 0.f;
 	motion.velocity = { 0.f, 0.f };
-	motion.scale = vec2({ 7, 1 });
-
+	
 	// Initialize the collider
 	//physics_system->createDefaultCollider(entity);
 
@@ -221,11 +218,11 @@ Entity createFrame(RenderSystem* renderer, vec2 position, FRAME_TYPE type) {
 	switch (type) {
 			case FRAME_TYPE::HEALTH_FRAME:
 				texture = TEXTURE_ASSET_ID::HEALTH_FRAME;
-				motion.scale = vec2({ 8, 1.2 });
+				motion.scale = vec2({ target_resolution.x / tile_size_px * 0.3333, target_resolution.y / tile_size_px * 0.075 });
 				break;
 			case FRAME_TYPE::FOOD_FRAME:
 				texture = TEXTURE_ASSET_ID::FOOD_FRAME;
-				motion.scale = vec2({ 8, 1.2 });
+				motion.scale = vec2({ target_resolution.x / tile_size_px * 0.3333, target_resolution.y / tile_size_px * 0.075 });
 
 				break;
 			case FRAME_TYPE::BAR_FRAME:
