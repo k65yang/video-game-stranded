@@ -119,7 +119,7 @@ Entity createSpaceship(RenderSystem* renderer, vec2 position) {
 	motion.position = position;
 
 	// Setting initial values, scale is negative to make it face the opposite way
-	motion.scale = vec2({ 3, 4 });
+	motion.scale = vec2({ 5, 5 });
 
 	registry.renderRequests.insert(
 		entity,
@@ -304,6 +304,7 @@ Entity createStorage(RenderSystem* renderer, vec2 position, ITEM_TYPE type) {
 				break;
 			case ITEM_TYPE::TURKEY:
 				texture = TEXTURE_ASSET_ID::TURKEY;
+				motion.scale = vec2({ 3, 3 });
 				break;
 		}
 
