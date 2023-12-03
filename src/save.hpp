@@ -5,9 +5,10 @@
 void SaveGame(
     Player& player, 
     Motion& player_motion, 
+    ITEM_TYPE active_weapon,
+    std::vector<Weapon> weapons,
     std::vector<std::pair<Mob&, Motion&>> mobs, 
     std::vector<std::pair<Item&, Motion&>> items, 
-    std::vector<bool> quests, 
-    Weapon& weapon,
+    std::vector<bool> quests,
     SpaceshipHome& spaceshipHome,
     ITEM_TYPE powerup);
