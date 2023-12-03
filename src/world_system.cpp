@@ -629,6 +629,7 @@ void WorldSystem::handle_collisions() {
 	// Loop over all collisions detected by the physics system
 	auto& collisionsRegistry = registry.collisions;
 	vec2 hasCorrectedDirection = {0,0};
+	int correctionCount = 0;
 
 	for (uint i = 0; i < collisionsRegistry.components.size(); i++) {
 		// The entity and its collider
@@ -667,15 +668,22 @@ void WorldSystem::handle_collisions() {
 
 			// Checking Player - Mobs
 			if (registry.mobs.has(entity_other)) {
+				std::cout << "collide with mob"<< std::endl; // DELTE LATER
+
 				// prevent player stack on top of mob upon colliding
-				Motion& player_motion = registry.motions.get(entity);
-				Motion& mob_motion = registry.motions.get(entity_other);
+				if (correctionCount < 3) {
+					Motion& player_motion = registry.motions.get(entity);
+					Motion& mob_motion = registry.motions.get(entity_other);
 
-				vec2 correctionVec = registry.collisions.components[i].MTV * registry.collisions.components[i].overlap;
-				player_motion.position = player_motion.position + correctionVec;
-				mob_motion.position = mob_motion.position + -1.f * correctionVec;
+					vec2 correctionVec = registry.collisions.components[i].MTV * registry.collisions.components[i].overlap;
+					player_motion.position = player_motion.position + correctionVec;
+					mob_motion.position = mob_motion.position + -1.f * correctionVec;
+
+					correctionCount += 1;
+					std::cout <<"iframe "<< player.iframes_timer << std::endl; // DELTE LATER
 				
-
+				}
+				
 				if (player.iframes_timer > 0 || registry.deathTimers.has(entity)) {
 					// Don't damage and discard all other collisions for a bit
 					collisionsRegistry.clear();

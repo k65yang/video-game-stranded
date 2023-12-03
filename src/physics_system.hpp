@@ -45,7 +45,7 @@ public:
 	void initStaticBVH(size_t numberOfColliders);
 	void buildBVH();
 	void intersectBVH(Entity entity, const int nodeIndex);
-	void collides(Entity entity1, Entity entity2);
+	bool collides(Entity entity1, Entity entity2);
 
 	PhysicsSystem()
 	{

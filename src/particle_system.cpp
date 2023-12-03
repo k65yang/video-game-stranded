@@ -1,5 +1,8 @@
 #include "particle_system.hpp"
 
+
+// reference: https://www.youtube.com/watch?v=GK0jHlv3e3w
+// follow through the video on particle system changes;
 void ParticleSystem::step(float elapsed_ms) {
     // Iterate through all particles
     auto& particle_component_container = registry.particles.components;
@@ -130,7 +133,7 @@ void ParticleSystem::createParticleTrail(Entity targetEntity, TEXTURE_ASSET_ID t
     std::random_device rd;
     std::default_random_engine gen(rd());
     std::uniform_real_distribution<float> dist(-0.1, 0.1);
-
+    
     // 2. emit particles based on this template and targetEntity
     for (int i = 0; i < numberOfParticles; i++) {
 
