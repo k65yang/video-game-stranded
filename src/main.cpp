@@ -48,7 +48,8 @@ int main()
 	render_system.init(window);
 	weapons_system.init(&render_system);
 	mob_system.init(&render_system, &terrain_system);
-	world_system.init(&render_system, &terrain_system, &weapons_system, &physics_system, &mob_system, &audio_system);
+	particle_system.init(&render_system);
+	world_system.init(&render_system, &terrain_system, &weapons_system, &physics_system, &mob_system, &audio_system, &particle_system);
 
 	// Load terrain mesh into the GPU
 	std::unordered_map<unsigned int, RenderSystem::ORIENTATIONS> orientation_map;
@@ -56,7 +57,7 @@ int main()
 	render_system.initializeTerrainBuffers(orientation_map);
 
 	pathfinding_system.init(&terrain_system);
-	particle_system.init(&render_system);
+	
 
 	// variable timestep loop
 	auto t = Clock::now();
@@ -77,9 +78,9 @@ int main()
 			terrain_system.step(elapsed_ms);
 			pathfinding_system.step(elapsed_ms);
 			weapons_system.step(elapsed_ms);
-			particle_system.step(elapsed_ms);
 			mob_system.step(elapsed_ms);
 			world_system.handle_collisions();
+			particle_system.step(elapsed_ms);
 		}
 		render_system.draw();
 

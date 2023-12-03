@@ -107,13 +107,14 @@ GLFWwindow* WorldSystem::create_window() {
 	return window;
 }
 
-void WorldSystem::init(RenderSystem* renderer_arg, TerrainSystem* terrain_arg, WeaponsSystem* weapons_system_arg, PhysicsSystem* physics_system_arg, MobSystem* mob_system_arg, AudioSystem* audio_system_arg) {
+void WorldSystem::init(RenderSystem* renderer_arg, TerrainSystem* terrain_arg, WeaponsSystem* weapons_system_arg, PhysicsSystem* physics_system_arg, MobSystem* mob_system_arg, AudioSystem* audio_system_arg, ParticleSystem* particle_system_arg) {
 	this->renderer = renderer_arg;
 	this->terrain = terrain_arg;
 	this->weapons_system = weapons_system_arg;
 	this->mob_system = mob_system_arg;
 	this->physics_system = physics_system_arg;
 	this->audio_system = audio_system_arg;
+	this->particle_system = particle_system_arg;
 
 	// Set all states to default
 	restart_game();
@@ -405,6 +406,13 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 				printf("INACCURACY REMOVED\n");
 			}
 		}
+
+		// creating particles effects for character upgrades
+		if (registry.speedPowerup.has(entity)) {
+			particle_system->createParticleTrail(entity, TEXTURE_ASSET_ID::PLAYER_PARTICLE, 2, vec2{0.7f, 1.0f});
+		}
+		
+
 	}
 
 	// Lets the editor drag
@@ -659,7 +667,6 @@ void WorldSystem::handle_collisions() {
 
 			// Checking Player - Mobs
 			if (registry.mobs.has(entity_other)) {
-				std::cout << "hi" << std::endl;
 				// prevent player stack on top of mob upon colliding
 				Motion& player_motion = registry.motions.get(entity);
 				Motion& mob_motion = registry.motions.get(entity_other);
@@ -838,12 +845,7 @@ void WorldSystem::handle_collisions() {
 					speedPowerup.old_speed = current_speed;
 					current_speed *= 2;
 
-					// Give a particle trail to the player
-					ParticleTrail& pt = registry.particleTrails.emplace(player_salmon);
-					pt.is_alive = true;
-					pt.texture = TEXTURE_ASSET_ID::PLAYER_PARTICLE;
-					pt.motion_component_ptr = &registry.motions.get(player_salmon);
-
+					
 					// Add the powerup indicator
 					if (user_has_powerup)
 						registry.remove_all_components_of(powerup_indicator);
@@ -859,7 +861,7 @@ void WorldSystem::handle_collisions() {
 						registry.speedPowerup.remove(player_salmon);
 
 						// Set the particle trail to dead
-						registry.particleTrails.get(player_salmon).is_alive = false;
+						//registry.particleTrails.get(player_salmon).is_alive = false;
 					}
 
 					// Give health powerup to player. Use default values in struct definition.
@@ -1618,10 +1620,10 @@ void WorldSystem::load_game(json j) {
 				current_speed *= 2;
 
 				// Give a particle trail to the player
-				ParticleTrail& pt = registry.particleTrails.emplace(player_salmon);
-				pt.is_alive = true;
-				pt.texture = TEXTURE_ASSET_ID::PLAYER_PARTICLE;
-				pt.motion_component_ptr = &registry.motions.get(player_salmon);
+				//ParticleTrail& pt = registry.particleTrails.emplace(player_salmon);
+				//pt.is_alive = true;
+				//pt.texture = TEXTURE_ASSET_ID::PLAYER_PARTICLE;
+				//pt.motion_component_ptr = &registry.motions.get(player_salmon);
 
 				// UI Indicator
 				powerup_indicator = createPowerupIndicator(renderer, { -9.5f + camera_motion.position.x, 5.f + camera_motion.position.y }, TEXTURE_ASSET_ID::ICON_POWERUP_SPEED);

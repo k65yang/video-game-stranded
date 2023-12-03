@@ -441,7 +441,12 @@ const int NUM_PARTICLES = 200;
 
 // Struct describing particles 
 struct Particle {
-	
+	bool active = false;
+	TEXTURE_ASSET_ID texture = TEXTURE_ASSET_ID::REDBLOCK; //HARDCODED TEMPORARY TO THIS FOR NOW
+	float lifeTime = 1000.0f; // in ms
+	float lifeTimeRemaining = 0.0f;
+	float sizeBegin, sizeEnd;
+
 }; 
 
 // Each entity that has particle effects will have a vector to track individual particles
@@ -450,4 +455,11 @@ struct ParticleTrail {
 	Motion* motion_component_ptr;
 	bool is_alive;
 	std::set<Entity> particles;
+};
+
+struct ParticleTemplate {
+	TEXTURE_ASSET_ID texture = TEXTURE_ASSET_ID::REDBLOCK; //HARDCODED TEMPORARY TO THIS FOR NOW
+	float lifeTime = 1000.0f; // in ms
+	float lifeTimeRemaining = 0.0f;
+	float sizeBegin, sizeEnd;
 };

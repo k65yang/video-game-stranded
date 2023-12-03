@@ -18,6 +18,7 @@
 #include "physics_system.hpp"
 #include "save.hpp"
 #include "audio_system.hpp"
+#include "particle_system.hpp"
 
 #include <nlohmann/json.hpp>
 
@@ -47,7 +48,7 @@ public:
 	GLFWwindow* create_window();
 
 	// starts the game
-	void init(RenderSystem* renderer, TerrainSystem* terrain_arg, WeaponsSystem* weapons_system_arg, PhysicsSystem* physics_system_arg, MobSystem* mob_system_arg, AudioSystem* audio_system_arg);
+	void init(RenderSystem* renderer, TerrainSystem* terrain_arg, WeaponsSystem* weapons_system_arg, PhysicsSystem* physics_system_arg, MobSystem* mob_system_arg, AudioSystem* audio_system_arg, ParticleSystem* particle_system_arg);
 
 	// Releases all associated resources
 	~WorldSystem();
@@ -97,6 +98,7 @@ private:
 	MobSystem* mob_system;
 	PhysicsSystem* physics_system;
 	AudioSystem* audio_system;
+	ParticleSystem* particle_system;
 	float current_speed;
 	float next_turtle_spawn;
 	float next_fish_spawn;

@@ -1,6 +1,144 @@
 #include "particle_system.hpp"
 
 void ParticleSystem::step(float elapsed_ms) {
+    // Iterate through all particles
+    auto& particle_component_container = registry.particles.components;
+    auto& particle_entity_container = registry.particles.entities;
+
+    for (int i = 0; i < particle_entity_container.size(); i++) {
+        auto& particle = particle_component_container[i];
+
+        if (!particle.active) {
+
+            continue;
+        }
+
+        // kills the particle when no lifetime left
+        if (particle.lifeTimeRemaining <= 0.0f) {
+        
+            particle.active = false; //unnessary?
+            registry.remove_all_components_of(particle_entity_container[i]);
+
+        }
+
+        //updates lifetime remaining
+        particle.lifeTimeRemaining -= elapsed_ms;
+
+        //updates alpha, unsure if we want to update alpha here or somewhere else like in rendering steps, but for now it will be here
+        registry.colors.get(particle_entity_container[i]).a *= (particle.lifeTimeRemaining / particle.lifeTime);
+
+        // TODO add lerp for color and size. not needed for this effects
+    }
+}
+
+
+
+// emit a particle based on the template particle entity
+void ParticleSystem::emit(Entity templateParticleEntity) {
+    // Reserve an entity
+    auto entity = Entity();
+    
+    // Set particle components using template particle's entity
+    registry.particles.emplace(entity);
+
+    auto& template_particle = registry.particles.get(templateParticleEntity);
+    auto& entity_particle = registry.particles.get(entity);
+
+    entity_particle.lifeTime = template_particle.lifeTime;
+    entity_particle.lifeTimeRemaining = template_particle.lifeTime;
+    entity_particle.texture = template_particle.texture;
+    entity_particle.sizeBegin = template_particle.sizeBegin;
+    entity_particle.sizeEnd = template_particle.sizeEnd;
+    entity_particle.active = true;
+
+    // Initialize the position, scale, and physics components
+    registry.motions.emplace(entity);
+
+    auto& template_motion = registry.motions.get(templateParticleEntity);
+    auto& entity_motion = registry.motions.get(entity);
+    
+    entity_motion.position = template_motion.position;
+    entity_motion.velocity = template_motion.velocity;
+    entity_motion.scale = template_motion.scale;
+
+    // Set the colour of the particle
+    registry.colors.emplace(entity);
+
+    auto& template_color = registry.colors.get(templateParticleEntity);
+    auto& entity_color = registry.colors.get(entity);
+
+    entity_color = template_color;
+
+
+    // Add the particle to the render requests
+    registry.renderRequests.insert(
+        entity,
+        { entity_particle.texture,
+            EFFECT_ASSET_ID::TEXTURED,
+            GEOMETRY_BUFFER_ID::SPRITE,
+            RENDER_LAYER_ID::LAYER_1 });
+
+}
+
+// creates particle trail for a specified entity with given texture, scale, number of particles each frame.
+void ParticleSystem::createParticleTrail(Entity targetEntity, TEXTURE_ASSET_ID texture, int numOfParticles, vec2 scale) {
+
+    // 1. create the template particle
+    auto template_entity = Entity();
+
+    // particle component for template
+    auto& template_particle = registry.particles.emplace(template_entity);
+    template_particle.active = false;
+    template_particle.lifeTime = 1000.f;
+    template_particle.lifeTimeRemaining = 0.f;
+    template_particle.texture = texture;
+
+    // not used for now since the speed effects doesnt need it
+    template_particle.sizeBegin = 0.5f;
+    template_particle.sizeEnd = 0.0f;
+
+
+    // motion component for template
+    auto& template_motion = registry.motions.emplace(template_entity);
+    template_motion.scale = scale;
+    template_motion.position = registry.motions.get(targetEntity).position;
+    
+
+
+    // Initialize color for template
+    auto& template_color = registry.colors.emplace(template_entity);
+    
+    // follows target color scheme
+    template_color = registry.colors.get(targetEntity);
+
+
+    std::random_device rd;
+    std::default_random_engine gen(rd());
+    std::uniform_real_distribution<float> dist(-0.1, 0.1);
+
+    // 2. emit particles based on this template and targetEntity
+    for (int i = 0; i < numOfParticles; i++) {
+
+        // randomize the position of template
+        template_motion.position = template_motion.position + vec2(dist(gen), dist(gen));
+        emit(template_entity);
+    }
+    
+}
+
+// create particles effects that start from contact point, and 
+// spreads in a specified direction with a cone angle spread, with specified particle amounts and color
+void ParticleSystem::createParticleSplash() {
+
+
+
+}
+
+
+
+
+/*
+void ParticleSystem::step(float elapsed_ms) {
     // Iterate through all existing particle trails
     auto& particle_trail_container = registry.particleTrails;
     std::vector<Entity> particles_to_remove;
@@ -48,26 +186,27 @@ void ParticleSystem::step(float elapsed_ms) {
     // particle_trails_to_remove.clear();
     particles_to_remove.clear();
 }
+*/
 
+/*
 Entity ParticleSystem::createParticle(TEXTURE_ASSET_ID texture, Motion* motion_component_ptr) {
     // Reserve an entity
-	auto entity = Entity();
+    auto entity = Entity();
 
     // Store a reference to the potentially re-used mesh object
     Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
     registry.meshPtrs.emplace(entity, &mesh);
 
     // Initialize the position, scale, and physics components
-	auto& motion = registry.motions.emplace(entity);
-	motion.angle = 0.f;
-	motion.velocity = vec2(0.f);
+    auto& motion = registry.motions.emplace(entity);
+    motion.angle = 0.f;
+    motion.velocity = vec2(0.f);
     motion.scale = vec2({ .7f, 1.f });
 
     // Random number generator
-    std::random_device rd;
-    std::default_random_engine gen(rd());
+
     std::uniform_real_distribution<float> dist(-0.1, 0.1);
-	motion.position = motion_component_ptr->position + vec2(dist(gen), dist(gen));
+    motion.position = motion_component_ptr->position + vec2(dist(random), dist(gen));
 
     // Add this particle to the particles registry
     auto& particles = registry.particles.emplace(entity);
@@ -86,3 +225,4 @@ Entity ParticleSystem::createParticle(TEXTURE_ASSET_ID texture, Motion* motion_c
             RENDER_LAYER_ID::LAYER_1 });
     return entity;
 }
+*/
