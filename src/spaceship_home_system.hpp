@@ -7,6 +7,7 @@
 #include "tiny_ecs_registry.hpp"
 #include "world_init.hpp"
 #include "weapons_system.hpp"
+#include "quest_system.hpp"
 
 // A spaceship system class that handles everything spaceship home related
 class SpaceshipHomeSystem
@@ -24,7 +25,7 @@ class SpaceshipHomeSystem
         /// @brief Initializes the render system that the spaceship home system uses
         /// @param renderer_arg Pointer to the render system
         /// @param weapon_system_arg Pointer to the weapons system
-        void init(RenderSystem* renderer_arg, WeaponsSystem* weapon_system_arg);
+        void init(RenderSystem* renderer_arg, WeaponsSystem* weapon_system_arg, QuestSystem* quest_system_arg);
 
         /// @brief Initializes spaceship home elements 
         /// @param food_storage Initial amount of food the spaceship home stores
@@ -50,6 +51,7 @@ class SpaceshipHomeSystem
 
         RenderSystem* renderer;
         WeaponsSystem* weaponsSystem;
+        QuestSystem* quest_system;
         Entity spaceship_home;
         Entity food_item;
         Entity food_storage_bar;

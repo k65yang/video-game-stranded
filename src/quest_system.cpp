@@ -8,17 +8,17 @@ void QuestSystem::init(RenderSystem* render_system_arg) {
 
 };
 
-void QuestSystem::resetQuestSystem(std::vector<QUEST_ITEM_STATUS> statsues) {
+void QuestSystem::resetQuestSystem(std::vector<QUEST_ITEM_STATUS> statuses) {
     Entity player = registry.players.entities[0];
     
     // Set quest item status
     Inventory& inventory = registry.inventories.get(player);
-    inventory.quest_items[ITEM_TYPE::QUEST_ONE] = statsues[0];
-    inventory.quest_items[ITEM_TYPE::QUEST_TWO] = statsues[1];
+    inventory.quest_items[ITEM_TYPE::QUEST_ONE] = statuses[0];
+    inventory.quest_items[ITEM_TYPE::QUEST_TWO] = statuses[1];
 
     // Create quest item indicators
-    createQuestItemIndicator(QUEST_1_INDICATOR_POSITION, ITEM_TYPE::QUEST_ONE, statsues[0]);
-    createQuestItemIndicator(QUEST_2_INDICATOR_POSITION, ITEM_TYPE::QUEST_TWO, statsues[1]);
+    createQuestItemIndicator(QUEST_1_INDICATOR_POSITION, ITEM_TYPE::QUEST_ONE, statuses[0]);
+    createQuestItemIndicator(QUEST_2_INDICATOR_POSITION, ITEM_TYPE::QUEST_TWO, statuses[1]);
 };
 
 void QuestSystem::processQuestItem(ITEM_TYPE type, QUEST_ITEM_STATUS new_status) {
@@ -26,10 +26,9 @@ void QuestSystem::processQuestItem(ITEM_TYPE type, QUEST_ITEM_STATUS new_status)
     for (uint i = 0; i < registry.questItemIndicators.size(); i++) {
         Entity e = registry.questItemIndicators.entities[i];
         QuestItemIndicator& c = registry.questItemIndicators.components[i];
-        
+
         if (c.quest_item == type) {
             registry.remove_all_components_of(e);
-            break;
         }
     }
 
@@ -43,8 +42,22 @@ void QuestSystem::processQuestItem(ITEM_TYPE type, QUEST_ITEM_STATUS new_status)
     inventory.quest_items[type] = new_status;
 };
 
-void QuestSystem::submitQuestItems() {
+bool QuestSystem::submitQuestItems() {
+    Entity player = registry.players.entities[0];
+    Inventory& inventory = registry.inventories.get(player);
+    
+    int num_submitted = 0;
+    for (auto it = inventory.quest_items.begin(); it != inventory.quest_items.end(); it++) {
+        if (it->second != QUEST_ITEM_STATUS::NOT_FOUND) {
+            num_submitted++;
 
+            if (it->second == QUEST_ITEM_STATUS::FOUND) {
+                processQuestItem(it->first, QUEST_ITEM_STATUS::SUBMITTED);
+            }
+        }
+    }
+
+    return num_submitted == NUM_QUEST_ITEMS;
 };
 
 Entity QuestSystem::createQuestItemIndicator(vec2 position, ITEM_TYPE type, QUEST_ITEM_STATUS status) {

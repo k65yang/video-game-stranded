@@ -35,9 +35,11 @@ class QuestSystem
         void processQuestItem(ITEM_TYPE type, QUEST_ITEM_STATUS new_status);
 
         /// @brief Marks quest item(s) as submitted and updates quest item indicator(s)
-        void submitQuestItems();
+        /// @returns True if all quest items are submitted, false otherwise
+        bool submitQuestItems();
 
     private:
+        const int NUM_QUEST_ITEMS = 2;
         const vec2 QUEST_1_INDICATOR_POSITION = {10.f, -2.f};
         const vec2 QUEST_2_INDICATOR_POSITION = {10.f, 2.f};
 

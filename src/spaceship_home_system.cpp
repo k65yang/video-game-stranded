@@ -4,9 +4,10 @@ void SpaceshipHomeSystem::step(float elapsed_ms) {
 
 };
 
-void SpaceshipHomeSystem::init(RenderSystem* renderer_arg, WeaponsSystem* weapon_system_arg) {
+void SpaceshipHomeSystem::init(RenderSystem* renderer_arg, WeaponsSystem* weapon_system_arg, QuestSystem* quest_system_arg) {
 	this->renderer = renderer_arg;
 	this->weaponsSystem = weapon_system_arg;
+	this->quest_system = quest_system_arg;
 }
 
 void SpaceshipHomeSystem::resetSpaceshipHomeSystem(int food_storage, int ammo_storage) {
@@ -38,6 +39,10 @@ void SpaceshipHomeSystem::enterSpaceship(Entity player_health_bar, Entity player
 	Motion& ammo_storage_bar_motion = registry.motions.get(ammo_storage_bar); 
 
 	updateSpaceshipHomeUI();
+
+	if (quest_system->submitQuestItems()) {
+		printf("ALL QUEST ITEMS SUBMITTED\n");
+	}
 
 	// Regenerate health
 	player_info.health = PLAYER_MAX_HEALTH;

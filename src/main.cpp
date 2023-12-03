@@ -52,8 +52,8 @@ int main()
 	render_system.init(window);
 	weapons_system.init(&render_system, &physics_system);
 	mob_system.init(&render_system, &terrain_system, &physics_system);
-	spaceship_home_system.init(&render_system, &weapons_system);
 	quest_system.init(&render_system);
+	spaceship_home_system.init(&render_system, &weapons_system, &quest_system);
 	world_system.init(&render_system, &terrain_system, &weapons_system, &physics_system, &mob_system, &audio_system, &spaceship_home_system, &quest_system);
 
 	// Load terrain mesh into the GPU
