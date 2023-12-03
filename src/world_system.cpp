@@ -899,6 +899,10 @@ void WorldSystem::handle_collisions() {
 
 			// Checking Projectile - Mobs
 			if (registry.mobs.has(entity_other)) {
+
+				// blood splash particle effects
+				particle_system->createParticleSplash(entity, entity_other, 5, collisionsRegistry.components[i].MTV);
+
 				Mob& mob = registry.mobs.get(entity_other);
 
 				// Mob takes damage. Kill if no hp left.

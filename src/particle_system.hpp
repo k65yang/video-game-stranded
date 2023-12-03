@@ -15,8 +15,7 @@ class ParticleSystem
     public:
     /// @brief ParticleSystem constructor
     ParticleSystem() {
-       
-        
+   
     }
 
     /// @brief ParticleSystem destructor
@@ -38,11 +37,25 @@ class ParticleSystem
     
     void ParticleSystem::emit(Entity templateParticleEntity);
     void ParticleSystem::createParticleTrail(Entity targetEntity, TEXTURE_ASSET_ID texture, int numberOfParticles, vec2 scale);
-    void ParticleSystem::createParticleSplash();
+    void ParticleSystem::createParticleSplash(Entity projectile_entity, Entity mob_entity, int numberOfParticles, vec2 splashDirection);
 
     private:
 
+    // mob color lookup table for particle splash
 
+     
+        const std::map<MOB_TYPE, vec3> mob_color_map = {
+            //255 255 255 for ghost and turret
+            {MOB_TYPE::GHOST, vec3{1.f, 1.f, 1.f}},
+            // 97 136 51 for max is 255
+            {MOB_TYPE::SLIME, vec3{0.38f, 0.53f, 0.2f}},
+            //78 50 108 FOR BRUTE
+           {MOB_TYPE::BRUTE, vec3{.31f, .20f, .42f}},
+           // 64 62 74
+           {MOB_TYPE::DISRUPTOR, vec3{.25f, .24f, .29f}},
+           {MOB_TYPE::TURRET, vec3{1.f, 1.f, 1.f}},
+        };
+   
     // The number of particles created per object at every frame
     //const int PARTICLES_PER_OBJ_PER_FRAME = 2;
 
