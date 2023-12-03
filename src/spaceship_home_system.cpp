@@ -4,8 +4,9 @@ void SpaceshipHomeSystem::step(float elapsed_ms) {
 
 };
 
-void SpaceshipHomeSystem::init(RenderSystem* renderer_arg) {
+void SpaceshipHomeSystem::init(RenderSystem* renderer_arg, WeaponsSystem* weapon_system_arg) {
 	this->renderer = renderer_arg;
+	this->weaponsSystem = weapon_system_arg;
 }
 
 void SpaceshipHomeSystem::resetSpaceshipHomeSystem(int food_storage, int ammo_storage) {
@@ -27,7 +28,7 @@ void SpaceshipHomeSystem::resetSpaceshipHomeSystem(int food_storage, int ammo_st
 	ammo_storage_bar_frame = createFrame(renderer, getNewPosition(camera_pos, AMMO_STORAGE_BAR_FRAME_OFFSET), FRAME_TYPE::BAR_FRAME);
 };
 
-void SpaceshipHomeSystem::enterSpaceship(Entity player_health_bar, Entity player_food_bar, Entity player_ammo_bar, Entity player_weapon) {
+void SpaceshipHomeSystem::enterSpaceship(Entity player_health_bar, Entity player_food_bar) {
 	SpaceshipHome& spaceship_home_info = registry.spaceshipHomes.get(spaceship_home);
 	Entity player = registry.players.entities[0]; 
 	Player& player_info = registry.players.get(player);
@@ -47,15 +48,19 @@ void SpaceshipHomeSystem::enterSpaceship(Entity player_health_bar, Entity player
 	updateStatBar(player_info.food, player_food_bar_motion, PLAYER_MAX_FOOD, FOOD_BAR_SCALE);
 	updateStorageBar(spaceship_home_info.food_storage, food_storage_bar_motion, SPACESHIP_MAX_FOOD_STORAGE, FOOD_STORAGE_BAR_SCALE);
 
-	// Regenerate ammo if player has weapon equipped
-	if (registry.weapons.has(player_weapon)) {
-		Weapon& weapon = registry.weapons.get(player_weapon);
-		Motion& weapon_motion = registry.motions.get(player_ammo_bar);
-		
-		regenerateStat(weapon.ammo_count, spaceship_home_info.ammo_storage, PLAYER_MAX_AMMO);
-		updateStatBar(weapon.ammo_count, weapon_motion, PLAYER_MAX_AMMO, AMMO_BAR_SCALE);
-		updateStorageBar(spaceship_home_info.ammo_storage, ammo_storage_bar_motion, SPACESHIP_MAX_AMMO_STORAGE, AMMO_STORAGE_BAR_SCALE);
-	}
+	// Reload all weapons. This can be problematic because it always reloads in a specific order.
+	// TODO: Somehow give options to player to reload specific weapons.
+	int amount_reloaded = 0;
+	amount_reloaded = weaponsSystem->increaseAmmo(ITEM_TYPE::WEAPON_SHURIKEN, 100);
+	spaceship_home_info.ammo_storage -= amount_reloaded;
+	amount_reloaded = weaponsSystem->increaseAmmo(ITEM_TYPE::WEAPON_CROSSBOW, 100);
+	spaceship_home_info.ammo_storage -= amount_reloaded;
+	amount_reloaded = weaponsSystem->increaseAmmo(ITEM_TYPE::WEAPON_SHOTGUN, 100);
+	spaceship_home_info.ammo_storage -= amount_reloaded;
+	amount_reloaded = weaponsSystem->increaseAmmo(ITEM_TYPE::WEAPON_MACHINEGUN, 100);
+	spaceship_home_info.ammo_storage -= amount_reloaded;
+
+	updateStorageBar(spaceship_home_info.ammo_storage, ammo_storage_bar_motion, SPACESHIP_MAX_AMMO_STORAGE, AMMO_STORAGE_BAR_SCALE);
 
 	player_info.is_home = true;
 };

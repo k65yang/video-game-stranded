@@ -6,6 +6,7 @@
 #include "render_system.hpp"
 #include "tiny_ecs_registry.hpp"
 #include "world_init.hpp"
+#include "weapons_system.hpp"
 
 // A spaceship system class that handles everything spaceship home related
 class SpaceshipHomeSystem
@@ -22,7 +23,8 @@ class SpaceshipHomeSystem
 
         /// @brief Initializes the render system that the spaceship home system uses
         /// @param renderer_arg Pointer to the render system
-        void init(RenderSystem* renderer_arg);
+        /// @param weapon_system_arg Pointer to the weapons system
+        void init(RenderSystem* renderer_arg, WeaponsSystem* weapon_system_arg);
 
         /// @brief Initializes spaceship home elements 
         /// @param food_storage Initial amount of food the spaceship home stores
@@ -32,9 +34,7 @@ class SpaceshipHomeSystem
         /// @brief Executes various actions when player enters spaceship
         /// @param player_health_bar The entity for the player's health bar
         /// @param player_food_bar The entity for the player's food bar
-        /// @param player_ammo_bar The entity for the player's ammo bar
-        /// @param player_weapon The entity for the player's weapon
-        void enterSpaceship(Entity player_health_bar, Entity player_food_bar, Entity player_ammo_bar, Entity player_weapon);
+        void enterSpaceship(Entity player_health_bar, Entity player_food_bar);
 
         /// @brief Checks if player is in the spaceship home
         /// @return Returns true if the player is in the spaceship home, false otherwise
@@ -49,6 +49,7 @@ class SpaceshipHomeSystem
         const vec2 AMMO_STORAGE_BAR_FRAME_OFFSET = { 4.51f, 0.5f };
 
         RenderSystem* renderer;
+        WeaponsSystem* weaponsSystem;
         Entity spaceship_home;
         Entity food_item;
         Entity food_storage_bar;

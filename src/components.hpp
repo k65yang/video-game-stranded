@@ -10,7 +10,6 @@
 
 const int PLAYER_MAX_FOOD = 100;
 const int PLAYER_MAX_HEALTH = 100;
-const int PLAYER_MAX_AMMO = 10;
 const int SPACESHIP_MAX_FOOD_STORAGE = 500;
 const int SPACESHIP_MAX_AMMO_STORAGE = 100;
 
@@ -95,7 +94,8 @@ struct Weapon {
 	float elapsed_last_shot_time_ms;     // controls fire rate, the time that the weapon was fired last
 	float projectile_velocity;           // speed of projectiles of this weapon
 	int projectile_damage;               // weapon damage
-	int ammo_count = PLAYER_MAX_AMMO;
+	int ammo_count;						 // Ammo
+	int level;							 // Weapon level
 };
 
 // The spaceship 

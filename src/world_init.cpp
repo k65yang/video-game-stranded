@@ -179,8 +179,7 @@ Entity createBar(RenderSystem* renderer, vec2 position, int amount, BAR_TYPE typ
 			motion.scale = vec2(((float)amount / (float)PLAYER_MAX_FOOD) * FOOD_BAR_SCALE[0], FOOD_BAR_SCALE[1]);
 			break;
 		case BAR_TYPE::AMMO_BAR:
-			texture = TEXTURE_ASSET_ID::BROWNBLOCK;
-			motion.scale = vec2(((float)amount / (float)PLAYER_MAX_AMMO) * AMMO_BAR_SCALE[0], AMMO_BAR_SCALE[1]); 
+			// Ammo bar is created in weapons system.
 			break; 
 		case BAR_TYPE::FOOD_STORAGE:
 			texture = TEXTURE_ASSET_ID::FOOD_BLOCK;
