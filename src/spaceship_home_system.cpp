@@ -135,10 +135,18 @@ Entity SpaceshipHomeSystem::createSpaceshipHomeItem(vec2 position, TEXTURE_ASSET
 	motion.angle = 0.f;
 	motion.velocity = { 0.f, 0.f };
 	motion.position = position;
-    motion.scale = { target_resolution.x / tile_size_px * 0.3, target_resolution.y / tile_size_px * 0.3 };
-
+  
 	// Add entity to screen UI registry
 	registry.screenUI.insert(entity, position);
+
+	switch(texture) {
+		case TEXTURE_ASSET_ID::SPACESHIP_HOME_FOOD:
+			motion.scale = { target_resolution.x / tile_size_px * 0.125, target_resolution.y / tile_size_px * 0.1875 };
+			break;
+		case TEXTURE_ASSET_ID::SPACESHIP_HOME_AMMO:
+			motion.scale = { target_resolution.x / tile_size_px * 0.3, target_resolution.y / tile_size_px * 0.3 };
+			break;
+	}
 
 	registry.renderRequests.insert(
 		entity,
