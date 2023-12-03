@@ -42,12 +42,12 @@ class SpaceshipHomeSystem
         bool isHome();
 
     private:
-        const vec2 FOOD_ITEM_OFFSET = { -5.6f, 0.f };
-        const vec2 FOOD_STORAGE_BAR_OFFSET = { -3.5f, 0.f };
-        const vec2 FOOD_STORAGE_BAR_FRAME_OFFSET = { -3.49f, 0.f };
-        const vec2 AMMO_ITEM_OFFSET = { 1.f, 0.5f };
-        const vec2 AMMO_STORAGE_BAR_OFFSET = { 4.5f, 0.5f };
-        const vec2 AMMO_STORAGE_BAR_FRAME_OFFSET = { 4.51f, 0.5f };
+        const vec2 FOOD_ITEM_POSITION = { -5.6f, 0.f };
+        const vec2 FOOD_STORAGE_BAR_POSITION = { -3.5f, 0.f };
+        const vec2 FOOD_STORAGE_BAR_FRAME_POSITION = { -3.49f, 0.f };
+        const vec2 AMMO_ITEM_POSITION = { 1.f, 0.5f };
+        const vec2 AMMO_STORAGE_BAR_POSITION = { 4.5f, 0.5f };
+        const vec2 AMMO_STORAGE_BAR_FRAME_POSITION = { 4.51f, 0.5f };
 
         RenderSystem* renderer;
         WeaponsSystem* weaponsSystem;
@@ -73,9 +73,6 @@ class SpaceshipHomeSystem
         /// @return The created entity
         Entity createSpaceshipHomeItem(vec2 position, TEXTURE_ASSET_ID texture);
 
-        /// @brief Updates the positions of the various UI elements of the spaceship home
-        void updateSpaceshipHomeUI();
-
         /// @brief Regenerates a stat of the player (ex. health, food, ammo) using resources stored in the spaceship
         /// @param stat The current value of the stat
         /// @param storage The current value of the resoure in the spaceship
@@ -95,10 +92,4 @@ class SpaceshipHomeSystem
         /// @param max_bar_value The max value the bar can be
         /// @param scale_factor The scale factor for the bar
         void updateStorageBar(int new_val, Motion& bar, int max_bar_value, vec2 scale_factor);
-
-        /// @brief Gets a new (x, y) position offset from some base position
-        /// @param pos The base position
-        /// @param offset A vec2 storing the horizontal and vertical offset 
-        /// @return The new position 
-        vec2 getNewPosition(vec2 pos, vec2 offset);
 };

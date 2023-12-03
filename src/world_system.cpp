@@ -563,14 +563,10 @@ void WorldSystem::restart_game() {
 	// Create player health bar
 	health_bar = createBar(renderer, { -7.5f, 7.f }, PLAYER_MAX_HEALTH, BAR_TYPE::HEALTH_BAR);
 	health_frame = createFrame(renderer, { -8.f, 7.f }, FRAME_TYPE::HEALTH_FRAME);
-	registry.screenUI.insert(health_bar, { -7.5f, 7.f });
-	registry.screenUI.insert(health_frame, { -8.f, 7.f });
 
 	// Create player food bar
 	food_bar = createBar(renderer, { 7.3f, 7.f }, PLAYER_MAX_FOOD, BAR_TYPE::FOOD_BAR);
 	food_frame = createFrame(renderer, { 7.f, 7.f }, FRAME_TYPE::FOOD_FRAME);
-	registry.screenUI.insert(food_bar, { 7.3f, 7.f });
-	registry.screenUI.insert(food_frame, { 7.f, 7.f });
 
 	// Reset the weapon indicator
 	user_has_first_weapon = false;
@@ -1379,14 +1375,10 @@ void WorldSystem::load_game(json j) {
 	// Create player health bar
 	health_bar = createBar(renderer, { -7.5f, 7.f }, PLAYER_MAX_HEALTH, BAR_TYPE::HEALTH_BAR);
 	health_frame = createFrame(renderer, { -8.f, 7.f }, FRAME_TYPE::HEALTH_FRAME);
-	registry.screenUI.insert(health_bar, { -7.5f, 7.f });
-	registry.screenUI.insert(health_frame, { -8.f, 7.f });
 
 	// Create player food bar
 	food_bar = createBar(renderer, { 7.3f, 7.f }, PLAYER_MAX_FOOD, BAR_TYPE::FOOD_BAR);
 	food_frame = createFrame(renderer, { 7.f, 7.f }, FRAME_TYPE::FOOD_FRAME);
-	registry.screenUI.insert(food_bar, { 7.3f, 7.f });
-	registry.screenUI.insert(food_frame, { 7.f, 7.f });
 
 	// Tool tips and help bar
 	tooltips_on = false;

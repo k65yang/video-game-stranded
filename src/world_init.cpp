@@ -171,6 +171,9 @@ Entity createBar(RenderSystem* renderer, vec2 position, int amount, BAR_TYPE typ
 	motion.position = position;
 	motion.scale = vec2({ 5.5, 0.7 });
 
+	// Add entity to screen UI registry
+	registry.screenUI.insert(entity, position);
+
 	TEXTURE_ASSET_ID texture = TEXTURE_ASSET_ID::PLAYER;
 	switch (type) {
 		case BAR_TYPE::HEALTH_BAR:
@@ -219,8 +222,8 @@ Entity createFrame(RenderSystem* renderer, vec2 position, FRAME_TYPE type) {
 	motion.velocity = { 0.f, 0.f };
 	motion.scale = vec2({ 7, 1 });
 
-	// Initialize the collider
-	//physics_system->createDefaultCollider(entity);
+	// Add entity to screen UI registry
+	registry.screenUI.insert(entity, position);
 
 	TEXTURE_ASSET_ID texture = TEXTURE_ASSET_ID::PLAYER;
 	switch (type) {
