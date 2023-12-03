@@ -28,6 +28,9 @@ Entity createPlayer(RenderSystem* renderer, PhysicsSystem* physics, vec2 pos)
 	// Add the player to the players registry
 	Player& player = registry.players.emplace(entity);
 
+	// Add player to inventory registry
+	Inventory& inventory = registry.inventories.emplace(entity);
+
 	registry.renderRequests.insert(
 		entity,
 		{ TEXTURE_ASSET_ID::PLAYER,

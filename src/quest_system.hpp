@@ -37,6 +37,9 @@ class QuestSystem
         void submitQuestItems();
 
     private:
+        const vec2 QUEST_1_INDICATOR_POSITION = {10.f, -2.f};
+        const vec2 QUEST_2_INDICATOR_POSITION = {10.f, 2.f};
+
         RenderSystem* renderer;
 
         std::map<ITEM_TYPE, TEXTURE_ASSET_ID> quest_item_indicator_not_found_textures_map {
@@ -57,8 +60,8 @@ class QuestSystem
         /// @brief Creates a quest item indicator
         /// @param position The position of the indicator
         /// @param type The quest item the indicator is for
-        /// @param texture The texture to use for the indicator
-        Entity createQuestItemIndicator(vec2 position, ITEM_TYPE type, TEXTURE_ASSET_ID texture);
+        /// @param status The status of the quest item
+        Entity createQuestItemIndicator(vec2 position, ITEM_TYPE type, QUEST_ITEM_STATUS status);
 
         /// @brief Marks a quest item as submitted and updates its indicator
         /// @param type The quest item that was submitted

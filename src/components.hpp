@@ -74,6 +74,13 @@ struct QuestItemIndicator {
 	ITEM_TYPE quest_item;
 };
 
+struct Inventory {
+	std::map<ITEM_TYPE, QUEST_ITEM_STATUS> quest_items {
+		{ITEM_TYPE::QUEST_ONE, QUEST_ITEM_STATUS::NOT_FOUND},
+		{ITEM_TYPE::QUEST_TWO, QUEST_ITEM_STATUS::NOT_FOUND},
+	};
+};
+
 // Make sure that the heal interval is always larger than the light up interval
 struct HealthPowerup {
 	float heal_interval_ms = 5000.f;				// Player health will increase after this interval
