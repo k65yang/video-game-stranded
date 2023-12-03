@@ -115,6 +115,10 @@ Entity SpaceshipHomeSystem::createSpaceshipHomeItem(vec2 position, TEXTURE_ASSET
 	motion.position = position;
     motion.scale = { target_resolution.x / tile_size_px * 0.3, target_resolution.y / tile_size_px * 0.3 };
 
+	if (texture == TEXTURE_ASSET_ID::SPACESHIP_HOME_FOOD) {
+		motion.scale = { target_resolution.x / tile_size_px * 0.125, target_resolution.y / tile_size_px * 0.1875 };
+	}
+
 	registry.renderRequests.insert(
 		entity,
 		{ 
