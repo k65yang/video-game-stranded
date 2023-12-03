@@ -5,7 +5,7 @@ void QuestSystem::step(float elapsed_ms) {
 };
 
 void QuestSystem::init(RenderSystem* render_system_arg) {
-
+    this->renderer = render_system_arg;
 };
 
 void QuestSystem::resetQuestSystem(std::vector<QUEST_ITEM_STATUS> statuses) {
@@ -81,14 +81,16 @@ Entity QuestSystem::createQuestItemIndicator(vec2 position, ITEM_TYPE type, QUES
     registry.screenUI.insert(entity, position);
 
     TEXTURE_ASSET_ID texture = TEXTURE_ASSET_ID::QUEST_1_NOT_FOUND;
-    if (type == ITEM_TYPE::QUEST_ONE) {
-        if (status == QUEST_ITEM_STATUS::NOT_FOUND) texture = TEXTURE_ASSET_ID::QUEST_1_NOT_FOUND;
-        if (status == QUEST_ITEM_STATUS::FOUND)     texture = TEXTURE_ASSET_ID::QUEST_1_FOUND;
-        if (status == QUEST_ITEM_STATUS::SUBMITTED) texture = TEXTURE_ASSET_ID::QUEST_1_SUBMITTED;
-    } else if (type == ITEM_TYPE::QUEST_TWO) {
-        if (status == QUEST_ITEM_STATUS::NOT_FOUND) texture = TEXTURE_ASSET_ID::QUEST_2_NOT_FOUND;
-        if (status == QUEST_ITEM_STATUS::FOUND)     texture = TEXTURE_ASSET_ID::QUEST_2_FOUND;
-        if (status == QUEST_ITEM_STATUS::SUBMITTED) texture = TEXTURE_ASSET_ID::QUEST_2_SUBMITTED;
+    switch(status) {
+        case QUEST_ITEM_STATUS::NOT_FOUND:
+            texture = quest_item_indicator_not_found_textures_map[type];
+            break;
+        case QUEST_ITEM_STATUS::FOUND:
+            texture = quest_item_indicator_found_textures_map[type];
+            break;
+        case QUEST_ITEM_STATUS::SUBMITTED:
+            texture = quest_item_indicator_submitted_textures_map[type];
+            break;
     }
 
 	registry.renderRequests.insert(
