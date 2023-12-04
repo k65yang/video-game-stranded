@@ -456,9 +456,11 @@ void RenderSystem::draw()
 	// Draw for UI elements
 	
 	// TODO: for UI elements, have new projection matrices that use screen coordinates instead of map coordinates
-	for (Entity entity : layer_4_entities) {
-		drawTexturedMesh(entity, view_2D, projection_2D);
+	if (!debugging.in_debug_mode) {
+		for (Entity entity : layer_4_entities) {
+			drawTexturedMesh(entity, view_2D, projection_2D);
 		}
+	}
 
 
 	// flicker-free display with a double buffer
