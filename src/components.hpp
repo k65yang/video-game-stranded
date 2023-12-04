@@ -13,6 +13,12 @@ const int PLAYER_MAX_HEALTH = 100;
 const int SPACESHIP_MAX_FOOD_STORAGE = 500;
 const int SPACESHIP_MAX_AMMO_STORAGE = 100;
 
+enum class QUEST_ITEM_STATUS {
+	NOT_FOUND = 0,
+	FOUND = NOT_FOUND + 1,
+	SUBMITTED = FOUND + 1
+};
+
 enum class ITEM_TYPE {
 	QUEST_ONE = 0,
 	QUEST_TWO = QUEST_ONE + 1,
@@ -62,6 +68,17 @@ struct Player
 
 struct SpeedPowerup {
 	float old_speed;
+};
+
+struct QuestItemIndicator {
+	ITEM_TYPE quest_item;
+};
+
+struct Inventory {
+	std::map<ITEM_TYPE, QUEST_ITEM_STATUS> quest_items {
+		{ITEM_TYPE::QUEST_ONE, QUEST_ITEM_STATUS::NOT_FOUND},
+		{ITEM_TYPE::QUEST_TWO, QUEST_ITEM_STATUS::NOT_FOUND},
+	};
 };
 
 // Make sure that the heal interval is always larger than the light up interval
@@ -372,9 +389,11 @@ enum class TEXTURE_ASSET_ID {
 	HELP_WEAPON = HELP_FOUR + 1,
 	QUEST_1_NOT_FOUND = HELP_WEAPON + 1,
 	QUEST_1_FOUND = QUEST_1_NOT_FOUND + 1,
-	QUEST_2_NOT_FOUND = QUEST_1_FOUND + 1,
+	QUEST_1_SUBMITTED = QUEST_1_FOUND + 1,
+	QUEST_2_NOT_FOUND = QUEST_1_SUBMITTED + 1,
 	QUEST_2_FOUND = QUEST_2_NOT_FOUND + 1,
-	QUEST_1_ITEM = QUEST_2_FOUND + 1,
+	QUEST_2_SUBMITTED = QUEST_2_FOUND + 1,
+	QUEST_1_ITEM = QUEST_2_SUBMITTED + 1,
 	QUEST_2_ITEM = QUEST_1_ITEM +1,
 	GHOST = QUEST_2_ITEM + 1,
 	BRUTE = GHOST + 1,

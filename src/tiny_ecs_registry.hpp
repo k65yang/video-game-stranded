@@ -25,6 +25,7 @@ public:
 	ComponentContainer<PlayerInaccuracyEffect> playerInaccuracyEffects;
 	ComponentContainer<Weapon> weapons;
 	ComponentContainer<Projectile> projectiles;
+	ComponentContainer<Inventory> inventories;
 
 	ComponentContainer<Mob> mobs;
 	ComponentContainer<SpaceshipHome> spaceshipHomes; 
@@ -36,6 +37,7 @@ public:
 	ComponentContainer<Particle> particles;
 
 	ComponentContainer<vec2> screenUI;
+	ComponentContainer<QuestItemIndicator> questItemIndicators;
 
 	// Rendering related
 	ComponentContainer<Mesh*> meshPtrs;
