@@ -6,6 +6,8 @@
 #include "render_system.hpp"
 #include "tiny_ecs_registry.hpp"
 #include "world_init.hpp"
+#include "weapons_system.hpp"
+#include "quest_system.hpp"
 
 // A spaceship system class that handles everything spaceship home related
 class SpaceshipHomeSystem
@@ -22,7 +24,8 @@ class SpaceshipHomeSystem
 
         /// @brief Initializes the render system that the spaceship home system uses
         /// @param renderer_arg Pointer to the render system
-        void init(RenderSystem* renderer_arg);
+        /// @param weapon_system_arg Pointer to the weapons system
+        void init(RenderSystem* renderer_arg, WeaponsSystem* weapon_system_arg, QuestSystem* quest_system_arg);
 
         /// @brief Initializes spaceship home elements 
         /// @param food_storage Initial amount of food the spaceship home stores
@@ -32,23 +35,24 @@ class SpaceshipHomeSystem
         /// @brief Executes various actions when player enters spaceship
         /// @param player_health_bar The entity for the player's health bar
         /// @param player_food_bar The entity for the player's food bar
-        /// @param player_ammo_bar The entity for the player's ammo bar
-        /// @param player_weapon The entity for the player's weapon
-        void enterSpaceship(Entity player_health_bar, Entity player_food_bar, Entity player_ammo_bar, Entity player_weapon);
+        void enterSpaceship(Entity player_health_bar, Entity player_food_bar);
 
         /// @brief Checks if player is in the spaceship home
         /// @return Returns true if the player is in the spaceship home, false otherwise
         bool isHome();
 
     private:
-        const vec2 FOOD_ITEM_OFFSET = { -5.6f, 0.f };
-        const vec2 FOOD_STORAGE_BAR_OFFSET = { -3.5f, 0.f };
-        const vec2 FOOD_STORAGE_BAR_FRAME_OFFSET = { -3.49f, 0.f };
-        const vec2 AMMO_ITEM_OFFSET = { 1.f, 0.5f };
-        const vec2 AMMO_STORAGE_BAR_OFFSET = { 4.5f, 0.5f };
-        const vec2 AMMO_STORAGE_BAR_FRAME_OFFSET = { 4.51f, 0.5f };
+        const vec2 SPACESHIP_HOME_POSITION = { 0.f, 0.f };
+        const vec2 FOOD_ITEM_POSITION = { -5.6f, 0.f };
+        const vec2 FOOD_STORAGE_BAR_POSITION = { -3.5f, 0.f };
+        const vec2 FOOD_STORAGE_BAR_FRAME_POSITION = { -3.49f, 0.f };
+        const vec2 AMMO_ITEM_POSITION = { 1.f, 0.5f };
+        const vec2 AMMO_STORAGE_BAR_POSITION = { 4.5f, 0.5f };
+        const vec2 AMMO_STORAGE_BAR_FRAME_POSITION = { 4.51f, 0.5f };
 
         RenderSystem* renderer;
+        WeaponsSystem* weaponsSystem;
+        QuestSystem* quest_system;
         Entity spaceship_home;
         Entity food_item;
         Entity food_storage_bar;
@@ -70,9 +74,6 @@ class SpaceshipHomeSystem
         /// @return The created entity
         Entity createSpaceshipHomeItem(vec2 position, TEXTURE_ASSET_ID texture);
 
-        /// @brief Updates the positions of the various UI elements of the spaceship home
-        void updateSpaceshipHomeUI();
-
         /// @brief Regenerates a stat of the player (ex. health, food, ammo) using resources stored in the spaceship
         /// @param stat The current value of the stat
         /// @param storage The current value of the resoure in the spaceship
@@ -92,10 +93,4 @@ class SpaceshipHomeSystem
         /// @param max_bar_value The max value the bar can be
         /// @param scale_factor The scale factor for the bar
         void updateStorageBar(int new_val, Motion& bar, int max_bar_value, vec2 scale_factor);
-
-        /// @brief Gets a new (x, y) position offset from some base position
-        /// @param pos The base position
-        /// @param offset A vec2 storing the horizontal and vertical offset 
-        /// @return The new position 
-        vec2 getNewPosition(vec2 pos, vec2 offset);
 };

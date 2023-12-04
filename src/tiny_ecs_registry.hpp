@@ -25,6 +25,7 @@ public:
 	ComponentContainer<PlayerInaccuracyEffect> playerInaccuracyEffects;
 	ComponentContainer<Weapon> weapons;
 	ComponentContainer<Projectile> projectiles;
+	ComponentContainer<Inventory> inventories;
 
 	ComponentContainer<Mob> mobs;
 	ComponentContainer<SpaceshipHome> spaceshipHomes; 
@@ -34,6 +35,9 @@ public:
 
 	ComponentContainer<ParticleTrail> particleTrails;
 	ComponentContainer<Particle> particles;
+
+	ComponentContainer<vec2> screenUI;
+	ComponentContainer<QuestItemIndicator> questItemIndicators;
 
 	// Rendering related
 	ComponentContainer<Mesh*> meshPtrs;
@@ -74,6 +78,8 @@ public:
 
 		registry_list.push_back(&particleTrails);
 		registry_list.push_back(&particles);
+
+		registry_list.push_back(&screenUI);
 
 		registry_list.push_back(&meshPtrs);
 		registry_list.push_back(&renderRequests);
