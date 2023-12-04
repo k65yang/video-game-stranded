@@ -65,4 +65,9 @@ class QuestSystem
         /// @param type The quest item the indicator is for
         /// @param status The status of the quest item
         Entity createQuestItemIndicator(vec2 position, ITEM_TYPE type, QUEST_ITEM_STATUS status);
+
+        /// @brief Creates a quest item onto spaceship
+        /// @param type The quest item the spaceship part is for 
+        Entity createSpaceshipPart(ITEM_TYPE type);
+
 };

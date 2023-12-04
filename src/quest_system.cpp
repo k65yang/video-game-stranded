@@ -53,6 +53,7 @@ bool QuestSystem::submitQuestItems() {
 
             if (it->second == QUEST_ITEM_STATUS::FOUND) {
                 processQuestItem(it->first, QUEST_ITEM_STATUS::SUBMITTED);
+                createSpaceshipPart(it->first);
             }
         }
     }
@@ -105,3 +106,45 @@ Entity QuestSystem::createQuestItemIndicator(vec2 position, ITEM_TYPE type, QUES
 
 	return entity;
 };
+
+Entity QuestSystem::createSpaceshipPart(ITEM_TYPE type) {
+    auto entity = Entity();
+
+    Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+    registry.meshPtrs.emplace(entity, &mesh);
+
+    // Initialize the position, scale, and physics components
+    auto& motion = registry.motions.emplace(entity);
+    motion.angle = 0.f;
+    motion.velocity = { 0.f, 0.f };
+    motion.scale = vec2({ 1.5f, 1.5f });
+
+
+    TEXTURE_ASSET_ID texture = TEXTURE_ASSET_ID::PLAYER;
+    switch (type) {
+    case ITEM_TYPE::QUEST_ONE:
+        texture = TEXTURE_ASSET_ID::QUEST_1_ITEM;
+        motion.position = { 1.f, -1.f };
+
+
+
+        break;
+    case ITEM_TYPE::QUEST_TWO:
+        texture = TEXTURE_ASSET_ID::QUEST_2_ITEM;
+        motion.position = { -1.1f, -1.f };
+
+
+        break;
+    }
+    registry.renderRequests.insert(
+        entity,
+        {
+            texture,
+            EFFECT_ASSET_ID::TEXTURED,
+            GEOMETRY_BUFFER_ID::SPRITE,
+            RENDER_LAYER_ID::LAYER_1
+        }
+    );
+
+    return entity;
+ };
