@@ -88,7 +88,7 @@ private:
 			textures_path("spaceship.png"), 
 			textures_path("spaceship_home.png"),
 			textures_path("blue_block.png"),
-			textures_path("brownblock.png"),
+			textures_path("brown_block.png"),
 			textures_path("black_block.png"),
 			textures_path("bar_frame.png"),
 			textures_path("health_empty_bar.png"),

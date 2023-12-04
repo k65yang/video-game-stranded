@@ -389,7 +389,7 @@ Entity WeaponsSystem::createAmmoBar(RenderSystem* renderer) {
 	motion.position = {-10.f, -4.f};
 	motion.scale = { 3, 0.4 }; 
 
-	TEXTURE_ASSET_ID texture = TEXTURE_ASSET_ID::BROWNBLOCK;
+	TEXTURE_ASSET_ID texture = TEXTURE_ASSET_ID::BROWN_BLOCK;
 	registry.renderRequests.insert(
 		entity,
 		{ texture,
