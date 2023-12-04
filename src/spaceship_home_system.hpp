@@ -44,17 +44,23 @@ class SpaceshipHomeSystem
 
     private:
         const vec2 SPACESHIP_HOME_POSITION = { 0.f, 0.f };
-        const vec2 FOOD_ITEM_POSITION = { -5.6f, 0.f };
-        const vec2 FOOD_STORAGE_BAR_POSITION = { -3.5f, 0.f };
-        const vec2 FOOD_STORAGE_BAR_FRAME_POSITION = { -3.49f, 0.f };
-        const vec2 AMMO_ITEM_POSITION = { 1.f, 0.5f };
-        const vec2 AMMO_STORAGE_BAR_POSITION = { 4.5f, 0.5f };
-        const vec2 AMMO_STORAGE_BAR_FRAME_POSITION = { 4.51f, 0.5f };
+        const vec2 FOOD_ITEM_POSITION = { -6.0f, -0.5f };
+        const vec2 FOOD_STORAGE_BAR_POSITION = { -3.5f, -0.5f };
+        const vec2 FOOD_STORAGE_BAR_FRAME_POSITION = { -3.5f, -0.5f };
+        const vec2 AMMO_ITEM_POSITION = { 1.5f, -0.5f };
+        const vec2 AMMO_STORAGE_BAR_POSITION = { 5.0f, -0.5f };
+        const vec2 AMMO_STORAGE_BAR_FRAME_POSITION = { 5.0f, -0.5f };
+        const vec2 HEALTH_ITEM_POSITION = { 1.5f, -3.5f };
+        const vec2 HEALTH_STORAGE_BAR_POSITION = { 5.0f, -3.5f };
+        const vec2 HEALTH_STORAGE_BAR_FRAME_POSITION = { 5.0f, -3.5f };
 
         RenderSystem* renderer;
         WeaponsSystem* weaponsSystem;
         QuestSystem* quest_system;
         Entity spaceship_home;
+        Entity health_item;
+        Entity health_storage_bar;
+        Entity health_storage_bar_frame;
         Entity food_item;
         Entity food_storage_bar;
         Entity food_storage_bar_frame;

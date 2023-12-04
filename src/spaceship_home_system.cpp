@@ -27,15 +27,20 @@ void SpaceshipHomeSystem::resetSpaceshipHomeSystem(int health_storage, int food_
 	// Create spaceship home
 	spaceship_home = createSpaceshipHome(SPACESHIP_HOME_POSITION, health_storage, food_storage, ammo_storage);
 
+	// Create health storage elements
+	health_item = createSpaceshipHomeItem(HEALTH_ITEM_POSITION, TEXTURE_ASSET_ID::SPACESHIP_HOME_HEALTH);
+	health_storage_bar = createBar(renderer, HEALTH_STORAGE_BAR_POSITION, food_storage, BAR_TYPE::HEALTH_STORAGE_BAR);
+	health_storage_bar_frame = createFrame(renderer, HEALTH_STORAGE_BAR_FRAME_POSITION, FRAME_TYPE::STORAGE_FRAME); 
+
 	// Create food storage elements
 	food_item = createSpaceshipHomeItem(FOOD_ITEM_POSITION, TEXTURE_ASSET_ID::SPACESHIP_HOME_FOOD);
-	food_storage_bar = createBar(renderer, FOOD_STORAGE_BAR_POSITION, food_storage, BAR_TYPE::FOOD_STORAGE);
-	food_storage_bar_frame = createFrame(renderer, FOOD_STORAGE_BAR_FRAME_POSITION, FRAME_TYPE::BAR_FRAME); 
+	food_storage_bar = createBar(renderer, FOOD_STORAGE_BAR_POSITION, food_storage, BAR_TYPE::FOOD_STORAGE_BAR);
+	food_storage_bar_frame = createFrame(renderer, FOOD_STORAGE_BAR_FRAME_POSITION, FRAME_TYPE::STORAGE_FRAME); 
 
 	// Create ammo storage elements
 	ammo_item = createSpaceshipHomeItem(AMMO_ITEM_POSITION, TEXTURE_ASSET_ID::SPACESHIP_HOME_AMMO);
-	ammo_storage_bar = createBar(renderer, AMMO_STORAGE_BAR_POSITION, ammo_storage, BAR_TYPE::AMMO_STORAGE);
-	ammo_storage_bar_frame = createFrame(renderer, AMMO_STORAGE_BAR_FRAME_POSITION, FRAME_TYPE::BAR_FRAME);
+	ammo_storage_bar = createBar(renderer, AMMO_STORAGE_BAR_POSITION, ammo_storage, BAR_TYPE::AMMO_STORAGE_BAR);
+	ammo_storage_bar_frame = createFrame(renderer, AMMO_STORAGE_BAR_FRAME_POSITION, FRAME_TYPE::STORAGE_FRAME);
 };
 
 void SpaceshipHomeSystem::enterSpaceship(Entity player_health_bar, Entity player_food_bar) {
@@ -46,6 +51,7 @@ void SpaceshipHomeSystem::enterSpaceship(Entity player_health_bar, Entity player
 	Player& player_info = registry.players.get(player);
 	Motion& player_health_bar_motion = registry.motions.get(player_health_bar);
 	Motion& player_food_bar_motion = registry.motions.get(player_food_bar);
+	Motion& health_storage_bar_motion = registry.motions.get(health_storage_bar);
 	Motion& food_storage_bar_motion = registry.motions.get(food_storage_bar);
 	Motion& ammo_storage_bar_motion = registry.motions.get(ammo_storage_bar); 
 
@@ -58,13 +64,10 @@ void SpaceshipHomeSystem::enterSpaceship(Entity player_health_bar, Entity player
 		printf("ALL QUEST ITEMS SUBMITTED\n");
 	}
 
-	printf("HEALTH STORAGE BEFORE: %d\n", spaceship_home_info.health_storage);
-
 	// Regenerate health
 	regenerateStat(player_info.health, spaceship_home_info.health_storage, PLAYER_MAX_HEALTH);
 	updateStatBar(player_info.health, player_health_bar_motion, PLAYER_MAX_HEALTH, HEALTH_BAR_SCALE);
-
-	printf("HEALTH STORAGE AFTER: %d\n", spaceship_home_info.health_storage);
+	updateStorageBar(spaceship_home_info.health_storage, health_storage_bar_motion, SPACESHIP_MAX_HEALTH_STORAGE, HEALTH_STORAGE_BAR_SCALE);
 
 	// Regenerate food
 	regenerateStat(player_info.food, spaceship_home_info.food_storage, PLAYER_MAX_FOOD);
@@ -145,6 +148,9 @@ Entity SpaceshipHomeSystem::createSpaceshipHomeItem(vec2 position, TEXTURE_ASSET
 	registry.screenUI.insert(entity, position);
 
 	switch(texture) {
+		case TEXTURE_ASSET_ID::SPACESHIP_HOME_HEALTH:
+			motion.scale = { target_resolution.x / tile_size_px * 0.125, target_resolution.y / tile_size_px * 0.1875 };
+			break;
 		case TEXTURE_ASSET_ID::SPACESHIP_HOME_FOOD:
 			motion.scale = { target_resolution.x / tile_size_px * 0.125, target_resolution.y / tile_size_px * 0.1875 };
 			break;

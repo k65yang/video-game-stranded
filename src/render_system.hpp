@@ -88,14 +88,12 @@ private:
 			textures_path("spaceship.png"), 
 			textures_path("spacehome.png"),
 			textures_path("blueblock.png"),
-			//inserting new blocks here
-			textures_path("foodblock.png"),
 			textures_path("brownblock.png"),
-			textures_path("ammoblock.png"),
+			textures_path("black_block.png"),
 			textures_path("bar_frame.png"),
 			textures_path("health_empty_bar.png"),
 			textures_path("food_empty_bar.png"),
-			//spaceship items 
+			textures_path("spaceship_home_health.png"),
 			textures_path("spaceship_home_ammo.png"),
 			textures_path("spaceship_home_food.png"),
 			textures_path("help1.png"),

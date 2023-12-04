@@ -183,12 +183,16 @@ Entity createBar(RenderSystem* renderer, vec2 position, int amount, BAR_TYPE typ
 		case BAR_TYPE::AMMO_BAR:
 			// Ammo bar is created in weapons system.
 			break; 
-		case BAR_TYPE::FOOD_STORAGE:
-			texture = TEXTURE_ASSET_ID::FOOD_BLOCK;
+		case BAR_TYPE::HEALTH_STORAGE_BAR:
+			texture = TEXTURE_ASSET_ID::BLACK_BLOCK;
+			motion.scale = vec2(HEALTH_STORAGE_BAR_SCALE[0], ((float)amount / (float)SPACESHIP_MAX_HEALTH_STORAGE) * HEALTH_STORAGE_BAR_SCALE[1]);
+			break;
+		case BAR_TYPE::FOOD_STORAGE_BAR:
+			texture = TEXTURE_ASSET_ID::BLACK_BLOCK;
 			motion.scale = vec2(FOOD_STORAGE_BAR_SCALE[0], ((float)amount / (float)SPACESHIP_MAX_FOOD_STORAGE) * FOOD_STORAGE_BAR_SCALE[1]);
 			break;
-		case BAR_TYPE::AMMO_STORAGE:
-			texture = TEXTURE_ASSET_ID::AMMO_BLOCK;
+		case BAR_TYPE::AMMO_STORAGE_BAR:
+			texture = TEXTURE_ASSET_ID::BLACK_BLOCK;
 			motion.scale = vec2(AMMO_STORAGE_BAR_SCALE[0], ((float)amount / (float)SPACESHIP_MAX_AMMO_STORAGE) * AMMO_STORAGE_BAR_SCALE[1]);
 			break;
 	}
@@ -231,8 +235,8 @@ Entity createFrame(RenderSystem* renderer, vec2 position, FRAME_TYPE type) {
 			texture = TEXTURE_ASSET_ID::FOOD_FRAME;
 			motion.scale = vec2({ target_resolution.x / tile_size_px * 0.3333, target_resolution.y / tile_size_px * 0.075 });
 			break;
-		case FRAME_TYPE::BAR_FRAME:
-			texture = TEXTURE_ASSET_ID::BAR_FRAME;
+		case FRAME_TYPE::STORAGE_FRAME:
+			texture = TEXTURE_ASSET_ID::STORAGE_FRAME;
 			motion.scale = vec2({ 1.2, 2 });
 			break;
 	}
