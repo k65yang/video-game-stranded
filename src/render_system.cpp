@@ -461,7 +461,7 @@ void RenderSystem::draw()
 	// TODO: Add a new Text component loop to draw every string in the world here
 	// If you render text before drawToScreen(), then fog of war will dim it.
 	// If you render text before the layer_4_entities for loop, then UI will write over it
-	renderText("This is sample text", 0.0f, 0.0f, 1, glm::vec3(1.f, 1.f, 1.f), projection_2D, view_2D);
+	renderText("This is sample text", 0.0f, 2, 1, glm::vec3(1.f, 1.f, 1.f), projection_2D, view_2D);
 
 	// Do not touch anything past this point.
 	// flicker-free display with a double buffer
@@ -566,10 +566,12 @@ void RenderSystem::renderText(std::string text, float x, float y, float scale, g
 
 	// Pass a colour to a uniform "textColor". We expect it to stay constant for this render pass.
     glUniform3f(glGetUniformLocation(program, "textColor"), color.x, color.y, color.z);
+	gl_has_errors();
 
 	// Pass the projection matrix.
 	GLuint projection_loc = glGetUniformLocation(program, "projectionMatrix");
 	glUniformMatrix3fv(projection_loc, 1, GL_FALSE, (float*) &projection_matrix);
+	gl_has_errors();
 
 	// Pass the view matrix
 	GLuint view_matrix_loc = glGetUniformLocation(program, "viewMatrix");
