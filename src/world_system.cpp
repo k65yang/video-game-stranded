@@ -600,10 +600,10 @@ void WorldSystem::restart_game() {
 	// FOR DEMO - to show different types of items being created.	
  
 	// TODO: uncomment these after messing w/ map editor
-	spawn_items();
-	mob_system->spawn_mobs();
-	createItem(renderer, physics_system, {5.f, 3.f}, ITEM_TYPE::POWERUP_SPEED);
-	createItem(renderer, physics_system, {5.f, 5.f}, ITEM_TYPE::POWERUP_HEALTH);
+	//spawn_items();
+	//mob_system->spawn_mobs();
+	//createItem(renderer, physics_system, {5.f, 3.f}, ITEM_TYPE::POWERUP_SPEED);
+	//createItem(renderer, physics_system, {5.f, 5.f}, ITEM_TYPE::POWERUP_HEALTH);
 
 	// for movement velocity
 	for (int i = 0; i < KEYS; i++)
