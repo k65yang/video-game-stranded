@@ -19,13 +19,13 @@ void SpaceshipHomeSystem::init(RenderSystem* renderer_arg, WeaponsSystem* weapon
 	this->quest_system = quest_system_arg;
 }
 
-void SpaceshipHomeSystem::resetSpaceshipHomeSystem(int food_storage, int ammo_storage) {
+void SpaceshipHomeSystem::resetSpaceshipHomeSystem(int health_storage, int food_storage, int ammo_storage) {
 	Entity camera = registry.cameras.entities[0];
 	Motion& camera_motion = registry.motions.get(camera);
 	vec2 camera_pos = camera_motion.position;
 
 	// Create spaceship home
-	spaceship_home = createSpaceshipHome(SPACESHIP_HOME_POSITION, food_storage, ammo_storage);
+	spaceship_home = createSpaceshipHome(SPACESHIP_HOME_POSITION, health_storage, food_storage, ammo_storage);
 
 	// Create food storage elements
 	food_item = createSpaceshipHomeItem(FOOD_ITEM_POSITION, TEXTURE_ASSET_ID::SPACESHIP_HOME_FOOD);
@@ -58,9 +58,13 @@ void SpaceshipHomeSystem::enterSpaceship(Entity player_health_bar, Entity player
 		printf("ALL QUEST ITEMS SUBMITTED\n");
 	}
 
+	printf("HEALTH STORAGE BEFORE: %d\n", spaceship_home_info.health_storage);
+
 	// Regenerate health
-	player_info.health = PLAYER_MAX_HEALTH;
-	player_health_bar_motion.scale = HEALTH_BAR_SCALE;
+	regenerateStat(player_info.health, spaceship_home_info.health_storage, PLAYER_MAX_HEALTH);
+	updateStatBar(player_info.health, player_health_bar_motion, PLAYER_MAX_HEALTH, HEALTH_BAR_SCALE);
+
+	printf("HEALTH STORAGE AFTER: %d\n", spaceship_home_info.health_storage);
 
 	// Regenerate food
 	regenerateStat(player_info.food, spaceship_home_info.food_storage, PLAYER_MAX_FOOD);
@@ -89,7 +93,7 @@ bool SpaceshipHomeSystem::isHome() {
 };
 
 
-Entity SpaceshipHomeSystem::createSpaceshipHome(vec2 position, int food_storage, int ammo_storage) {
+Entity SpaceshipHomeSystem::createSpaceshipHome(vec2 position, int health_storage, int food_storage, int ammo_storage) {
     auto entity = Entity();
 
 	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
@@ -105,6 +109,7 @@ Entity SpaceshipHomeSystem::createSpaceshipHome(vec2 position, int food_storage,
 
 	// Add entity to spaceship home registry
 	auto& spaceshipHome = registry.spaceshipHomes.emplace(entity);
+	spaceshipHome.health_storage = health_storage;
 	spaceshipHome.food_storage = food_storage;
 	spaceshipHome.ammo_storage = ammo_storage;
 

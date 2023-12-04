@@ -10,7 +10,8 @@
 
 const int PLAYER_MAX_FOOD = 100;
 const int PLAYER_MAX_HEALTH = 100;
-const int SPACESHIP_MAX_FOOD_STORAGE = 500;
+const int SPACESHIP_MAX_HEALTH_STORAGE = 100;
+const int SPACESHIP_MAX_FOOD_STORAGE = 200;
 const int SPACESHIP_MAX_AMMO_STORAGE = 100;
 
 enum class QUEST_ITEM_STATUS {
@@ -117,6 +118,7 @@ struct Weapon {
 
 // The spaceship 
 struct SpaceshipHome {
+	int health_storage;
 	int food_storage;
 	int ammo_storage;
 };
