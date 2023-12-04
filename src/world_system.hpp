@@ -18,6 +18,8 @@
 #include "physics_system.hpp"
 #include "save.hpp"
 #include "audio_system.hpp"
+#include "spaceship_home_system.hpp"
+#include "quest_system.hpp"
 
 #include <nlohmann/json.hpp>
 
@@ -47,7 +49,16 @@ public:
 	GLFWwindow* create_window();
 
 	// starts the game
-	void init(RenderSystem* renderer, TerrainSystem* terrain_arg, WeaponsSystem* weapons_system_arg, PhysicsSystem* physics_system_arg, MobSystem* mob_system_arg, AudioSystem* audio_system_arg);
+	void init(
+		RenderSystem* renderer, 
+		TerrainSystem* terrain_arg, 
+		WeaponsSystem* weapons_system_arg, 
+		PhysicsSystem* physics_system_arg,
+		MobSystem* mob_system_arg, 
+		AudioSystem* audio_system_arg, 
+		SpaceshipHomeSystem* spaceship_home_system_arg,
+		QuestSystem* quest_system_arg
+	);
 
 	// Releases all associated resources
 	~WorldSystem();
@@ -68,16 +79,12 @@ public:
 	void handle_collisions();
 	// Should the game be over ?
 	bool is_over()const;
-	bool is_home()const; 
 private:
 	// Input callback functions
 	void on_key(int key, int, int action, int mod);
 	void on_mouse_move(vec2 pos);
 	void on_mouse_click(int button, int action, int mods);
 	vec2 interpolate(vec2 p1, vec2 p2, float param);
-
-
-
 
 	// restart level
 	void restart_game();
@@ -97,6 +104,8 @@ private:
 	MobSystem* mob_system;
 	PhysicsSystem* physics_system;
 	AudioSystem* audio_system;
+	SpaceshipHomeSystem* spaceship_home_system;
+	QuestSystem* quest_system;
 	float current_speed;
 	float next_turtle_spawn;
 	float next_fish_spawn;
@@ -107,13 +116,7 @@ private:
 	Entity health_bar;
 	Entity health_frame; 
 	Entity food_frame; 
-	Entity fs_frame; 
-	Entity as_frame; 
 	Entity food_bar;
-	Entity food_storage; 
-	Entity turkey;
-	Entity ammo_storage;
-	Entity ammo;
 	Entity weapon_indicator;
 	Entity powerup_indicator;
 	Entity ammo_indicator; 
@@ -121,7 +124,6 @@ private:
 	Entity spaceship_home; 
 	Entity help_bar;
 	bool tooltips_on = true;
-	std::vector<std::pair<Entity, bool>> quest_items;
 
 	bool user_has_first_weapon = false;
 	bool user_has_powerup = false;
@@ -176,14 +178,6 @@ private:
 	///  Sets the player's facing direction based on the cursor angle (aiming direction)
 	/// </summary>
 	void updatePlayerDirection();
-
-	/// <summary>
-	/// Regenerate from storage 
-	/// </summary>
-	/// <param name="resource"></param>
-	/// <param name="storage"></param>
-	/// <param name="max_capacity"></param>
-	void checkAndRegenerate(int& resource, int& storage, int max_capacity); 
 
 	/// <summary>
 	// Handles various aspects related to player movement, 

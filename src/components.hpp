@@ -10,9 +10,14 @@
 
 const int PLAYER_MAX_FOOD = 100;
 const int PLAYER_MAX_HEALTH = 100;
-const int PLAYER_MAX_AMMO = 10;
-const int SPACESHIP_HOME_MAX_FOOD_STORAGE = 500;
-const int SPACESHIP_HOME_MAX_AMMO_STORAGE = 100;
+const int SPACESHIP_MAX_FOOD_STORAGE = 500;
+const int SPACESHIP_MAX_AMMO_STORAGE = 100;
+
+enum class QUEST_ITEM_STATUS {
+	NOT_FOUND = 0,
+	FOUND = NOT_FOUND + 1,
+	SUBMITTED = FOUND + 1
+};
 
 enum class ITEM_TYPE {
 	QUEST_ONE = 0,
@@ -27,10 +32,7 @@ enum class ITEM_TYPE {
 	POWERUP_NONE = WEAPON_UPGRADE + 1,
 	POWERUP_SPEED = POWERUP_NONE + 1,
 	POWERUP_HEALTH = POWERUP_SPEED + 1,
-	UPGRADE = POWERUP_HEALTH + 1,
-	TURKEY = UPGRADE + 1,
-	AMMO = TURKEY + 1,
-
+	UPGRADE = POWERUP_HEALTH + 1
 };
 
 enum class BAR_TYPE {
@@ -61,10 +63,22 @@ struct Player
 	int food = PLAYER_MAX_FOOD;
 	int framex = 0; 
 	int framey = 4; 
+	bool is_home = false;
 };
 
 struct SpeedPowerup {
 	float old_speed;
+};
+
+struct QuestItemIndicator {
+	ITEM_TYPE quest_item;
+};
+
+struct Inventory {
+	std::map<ITEM_TYPE, QUEST_ITEM_STATUS> quest_items {
+		{ITEM_TYPE::QUEST_ONE, QUEST_ITEM_STATUS::NOT_FOUND},
+		{ITEM_TYPE::QUEST_TWO, QUEST_ITEM_STATUS::NOT_FOUND},
+	};
 };
 
 // Make sure that the heal interval is always larger than the light up interval
@@ -97,12 +111,12 @@ struct Weapon {
 	float elapsed_last_shot_time_ms;     // controls fire rate, the time that the weapon was fired last
 	float projectile_velocity;           // speed of projectiles of this weapon
 	int projectile_damage;               // weapon damage
-	int ammo_count = PLAYER_MAX_AMMO;
+	int ammo_count;						 // Ammo
+	int level;							 // Weapon level
 };
 
 // The spaceship 
 struct SpaceshipHome {
-	bool is_inside;
 	int food_storage;
 	int ammo_storage;
 };
@@ -366,18 +380,20 @@ enum class TEXTURE_ASSET_ID {
 	BAR_FRAME = AMMO_BLOCK + 1,
 	HEALTH_FRAME = BAR_FRAME + 1,
 	FOOD_FRAME = HEALTH_FRAME + 1,
-	AMMO = FOOD_FRAME +1,
-	TURKEY = AMMO + 1, 
-	HELP_ONE = TURKEY + 1,
+	SPACESHIP_HOME_AMMO = FOOD_FRAME + 1,
+	SPACESHIP_HOME_FOOD = SPACESHIP_HOME_AMMO + 1,
+	HELP_ONE = SPACESHIP_HOME_FOOD + 1,
 	HELP_TWO = HELP_ONE + 1,
 	HELP_THREE = HELP_TWO + 1,
 	HELP_FOUR = HELP_THREE + 1,
 	HELP_WEAPON = HELP_FOUR + 1,
 	QUEST_1_NOT_FOUND = HELP_WEAPON + 1,
 	QUEST_1_FOUND = QUEST_1_NOT_FOUND + 1,
-	QUEST_2_NOT_FOUND = QUEST_1_FOUND + 1,
+	QUEST_1_SUBMITTED = QUEST_1_FOUND + 1,
+	QUEST_2_NOT_FOUND = QUEST_1_SUBMITTED + 1,
 	QUEST_2_FOUND = QUEST_2_NOT_FOUND + 1,
-	QUEST_1_ITEM = QUEST_2_FOUND + 1,
+	QUEST_2_SUBMITTED = QUEST_2_FOUND + 1,
+	QUEST_1_ITEM = QUEST_2_SUBMITTED + 1,
 	QUEST_2_ITEM = QUEST_1_ITEM +1,
 	GHOST = QUEST_2_ITEM + 1,
 	BRUTE = GHOST + 1,
