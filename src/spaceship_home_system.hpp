@@ -42,6 +42,7 @@ class SpaceshipHomeSystem
         bool isHome();
 
     private:
+        const vec2 SPACESHIP_HOME_POSITION = { 0.f, 0.f };
         const vec2 FOOD_ITEM_POSITION = { -5.6f, 0.f };
         const vec2 FOOD_STORAGE_BAR_POSITION = { -3.5f, 0.f };
         const vec2 FOOD_STORAGE_BAR_FRAME_POSITION = { -3.49f, 0.f };

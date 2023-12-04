@@ -25,7 +25,7 @@ void SpaceshipHomeSystem::resetSpaceshipHomeSystem(int food_storage, int ammo_st
 	vec2 camera_pos = camera_motion.position;
 
 	// Create spaceship home
-	spaceship_home = createSpaceshipHome(camera_pos, food_storage, ammo_storage);
+	spaceship_home = createSpaceshipHome(SPACESHIP_HOME_POSITION, food_storage, ammo_storage);
 
 	// Create food storage elements
 	food_item = createSpaceshipHomeItem(FOOD_ITEM_POSITION, TEXTURE_ASSET_ID::SPACESHIP_HOME_FOOD);
