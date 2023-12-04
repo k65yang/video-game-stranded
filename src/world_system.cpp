@@ -238,7 +238,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 	// Apply food decreasing the more you travel. 
 	if (player.food > 0) {
-		if (PLAYER_TOTAL_DISTANCE >= FOOD_DECREASE_THRESHOLD ) {
+		if (PLAYER_TOTAL_DISTANCE >= FOOD_DECREASE_THRESHOLD && !debugging.in_debug_mode) {
 			// Decrease player's food by 1
 			player.food -= 1;
 			// Shrink the food bar
@@ -986,30 +986,6 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	// Movement with velocity handled in step function  
 	update_key_presses(key, action);
 
-	/*
-	if (action == GLFW_PRESS && key == GLFW_KEY_G) {
-		Motion& player = registry.motions.get(player_salmon);
-		Entity tile = terrain->get_cell(player.position);
-		TerrainCell& cell = registry.terrainCells.get(tile);
-		cell.terrain_type = TERRAIN_TYPE::ROCK;
-		terrain->update_tile(tile, cell);
-	}
-
-	if (action == GLFW_PRESS && key == GLFW_KEY_V) {
-		Motion& player = registry.motions.get(player_salmon);
-		Entity tile = terrain->get_cell(player.position);
-
-		std::vector<Entity> entities;
-		terrain->get_accessible_neighbours(tile, entities);
-		for (Entity e : entities) {
-			TerrainCell& cell = registry.terrainCells.get(e);
-			cell.terrain_type = TERRAIN_TYPE::ROCK;
-			cell.flag |= TERRAIN_FLAGS::COLLIDABLE;
-			terrain->update_tile(e, cell);
-		}
-	}
-	*/
-
 	// Saving and reloading
 	if (action == GLFW_PRESS && key == GLFW_KEY_L) {
 		// Load the game state 
@@ -1059,9 +1035,6 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 
 	// Resetting game
 	if (action == GLFW_RELEASE && key == GLFW_KEY_R) {
-		int w, h;
-		glfwGetWindowSize(window, &w, &h);
-
 		restart_game();
 	}
 
