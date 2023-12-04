@@ -282,6 +282,7 @@ public:
 	void empty_terrain_buffer();
 
 	// Render text to screen using freetype
+	// Code based off: https://learnopengl.com/In-Practice/Text-Rendering
 	void renderText(std::string text, float x, float y, float scale, glm::vec3 color, mat3& projection_matrix, mat3& view_matrix);
 
 	// Do not modify this. READ ONLY!!

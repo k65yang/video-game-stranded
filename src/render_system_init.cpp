@@ -287,6 +287,9 @@ void RenderSystem::initializeGlEffects()
 	}
 }
 
+/// <summary>
+/// Code based off https://learnopengl.com/In-Practice/Text-Rendering
+/// </summary>
 void RenderSystem::initializeTextRenderer()
 {
 	// Loading fonts with freetype
