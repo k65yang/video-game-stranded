@@ -86,7 +86,7 @@ template <typename T>
 void write_to_file(std::ofstream& file, T& data);
 
 template <typename T>
-void read_from_file(std::ofstream& file, T& data);
+void read_from_file(std::ifstream& file, T& data);
 
 
 template<typename T>
