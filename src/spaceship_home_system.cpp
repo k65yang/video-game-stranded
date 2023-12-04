@@ -122,7 +122,7 @@ Entity SpaceshipHomeSystem::createSpaceshipHome(vec2 position, int health_storag
 	registry.renderRequests.insert(
 		entity,
 		{ 
-            TEXTURE_ASSET_ID::SPACEHOME,
+            TEXTURE_ASSET_ID::SPACESHIP_HOME,
 		    EFFECT_ASSET_ID::TEXTURED,
 		    GEOMETRY_BUFFER_ID::SPRITE,
 			RENDER_LAYER_ID::LAYER_4 

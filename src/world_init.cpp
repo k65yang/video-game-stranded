@@ -173,11 +173,11 @@ Entity createBar(RenderSystem* renderer, vec2 position, int amount, BAR_TYPE typ
 	TEXTURE_ASSET_ID texture = TEXTURE_ASSET_ID::PLAYER;
 	switch (type) {
 		case BAR_TYPE::HEALTH_BAR:
-			texture = TEXTURE_ASSET_ID::REDBLOCK;
+			texture = TEXTURE_ASSET_ID::RED_BLOCK;
 			motion.scale = vec2(((float)amount / (float)PLAYER_MAX_HEALTH) * HEALTH_BAR_SCALE[0], HEALTH_BAR_SCALE[1]);
 			break;
 		case BAR_TYPE::FOOD_BAR:
-			texture = TEXTURE_ASSET_ID::BLUEBLOCK;
+			texture = TEXTURE_ASSET_ID::BLUE_BLOCK;
 			motion.scale = vec2(((float)amount / (float)PLAYER_MAX_FOOD) * FOOD_BAR_SCALE[0], FOOD_BAR_SCALE[1]);
 			break;
 		case BAR_TYPE::AMMO_BAR:
