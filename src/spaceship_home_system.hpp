@@ -28,9 +28,10 @@ class SpaceshipHomeSystem
         void init(RenderSystem* renderer_arg, WeaponsSystem* weapon_system_arg, QuestSystem* quest_system_arg);
 
         /// @brief Initializes spaceship home elements 
+        /// @param health_storage Initial amount of health the spaceship home stores
         /// @param food_storage Initial amount of food the spaceship home stores
         /// @param ammo_storage Initial amount of ammo the spaceship home stores
-        void resetSpaceshipHomeSystem(int food_storage, int ammo_storage);
+        void resetSpaceshipHomeSystem(int health_storage, int food_storage, int ammo_storage);
 
         /// @brief Executes various actions when player enters spaceship
         /// @param player_health_bar The entity for the player's health bar
@@ -43,17 +44,23 @@ class SpaceshipHomeSystem
 
     private:
         const vec2 SPACESHIP_HOME_POSITION = { 0.f, 0.f };
-        const vec2 FOOD_ITEM_POSITION = { -5.6f, 0.f };
-        const vec2 FOOD_STORAGE_BAR_POSITION = { -3.5f, 0.f };
-        const vec2 FOOD_STORAGE_BAR_FRAME_POSITION = { -3.49f, 0.f };
-        const vec2 AMMO_ITEM_POSITION = { 1.f, 0.5f };
-        const vec2 AMMO_STORAGE_BAR_POSITION = { 4.5f, 0.5f };
-        const vec2 AMMO_STORAGE_BAR_FRAME_POSITION = { 4.51f, 0.5f };
+        const vec2 FOOD_ITEM_POSITION = { -6.0f, -0.5f };
+        const vec2 FOOD_STORAGE_BAR_POSITION = { -3.5f, -0.5f };
+        const vec2 FOOD_STORAGE_BAR_FRAME_POSITION = { -3.5f, -0.5f };
+        const vec2 AMMO_ITEM_POSITION = { 1.4f, -0.5f };
+        const vec2 AMMO_STORAGE_BAR_POSITION = { 5.0f, -0.5f };
+        const vec2 AMMO_STORAGE_BAR_FRAME_POSITION = { 5.0f, -0.5f };
+        const vec2 HEALTH_ITEM_POSITION = { 1.5f, -3.5f };
+        const vec2 HEALTH_STORAGE_BAR_POSITION = { 5.0f, -3.5f };
+        const vec2 HEALTH_STORAGE_BAR_FRAME_POSITION = { 5.0f, -3.5f };
 
         RenderSystem* renderer;
         WeaponsSystem* weaponsSystem;
         QuestSystem* quest_system;
         Entity spaceship_home;
+        Entity health_item;
+        Entity health_storage_bar;
+        Entity health_storage_bar_frame;
         Entity food_item;
         Entity food_storage_bar;
         Entity food_storage_bar_frame;
@@ -63,10 +70,11 @@ class SpaceshipHomeSystem
 
         /// @brief Creates the spaceship home
         /// @param position Position of the spaceship home
+        /// @param health_storage Initial amount of health the spaceship home stores 
         /// @param food_storage Initial amount of food the spaceship home stores 
         /// @param ammo_storage Initial amount of ammo the spaceship home stores
         /// @return The created entity
-        Entity createSpaceshipHome(vec2 position, int food_storage, int ammo_storage);
+        Entity createSpaceshipHome(vec2 position, int health_storage, int food_storage, int ammo_storage);
 
         /// @brief Creates a spaceship home item
         /// @param position Position of the item

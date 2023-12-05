@@ -558,7 +558,7 @@ void WorldSystem::restart_game() {
 	main_camera = createCamera({ 0,0 });
 
 	// Reset the spaceship home system
-	spaceship_home_system->resetSpaceshipHomeSystem(SPACESHIP_MAX_FOOD_STORAGE, SPACESHIP_MAX_AMMO_STORAGE);
+	spaceship_home_system->resetSpaceshipHomeSystem(SPACESHIP_MAX_HEALTH_STORAGE, SPACESHIP_MAX_FOOD_STORAGE, SPACESHIP_MAX_AMMO_STORAGE);
 
 	// DISABLE FOW MASK
 	//fow = createFOW(renderer, { 0,0 });
@@ -582,7 +582,7 @@ void WorldSystem::restart_game() {
 	current_tooltip = 1;
 
 	// Reset quest system
-	std::vector<QUEST_ITEM_STATUS> statuses(2, QUEST_ITEM_STATUS::NOT_FOUND);
+	std::vector<QUEST_ITEM_STATUS> statuses(4, QUEST_ITEM_STATUS::NOT_FOUND);
 	quest_system->resetQuestSystem(statuses);
 
 	// clear all used spawn locations
@@ -712,6 +712,12 @@ void WorldSystem::handle_collisions() {
 						quest_system->processQuestItem(item.data, QUEST_ITEM_STATUS::FOUND);
 						break;
 					case ITEM_TYPE::QUEST_TWO:
+						quest_system->processQuestItem(item.data, QUEST_ITEM_STATUS::FOUND);
+						break;
+					case ITEM_TYPE::QUEST_THREE:
+						quest_system->processQuestItem(item.data, QUEST_ITEM_STATUS::FOUND);
+						break;
+					case ITEM_TYPE::QUEST_FOUR:
 						quest_system->processQuestItem(item.data, QUEST_ITEM_STATUS::FOUND);
 						break;
 					case ITEM_TYPE::FOOD:
@@ -973,6 +979,8 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		std::vector<QUEST_ITEM_STATUS> quest_item_statuses {
 			inventory.quest_items[ITEM_TYPE::QUEST_ONE],
 			inventory.quest_items[ITEM_TYPE::QUEST_TWO],
+			inventory.quest_items[ITEM_TYPE::QUEST_THREE],
+			inventory.quest_items[ITEM_TYPE::QUEST_FOUR],
 		};
 
 		ITEM_TYPE p_type = ITEM_TYPE::POWERUP_NONE;
@@ -1304,7 +1312,9 @@ void WorldSystem::spawn_items() {
 	//  createItem(renderer, physics_system, terrain->get_random_terrain_location(ZONE_2), ITEM_TYPE::QUEST_TWO);
 
 	createItem(renderer, physics_system, {1.f, 1.f}, ITEM_TYPE::QUEST_ONE);
-	createItem(renderer, physics_system, {-1.f, -1.f}, ITEM_TYPE::QUEST_TWO);
+	createItem(renderer, physics_system, {-1.f, -1.f}, ITEM_TYPE::QUEST_TWO);	
+	createItem(renderer, physics_system, { 2.f, 1.f }, ITEM_TYPE::QUEST_THREE);
+	createItem(renderer, physics_system, { -2.f, -1.f }, ITEM_TYPE::QUEST_FOUR);
 }
 
 // Adapted from restart_game, BASICALLY a lot of optional arguments to change small things :D
@@ -1371,9 +1381,10 @@ void WorldSystem::load_game(json j) {
 	Motion& camera_motion = registry.motions.get(main_camera);
 
  	// Reset spaceship home system
+	int sh_health_storage = j["spaceshipHome"]["health_storage"];
 	int sh_food_storage = j["spaceshipHome"]["food_storage"];
 	int sh_ammo_storage = j["spaceshipHome"]["ammo_storage"];
-	spaceship_home_system->resetSpaceshipHomeSystem(sh_food_storage, sh_ammo_storage);
+	spaceship_home_system->resetSpaceshipHomeSystem(sh_health_storage, sh_food_storage, sh_ammo_storage);
 
 	// Create player health bar
 	health_bar = createBar(renderer, HEALTH_BAR_FRAME_POS, PLAYER_MAX_HEALTH, BAR_TYPE::HEALTH_BAR);
