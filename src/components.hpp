@@ -190,6 +190,12 @@ struct Collision
 
 };
 
+struct Text {
+	std::string str;
+	vec3 color;
+	float scale;
+};
+
 // Data structure for toggling debug mode
 struct Debug {
 	bool in_debug_mode = 0;
