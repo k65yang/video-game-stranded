@@ -1370,20 +1370,17 @@ void WorldSystem::load_game(json j) {
 	// Create a new salmon
 	player_salmon = createPlayer(renderer, physics_system, player_location);
 	Player& player = registry.players.get(player_salmon);
-	player.health = j["player"]["health"];
-	player.food = j["player"]["food"];
-	player.is_home = j["player"]["is_home"];
+	int p_health = j["player"]["health"];
+	int p_food = j["player"]["food"];
+	bool p_is_home = j["player"]["is_home"];
+	player.health = p_health;
+	player.food = p_food;
+	player.is_home = p_is_home;
 	registry.colors.insert(player_salmon, { 1, 0.8f, 0.8f, 1.0f});
 
 	// Create the main camera
 	main_camera = createCamera(player_location);
 	Motion& camera_motion = registry.motions.get(main_camera);
-
- 	// Reset spaceship home system
-	int sh_health_storage = j["spaceshipHome"]["health_storage"];
-	int sh_food_storage = j["spaceshipHome"]["food_storage"];
-	int sh_ammo_storage = j["spaceshipHome"]["ammo_storage"];
-	spaceship_home_system->resetSpaceshipHomeSystem(sh_health_storage, sh_food_storage, sh_ammo_storage);
 
 	// Create player health bar
 	health_bar = createBar(renderer, HEALTH_BAR_FRAME_POS, PLAYER_MAX_HEALTH, BAR_TYPE::HEALTH_BAR);
@@ -1392,6 +1389,13 @@ void WorldSystem::load_game(json j) {
 	// Create player food bar
 	food_bar = createBar(renderer, FOOD_BAR_FRAME_POS, PLAYER_MAX_FOOD, BAR_TYPE::FOOD_BAR);
 	food_frame = createFrame(renderer, FOOD_BAR_FRAME_POS, FRAME_TYPE::FOOD_FRAME);
+
+	// Reset spaceship home system
+	int sh_health_storage = j["spaceshipHome"]["health_storage"];
+	int sh_food_storage = j["spaceshipHome"]["food_storage"];
+	int sh_ammo_storage = j["spaceshipHome"]["ammo_storage"];
+	spaceship_home_system->resetSpaceshipHomeSystem(sh_health_storage, sh_food_storage, sh_ammo_storage);
+	if (p_is_home) spaceship_home_system->enterSpaceship(health_bar, food_bar);
 
 	// Tool tips and help bar
 	tooltips_on = false;
