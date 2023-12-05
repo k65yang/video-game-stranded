@@ -79,13 +79,13 @@ void SpaceshipHomeSystem::enterSpaceship(Entity player_health_bar, Entity player
 	// Reload all weapons. This can be problematic because it always reloads in a specific order.
 	// TODO: Somehow give options to player to reload specific weapons.
 	int amount_reloaded = 0;
-	amount_reloaded = weaponsSystem->increaseAmmo(ITEM_TYPE::WEAPON_SHURIKEN, 100);
+	amount_reloaded = weaponsSystem->increaseAmmo(ITEM_TYPE::WEAPON_SHURIKEN, spaceship_home_info.ammo_storage);
 	spaceship_home_info.ammo_storage -= amount_reloaded;
-	amount_reloaded = weaponsSystem->increaseAmmo(ITEM_TYPE::WEAPON_CROSSBOW, 100);
+	amount_reloaded = weaponsSystem->increaseAmmo(ITEM_TYPE::WEAPON_CROSSBOW, spaceship_home_info.ammo_storage);
 	spaceship_home_info.ammo_storage -= amount_reloaded;
-	amount_reloaded = weaponsSystem->increaseAmmo(ITEM_TYPE::WEAPON_SHOTGUN, 100);
+	amount_reloaded = weaponsSystem->increaseAmmo(ITEM_TYPE::WEAPON_SHOTGUN, spaceship_home_info.ammo_storage);
 	spaceship_home_info.ammo_storage -= amount_reloaded;
-	amount_reloaded = weaponsSystem->increaseAmmo(ITEM_TYPE::WEAPON_MACHINEGUN, 100);
+	amount_reloaded = weaponsSystem->increaseAmmo(ITEM_TYPE::WEAPON_MACHINEGUN, spaceship_home_info.ammo_storage);
 	spaceship_home_info.ammo_storage -= amount_reloaded;
 	ammo_storage_count = createText(
 		renderer, 
