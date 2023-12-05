@@ -23,8 +23,13 @@ void QuestSystem::resetQuestSystem(std::vector<QUEST_ITEM_STATUS> statuses) {
     // Create quest item indicators
     createQuestItemIndicator(QUEST_1_INDICATOR_POSITION, ITEM_TYPE::QUEST_ONE, statuses[0]);
     createQuestItemIndicator(QUEST_2_INDICATOR_POSITION, ITEM_TYPE::QUEST_TWO, statuses[1]);
-    createQuestItemIndicator(QUEST_1_INDICATOR_POSITION, ITEM_TYPE::QUEST_THREE, statuses[2]);
-    createQuestItemIndicator(QUEST_2_INDICATOR_POSITION, ITEM_TYPE::QUEST_FOUR, statuses[3]);
+    createQuestItemIndicator(QUEST_3_INDICATOR_POSITION, ITEM_TYPE::QUEST_THREE, statuses[2]);
+    createQuestItemIndicator(QUEST_4_INDICATOR_POSITION, ITEM_TYPE::QUEST_FOUR, statuses[3]);
+
+    if (statuses[0] == QUEST_ITEM_STATUS::SUBMITTED) createSpaceshipPart(ITEM_TYPE::QUEST_ONE);
+    if (statuses[1] == QUEST_ITEM_STATUS::SUBMITTED) createSpaceshipPart(ITEM_TYPE::QUEST_TWO);
+    if (statuses[2] == QUEST_ITEM_STATUS::SUBMITTED) createSpaceshipPart(ITEM_TYPE::QUEST_THREE);
+    if (statuses[3] == QUEST_ITEM_STATUS::SUBMITTED) createSpaceshipPart(ITEM_TYPE::QUEST_FOUR);
 };
 
 void QuestSystem::processQuestItem(ITEM_TYPE type, QUEST_ITEM_STATUS new_status) {
@@ -39,7 +44,6 @@ void QuestSystem::processQuestItem(ITEM_TYPE type, QUEST_ITEM_STATUS new_status)
     }
 
     // Create new indicator
-   // vec2 position = type == ITEM_TYPE::QUEST_ONE ? QUEST_1_INDICATOR_POSITION : QUEST_2_INDICATOR_POSITION;
     vec2 position;
     switch (type) {
     case ITEM_TYPE::QUEST_ONE:
@@ -95,7 +99,7 @@ Entity QuestSystem::createQuestItemIndicator(vec2 position, ITEM_TYPE type, QUES
 	motion.angle = 0.f;
 	motion.velocity = { 0.f, 0.f };
 	motion.position = position;
-	motion.scale = vec2({ 3.f, 3.f });
+	motion.scale = vec2({ 2.f, 2.f });
 
     // Add entity to quest item indicator registry
     auto& questItemIndicator = registry.questItemIndicators.emplace(entity);
@@ -140,7 +144,6 @@ Entity QuestSystem::createSpaceshipPart(ITEM_TYPE type) {
     auto& motion = registry.motions.emplace(entity);
     motion.angle = 0.f;
     motion.velocity = { 0.f, 0.f };
-    //motion.scale = vec2({ 1.5f, 1.5f });
     motion.position = { 0, -2.5 };
     motion.scale = vec2({ target_resolution.x / tile_size_px * 0.20833333, target_resolution.y / tile_size_px * 0.3125 });
 
@@ -151,6 +154,7 @@ Entity QuestSystem::createSpaceshipPart(ITEM_TYPE type) {
         break;
     case ITEM_TYPE::QUEST_TWO:
         texture = TEXTURE_ASSET_ID::QUEST_2_BUILT;
+        break;
     case ITEM_TYPE::QUEST_THREE:
         texture = TEXTURE_ASSET_ID::QUEST_3_BUILT;
         break;
@@ -169,4 +173,4 @@ Entity QuestSystem::createSpaceshipPart(ITEM_TYPE type) {
     );
 
     return entity;
- };
+};

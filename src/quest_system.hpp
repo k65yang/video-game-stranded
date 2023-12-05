@@ -40,10 +40,10 @@ class QuestSystem
 
     private:
         const int NUM_QUEST_ITEMS = 4;
-        const vec2 QUEST_1_INDICATOR_POSITION = {-10.f, -4.f};
-        const vec2 QUEST_2_INDICATOR_POSITION = {-10.f, -2.f};
-        const vec2 QUEST_3_INDICATOR_POSITION = { 10.f, 2.f };
-        const vec2 QUEST_4_INDICATOR_POSITION = { 10.f, 4.f };
+        const vec2 QUEST_1_INDICATOR_POSITION = { 10.f, -4.f};
+        const vec2 QUEST_2_INDICATOR_POSITION = { 10.f, -1.5f};
+        const vec2 QUEST_3_INDICATOR_POSITION = { 10.f, 1.0f };
+        const vec2 QUEST_4_INDICATOR_POSITION = { 10.f, 3.5f };
 
         RenderSystem* renderer;
 
