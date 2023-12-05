@@ -816,12 +816,16 @@ void WorldSystem::handle_collisions() {
 				mob.health -= projectile.damage;
 				// printf("mob health: %i", mob.health);
 				if (mob.health <= 0) {
+					registry.remove_all_components_of(mob.health_bar);
 					registry.remove_all_components_of(entity_other);
 					audio_system->play_one_shot(AudioSystem::MOB_DEATH);
 				}
 				else {
 					audio_system->play_one_shot(AudioSystem::MOB_HIT);
+					Motion& health = registry.motions.get(mob.health_bar);
+					health.scale = vec2(((float)mob.health / (float)mob_system->mob_health_map.at(mob.type)) * 5.5, 0.7);
 				}
+
 				// Add weapon effects to the mob
 				weapons_system->applyWeaponEffects(entity, entity_other);
 

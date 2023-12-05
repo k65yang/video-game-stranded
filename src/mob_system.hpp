@@ -49,6 +49,15 @@ class MobSystem
         /// @return The created entity
         Entity create_mob(vec2 mob_position, MOB_TYPE mob_type, int current_health = 0);
 
+        // Health for each mob
+        const std::map<MOB_TYPE, int> mob_health_map = {
+            {MOB_TYPE::GHOST, 50},
+            {MOB_TYPE::SLIME, 30},
+            {MOB_TYPE::BRUTE, 100},
+            {MOB_TYPE::DISRUPTOR, 50},
+            {MOB_TYPE::TURRET, 10}
+        };
+
     private:
         // Pointer to rendering system
         RenderSystem* renderer;
@@ -79,15 +88,6 @@ class MobSystem
             {MOB_TYPE::BRUTE, 10},
             {MOB_TYPE::DISRUPTOR, 10},
             {MOB_TYPE::TURRET, 5}
-        };
-
-        // Health for each mob
-        const std::map<MOB_TYPE, int> mob_health_map = {
-            {MOB_TYPE::GHOST, 50},
-            {MOB_TYPE::SLIME, 30},
-            {MOB_TYPE::BRUTE, 100},
-            {MOB_TYPE::DISRUPTOR, 50},
-            {MOB_TYPE::TURRET, 10}
         };
 
         // Speed for each mob
