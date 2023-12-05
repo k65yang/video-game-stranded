@@ -582,7 +582,7 @@ void WorldSystem::restart_game() {
 	current_tooltip = 1;
 
 	// Reset quest system
-	std::vector<QUEST_ITEM_STATUS> statuses(2, QUEST_ITEM_STATUS::NOT_FOUND);
+	std::vector<QUEST_ITEM_STATUS> statuses(4, QUEST_ITEM_STATUS::NOT_FOUND);
 	quest_system->resetQuestSystem(statuses);
 
 	// clear all used spawn locations
@@ -712,6 +712,12 @@ void WorldSystem::handle_collisions() {
 						quest_system->processQuestItem(item.data, QUEST_ITEM_STATUS::FOUND);
 						break;
 					case ITEM_TYPE::QUEST_TWO:
+						quest_system->processQuestItem(item.data, QUEST_ITEM_STATUS::FOUND);
+						break;
+					case ITEM_TYPE::QUEST_THREE:
+						quest_system->processQuestItem(item.data, QUEST_ITEM_STATUS::FOUND);
+						break;
+					case ITEM_TYPE::QUEST_FOUR:
 						quest_system->processQuestItem(item.data, QUEST_ITEM_STATUS::FOUND);
 						break;
 					case ITEM_TYPE::FOOD:
@@ -973,6 +979,8 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		std::vector<QUEST_ITEM_STATUS> quest_item_statuses {
 			inventory.quest_items[ITEM_TYPE::QUEST_ONE],
 			inventory.quest_items[ITEM_TYPE::QUEST_TWO],
+			inventory.quest_items[ITEM_TYPE::QUEST_THREE],
+			inventory.quest_items[ITEM_TYPE::QUEST_FOUR],
 		};
 
 		ITEM_TYPE p_type = ITEM_TYPE::POWERUP_NONE;
@@ -1303,7 +1311,9 @@ void WorldSystem::spawn_items() {
 	//  createItem(renderer, physics_system, terrain->get_random_terrain_location(ZONE_2), ITEM_TYPE::QUEST_TWO);
 
 	createItem(renderer, physics_system, {1.f, 1.f}, ITEM_TYPE::QUEST_ONE);
-	createItem(renderer, physics_system, {-1.f, -1.f}, ITEM_TYPE::QUEST_TWO);
+	createItem(renderer, physics_system, {-1.f, -1.f}, ITEM_TYPE::QUEST_TWO);	
+	createItem(renderer, physics_system, { 2.f, 1.f }, ITEM_TYPE::QUEST_THREE);
+	createItem(renderer, physics_system, { -2.f, -1.f }, ITEM_TYPE::QUEST_FOUR);
 }
 
 // Adapted from restart_game, BASICALLY a lot of optional arguments to change small things :D
