@@ -120,4 +120,6 @@ class MobSystem
         /// @param duration_ms How long (in ms) the inaccuracy lasts
         /// @param inaccuracy_percent How much inaccuracy there is for the player as a percentage [0, 1.0] (0 means no inaccuracy)
         void apply_inaccuracy(Entity player, float duration_ms, float inaccuracy_percent);
+
+        Entity create_mob_health_bar(RenderSystem* renderer, vec2 position, int amount, MOB_TYPE type);
 };

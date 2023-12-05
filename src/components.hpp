@@ -146,6 +146,7 @@ struct Mob {
 	int mframey = 1;
 	Entity curr_cell;
 	MOB_TYPE type;
+	Entity health_bar;
 };
 
 // Slowing effect for mobs from weapons

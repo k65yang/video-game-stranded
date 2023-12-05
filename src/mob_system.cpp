@@ -110,6 +110,10 @@ Entity MobSystem::create_mob(vec2 mob_position, MOB_TYPE mob_type, int current_h
 	mob_info.curr_cell = terrain->get_cell(motion.position);
 	mob_info.type = mob_type;
 
+	// Create a health bar for the mob
+	vec2 health_position = { mob_position.x, mob_position.y + 1 };
+	mob_info.health_bar = create_mob_health_bar(renderer, mob_position, current_health, mob_type);
+
 	// Initialize the collider
 	physics->createMeshCollider(entity, GEOMETRY_BUFFER_ID::MOB001_MESH, renderer);
 
@@ -141,6 +145,32 @@ Entity MobSystem::create_mob(vec2 mob_position, MOB_TYPE mob_type, int current_h
 
 	return entity;
 };
+
+Entity MobSystem::create_mob_health_bar(RenderSystem* renderer, vec2 position, int amount, MOB_TYPE type) {
+	auto entity = Entity();
+
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Initialize the position, scale, and physics components
+	auto& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.velocity = { 0.f, 0.f };
+	motion.position = { position.x + 2, position.y + 2 };
+	motion.scale = vec2(((float)amount / (float)mob_health_map.at(type)) * 5.5, 0.7);
+
+	registry.renderRequests.insert(
+		entity,
+		{
+			TEXTURE_ASSET_ID::REDBLOCK,
+			EFFECT_ASSET_ID::TEXTURED,
+			GEOMETRY_BUFFER_ID::SPRITE,
+			RENDER_LAYER_ID::LAYER_1
+		}
+	);
+
+	return entity;
+}
 
 void MobSystem::apply_knockback(Entity player, Entity mob, float duration_ms, float knockback_speed_ratio) {
 	// Apply knock back only if player is not knocked back already
