@@ -558,7 +558,7 @@ void WorldSystem::restart_game() {
 	main_camera = createCamera({ 0,0 });
 
 	// Reset the spaceship home system
-	spaceship_home_system->resetSpaceshipHomeSystem(SPACESHIP_MAX_FOOD_STORAGE, SPACESHIP_MAX_AMMO_STORAGE);
+	spaceship_home_system->resetSpaceshipHomeSystem(SPACESHIP_MAX_HEALTH_STORAGE, SPACESHIP_MAX_FOOD_STORAGE, SPACESHIP_MAX_AMMO_STORAGE);
 
 	// DISABLE FOW MASK
 	//fow = createFOW(renderer, { 0,0 });
@@ -1381,9 +1381,10 @@ void WorldSystem::load_game(json j) {
 	Motion& camera_motion = registry.motions.get(main_camera);
 
  	// Reset spaceship home system
+	int sh_health_storage = j["spaceshipHome"]["health_storage"];
 	int sh_food_storage = j["spaceshipHome"]["food_storage"];
 	int sh_ammo_storage = j["spaceshipHome"]["ammo_storage"];
-	spaceship_home_system->resetSpaceshipHomeSystem(sh_food_storage, sh_ammo_storage);
+	spaceship_home_system->resetSpaceshipHomeSystem(sh_health_storage, sh_food_storage, sh_ammo_storage);
 
 	// Create player health bar
 	health_bar = createBar(renderer, HEALTH_BAR_FRAME_POS, PLAYER_MAX_HEALTH, BAR_TYPE::HEALTH_BAR);

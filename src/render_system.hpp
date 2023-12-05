@@ -8,6 +8,9 @@
 #include "tiny_ecs.hpp"
 #include <unordered_set>
 
+#include <ft2build.h>
+#include FT_FREETYPE_H
+
 // System responsible for setting up OpenGL and for rendering all the
 // visual entities in the game
 class RenderSystem {
@@ -68,7 +71,7 @@ private:
 			textures_path("player_spritesheet.png"),
 			textures_path("player_particle.png"),
 			textures_path("mob_spritesheet.png"),
-			textures_path("redblock.png"),
+			textures_path("red_block.png"),
 			textures_path("weapon_upgrade.png"),
 			textures_path("food.png"),
 			textures_path("weapon_shuriken.png"),
@@ -86,16 +89,14 @@ private:
 			textures_path("powerup_health.png"),
 			textures_path("powerup_speed.png"),
 			textures_path("spaceship.png"), 
-			textures_path("spacehome.png"),
-			textures_path("blueblock.png"),
-			//inserting new blocks here
-			textures_path("foodblock.png"),
-			textures_path("brownblock.png"),
-			textures_path("ammoblock.png"),
+			textures_path("spaceship_home.png"),
+			textures_path("blue_block.png"),
+			textures_path("brown_block.png"),
+			textures_path("black_block.png"),
 			textures_path("bar_frame.png"),
 			textures_path("health_empty_bar.png"),
 			textures_path("food_empty_bar.png"),
-			//spaceship items 
+			textures_path("spaceship_home_health.png"),
 			textures_path("spaceship_home_ammo.png"),
 			textures_path("spaceship_home_food.png"),
 			textures_path("help1.png"),
@@ -205,14 +206,14 @@ private:
 		shader_path("salmon"),
 		shader_path("textured"),
 		shader_path("fog"),
-		shader_path("terrain"),};
+		shader_path("terrain"),
+		shader_path("text")};
 
 	std::array<GLuint, geometry_count> vertex_buffers;
 	std::array<GLuint, geometry_count> index_buffers;
 	std::array<Mesh, geometry_count> meshes;
 
 public:
-
 	// Initialize the window
 	bool init(GLFWwindow* window);
 
@@ -266,6 +267,9 @@ public:
 	// shader
 	bool initScreenTexture();
 
+	// Initialize text vertex buffers and text vao
+	void initializeTextRenderer();
+
 	// Destroy resources associated to one or all entities created by the system
 	~RenderSystem();
 
@@ -288,6 +292,10 @@ public:
 	/// </summary>
 	void empty_terrain_buffer();
 
+	// Render text to screen using freetype
+	// Code based off: https://learnopengl.com/In-Practice/Text-Rendering
+	void renderText(std::string text, float x, float y, float scale, glm::vec3 color, mat3& projection_matrix, mat3& view_matrix);
+
 	// Do not modify this. READ ONLY!!
 	bool is_terrain_mesh_loaded = false;
 
@@ -299,6 +307,19 @@ public:
 	float mob_frame_h;
 
 private:
+	// Freetype stuff
+	typedef struct {
+		unsigned int textureID;  // ID handle of the glyph texture
+		glm::ivec2   size;       // Size of glyph
+		glm::ivec2   bearing;    // Offset from baseline to left/top of glyph
+		unsigned int advance;    // Offset to advance to next glyph
+	} Character;
+
+	std::map<char, Character> characters;
+
+	// Define VAOs here
+	GLuint global_vao, text_vao;
+	
 	// Internal vertex data structure used for batched rendering
 	struct BatchedVertex {
 		vec3 position;
