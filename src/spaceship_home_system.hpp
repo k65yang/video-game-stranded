@@ -49,12 +49,15 @@ class SpaceshipHomeSystem
 
     private:
         const vec2 SPACESHIP_HOME_POSITION = { 0.f, 0.f };
-        const vec2 FOOD_ITEM_POSITION = { -6.0f, -0.5f };
-        const vec2 FOOD_STORAGE_COUNT_POSITION = { -3.5f, -0.5f };
-        const vec2 AMMO_ITEM_POSITION = { 1.5f, -0.5f };
-        const vec2 AMMO_STORAGE_COUNT_POSITION = { 5.0f, -0.5f };
-        const vec2 HEALTH_ITEM_POSITION = { 1.5f, -3.5f };
-        const vec2 HEALTH_STORAGE_COUNT_POSITION = { 5.0f, -3.5f };
+        const vec2 FOOD_ITEM_POSITION = { -6.2f, -0.5f };
+        const vec2 FOOD_STORAGE_COUNT_POSITION = { -4.7f, -0.3f };
+        const vec2 AMMO_ITEM_POSITION = { 1.8f, -0.5f };
+        const vec2 AMMO_STORAGE_COUNT_POSITION = { 4.3f, -0.4f };
+        const vec2 HEALTH_ITEM_POSITION = { 2.5f, -3.5f };
+        const vec2 HEALTH_STORAGE_COUNT_POSITION = { 3.5f, -3.2f };
+        const vec3 STORAGE_FULL_TEXT_COLOR = { 0.f, 0.f, 0.f };
+        const vec3 STORAGE_EMPTY_TEXT_COLOR = { 1.f, 0.f, 0.f };
+        const float STORAGE_COUNT_TEXT_SCALE = 0.5;
 
         RenderSystem* renderer;
         WeaponsSystem* weaponsSystem;
@@ -103,7 +106,6 @@ class SpaceshipHomeSystem
 
         /// @brief Creates a string that reflects the remaining amount of a resource in a storage
         /// @param storage The remaining amount of the resource in the storage
-        /// @param max_storage_value The max amount of the storage
         /// @return A string that reflects the remaining amount of a resource in a storage
-        std::string createStorageCountText(int storage, int max_storage_value);
+        std::string createStorageCountText(int storage);
 };

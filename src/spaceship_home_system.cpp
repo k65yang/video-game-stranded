@@ -57,12 +57,24 @@ void SpaceshipHomeSystem::enterSpaceship(Entity player_health_bar, Entity player
 	// Regenerate health
 	regenerateStat(player_info.health, spaceship_home_info.health_storage, PLAYER_MAX_HEALTH);
 	updateStatBar(player_info.health, player_health_bar_motion, PLAYER_MAX_HEALTH, HEALTH_BAR_SCALE);
-	health_storage_count = createText(renderer, HEALTH_STORAGE_COUNT_POSITION, createStorageCountText(spaceship_home_info.health_storage, SPACESHIP_MAX_HEALTH_STORAGE));
+	health_storage_count = createText(
+		renderer, 
+		HEALTH_STORAGE_COUNT_POSITION, 
+		createStorageCountText(spaceship_home_info.health_storage), 
+		STORAGE_COUNT_TEXT_SCALE, 
+		spaceship_home_info.health_storage > 0 ? STORAGE_FULL_TEXT_COLOR : STORAGE_EMPTY_TEXT_COLOR 
+	);
 
 	// Regenerate food
 	regenerateStat(player_info.food, spaceship_home_info.food_storage, PLAYER_MAX_FOOD);
 	updateStatBar(player_info.food, player_food_bar_motion, PLAYER_MAX_FOOD, FOOD_BAR_SCALE);
-	food_storage_count = createText(renderer, FOOD_STORAGE_COUNT_POSITION, createStorageCountText(spaceship_home_info.food_storage, SPACESHIP_MAX_FOOD_STORAGE));
+	food_storage_count = createText(
+		renderer, 
+		FOOD_STORAGE_COUNT_POSITION, 
+		createStorageCountText(spaceship_home_info.food_storage), 
+		STORAGE_COUNT_TEXT_SCALE, 
+		spaceship_home_info.food_storage > 0 ? STORAGE_FULL_TEXT_COLOR : STORAGE_EMPTY_TEXT_COLOR 
+	);
 
 	// Reload all weapons. This can be problematic because it always reloads in a specific order.
 	// TODO: Somehow give options to player to reload specific weapons.
@@ -75,7 +87,13 @@ void SpaceshipHomeSystem::enterSpaceship(Entity player_health_bar, Entity player
 	spaceship_home_info.ammo_storage -= amount_reloaded;
 	amount_reloaded = weaponsSystem->increaseAmmo(ITEM_TYPE::WEAPON_MACHINEGUN, 100);
 	spaceship_home_info.ammo_storage -= amount_reloaded;
-	ammo_storage_count = createText(renderer, AMMO_STORAGE_COUNT_POSITION, createStorageCountText(spaceship_home_info.ammo_storage, SPACESHIP_MAX_AMMO_STORAGE));
+	ammo_storage_count = createText(
+		renderer, 
+		AMMO_STORAGE_COUNT_POSITION, 
+		createStorageCountText(spaceship_home_info.ammo_storage), 
+		STORAGE_COUNT_TEXT_SCALE, 
+		spaceship_home_info.ammo_storage > 0 ? STORAGE_FULL_TEXT_COLOR : STORAGE_EMPTY_TEXT_COLOR 
+	);
 };
 
 void SpaceshipHomeSystem::exitSpaceship() {
@@ -194,7 +212,6 @@ void SpaceshipHomeSystem::updateStorageBar(int new_val, Motion& bar, int max_bar
 	bar.scale = vec2(scale_factor.x, ((float) new_val / (float) max_bar_value) * scale_factor.y);
 };
 
-
-std::string SpaceshipHomeSystem::createStorageCountText(int storage, int max_storage_value) {
-	return std::to_string(storage) + "/" + std::to_string(max_storage_value);
+std::string SpaceshipHomeSystem::createStorageCountText(int storage) {
+	return "x " + std::to_string(storage);
 };
