@@ -1012,18 +1012,25 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 			// Exit home screen and go back to world 
 			player.is_home = false;
 			player_motion.position = { 0,0 };
+			// Remove all ship parts if all items are collected 
+			if (quest_system->submitQuestItems()) {
+				while (registry.spaceshipParts.entities.size() > 0)
+					registry.remove_all_components_of(registry.spaceshipParts.entities.back());
+			}
 		} else {
 			// Close the window if not in home screen
 			glfwSetWindowShouldClose(window, true);
 		}
 	}
 
-	// Enter ship if player is near
-	if (length(player_motion.position - registry.motions.get(spaceship).position) < 1.0f && !player.is_home) {
-		printf("Near entrance, press E to enter\n");
+	// Enter ship if player is near 
+	if (registry.spaceshipParts.has(spaceship)) {
+		if (length(player_motion.position - registry.motions.get(spaceship).position) < 1.0f && !player.is_home) {
+			printf("Near entrance, press E to enter\n");
 
-		if (action == GLFW_PRESS && key == GLFW_KEY_E ) {
-			spaceship_home_system->enterSpaceship(health_bar, food_bar);
+			if (action == GLFW_PRESS && key == GLFW_KEY_E ) {
+				spaceship_home_system->enterSpaceship(health_bar, food_bar);
+			}
 		}
 	}
 

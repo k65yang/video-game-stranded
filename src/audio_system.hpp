@@ -19,7 +19,7 @@ public:
 	const unsigned MOB_HIT_CHANNEL = 0;	// Channel dedicated for MOB_HIT calls since it sounds super annoying
 										// Ensures only 1 MOB_HIT can be played at the same time
 
-	const float music_volume = 0.5f; // Range must be 0..1
+	const float music_volume = 0.f; // Range must be 0..1
 
 private:
 	/// <summary>

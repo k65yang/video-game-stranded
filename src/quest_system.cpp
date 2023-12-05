@@ -148,6 +148,9 @@ Entity QuestSystem::createSpaceshipPart(ITEM_TYPE type) {
     motion.position = { 0, -2.5 };
     motion.scale = vec2({ target_resolution.x / tile_size_px * 0.20833333, target_resolution.y / tile_size_px * 0.3125 });
 
+    // Add spaceship to the spaceship_parts registry
+    SpaceshipParts& spaceship_parts = registry.spaceshipParts.emplace(entity);
+
     TEXTURE_ASSET_ID texture = TEXTURE_ASSET_ID::PLAYER;
     switch (type) {
     case ITEM_TYPE::QUEST_ONE:

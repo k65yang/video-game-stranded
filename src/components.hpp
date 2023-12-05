@@ -124,6 +124,11 @@ struct SpaceshipHome {
 	int ammo_storage;
 };
 
+// The spaceship parts 
+struct SpaceshipParts {
+
+};
+
 // The projectile
 struct Projectile {
 	int damage;
