@@ -4,8 +4,6 @@
 #include <iostream>
 #include "tiny_ecs_registry.hpp"
 
-
-
 void RenderSystem::drawTexturedMesh(Entity entity,
 									const mat3& view_matrix,
 									const mat3& projection)
@@ -444,10 +442,9 @@ void RenderSystem::draw()
 			drawTexturedMesh(entity, view_2D, projection_2D);
 		}
 	}
-
 	
 	// Truely render to the screen. Multipass rendering with fog program
-	 drawToScreen();
+	drawToScreen();
 
 	// Re-enable blending
 	glEnable(GL_BLEND);
@@ -458,9 +455,15 @@ void RenderSystem::draw()
 	// TODO: for UI elements, have new projection matrices that use screen coordinates instead of map coordinates
 	for (Entity entity : layer_4_entities) {
 		drawTexturedMesh(entity, view_2D, projection_2D);
-		}
+	}
 
+	// TODO: Process text rendering here and ONLY here.
+	// TODO: Add a new Text component loop to draw every string in the world here
+	// If you render text before drawToScreen(), then fog of war will dim it.
+	// If you render text before the layer_4_entities for loop, then UI will write over it
+	renderText("This is sample text", 0.0f, 2, 1, glm::vec3(1.f, 1.f, 1.f), projection_2D, view_2D);
 
+	// Do not touch anything past this point.
 	// flicker-free display with a double buffer
 	glfwSwapBuffers(window);
 	gl_has_errors();
@@ -540,3 +543,84 @@ void RenderSystem::empty_terrain_buffer()
 	glGenBuffers(1, &index_buffers[(GLuint)GEOMETRY_BUFFER_ID::TERRAIN]);
 }
 
+/// <summary>
+/// Renders a string into the world
+/// </summary>
+/// <param name="text">The string to print</param>
+/// <param name="x">The world x position where the text starts (left side)</param>
+/// <param name="y">The world y position where the text starts (writes on top of y)</param>
+/// <param name="scale">Scale of text relative to world/tile size</param>
+/// <param name="color">Text colour</param>
+/// <param name="projection_matrix">The projection matrix</param>
+/// <param name="view_matrix">The camera view matrix</param>
+void RenderSystem::renderText(std::string text, float x, float y, float scale, glm::vec3 color, mat3& projection_matrix, mat3& view_matrix) {
+	// Switch to text vao
+	glBindVertexArray(text_vao);
+	// Load the vertex buffer allocated for "TEXT"
+	glBindBuffer(GL_ARRAY_BUFFER, vertex_buffers[(GLuint) GEOMETRY_BUFFER_ID::TEXT]);
+
+	// Load the text shader
+	const GLuint program = effects[(GLuint)EFFECT_ASSET_ID::TEXT];
+	glUseProgram(program);
+	gl_has_errors();
+
+	// Pass a colour to a uniform "textColor". We expect it to stay constant for this render pass.
+    glUniform3f(glGetUniformLocation(program, "textColor"), color.x, color.y, color.z);
+	gl_has_errors();
+
+	// Pass the projection matrix.
+	GLuint projection_loc = glGetUniformLocation(program, "projectionMatrix");
+	glUniformMatrix3fv(projection_loc, 1, GL_FALSE, (float*) &projection_matrix);
+	gl_has_errors();
+
+	// Pass the view matrix
+	GLuint view_matrix_loc = glGetUniformLocation(program, "viewMatrix");
+	glUniformMatrix3fv(view_matrix_loc, 1, GL_FALSE, (float*)&view_matrix);
+
+	gl_has_errors();
+	// We're telling OpenGL that we want to pass a texture to the shaders in the future
+    glActiveTexture(GL_TEXTURE0);
+	gl_has_errors();
+
+    // iterate through all characters
+    std::string::const_iterator c;
+    for (c = text.begin(); c != text.end(); c++)
+    {
+        Character ch = characters[*c];
+
+        float xpos = x + ch.bearing.x * scale / tile_size_px;	// Scaling relative to tile size to make it easier to think about
+        float ypos = y + (ch.size.y - ch.bearing.y) * scale / tile_size_px; // recall up is negative, down is positive
+
+        float w = ch.size.x * scale / tile_size_px;
+        float h = -ch.size.y * scale / tile_size_px;	// recall up is negative, down is positive
+        // update VBO for each character
+        float vertices[6][4] = {
+			{ xpos,     ypos + h,   0.0f, 0.0f },
+			{ xpos,     ypos,       0.0f, 1.0f },
+			{ xpos + w, ypos,       1.0f, 1.0f },
+
+			{ xpos,     ypos + h,   0.0f, 0.0f },
+			{ xpos + w, ypos,       1.0f, 1.0f },
+			{ xpos + w, ypos + h,   1.0f, 0.0f }
+                       
+        };
+        // Tell OpenGL to load in the glyph/texture associated with this character.
+        glBindTexture(GL_TEXTURE_2D, ch.textureID);
+		gl_has_errors();
+
+		// We replace the current vertex buffer with the new positions of the next character
+        glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertices), (float*)vertices); 
+		gl_has_errors();
+        
+		// We tell OpenGL to render 6 vertices. It knows how to read the vertex buffer because we said up front how to 
+		// read the vertex buffer for the text VAO. 
+		// VAOs allow us to let OpenGL know ahead of time what to expect when draw is called.
+        glDrawArrays(GL_TRIANGLES, 0, 6);
+
+        // now advance cursors for next glyph (note that advance is number of 1/64 pixels)
+        x += (ch.advance >> 6) * scale / tile_size_px; // bitshift by 6 to get value in pixels (2^6 = 64)
+		gl_has_errors();
+    }
+	glBindBuffer(GL_ARRAY_BUFFER, 0);	// Release the vertex buffer, not really important
+	glBindVertexArray(global_vao);	// Return to regular vao
+}

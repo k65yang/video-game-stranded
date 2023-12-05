@@ -59,9 +59,8 @@ bool RenderSystem::init(GLFWwindow* window_arg)
 
 	// We are not really using VAO's but without at least one bound we will crash in
 	// some systems.
-	GLuint vao;
-	glGenVertexArrays(1, &vao);
-	glBindVertexArray(vao);
+	glGenVertexArrays(1, &global_vao);
+	glBindVertexArray(global_vao);
 	gl_has_errors();
 
 	initScreenTexture();
@@ -69,6 +68,7 @@ bool RenderSystem::init(GLFWwindow* window_arg)
 	initializeGl3DTextures();
 	initializeGlEffects();
 	initializeGlGeometryBuffers();
+	initializeTextRenderer();
 
 	return true;
 }
@@ -285,6 +285,99 @@ void RenderSystem::initializeGlEffects()
 		bool is_valid = loadEffectFromFile(vertex_shader_name, fragment_shader_name, effects[i]);
 		assert(is_valid && (GLuint)effects[i] != 0);
 	}
+}
+
+/// <summary>
+/// Code based off https://learnopengl.com/In-Practice/Text-Rendering
+/// </summary>
+void RenderSystem::initializeTextRenderer()
+{
+	// Loading fonts with freetype
+	FT_Library ft;
+	if (FT_Init_FreeType(&ft)) {
+		std::cout << "ERROR::FREETYPE: Could not init FreeType Library" << std::endl;
+		return;
+	}
+
+	FT_Face face;
+	if (FT_New_Face(ft, font_path("arial.ttf").c_str(), 0, &face)) {
+		std::cout << "ERROR::FREETYPE: Failed to load font" << std::endl;
+		return;
+	}
+
+	FT_Set_Pixel_Sizes(face, 0, 48);
+
+	if (FT_Load_Char(face, 'X', FT_LOAD_RENDER)) {
+		std::cout << "ERROR::FREETYTPE: Failed to load Glyph" << std::endl;
+		return;
+	}
+
+	glPixelStorei(GL_UNPACK_ALIGNMENT, 1); // disable byte-alignment restriction
+
+	for (unsigned char c = 0; c < 128; c++)
+	{
+		// load character glyph 
+		if (FT_Load_Char(face, c, FT_LOAD_RENDER))
+		{
+			std::cout << "ERROR::FREETYTPE: Failed to load Glyph" << std::endl;
+			continue;
+		}
+		// generate texture
+		unsigned int texture;
+		glGenTextures(1, &texture);
+		glBindTexture(GL_TEXTURE_2D, texture);
+		glTexImage2D(
+			GL_TEXTURE_2D,
+			0,
+			GL_RED,
+			face->glyph->bitmap.width,
+			face->glyph->bitmap.rows,
+			0,
+			GL_RED,
+			GL_UNSIGNED_BYTE,
+			face->glyph->bitmap.buffer
+		);
+		// set texture options
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		// now store character for later use
+		Character character = {
+			texture,
+			glm::ivec2(face->glyph->bitmap.width, face->glyph->bitmap.rows),
+			glm::ivec2(face->glyph->bitmap_left, face->glyph->bitmap_top),
+			face->glyph->advance.x
+		};
+		characters.insert(std::pair<char, Character>(c, character));
+	}
+
+	FT_Done_Face(face);
+	FT_Done_FreeType(ft);
+
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+	GLuint& text_vbo = vertex_buffers[(GLuint)GEOMETRY_BUFFER_ID::TEXT];
+
+	glGenVertexArrays(1, &text_vao);	// Create id for text vertex array objects (Quality of Life, not actually too important)
+	glGenBuffers(1, &text_vbo);			// Create id for text vertex buffer (very important!)
+	glBindVertexArray(text_vao);				// Switch to text vao
+	glBindBuffer(GL_ARRAY_BUFFER, text_vbo);	// Switch and load to text_vbo
+	gl_has_errors();
+	// We're allocating a vertex buffer consisting of 4-byte (float) objects and allocate space for 6 * 4 = 24 elements 
+	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 6 * 4, NULL, GL_DYNAMIC_DRAW);
+	gl_has_errors();
+	// We have some stuff to pass from the vertex buffer to the vertex shader
+	glEnableVertexAttribArray(0);
+	gl_has_errors();
+	// Within the vertex buffer, load 4 floats at position "0" in the vertex shader
+	glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), 0);
+	gl_has_errors();
+	// Switch to default vertex buffer since we're done for now
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	gl_has_errors();
+	glBindVertexArray(global_vao);	// Return to global vao
 }
 
 // One could merge the following two functions as a template function...
