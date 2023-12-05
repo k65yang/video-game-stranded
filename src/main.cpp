@@ -17,6 +17,7 @@
 #include "mob_system.hpp"
 #include "spaceship_home_system.hpp"
 #include "quest_system.hpp"
+#include "start_screen_system.hpp"
 #include "common.hpp"
 
 using Clock = std::chrono::high_resolution_clock;
@@ -35,6 +36,7 @@ int main()
 	MobSystem mob_system;
 	AudioSystem audio_system;
 	SpaceshipHomeSystem spaceship_home_system;
+	StartScreenSystem start_screen_system;
 	QuestSystem quest_system;
 
 	// Initializing window
@@ -47,9 +49,32 @@ int main()
 		return EXIT_FAILURE;
 	}
 
-	// initialize the main systems
-	audio_system.init();
+	// initialize the systems required for the start screen
+	audio_system.init();		
 	render_system.init(window);
+	start_screen_system.init(window, &render_system);
+
+	auto t = Clock::now();
+	float total_elapsed_time = 0.f;
+	while(!start_screen_system.is_finished()) {
+		// Processes system messages, if this wasn't present the window would become unresponsive
+		glfwPollEvents();
+
+		auto now = Clock::now();
+		float elapsed_ms = (float)(std::chrono::duration_cast<std::chrono::microseconds>(now - t)).count() / 1000;
+		t = now;
+		total_elapsed_time += elapsed_ms;
+
+		// printf("total_elapsed_time: %f\n", total_elapsed_time);
+
+		if (total_elapsed_time > 30000.f)
+			break;
+		
+		start_screen_system.step();
+		render_system.drawStartScreens();
+	}
+
+	// initialize all other system required for the main game
 	weapons_system.init(&render_system, &physics_system);
 	mob_system.init(&render_system, &terrain_system, &physics_system);
 	quest_system.init(&render_system);
@@ -65,7 +90,6 @@ int main()
 	particle_system.init(&render_system);
 
 	// variable timestep loop
-	auto t = Clock::now();
 	while (!world_system.is_over()) {
 		// Processes system messages, if this wasn't present the window would become unresponsive
 		glfwPollEvents();

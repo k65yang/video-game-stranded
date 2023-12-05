@@ -379,7 +379,7 @@ void RenderSystem::draw()
 	mat3 view_2D = inverse(createModelMatrix(main_camera));
 
 	// Generate projection matrix. This maps camera-relative coords to pixel/window coordinates.
-	mat3 projection_2D = createProjectionMatrix();
+	mat3 projection_2D = createScaledProjectionMatrix();
 
 	std::vector<Entity> layer_1_entities;
 	std::vector<Entity> layer_2_entities;
@@ -393,8 +393,7 @@ void RenderSystem::draw()
 			continue;
 		// Note, its not very efficient to access elements indirectly via the entity
 		// albeit iterating through all Sprites in sequence. A good point to optimize
-		
-		// resort them in different queue of render request based on layer they belong to
+		// re-sort them in different queue of render request based on layer they belong to
 		if (registry.renderRequests.get(entity).layer_id == RENDER_LAYER_ID::LAYER_1) {
 
 			// if entity is item or mob
@@ -458,8 +457,57 @@ void RenderSystem::draw()
 	// TODO: for UI elements, have new projection matrices that use screen coordinates instead of map coordinates
 	for (Entity entity : layer_4_entities) {
 		drawTexturedMesh(entity, view_2D, projection_2D);
-		}
+	}
 
+	// flicker-free display with a double buffer
+	glfwSwapBuffers(window);
+	gl_has_errors();
+}
+
+// Set up and teardown of this function is identical to draw()
+void RenderSystem::drawStartScreens() {
+	// Getting size of window
+	int w, h;
+	glfwGetFramebufferSize(window, &w, &h); // Note, this will be 2x the resolution given to glfwCreateWindow on retina displays
+
+	// First render to the custom framebuffer
+	glBindFramebuffer(GL_FRAMEBUFFER, frame_buffer);
+	gl_has_errors();
+	// Clearing backbuffer
+	glViewport(0, 0, w, h);
+	glDepthRange(0.00001, 10);
+	glClearColor(0, 0, 0, 1.0);
+	glClearDepth(10.f);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glDisable(GL_DEPTH_TEST); // native OpenGL does not work with a depth buffer
+							  // and alpha blending, one would have to sort
+							  // sprites back to front
+
+	// Generate projection matrix. This maps camera-relative coords to pixel/window coordinates.
+	mat3 projection_2D = createUnscaledProjectionMatrix();
+
+	// Only track layer 1 entities. There should not be any other layer active at this stage.
+	std::vector<Entity> layer_1_entities;
+	for (Entity entity : registry.renderRequests.entities) {
+		if (registry.renderRequests.get(entity).layer_id == RENDER_LAYER_ID::LAYER_1) {
+			layer_1_entities.push_back(entity);
+		}
+	}
+
+	for (Entity entity : layer_1_entities) {
+		// pass identity matrix for view_matrix since main camera not exist
+		drawTexturedMesh(entity, mat3(1.f), projection_2D);
+		// drawTexturedMesh(entity, projection_2D, projection_2D);
+	}
+
+	// Truely render to the screen. Multipass rendering with fog program
+	 drawToScreen();
+
+	// Re-enable blending
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	// flicker-free display with a double buffer
 	glfwSwapBuffers(window);
@@ -488,7 +536,7 @@ mat3 RenderSystem::createModelMatrix(Entity entity)
 /// Generates an orthogonal projection matrix. 
 /// </summary>
 /// <returns>An orthogonal projection matrix relative to the window size</returns>
-mat3 RenderSystem::createProjectionMatrix()
+mat3 RenderSystem::createScaledProjectionMatrix()
 {
 	// Othogonal projection matrix.
 	// Same code as the template since it scales with aspect ratio.
@@ -511,6 +559,23 @@ mat3 RenderSystem::createProjectionMatrix()
 	float tx = -(right + left) / (right - left) * tile_size_px_scaled;
 	float ty = -(top + bottom) / (top - bottom) * tile_size_px_scaled;
 
+	return {{sx, 0.f, 0.f}, {0.f, sy, 0.f}, {tx, ty, 1.f}};
+}
+
+mat3 RenderSystem::createUnscaledProjectionMatrix()
+{
+	// Code taken from salmon template
+	float left = 0.f;
+	float top = 0.f;
+
+	gl_has_errors();
+	float right = (float) window_resolution.x;
+	float bottom = (float) window_resolution.y;
+
+	float sx = 2.f / (right - left);
+	float sy = 2.f / (top - bottom);
+	float tx = -(right + left) / (right - left);
+	float ty = -(top + bottom) / (top - bottom);
 	return {{sx, 0.f, 0.f}, {0.f, sy, 0.f}, {tx, ty, 1.f}};
 }
 

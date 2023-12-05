@@ -401,7 +401,8 @@ enum class TEXTURE_ASSET_ID {
 	TURRET = DISRUPTOR + 1,
 	LOADED = TURRET + 1,
 	SAVING = LOADED + 1,
-	TEXTURE_COUNT = SAVING + 1,
+	START_SCREEN_ONE = SAVING + 1,
+	TEXTURE_COUNT = START_SCREEN_ONE + 1,
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 
@@ -438,8 +439,7 @@ enum class RENDER_LAYER_ID {
 	LAYER_2 = LAYER_1 + 1,
 	LAYER_3 = LAYER_2 + 1,      
 	LAYER_4 = LAYER_3 + 1,      // UI elements
-	LAYER_COUNT = LAYER_4 + 1
-
+	LAYER_COUNT = LAYER_4 + 1,
 };
 const int geometry_count = (int)GEOMETRY_BUFFER_ID::GEOMETRY_COUNT;
 
