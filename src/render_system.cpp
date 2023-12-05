@@ -39,12 +39,12 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 	{
 
 		// Skip rendering spaceship home screen if player is at world 
-		if (render_request.used_texture == TEXTURE_ASSET_ID::SPACEHOME || 
-			render_request.used_texture == TEXTURE_ASSET_ID::FOOD_BLOCK || 
-			render_request.used_texture == TEXTURE_ASSET_ID::AMMO_BLOCK || 
+		if (render_request.used_texture == TEXTURE_ASSET_ID::SPACESHIP_HOME || 
+			render_request.used_texture == TEXTURE_ASSET_ID::BLACK_BLOCK || 
+			render_request.used_texture == TEXTURE_ASSET_ID::SPACESHIP_HOME_HEALTH || 
 			render_request.used_texture == TEXTURE_ASSET_ID::SPACESHIP_HOME_AMMO || 
 			render_request.used_texture == TEXTURE_ASSET_ID::SPACESHIP_HOME_FOOD || 
-			render_request.used_texture == TEXTURE_ASSET_ID::BAR_FRAME
+			render_request.used_texture == TEXTURE_ASSET_ID::STORAGE_FRAME
 		) {
 			if (!registry.players.components[0].is_home) {
 				return;
