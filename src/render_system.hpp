@@ -8,6 +8,9 @@
 #include "tiny_ecs.hpp"
 #include <unordered_set>
 
+#include <ft2build.h>
+#include FT_FREETYPE_H
+
 // System responsible for setting up OpenGL and for rendering all the
 // visual entities in the game
 class RenderSystem {
@@ -190,14 +193,14 @@ private:
 		shader_path("salmon"),
 		shader_path("textured"),
 		shader_path("fog"),
-		shader_path("terrain"),};
+		shader_path("terrain"),
+		shader_path("text")};
 
 	std::array<GLuint, geometry_count> vertex_buffers;
 	std::array<GLuint, geometry_count> index_buffers;
 	std::array<Mesh, geometry_count> meshes;
 
 public:
-
 	// Initialize the window
 	bool init(GLFWwindow* window);
 
@@ -251,6 +254,9 @@ public:
 	// shader
 	bool initScreenTexture();
 
+	// Initialize text vertex buffers and text vao
+	void initializeTextRenderer();
+
 	// Destroy resources associated to one or all entities created by the system
 	~RenderSystem();
 
@@ -273,6 +279,10 @@ public:
 	/// </summary>
 	void empty_terrain_buffer();
 
+	// Render text to screen using freetype
+	// Code based off: https://learnopengl.com/In-Practice/Text-Rendering
+	void renderText(std::string text, float x, float y, float scale, glm::vec3 color, mat3& projection_matrix, mat3& view_matrix);
+
 	// Do not modify this. READ ONLY!!
 	bool is_terrain_mesh_loaded = false;
 
@@ -284,6 +294,19 @@ public:
 	float mob_frame_h;
 
 private:
+	// Freetype stuff
+	typedef struct {
+		unsigned int textureID;  // ID handle of the glyph texture
+		glm::ivec2   size;       // Size of glyph
+		glm::ivec2   bearing;    // Offset from baseline to left/top of glyph
+		unsigned int advance;    // Offset to advance to next glyph
+	} Character;
+
+	std::map<char, Character> characters;
+
+	// Define VAOs here
+	GLuint global_vao, text_vao;
+	
 	// Internal vertex data structure used for batched rendering
 	struct BatchedVertex {
 		vec3 position;

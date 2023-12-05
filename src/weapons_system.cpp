@@ -110,7 +110,8 @@ int WeaponsSystem::increaseAmmo(ITEM_TYPE weapon_type, int amount) {
 }
 
 void WeaponsSystem::upgradeWeapon() {
-	active_weapon_component->level++;
+	if (active_weapon_component)
+		active_weapon_component->level++;
 }
 
 void WeaponsSystem::upgradeWeapon(ITEM_TYPE weapon_type) {
