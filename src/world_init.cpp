@@ -72,6 +72,12 @@ Entity createItem(RenderSystem* renderer, PhysicsSystem* physics, vec2 position,
 	case ITEM_TYPE::QUEST_TWO:
 		texture = TEXTURE_ASSET_ID::QUEST_2_ITEM;
 		break;
+	case ITEM_TYPE::QUEST_THREE:
+		texture = TEXTURE_ASSET_ID::QUEST_3_ITEM;
+		break;
+	case ITEM_TYPE::QUEST_FOUR:
+		texture = TEXTURE_ASSET_ID::QUEST_4_ITEM;
+		break;
 	case ITEM_TYPE::WEAPON_UPGRADE:
 		texture = TEXTURE_ASSET_ID::WEAPON_UPGRADE;
 		break;

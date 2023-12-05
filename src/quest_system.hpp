@@ -39,25 +39,33 @@ class QuestSystem
         bool submitQuestItems();
 
     private:
-        const int NUM_QUEST_ITEMS = 2;
-        const vec2 QUEST_1_INDICATOR_POSITION = {10.f, -2.f};
-        const vec2 QUEST_2_INDICATOR_POSITION = {10.f, 2.f};
+        const int NUM_QUEST_ITEMS = 4;
+        const vec2 QUEST_1_INDICATOR_POSITION = {-10.f, -4.f};
+        const vec2 QUEST_2_INDICATOR_POSITION = {-10.f, -2.f};
+        const vec2 QUEST_3_INDICATOR_POSITION = { 10.f, 2.f };
+        const vec2 QUEST_4_INDICATOR_POSITION = { 10.f, 4.f };
 
         RenderSystem* renderer;
 
         std::map<ITEM_TYPE, TEXTURE_ASSET_ID> quest_item_indicator_not_found_textures_map {
             {ITEM_TYPE::QUEST_ONE, TEXTURE_ASSET_ID::QUEST_1_NOT_FOUND},
-            {ITEM_TYPE::QUEST_TWO, TEXTURE_ASSET_ID::QUEST_2_NOT_FOUND}
+            {ITEM_TYPE::QUEST_TWO, TEXTURE_ASSET_ID::QUEST_2_NOT_FOUND},
+            {ITEM_TYPE::QUEST_THREE, TEXTURE_ASSET_ID::QUEST_3_NOT_FOUND},
+            {ITEM_TYPE::QUEST_FOUR, TEXTURE_ASSET_ID::QUEST_4_NOT_FOUND}
         };
         
         std::map<ITEM_TYPE, TEXTURE_ASSET_ID> quest_item_indicator_found_textures_map {
             {ITEM_TYPE::QUEST_ONE, TEXTURE_ASSET_ID::QUEST_1_FOUND},
-            {ITEM_TYPE::QUEST_TWO, TEXTURE_ASSET_ID::QUEST_2_FOUND}
+            {ITEM_TYPE::QUEST_TWO, TEXTURE_ASSET_ID::QUEST_2_FOUND},
+            {ITEM_TYPE::QUEST_THREE, TEXTURE_ASSET_ID::QUEST_3_FOUND},
+            {ITEM_TYPE::QUEST_FOUR, TEXTURE_ASSET_ID::QUEST_4_FOUND}
         };
 
         std::map<ITEM_TYPE, TEXTURE_ASSET_ID> quest_item_indicator_submitted_textures_map {
             {ITEM_TYPE::QUEST_ONE, TEXTURE_ASSET_ID::QUEST_1_SUBMITTED},
-            {ITEM_TYPE::QUEST_TWO, TEXTURE_ASSET_ID::QUEST_2_SUBMITTED}
+            {ITEM_TYPE::QUEST_TWO, TEXTURE_ASSET_ID::QUEST_2_SUBMITTED},
+            {ITEM_TYPE::QUEST_THREE, TEXTURE_ASSET_ID::QUEST_3_SUBMITTED},
+            {ITEM_TYPE::QUEST_FOUR, TEXTURE_ASSET_ID::QUEST_4_SUBMITTED}
         };
 
         /// @brief Creates a quest item indicator
@@ -66,7 +74,7 @@ class QuestSystem
         /// @param status The status of the quest item
         Entity createQuestItemIndicator(vec2 position, ITEM_TYPE type, QUEST_ITEM_STATUS status);
 
-        /// @brief Creates a quest item onto spaceship
+        /// @brief Creates a quest item build onto spaceship
         /// @param type The quest item the spaceship part is for 
         Entity createSpaceshipPart(ITEM_TYPE type);
 

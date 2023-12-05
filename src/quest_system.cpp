@@ -1,4 +1,6 @@
 #include "quest_system.hpp"
+#include "world_init.hpp"
+
 
 void QuestSystem::step(float elapsed_ms) {
 
@@ -15,10 +17,14 @@ void QuestSystem::resetQuestSystem(std::vector<QUEST_ITEM_STATUS> statuses) {
     Inventory& inventory = registry.inventories.get(player);
     inventory.quest_items[ITEM_TYPE::QUEST_ONE] = statuses[0];
     inventory.quest_items[ITEM_TYPE::QUEST_TWO] = statuses[1];
+    inventory.quest_items[ITEM_TYPE::QUEST_THREE] = statuses[2];
+    inventory.quest_items[ITEM_TYPE::QUEST_FOUR] = statuses[3];
 
     // Create quest item indicators
     createQuestItemIndicator(QUEST_1_INDICATOR_POSITION, ITEM_TYPE::QUEST_ONE, statuses[0]);
     createQuestItemIndicator(QUEST_2_INDICATOR_POSITION, ITEM_TYPE::QUEST_TWO, statuses[1]);
+    createQuestItemIndicator(QUEST_1_INDICATOR_POSITION, ITEM_TYPE::QUEST_THREE, statuses[2]);
+    createQuestItemIndicator(QUEST_2_INDICATOR_POSITION, ITEM_TYPE::QUEST_FOUR, statuses[3]);
 };
 
 void QuestSystem::processQuestItem(ITEM_TYPE type, QUEST_ITEM_STATUS new_status) {
@@ -33,8 +39,25 @@ void QuestSystem::processQuestItem(ITEM_TYPE type, QUEST_ITEM_STATUS new_status)
     }
 
     // Create new indicator
-    vec2 position = type == ITEM_TYPE::QUEST_ONE ? QUEST_1_INDICATOR_POSITION : QUEST_2_INDICATOR_POSITION;
+   // vec2 position = type == ITEM_TYPE::QUEST_ONE ? QUEST_1_INDICATOR_POSITION : QUEST_2_INDICATOR_POSITION;
+    vec2 position;
+    switch (type) {
+    case ITEM_TYPE::QUEST_ONE:
+        position = QUEST_1_INDICATOR_POSITION;
+        break;
+    case ITEM_TYPE::QUEST_TWO:
+        position = QUEST_2_INDICATOR_POSITION;
+        break;
+    case ITEM_TYPE::QUEST_THREE:
+        position = QUEST_3_INDICATOR_POSITION;
+        break;
+    case ITEM_TYPE::QUEST_FOUR:
+        position = QUEST_4_INDICATOR_POSITION;
+        break;
+
+    }
     createQuestItemIndicator(position, type, new_status);
+
 
     // Update quest item status
     Entity player = registry.players.entities[0];
@@ -117,23 +140,22 @@ Entity QuestSystem::createSpaceshipPart(ITEM_TYPE type) {
     auto& motion = registry.motions.emplace(entity);
     motion.angle = 0.f;
     motion.velocity = { 0.f, 0.f };
-    motion.scale = vec2({ 1.5f, 1.5f });
-
+    //motion.scale = vec2({ 1.5f, 1.5f });
+    motion.position = { 0, -2.5 };
+    motion.scale = vec2({ target_resolution.x / tile_size_px * 0.20833333, target_resolution.y / tile_size_px * 0.3125 });
 
     TEXTURE_ASSET_ID texture = TEXTURE_ASSET_ID::PLAYER;
     switch (type) {
     case ITEM_TYPE::QUEST_ONE:
-        texture = TEXTURE_ASSET_ID::QUEST_1_ITEM;
-        motion.position = { 1.f, -1.f };
-
-
-
+        texture = TEXTURE_ASSET_ID::QUEST_1_BUILT;
         break;
     case ITEM_TYPE::QUEST_TWO:
-        texture = TEXTURE_ASSET_ID::QUEST_2_ITEM;
-        motion.position = { -1.1f, -1.f };
-
-
+        texture = TEXTURE_ASSET_ID::QUEST_2_BUILT;
+    case ITEM_TYPE::QUEST_THREE:
+        texture = TEXTURE_ASSET_ID::QUEST_3_BUILT;
+        break;
+    case ITEM_TYPE::QUEST_FOUR:
+        texture = TEXTURE_ASSET_ID::QUEST_4_BUILT;
         break;
     }
     registry.renderRequests.insert(
