@@ -1001,9 +1001,8 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 
 	if (action == GLFW_PRESS && key == GLFW_KEY_ESCAPE) {
 		if (player.is_home) {
-			// Exit home screen and go back to world 
-			player.is_home = false;
-			player_motion.position = { 0,0 };
+			// Exit spaceship
+			spaceship_home_system->exitSpaceship();
 		} else {
 			// Close the window if not in home screen
 			glfwSetWindowShouldClose(window, true);

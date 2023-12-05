@@ -20,42 +20,32 @@ void SpaceshipHomeSystem::init(RenderSystem* renderer_arg, WeaponsSystem* weapon
 }
 
 void SpaceshipHomeSystem::resetSpaceshipHomeSystem(int health_storage, int food_storage, int ammo_storage) {
-	Entity camera = registry.cameras.entities[0];
-	Motion& camera_motion = registry.motions.get(camera);
-	vec2 camera_pos = camera_motion.position;
-
 	// Create spaceship home
 	spaceship_home = createSpaceshipHome(SPACESHIP_HOME_POSITION, health_storage, food_storage, ammo_storage);
 
 	// Create health storage elements
 	health_item = createSpaceshipHomeItem(HEALTH_ITEM_POSITION, TEXTURE_ASSET_ID::SPACESHIP_HOME_HEALTH);
-	health_storage_bar = createBar(renderer, HEALTH_STORAGE_BAR_POSITION, food_storage, BAR_TYPE::HEALTH_STORAGE_BAR);
-	health_storage_bar_frame = createFrame(renderer, HEALTH_STORAGE_BAR_FRAME_POSITION, FRAME_TYPE::STORAGE_FRAME); 
 
 	// Create food storage elements
 	food_item = createSpaceshipHomeItem(FOOD_ITEM_POSITION, TEXTURE_ASSET_ID::SPACESHIP_HOME_FOOD);
-	food_storage_bar = createBar(renderer, FOOD_STORAGE_BAR_POSITION, food_storage, BAR_TYPE::FOOD_STORAGE_BAR);
-	food_storage_bar_frame = createFrame(renderer, FOOD_STORAGE_BAR_FRAME_POSITION, FRAME_TYPE::STORAGE_FRAME); 
 
 	// Create ammo storage elements
 	ammo_item = createSpaceshipHomeItem(AMMO_ITEM_POSITION, TEXTURE_ASSET_ID::SPACESHIP_HOME_AMMO);
-	ammo_storage_bar = createBar(renderer, AMMO_STORAGE_BAR_POSITION, ammo_storage, BAR_TYPE::AMMO_STORAGE_BAR);
-	ammo_storage_bar_frame = createFrame(renderer, AMMO_STORAGE_BAR_FRAME_POSITION, FRAME_TYPE::STORAGE_FRAME);
 };
 
 void SpaceshipHomeSystem::enterSpaceship(Entity player_health_bar, Entity player_food_bar) {
-	Entity camera = registry.cameras.entities[0];
-	Motion& camera_motion = registry.motions.get(camera);
 	SpaceshipHome& spaceship_home_info = registry.spaceshipHomes.get(spaceship_home);
 	Entity player = registry.players.entities[0]; 
 	Player& player_info = registry.players.get(player);
 	Motion& player_health_bar_motion = registry.motions.get(player_health_bar);
 	Motion& player_food_bar_motion = registry.motions.get(player_food_bar);
-	Motion& health_storage_bar_motion = registry.motions.get(health_storage_bar);
-	Motion& food_storage_bar_motion = registry.motions.get(food_storage_bar);
-	Motion& ammo_storage_bar_motion = registry.motions.get(ammo_storage_bar); 
+
+	// Set player to be home
+	player_info.is_home = true;
 
 	// No camera shake 
+	Entity camera = registry.cameras.entities[0];
+	Motion& camera_motion = registry.motions.get(camera);
 	camera_motion.angle = 0;
 	camera_motion.scale = { 1.f, 1.f };
 
@@ -67,12 +57,12 @@ void SpaceshipHomeSystem::enterSpaceship(Entity player_health_bar, Entity player
 	// Regenerate health
 	regenerateStat(player_info.health, spaceship_home_info.health_storage, PLAYER_MAX_HEALTH);
 	updateStatBar(player_info.health, player_health_bar_motion, PLAYER_MAX_HEALTH, HEALTH_BAR_SCALE);
-	updateStorageBar(spaceship_home_info.health_storage, health_storage_bar_motion, SPACESHIP_MAX_HEALTH_STORAGE, HEALTH_STORAGE_BAR_SCALE);
+	health_storage_count = createText(renderer, HEALTH_STORAGE_COUNT_POSITION, createStorageCountText(spaceship_home_info.health_storage, SPACESHIP_MAX_HEALTH_STORAGE));
 
 	// Regenerate food
 	regenerateStat(player_info.food, spaceship_home_info.food_storage, PLAYER_MAX_FOOD);
 	updateStatBar(player_info.food, player_food_bar_motion, PLAYER_MAX_FOOD, FOOD_BAR_SCALE);
-	updateStorageBar(spaceship_home_info.food_storage, food_storage_bar_motion, SPACESHIP_MAX_FOOD_STORAGE, FOOD_STORAGE_BAR_SCALE);
+	food_storage_count = createText(renderer, FOOD_STORAGE_COUNT_POSITION, createStorageCountText(spaceship_home_info.food_storage, SPACESHIP_MAX_FOOD_STORAGE));
 
 	// Reload all weapons. This can be problematic because it always reloads in a specific order.
 	// TODO: Somehow give options to player to reload specific weapons.
@@ -85,16 +75,28 @@ void SpaceshipHomeSystem::enterSpaceship(Entity player_health_bar, Entity player
 	spaceship_home_info.ammo_storage -= amount_reloaded;
 	amount_reloaded = weaponsSystem->increaseAmmo(ITEM_TYPE::WEAPON_MACHINEGUN, 100);
 	spaceship_home_info.ammo_storage -= amount_reloaded;
+	ammo_storage_count = createText(renderer, AMMO_STORAGE_COUNT_POSITION, createStorageCountText(spaceship_home_info.ammo_storage, SPACESHIP_MAX_AMMO_STORAGE));
+};
 
-	updateStorageBar(spaceship_home_info.ammo_storage, ammo_storage_bar_motion, SPACESHIP_MAX_AMMO_STORAGE, AMMO_STORAGE_BAR_SCALE);
+void SpaceshipHomeSystem::exitSpaceship() {
+	// Remove storage count text
+	registry.remove_all_components_of(health_storage_count);
+	registry.remove_all_components_of(food_storage_count);
+	registry.remove_all_components_of(ammo_storage_count);
 
-	player_info.is_home = true;
+	// Reset player's position
+	Entity player = registry.players.entities[0]; 
+	Motion& motion = registry.motions.get(player);
+	motion.position = { 0.f, 0.f };
+
+	// Set player to not be home
+	Player& player_info = registry.players.get(player);
+	player_info.is_home = false;
 };
 
 bool SpaceshipHomeSystem::isHome() {
     return registry.players.components[0].is_home;
 };
-
 
 Entity SpaceshipHomeSystem::createSpaceshipHome(vec2 position, int health_storage, int food_storage, int ammo_storage) {
     auto entity = Entity();
@@ -190,4 +192,9 @@ void SpaceshipHomeSystem::updateStatBar(int new_val, Motion& bar, int max_bar_va
 
 void SpaceshipHomeSystem::updateStorageBar(int new_val, Motion& bar, int max_bar_value, vec2 scale_factor) {
 	bar.scale = vec2(scale_factor.x, ((float) new_val / (float) max_bar_value) * scale_factor.y);
+};
+
+
+std::string SpaceshipHomeSystem::createStorageCountText(int storage, int max_storage_value) {
+	return std::to_string(storage) + "/" + std::to_string(max_storage_value);
 };
