@@ -99,7 +99,8 @@ Entity QuestSystem::createQuestItemIndicator(vec2 position, ITEM_TYPE type, QUES
 	motion.angle = 0.f;
 	motion.velocity = { 0.f, 0.f };
 	motion.position = position;
-	motion.scale = vec2({ 2.f, 2.f });
+    motion.scale = vec2({ target_resolution.x / tile_size_px * 0.08333333, target_resolution.y / tile_size_px * 0.125 });
+
 
     // Add entity to quest item indicator registry
     auto& questItemIndicator = registry.questItemIndicators.emplace(entity);

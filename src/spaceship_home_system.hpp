@@ -47,7 +47,7 @@ class SpaceshipHomeSystem
         const vec2 FOOD_ITEM_POSITION = { -6.0f, -0.5f };
         const vec2 FOOD_STORAGE_BAR_POSITION = { -3.5f, -0.5f };
         const vec2 FOOD_STORAGE_BAR_FRAME_POSITION = { -3.5f, -0.5f };
-        const vec2 AMMO_ITEM_POSITION = { 1.5f, -0.5f };
+        const vec2 AMMO_ITEM_POSITION = { 1.4f, -0.5f };
         const vec2 AMMO_STORAGE_BAR_POSITION = { 5.0f, -0.5f };
         const vec2 AMMO_STORAGE_BAR_FRAME_POSITION = { 5.0f, -0.5f };
         const vec2 HEALTH_ITEM_POSITION = { 1.5f, -3.5f };
