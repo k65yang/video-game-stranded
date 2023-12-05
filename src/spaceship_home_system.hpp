@@ -52,9 +52,9 @@ class SpaceshipHomeSystem
         const vec2 FOOD_ITEM_POSITION = { -6.2f, -0.5f };
         const vec2 FOOD_STORAGE_COUNT_POSITION = { -4.7f, -0.3f };
         const vec2 AMMO_ITEM_POSITION = { 1.8f, -0.5f };
-        const vec2 AMMO_STORAGE_COUNT_POSITION = { 4.3f, -0.4f };
-        const vec2 HEALTH_ITEM_POSITION = { 2.5f, -3.5f };
-        const vec2 HEALTH_STORAGE_COUNT_POSITION = { 3.5f, -3.2f };
+        const vec2 AMMO_STORAGE_COUNT_POSITION = { 4.0f, -0.4f };
+        const vec2 HEALTH_ITEM_POSITION = { 2.2f, -3.5f };
+        const vec2 HEALTH_STORAGE_COUNT_POSITION = { 3.6f, -3.2f };
         const vec3 STORAGE_FULL_TEXT_COLOR = { 0.f, 0.f, 0.f };
         const vec3 STORAGE_EMPTY_TEXT_COLOR = { 1.f, 0.f, 0.f };
         const float STORAGE_COUNT_TEXT_SCALE = 0.5;

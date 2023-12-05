@@ -169,8 +169,7 @@ Entity SpaceshipHomeSystem::createSpaceshipHomeItem(vec2 position, TEXTURE_ASSET
 
 	switch(texture) {
 		case TEXTURE_ASSET_ID::SPACESHIP_HOME_HEALTH:
-			motion.scale = { 5.5,5.5 }; 
-			//motion.scale = { target_resolution.x / tile_size_px * 0.125, target_resolution.y / tile_size_px * 0.1875 };
+			motion.scale = { target_resolution.x / tile_size_px * 0.1875, target_resolution.y / tile_size_px * 0.28125 };
 			break;
 		case TEXTURE_ASSET_ID::SPACESHIP_HOME_FOOD:
 			motion.scale = { target_resolution.x / tile_size_px * 0.125, target_resolution.y / tile_size_px * 0.1875 };
