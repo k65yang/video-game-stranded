@@ -20,6 +20,26 @@ void TutorialSystem::init(RenderSystem* renderer_arg) {
     this->renderer = renderer_arg;
 };
 
+void TutorialSystem::resetTutorialSystem() {
+
+};
+
+void TutorialSystem::openHelpDialog() {
+
+};
+
+void TutorialSystem::closeHelpDialog() {
+
+};
+
+bool TutorialSystem::isHelpDialogOpen() {
+    return false;
+};
+
+bool TutorialSystem::isMouseOverElement(vec2 mouse_pos, TEXTURE_ASSET_ID element) {
+    return false;
+};
+
 Entity TutorialSystem::createTutorialText(TUTORIAL_TYPE type) {
     vec2 position;
     std::string str;
@@ -52,4 +72,12 @@ Entity TutorialSystem::createTutorialText(TUTORIAL_TYPE type) {
     registry.tutorials.emplace(tutorial_text);
 
     return tutorial_text;
+};
+
+Entity TutorialSystem::createHelpButton() {
+    return Entity();
+};
+
+Entity TutorialSystem::createHelpDialog() {
+    return Entity();
 };

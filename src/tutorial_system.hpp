@@ -24,6 +24,25 @@ class TutorialSystem
         /// @param renderer_arg Pointer to the render system
         void init(RenderSystem* renderer_arg);
 
+        /// @brief Resets the tutorial system
+        void resetTutorialSystem();
+
+        /// @brief Opens the help dialog
+        void openHelpDialog();
+
+        /// @brief Closes the help dialog
+        void closeHelpDialog();
+
+        /// @brief Checks if the help dialog is open
+        /// @return Returns true if the help dialog is open, false otherwise
+        bool isHelpDialogOpen();
+        
+        /// @brief Checks if the mouse is hovering over an element
+        /// @param mouse_pos The position of the mouse in clip coordinates
+        /// @param element The element to check if the mouse is hovering over
+        /// @return Returns true if the mouse is hovering over the element, false otherwise
+        bool isMouseOverElement(vec2 mouse_pos, TEXTURE_ASSET_ID element);
+
         /// @brief Creates tutorial text
         /// @param type The type of tutorial to create the text for
         Entity createTutorialText(TUTORIAL_TYPE type);
@@ -39,5 +58,20 @@ class TutorialSystem
         const std::string GAME_LOADED_TEXT = "Game loaded";
         const float TUTORIAL_TEXT_SCALE = 0.5f;
 
+        const vec2 HELP_BUTTON_POSITION = { 14.f, -7.f }; 
+        const vec2 HELP_DIALOG_POSITION = { 0.f, 0.f }; 
+        const vec2 HELP_BUTTON_SCALE = { 1.f, 1.f }; 
+        const vec2 HELP_DIALOG_SCALE = { 1.f, 1.f }; 
+
         RenderSystem* renderer;
+        Entity help_dialog;
+        bool is_help_dialog_open;
+
+        /// @brief Creates the help button
+        /// @return The help button
+        Entity createHelpButton();
+
+        /// @brief Creates the help dialog
+        /// @return The help dialog
+        Entity createHelpDialog();
 };
