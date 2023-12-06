@@ -41,13 +41,11 @@ void StartScreenSystem::init(GLFWwindow* window_arg, RenderSystem* renderer_arg,
     movement_idx = 0;               // camera will move right
 
     // The mouse is not hovering over anything
-    // DO NOT PUT A BUTTON IN THE CENTRE OF THE SCREEN
+    // DO NOT PUT A BUTTON NEAR THE EDGES OF THE SCREEN
     was_hovering = false;
 
     // Get window size
 	glfwGetFramebufferSize(window, &window_w, &window_h);
-    // printf("window_w: %f\n", window_w);
-    // printf("window_h: %f\n", window_h);
 
     // Set callbacks
     glfwSetWindowUserPointer(window, this);
@@ -55,8 +53,6 @@ void StartScreenSystem::init(GLFWwindow* window_arg, RenderSystem* renderer_arg,
 	auto cursor_button_redirect = [](GLFWwindow* wnd, int _0, int _1, int _2) { ((StartScreenSystem*)glfwGetWindowUserPointer(wnd))->on_mouse_click(_0, _1, _2); };
     glfwSetCursorPosCallback(window, cursor_pos_redirect);
 	glfwSetMouseButtonCallback(window, cursor_button_redirect);
-
-    // printf("start screen initalized\n");
 }
 
 void StartScreenSystem::step(float elapsed_ms) {
@@ -79,18 +75,12 @@ void StartScreenSystem::step(float elapsed_ms) {
         
     // Check if we need to load a new start screen
     if (prev_screen_idx != screen_idx) {
-        // Get the camera position before we remove everything from the registry
-        // This is super hacky...
-        // camera_position = registry.motions.get(registry.get_main_camera()).position;
 
         // Remove everything from the current screen
         clear_used_entities();
 
         // Set up the correct screen
         setupScreen(screen_idx);
-
-        // Create the main camera
-        // createCamera(camera_position);
 
         prev_screen_idx = screen_idx;
     }
@@ -103,7 +93,6 @@ void StartScreenSystem::step(float elapsed_ms) {
     camera_movement[movement_idx].second -= elapsed_ms;
     if (camera_movement[movement_idx].second <= 0.f) {
         camera_movement[movement_idx].second = 2500.f;
-        // movement_idx++;
         ++movement_idx %= camera_movement.size();
     }
 }
@@ -154,12 +143,6 @@ void StartScreenSystem::setupScreenOneObjects() {
     float button_x = window_w/2;
     float button_y = window_h/3;
 
-    // DUBUG
-    // printf("button_width: %f\n", button_width);
-    // printf("button_height: %f\n", button_height);
-    // printf("button_x: %f\n", button_x);
-    // printf("button_y: %f\n", button_y);
-
     // Set up the start button for rendering
     auto entity_one = Entity();
 	Mesh& mesh_one = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
@@ -207,13 +190,9 @@ void StartScreenSystem::setupScreenOneObjects() {
     // Add 20px buffer into the shape
     screen_one_buttons["start_button"].push_back({button_x - button_width/2 + 20, button_y + button_height/2 - 20});
     screen_one_buttons["start_button"].push_back({button_x + button_width/2 - 20, button_y - button_height/2 + 20});
-    
-    // printf("top_left: (%f, %f)\n", screen_one_buttons["start_button"][0].x, screen_one_buttons["start_button"][0].y);
-    // printf("bottom_right: (%f, %f)\n", screen_one_buttons["start_button"][1].x, screen_one_buttons["start_button"][1].y);
 }
 
 void StartScreenSystem::on_mouse_move(vec2 mouse_position) {
-    // printf("mouse x: %f, mouse y: %f \n", mouse_position.x, mouse_position.y);
     if (screen_idx == 0) { // On first screen
         // There is a race condition where we check if we are hovering before
         // we actually know the location of the button
@@ -250,8 +229,9 @@ bool StartScreenSystem::is_hovering(vec2 position, vec2 top_left, vec2 bottom_ri
 
 void StartScreenSystem::on_mouse_click(int button, int action, int mods) {
     if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
-        // next screen
-        screen_idx++;
+        if (screen_idx == 0 && was_hovering) {
+            screen_idx++;
+        }
 	}
 }
 

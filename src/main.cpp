@@ -49,7 +49,7 @@ int main()
 		return EXIT_FAILURE;
 	}
 
-	// initialize all systems
+	// Initialize systems needed to display the start screen
 	audio_system.init();		
 	render_system.init(window);
 	start_screen_system.init(window, &render_system, &terrain_system);
@@ -69,18 +69,13 @@ int main()
 		float elapsed_ms = (float)(std::chrono::duration_cast<std::chrono::microseconds>(now - t)).count() / 1000;
 		t = now;
 		total_elapsed_time += elapsed_ms;
-
-		// printf("total_elapsed_time: %f\n", total_elapsed_time);
-
-		// DEBUG ONLY: 30s of start screen only
-		// if (total_elapsed_time > 30000.f)
-		// 	break;
 		
 		start_screen_system.step(elapsed_ms);
 		render_system.drawStartScreens();
 	}
 	// start_screen_system.~StartScreenSystem(); // destructor not working properly, segfaulting...
-		printf("here\n");
+
+	// Initialize all other systems
 	weapons_system.init(&render_system, &physics_system);
 	mob_system.init(&render_system, &terrain_system, &physics_system);
 	quest_system.init(&render_system);
