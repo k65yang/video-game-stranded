@@ -203,6 +203,8 @@ void ParticleSystem::createFloatingHeart(Entity targetEntity, TEXTURE_ASSET_ID t
         template_particle.sizeBegin += dist(gen);
         template_motion.position.x += 4 * dist(gen);
         template_motion.position.y += 4 * dist(gen);
+        template_motion.velocity.y += 10 * dist(gen);
+
         entities.push_back(emit(template_entity));
 
     }

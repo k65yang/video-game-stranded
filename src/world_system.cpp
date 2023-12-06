@@ -675,7 +675,6 @@ void WorldSystem::handle_collisions() {
 
 			// Checking Player - Mobs
 			if (registry.mobs.has(entity_other)) {
-				std::cout << "collide with mob"<< std::endl; // DELTE LATER
 
 				// prevent player stack on top of mob upon colliding
 				if (correctionCount < 3) {
@@ -687,7 +686,6 @@ void WorldSystem::handle_collisions() {
 					mob_motion.position = mob_motion.position + -1.1f * correctionVec;
 
 					correctionCount += 1;
-					std::cout <<"iframe "<< player.iframes_timer << std::endl; // DELTE LATER
 				
 				}
 				
