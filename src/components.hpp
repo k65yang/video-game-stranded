@@ -10,14 +10,22 @@
 
 const int PLAYER_MAX_FOOD = 100;
 const int PLAYER_MAX_HEALTH = 100;
-const int PLAYER_MAX_AMMO = 10;
-const int SPACESHIP_HOME_MAX_FOOD_STORAGE = 500;
-const int SPACESHIP_HOME_MAX_AMMO_STORAGE = 100;
+const int SPACESHIP_MAX_HEALTH_STORAGE = 100;
+const int SPACESHIP_MAX_FOOD_STORAGE = 200;
+const int SPACESHIP_MAX_AMMO_STORAGE = 100;
+
+enum class QUEST_ITEM_STATUS {
+	NOT_FOUND = 0,
+	FOUND = NOT_FOUND + 1,
+	SUBMITTED = FOUND + 1
+};
 
 enum class ITEM_TYPE {
 	QUEST_ONE = 0,
 	QUEST_TWO = QUEST_ONE + 1,
-	WEAPON_NONE = QUEST_TWO + 1,
+	QUEST_THREE = QUEST_TWO + 1,
+	QUEST_FOUR = QUEST_THREE + 1,
+	WEAPON_NONE = QUEST_FOUR + 1,
 	WEAPON_SHURIKEN = WEAPON_NONE + 1,
 	WEAPON_CROSSBOW = WEAPON_SHURIKEN + 1,
 	WEAPON_SHOTGUN = WEAPON_CROSSBOW + 1,
@@ -27,27 +35,23 @@ enum class ITEM_TYPE {
 	POWERUP_NONE = WEAPON_UPGRADE + 1,
 	POWERUP_SPEED = POWERUP_NONE + 1,
 	POWERUP_HEALTH = POWERUP_SPEED + 1,
-	UPGRADE = POWERUP_HEALTH + 1,
-	TURKEY = UPGRADE + 1,
-	AMMO = TURKEY + 1,
-
+	UPGRADE = POWERUP_HEALTH + 1
 };
 
 enum class BAR_TYPE {
-	// UI bars
 	HEALTH_BAR = 0,
 	FOOD_BAR = HEALTH_BAR + 1,
 	AMMO_BAR = FOOD_BAR + 1,
-	// bars inside the home 
-	FOOD_STORAGE = AMMO_BAR +1,
-	AMMO_STORAGE = FOOD_STORAGE + 1,
+	HEALTH_STORAGE_BAR = AMMO_BAR + 1,
+	FOOD_STORAGE_BAR = HEALTH_STORAGE_BAR + 1,
+	AMMO_STORAGE_BAR = FOOD_STORAGE_BAR + 1,
+};
 
-	};
 enum class FRAME_TYPE {
 	HEALTH_FRAME = 0, 
 	FOOD_FRAME = HEALTH_FRAME + 1,
-	BAR_FRAME = FOOD_FRAME + 1,
-	};
+	STORAGE_FRAME = FOOD_FRAME + 1,
+};
 
 // TODO: cool idea for later is to have a customizable difficulty that adjusts food and health.
 struct Player
@@ -61,10 +65,22 @@ struct Player
 	int food = PLAYER_MAX_FOOD;
 	int framex = 0; 
 	int framey = 4; 
+	bool is_home = false;
 };
 
 struct SpeedPowerup {
 	float old_speed;
+};
+
+struct QuestItemIndicator {
+	ITEM_TYPE quest_item;
+};
+
+struct Inventory {
+	std::map<ITEM_TYPE, QUEST_ITEM_STATUS> quest_items {
+		{ITEM_TYPE::QUEST_ONE, QUEST_ITEM_STATUS::NOT_FOUND},
+		{ITEM_TYPE::QUEST_TWO, QUEST_ITEM_STATUS::NOT_FOUND},
+	};
 };
 
 // Make sure that the heal interval is always larger than the light up interval
@@ -97,14 +113,14 @@ struct Weapon {
 	float elapsed_last_shot_time_ms;     // controls fire rate, the time that the weapon was fired last
 	float projectile_velocity;           // speed of projectiles of this weapon
 	int projectile_damage;               // weapon damage
-	int ammo_count = PLAYER_MAX_AMMO;
 	float knockback_force;				 // magnitude of knockback on enemy
-
+	int ammo_count;						 // Ammo
+	int level;							 // Weapon level
 };
 
 // The spaceship 
 struct SpaceshipHome {
-	bool is_inside;
+	int health_storage;
 	int food_storage;
 	int ammo_storage;
 };
@@ -134,6 +150,7 @@ struct Mob {
 	int mframey = 1;
 	Entity curr_cell;
 	MOB_TYPE type;
+	Entity health_bar;
 };
 
 // Slowing effect for mobs from weapons
@@ -176,6 +193,12 @@ struct Collision
 		this->MTV = MTV;
 		};
 
+};
+
+struct Text {
+	std::string str;
+	vec3 color;
+	float scale;
 };
 
 // Data structure for toggling debug mode
@@ -341,8 +364,8 @@ enum class TEXTURE_ASSET_ID {
 	PLAYER = 0,
 	PLAYER_PARTICLE = PLAYER + 1,
 	SLIME = PLAYER_PARTICLE + 1,
-	REDBLOCK = SLIME + 1,
-	WEAPON_UPGRADE = REDBLOCK + 1,
+	RED_BLOCK = SLIME + 1,
+	WEAPON_UPGRADE = RED_BLOCK + 1,
 	FOOD = WEAPON_UPGRADE + 1,
 	WEAPON_SHURIKEN = FOOD + 1,
 	WEAPON_CROSSBOW = WEAPON_SHURIKEN + 1,
@@ -359,29 +382,42 @@ enum class TEXTURE_ASSET_ID {
 	POWERUP_HEALTH = ICON_POWERUP_HEALTH + 1,
 	POWERUP_SPEED = POWERUP_HEALTH + 1,
 	SPACESHIP = POWERUP_SPEED + 1,
-	SPACEHOME = SPACESHIP + 1,
-	BLUEBLOCK = SPACEHOME + 1,
-	//inserting new blocks here
-	FOOD_BLOCK = BLUEBLOCK + 1,
-	BROWNBLOCK = FOOD_BLOCK + 1,
-	AMMO_BLOCK = BROWNBLOCK + 1,
-	BAR_FRAME = AMMO_BLOCK + 1,
-	HEALTH_FRAME = BAR_FRAME + 1,
+	SPACESHIP_HOME = SPACESHIP + 1,
+	BLUE_BLOCK = SPACESHIP_HOME + 1,
+	BROWN_BLOCK = BLUE_BLOCK + 1,
+	BLACK_BLOCK = BROWN_BLOCK + 1,
+	STORAGE_FRAME = BLACK_BLOCK + 1,
+	HEALTH_FRAME = STORAGE_FRAME + 1,
 	FOOD_FRAME = HEALTH_FRAME + 1,
-	AMMO = FOOD_FRAME +1,
-	TURKEY = AMMO + 1, 
-	HELP_ONE = TURKEY + 1,
+	SPACESHIP_HOME_HEALTH = FOOD_FRAME + 1,
+	SPACESHIP_HOME_AMMO = SPACESHIP_HOME_HEALTH + 1,
+	SPACESHIP_HOME_FOOD = SPACESHIP_HOME_AMMO + 1,
+	HELP_ONE = SPACESHIP_HOME_FOOD + 1,
 	HELP_TWO = HELP_ONE + 1,
 	HELP_THREE = HELP_TWO + 1,
 	HELP_FOUR = HELP_THREE + 1,
 	HELP_WEAPON = HELP_FOUR + 1,
 	QUEST_1_NOT_FOUND = HELP_WEAPON + 1,
 	QUEST_1_FOUND = QUEST_1_NOT_FOUND + 1,
-	QUEST_2_NOT_FOUND = QUEST_1_FOUND + 1,
+	QUEST_1_SUBMITTED = QUEST_1_FOUND + 1,
+	QUEST_2_NOT_FOUND = QUEST_1_SUBMITTED + 1,
 	QUEST_2_FOUND = QUEST_2_NOT_FOUND + 1,
-	QUEST_1_ITEM = QUEST_2_FOUND + 1,
+	QUEST_2_SUBMITTED = QUEST_2_FOUND + 1,
+	QUEST_3_NOT_FOUND = QUEST_2_SUBMITTED + 1,
+	QUEST_3_FOUND = QUEST_3_NOT_FOUND + 1,
+	QUEST_3_SUBMITTED = QUEST_3_FOUND + 1,
+	QUEST_4_NOT_FOUND = QUEST_3_SUBMITTED + 1,
+	QUEST_4_FOUND = QUEST_4_NOT_FOUND + 1,
+	QUEST_4_SUBMITTED = QUEST_4_FOUND + 1,
+	QUEST_1_ITEM = QUEST_4_SUBMITTED + 1,
 	QUEST_2_ITEM = QUEST_1_ITEM +1,
-	GHOST = QUEST_2_ITEM + 1,
+	QUEST_3_ITEM = QUEST_2_ITEM + 1,
+	QUEST_4_ITEM = QUEST_3_ITEM + 1,
+	QUEST_1_BUILT = QUEST_4_ITEM + 1,
+	QUEST_2_BUILT = QUEST_1_BUILT + 1,
+	QUEST_3_BUILT = QUEST_2_BUILT + 1,
+	QUEST_4_BUILT = QUEST_3_BUILT + 1,
+	GHOST = QUEST_4_BUILT + 1,
 	BRUTE = GHOST + 1,
 	DISRUPTOR = BRUTE + 1,
 	TURRET = DISRUPTOR + 1,
@@ -402,7 +438,9 @@ enum class EFFECT_ASSET_ID {
 	TERRAIN = FOG + 1,
 	PARTICLE = TERRAIN + 1,
 	TEXTUREPARTICLE = PARTICLE + 1,
-	EFFECT_COUNT = TEXTUREPARTICLE + 1
+	TEXT = TEXTUREPARTICLE + 1,
+	EFFECT_COUNT = TEXT + 1
+
 };
 const int effect_count = (int)EFFECT_ASSET_ID::EFFECT_COUNT;
 
@@ -419,7 +457,8 @@ enum class GEOMETRY_BUFFER_ID {
 	TERRAIN = MOB_SPRITE + 1,
 	PLAYER_MESH = TERRAIN + 1,
 	MOB001_MESH = PLAYER_MESH + 1,
-	GEOMETRY_COUNT = MOB001_MESH + 1
+	TEXT = MOB001_MESH + 1,
+	GEOMETRY_COUNT = TEXT + 1
 };
 
 enum class RENDER_LAYER_ID {

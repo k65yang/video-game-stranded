@@ -40,6 +40,8 @@ inline std::string textures_path(const std::string& name) {return data_path() + 
 inline std::string audio_path(const std::string& name) {return data_path() + "/audio/" + std::string(name);};
 inline std::string mesh_path(const std::string& name) {return data_path() + "/meshes/" + std::string(name);};
 inline std::string terrain_texture_path(const std::string& name) { return data_path() + "/textures/terrain/" + std::string(name);};
+inline std::string font_path(const std::string& name) { return data_path() + "/fonts/" + std::string(name); };
+
 
 inline std::string map_path_builder(const std::string& name) {
 	return data_path() + "/maps/" + std::string(name) + '.' + std::string(map_ext);
