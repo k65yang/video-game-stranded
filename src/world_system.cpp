@@ -340,9 +340,16 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 	// Mob updates
 	for (Entity entity : registry.mobs.entities) {
+		// set the health bars to be below the mob
+		Mob& mob = registry.mobs.get(entity);
+		Motion& motion = registry.motions.get(entity);
+		Motion& health = registry.motions.get(mob.health_bar);
+		vec2& mob_position = motion.position;
+		vec2 health_position = { mob_position.x, mob_position.y + 1 };
+		health.position = health_position;
+
 		// slow updates
 		if (registry.mobSlowEffects.has(entity)) {
-			Motion& motion = registry.motions.get(entity);
 			MobSlowEffect& mobSlowEffect = registry.mobSlowEffects.get(entity);
 
 			// Apply slow effect if not yet applied
@@ -827,12 +834,16 @@ void WorldSystem::handle_collisions() {
 				mob.health -= projectile.damage;
 				// printf("mob health: %i", mob.health);
 				if (mob.health <= 0) {
+					registry.remove_all_components_of(mob.health_bar);
 					registry.remove_all_components_of(entity_other);
 					audio_system->play_one_shot(AudioSystem::MOB_DEATH);
 				}
 				else {
 					audio_system->play_one_shot(AudioSystem::MOB_HIT);
+					Motion& health = registry.motions.get(mob.health_bar);
+					health.scale = vec2(((float)mob.health / (float)mob_system->mob_health_map.at(mob.type)) * 5.5, 0.7);
 				}
+
 				// Add weapon effects to the mob
 				weapons_system->applyWeaponEffects(entity, entity_other);
 
