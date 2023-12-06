@@ -26,7 +26,8 @@ public:
 		RELOAD_SHURIKEN,
 		SHIP_ENTER,
 		SHIP_LEAVE,
-		CLICK
+		CLICK,
+		QUEST_PICKUP,
 	};
 
 	const unsigned NUM_CHANNELS = 16;	// Total number of channels used for sound effects
@@ -66,6 +67,7 @@ private:
 		{SHIP_ENTER, audio_path("ship_enter.wav")},
 		{SHIP_LEAVE, audio_path("ship_leave.wav")},
 		{CLICK, audio_path("empty_crossbow.wav")},	// I actually think it's great for a clicking sound
+		{QUEST_PICKUP, audio_path("quest_pickup.wav")}
 	};
 
 	/// <summary>
@@ -91,7 +93,7 @@ private:
 		{RELOAD_SHURIKEN, MIX_MAX_VOLUME * 0.7f},
 		{SHIP_ENTER, MIX_MAX_VOLUME * 0.7f},
 		{SHIP_LEAVE, MIX_MAX_VOLUME * 0.7f},
-		{SHIP_LEAVE, MIX_MAX_VOLUME * 0.75f},
+		{QUEST_PICKUP, MIX_MAX_VOLUME * 0.5f},
 	};
 
 	std::unordered_map<AUDIO, Mix_Music*> music;	// Pointers containing music in memory

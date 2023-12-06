@@ -724,15 +724,19 @@ void WorldSystem::handle_collisions() {
 				switch (item.data) {
 					case ITEM_TYPE::QUEST_ONE:
 						quest_system->processQuestItem(item.data, QUEST_ITEM_STATUS::FOUND);
+						audio_system->play_one_shot(AudioSystem::QUEST_PICKUP);
 						break;
 					case ITEM_TYPE::QUEST_TWO:
 						quest_system->processQuestItem(item.data, QUEST_ITEM_STATUS::FOUND);
+						audio_system->play_one_shot(AudioSystem::QUEST_PICKUP);
 						break;
 					case ITEM_TYPE::QUEST_THREE:
 						quest_system->processQuestItem(item.data, QUEST_ITEM_STATUS::FOUND);
+						audio_system->play_one_shot(AudioSystem::QUEST_PICKUP);
 						break;
 					case ITEM_TYPE::QUEST_FOUR:
 						quest_system->processQuestItem(item.data, QUEST_ITEM_STATUS::FOUND);
+						audio_system->play_one_shot(AudioSystem::QUEST_PICKUP);
 						break;
 					case ITEM_TYPE::FOOD:
 						// Add to food bar
