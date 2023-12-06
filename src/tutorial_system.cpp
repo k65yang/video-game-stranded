@@ -31,11 +31,12 @@ void TutorialSystem::openHelpDialog() {
 };
 
 void TutorialSystem::closeHelpDialog() {
-
+    registry.remove_all_components_of(help_dialog);
+    is_help_dialog_open = false;
 };
 
 bool TutorialSystem::isHelpDialogOpen() {
-    return false;
+    return is_help_dialog_open;
 };
 
 bool TutorialSystem::isMouseOverElement(vec2 mouse_pos, TEXTURE_ASSET_ID element) {
