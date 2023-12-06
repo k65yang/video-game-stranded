@@ -1187,6 +1187,10 @@ void WorldSystem::on_mouse_move(vec2 mouse_position) {
 /// Function to handle mouse click (weapon fire)
 /// </summary>
 void WorldSystem::on_mouse_click(int button, int action, int mods) {
+	double xpos, ypos;
+	glfwGetCursorPos(window, &xpos, &ypos);
+	vec2 mouse_pos_clip = screen_to_clip_coords({ xpos, ypos });
+
 	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
 		if (!registry.deathTimers.has(player_salmon) && !spaceship_home_system->isHome()) {
 			// if theres ammo in current weapon 
@@ -1203,6 +1207,10 @@ void WorldSystem::on_mouse_click(int button, int action, int mods) {
 				case ITEM_TYPE::WEAPON_CROSSBOW:
 					audio_system->play_one_shot(AudioSystem::SHOT_CROSSBOW); break;
 			}
+		}
+
+		if (tutorial_system->isMouseOverElement(mouse_pos_clip, TEXTURE_ASSET_ID::HELP_BUTTON)) {
+			tutorial_system->openHelpDialog();
 		}
 	}
 

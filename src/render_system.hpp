@@ -120,6 +120,7 @@ private:
 			textures_path("q3_built.png"),
 			textures_path("q4_built.png"),
 			textures_path("q1_not_found.png"),				// TODO: create texture for help button
+			textures_path("black_block.png"),				// TODO: create texture for help dialog
 			textures_path("ghost.png"),
 			textures_path("brute.png"),
 			textures_path("disruptor.png"),
