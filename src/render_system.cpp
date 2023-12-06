@@ -519,10 +519,10 @@ void RenderSystem::draw()
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glDisable(GL_DEPTH_TEST); // native OpenGL does not work with a depth buffer
-							  // and alpha blending, one would have to sort
-							  // sprites back to front
+	// and alpha blending, one would have to sort
+	// sprites back to front
 	gl_has_errors();
-	
+
 	Entity main_camera = registry.get_main_camera();
 	//	Generate view matrix. This converts world space coordinates into camera-relative coords from its POV.
 	//	The reason why we inverse:
@@ -551,7 +551,7 @@ void RenderSystem::draw()
 			continue;
 		// Note, its not very efficient to access elements indirectly via the entity
 		// albeit iterating through all Sprites in sequence. A good point to optimize
-		
+
 		// resort them in different queue of render request based on layer they belong to
 		if (registry.renderRequests.get(entity).layer_id == RENDER_LAYER_ID::LAYER_1) {
 
@@ -564,7 +564,7 @@ void RenderSystem::draw()
 				}
 			}
 			else {
-			// draw everything else
+				// draw everything else
 				layer_1_entities.push_back(entity);
 			}
 		}
@@ -624,9 +624,10 @@ void RenderSystem::draw()
 		drawParticles(entity, view_2D, projection_2D);
 	}
 
-	for (Entity entity : layer_3_entities) {
-		// added guard to turn off while in debug mode 
-		if (debugging.in_debug_mode == false) {
+	// added guard to turn off while in debug mode 
+	if (debugging.in_debug_mode == false) {
+		for (Entity entity : layer_3_entities) {
+
 			drawTexturedMesh(entity, view_2D, projection_2D);
 		}
 	}
@@ -640,9 +641,10 @@ void RenderSystem::draw()
 
 	// Draw for UI elements
 	
-	// TODO: for UI elements, have new projection matrices that use screen coordinates instead of map coordinates
-	for (Entity entity : layer_4_entities) {
-		drawTexturedMesh(entity, view_2D, projection_2D);
+	if (!debugging.hide_ui) {
+		for (Entity entity : layer_4_entities) {
+			drawTexturedMesh(entity, view_2D, projection_2D);
+		}
 	}
 
 	// TODO: Process text rendering here and ONLY here.
