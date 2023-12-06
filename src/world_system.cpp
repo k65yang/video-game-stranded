@@ -149,6 +149,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	ScreenState& screen = registry.screenStates.components[0];
 
 	float min_timer_ms = 3000.f;
+	// Handles when player dies or won the game 
 	for (Entity entity : registry.deathTimers.entities) {
 		// progress timer
 		DeathTimer& timer = registry.deathTimers.get(entity);
@@ -159,9 +160,16 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 		// restart the game once the death timer expired
 		if (timer.timer_ms < 0) {
-			registry.deathTimers.remove(entity);
+			if (quest_system->submitQuestItems()) {
+				// pop up for victory 
+				registry.deathTimers.remove(entity);
+				restart_game();
+
+			}
+			// pop up for dying 
+			//registry.deathTimers.remove(entity);
 			screen.screen_darken_factor = 0;
-			restart_game();
+			//restart_game();
 			return true;
 		}
 	}

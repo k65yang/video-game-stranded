@@ -77,7 +77,6 @@ bool QuestSystem::submitQuestItems() {
     for (auto it = inventory.quest_items.begin(); it != inventory.quest_items.end(); it++) {
         if (it->second != QUEST_ITEM_STATUS::NOT_FOUND) {
             num_submitted++;
-
             if (it->second == QUEST_ITEM_STATUS::FOUND) {
                 processQuestItem(it->first, QUEST_ITEM_STATUS::SUBMITTED);
                 createSpaceshipPart(it->first);
