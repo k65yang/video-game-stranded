@@ -493,7 +493,7 @@ const int NUM_PARTICLES = 200;
 // Struct describing particles 
 struct Particle {
 	bool active = false;
-	TEXTURE_ASSET_ID texture = TEXTURE_ASSET_ID::REDBLOCK; //HARDCODED TEMPORARY TO THIS FOR NOW
+	TEXTURE_ASSET_ID texture = TEXTURE_ASSET_ID::TEXTURE_COUNT; //HARDCODED TEMPORARY TO THIS FOR NOW
 	float lifeTime = 1000.0f; // in ms
 	float lifeTimeRemaining = 0.0f;
 	float sizeBegin, sizeEnd;
@@ -501,7 +501,7 @@ struct Particle {
 }; 
 
 struct ParticleTemplate {
-	TEXTURE_ASSET_ID texture = TEXTURE_ASSET_ID::REDBLOCK; //HARDCODED TEMPORARY TO THIS FOR NOW
+	TEXTURE_ASSET_ID texture = TEXTURE_ASSET_ID::TEXTURE_COUNT; //HARDCODED TEMPORARY TO THIS FOR NOW
 	float lifeTime = 1000.0f; // in ms
 	float lifeTimeRemaining = 0.0f;
 	float sizeBegin, sizeEnd;

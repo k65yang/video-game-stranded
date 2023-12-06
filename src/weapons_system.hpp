@@ -132,9 +132,10 @@ class WeaponsSystem
             {ITEM_TYPE::WEAPON_CROSSBOW, 0.2f},
             {ITEM_TYPE::WEAPON_SHOTGUN, 0.f},
             {ITEM_TYPE::WEAPON_MACHINEGUN, 0.1f},
+        };
 
         // Weapon ammo capacity
-        std::map<ITEM_TYPE, int> weapon_ammo_capacity_map{
+        std::map<ITEM_TYPE, int> weapon_ammo_capacity_map {
             {ITEM_TYPE::WEAPON_NONE, 0},
             {ITEM_TYPE::WEAPON_SHURIKEN, 15},
             {ITEM_TYPE::WEAPON_CROSSBOW, 15},

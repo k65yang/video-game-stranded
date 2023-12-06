@@ -115,7 +115,7 @@ void WorldSystem::init(
 	AudioSystem* audio_system_arg,
 	SpaceshipHomeSystem* spaceship_home_system_arg,
 	QuestSystem* quest_system_arg,
-  ParticleSystem* particle_system_arg
+	ParticleSystem* particle_system_arg
 ) {
 
 	this->renderer = renderer_arg;
@@ -126,7 +126,7 @@ void WorldSystem::init(
 	this->audio_system = audio_system_arg;
 	this->spaceship_home_system = spaceship_home_system_arg;
 	this->quest_system = quest_system_arg;
-  this->particle_system = particle_system_arg;
+	this->particle_system = particle_system_arg;
 
 
 	// Set all states to default
@@ -794,11 +794,7 @@ void WorldSystem::handle_collisions() {
 						speedPowerup.old_speed = current_speed;
 						current_speed *= 2;
 
-						// Give a particle trail to the player
-						ParticleTrail& pt = registry.particleTrails.emplace(player_salmon);
-						pt.is_alive = true;
-						pt.texture = TEXTURE_ASSET_ID::PLAYER_PARTICLE;
-						pt.motion_component_ptr = &registry.motions.get(player_salmon);
+		
 
 						// Add the powerup indicator
 						if (user_has_powerup)
@@ -815,8 +811,6 @@ void WorldSystem::handle_collisions() {
 							current_speed = registry.speedPowerup.get(player_salmon).old_speed;
 							registry.speedPowerup.remove(player_salmon);
 
-							// Set the particle trail to dead
-							registry.particleTrails.get(player_salmon).is_alive = false;
 						}
 
 						// Give health powerup to player. Use default values in struct definition.
@@ -1462,11 +1456,6 @@ void WorldSystem::load_game(json j) {
 				speedPowerup.old_speed = current_speed;
 				current_speed *= 2;
 
-				// Give a particle trail to the player
-				//ParticleTrail& pt = registry.particleTrails.emplace(player_salmon);
-				//pt.is_alive = true;
-				//pt.texture = TEXTURE_ASSET_ID::PLAYER_PARTICLE;
-				//pt.motion_component_ptr = &registry.motions.get(player_salmon);
 
 				// UI Indicator
 				powerup_indicator = createPowerupIndicator(renderer, { -9.5f + camera_motion.position.x, 5.f + camera_motion.position.y }, TEXTURE_ASSET_ID::ICON_POWERUP_SPEED);
