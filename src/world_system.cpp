@@ -69,9 +69,6 @@ GLFWwindow* WorldSystem::create_window() {
 #endif
 	glfwWindowHint(GLFW_RESIZABLE, 0);
 
-	// TODO: make a more elegant solution via manipulating the projection matrix instead of this hack
-	// so UI elements are aspect ratio and resolution independent in theory
-	// Build window size using screen dimensions
 	const GLFWvidmode* mode = glfwGetVideoMode(glfwGetPrimaryMonitor());
 	int y = mode->height;
 	int s = y / aspect_ratio.y;	// scale factor such that s * aspect_ratio = {mode->width, mode->height}. 
@@ -243,7 +240,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 	// Apply food decreasing the more you travel. 
 	if (player.food > 0) {
-		if (PLAYER_TOTAL_DISTANCE >= FOOD_DECREASE_THRESHOLD ) {
+		if (PLAYER_TOTAL_DISTANCE >= FOOD_DECREASE_THRESHOLD && !debugging.in_debug_mode) {
 			// Decrease player's food by 1
 			player.food -= 1;
 			// Shrink the food bar
@@ -929,30 +926,6 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	// Movement with velocity handled in step function  
 	update_key_presses(key, action);
 
-	/*
-	if (action == GLFW_PRESS && key == GLFW_KEY_G) {
-		Motion& player = registry.motions.get(player_salmon);
-		Entity tile = terrain->get_cell(player.position);
-		TerrainCell& cell = registry.terrainCells.get(tile);
-		cell.terrain_type = TERRAIN_TYPE::ROCK;
-		terrain->update_tile(tile, cell);
-	}
-
-	if (action == GLFW_PRESS && key == GLFW_KEY_V) {
-		Motion& player = registry.motions.get(player_salmon);
-		Entity tile = terrain->get_cell(player.position);
-
-		std::vector<Entity> entities;
-		terrain->get_accessible_neighbours(tile, entities);
-		for (Entity e : entities) {
-			TerrainCell& cell = registry.terrainCells.get(e);
-			cell.terrain_type = TERRAIN_TYPE::ROCK;
-			cell.flag |= TERRAIN_FLAGS::COLLIDABLE;
-			terrain->update_tile(e, cell);
-		}
-	}
-	*/
-
 	// Saving and reloading
 	if (action == GLFW_PRESS && key == GLFW_KEY_L) {
 		// Load the game state 
@@ -1012,9 +985,6 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 
 	// Resetting game
 	if (action == GLFW_RELEASE && key == GLFW_KEY_R) {
-		int w, h;
-		glfwGetWindowSize(window, &w, &h);
-
 		restart_game();
 	}
 
@@ -1038,86 +1008,12 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	}
 
 
-	// Debugging
-	/*if (key == GLFW_KEY_D) {
-		if (action == GLFW_RELEASE)
-			debugging.in_debug_mode = false;
-		else
-			debugging.in_debug_mode = true;
-	}*/
+	if (key == GLFW_KEY_F1 && action == GLFW_PRESS)
+		debugging.hide_ui = !debugging.hide_ui;
 
 	// Level editor controls
 	if (debugging.in_debug_mode && action == GLFW_PRESS) {
-		if (key == GLFW_KEY_KP_1) {	// numpad 1
-			// Toggle collidable flag
-			editor_flag ^= TERRAIN_FLAGS::COLLIDABLE;
-			if (editor_flag & TERRAIN_FLAGS::COLLIDABLE)
-				std::cout << "New terrain are now collidable" << std::endl;
-			else
-				std::cout << "New terrain are now non-collidable" << std::endl;
-		}
-		if (key == GLFW_KEY_KP_2) {	// numpad 2
-			// Toggles pathfindable flag
-			editor_flag ^= TERRAIN_FLAGS::DISABLE_PATHFIND;
-			if (editor_flag & TERRAIN_FLAGS::DISABLE_PATHFIND)
-				std::cout << "New terrain are now inaccessible to mobs" << std::endl;
-			else
-				std::cout << "New terrain are now accessible for mobs" << std::endl;
-		}
-		if (key == GLFW_KEY_KP_3) {	// numpad 3
-			// Toggles pathfindable flag
-			editor_flag ^= TERRAIN_FLAGS::ALLOW_SPAWNS;
-			if (editor_flag & TERRAIN_FLAGS::ALLOW_SPAWNS)
-				std::cout << "New terrain can now be spawned by items and mobs (if no collision)" << std::endl;
-			else
-				std::cout << "New terrain are now removed from the spawning pool" << std::endl;
-		}
-		if (key == GLFW_KEY_KP_SUBTRACT) {	// numpad -
-			// Goes down a TERRAIN_TYPE
-			if (editor_terrain == 0) {
-				editor_terrain = static_cast<TERRAIN_TYPE>(TERRAIN_COUNT - 1);
-			}
-			else {
-				editor_terrain = static_cast<TERRAIN_TYPE>(editor_terrain - 1);
-			}
-			std::cout << "Tile: " << std::to_string(editor_terrain) << std::endl;
-		}
-		if (key == GLFW_KEY_KP_ADD) {	// numpad '+'
-			// Goes up a TERRAIN_TYPE
-
-			editor_terrain = static_cast<TERRAIN_TYPE>(editor_terrain + 1);
-			if (editor_terrain == TERRAIN_COUNT) {
-				editor_terrain = static_cast<TERRAIN_TYPE>(0);
-			}
-			std::cout << "Tile: " << std::to_string(editor_terrain) << std::endl;
-		}
-		if (key == GLFW_KEY_KP_DECIMAL)	// numpad '.'
-			// Saves map data
-			terrain->save_grid(loaded_map_name);	
-		/*
-		if (key == GLFW_KEY_PAGE_UP) { // PageUp ke
-			// This expands the map to world_size_x, world_size_y.
-			// Make sure you disable item and mob spawning because physics and pathfinding
-			// will break!!
-			terrain->expand_map(world_size_x, world_size_y);
-			//restart_game();
-			renderer->empty_terrain_buffer();
-			
-			std::unordered_map<unsigned, RenderSystem::ORIENTATIONS> orientations;
-			terrain->generate_orientation_map(orientations);
-			renderer->initializeTerrainBuffers(orientations);
-
-			for (unsigned int i = 0; i < registry.terrainCells.entities.size(); i++) {
-				Entity e = registry.terrainCells.entities[i];
-				TerrainCell& cell = registry.terrainCells.components[i];
-
-				if (cell.flag & TERRAIN_FLAGS::COLLIDABLE)
-					createDefaultCollider(e);
-			}
-
-			physics_system->initStaticBVH(registry.colliders.size());
-		}
-		*/
+		process_editor_controls(action, key);
 	}
 
 	// Press B to toggle debug mode
@@ -1182,6 +1078,81 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	// TESTING: hotkey to upgrade weapon
 	if (key == GLFW_KEY_U && action == GLFW_PRESS) {
 		weapons_system->upgradeWeapon();
+	}
+}
+void WorldSystem::process_editor_controls(int action, int key)
+{
+	if (key == GLFW_KEY_KP_1) {	// numpad 1
+		// Toggle collidable flag
+		editor_flag ^= TERRAIN_FLAGS::COLLIDABLE;
+		if (editor_flag & TERRAIN_FLAGS::COLLIDABLE)
+			std::cout << "New terrain are collidable" << std::endl;
+		else
+			std::cout << "New terrain are non-collidable" << std::endl;
+	}
+	if (key == GLFW_KEY_KP_2) {	// numpad 2
+		// Toggles pathfindable flag
+		editor_flag ^= TERRAIN_FLAGS::DISABLE_PATHFIND;
+		if (editor_flag & TERRAIN_FLAGS::DISABLE_PATHFIND)
+			std::cout << "New terrain is now accessible for regular mobs" << std::endl;
+		else
+			std::cout << "New terrain will not be accessible for regular mobs" << std::endl;
+	}
+	if (key == GLFW_KEY_KP_3) {	// numpad 3
+		// Toggles pathfindable flag
+		editor_flag ^= TERRAIN_FLAGS::ALLOW_SPAWNS;
+		if (editor_flag & TERRAIN_FLAGS::ALLOW_SPAWNS)
+			std::cout << "New terrain allows random item and mob spawning" << std::endl;
+		else
+			std::cout << "New terrain will not allow random spawning" << std::endl;
+	}
+	if (key == GLFW_KEY_KP_SUBTRACT) {	// numpad -
+		// Goes down a TERRAIN_TYPE
+		if (editor_terrain == 0) {
+			editor_terrain = static_cast<TERRAIN_TYPE>(TERRAIN_COUNT - 1);
+		}
+		else {
+			editor_terrain = static_cast<TERRAIN_TYPE>(editor_terrain - 1);
+		}
+		std::cout << "Tile: " << std::to_string(editor_terrain) << std::endl;
+	}
+	if (key == GLFW_KEY_KP_ADD) {	// numpad '+'
+		// Goes up a TERRAIN_TYPE
+
+		editor_terrain = static_cast<TERRAIN_TYPE>(editor_terrain + 1);
+		if (editor_terrain == TERRAIN_COUNT) {
+			editor_terrain = static_cast<TERRAIN_TYPE>(0);
+		}
+		std::cout << "Tile: " << std::to_string(editor_terrain) << std::endl;
+	}
+	if (key == GLFW_KEY_KP_DECIMAL)	// numpad '.'
+		// Saves map data
+		terrain->save_grid(loaded_map_name);
+	if (key == GLFW_KEY_PAGE_UP) { // PageUp key
+		// This expands the map to world_size_x, world_size_y.
+		// Make sure you disable item and mob spawning because physics and pathfinding
+		// will break!!
+		assert(registry.mobs.entities.empty());
+		assert(registry.items.entities.empty());
+		assert(registry.healthPowerup.entities.empty());
+		assert(registry.speedPowerup.entities.empty());
+
+		terrain->expand_map(world_size_x, world_size_y);
+		renderer->empty_terrain_buffer();
+
+		std::unordered_map<unsigned, RenderSystem::ORIENTATIONS> orientations;
+		terrain->generate_orientation_map(orientations);
+		renderer->initializeTerrainBuffers(orientations);
+
+		for (unsigned int i = 0; i < registry.terrainCells.entities.size(); i++) {
+		Entity e = registry.terrainCells.entities[i];
+		TerrainCell& cell = registry.terrainCells.components[i];
+
+		if (cell.flag & TERRAIN_FLAGS::COLLIDABLE)
+			physics_system->createDefaultCollider(e);
+		}
+
+		physics_system->initStaticBVH(registry.colliders.size());
 	}
 }
 /// <summary>
