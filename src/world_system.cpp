@@ -115,7 +115,8 @@ void WorldSystem::init(
 	MobSystem* mob_system_arg, 
 	AudioSystem* audio_system_arg,
 	SpaceshipHomeSystem* spaceship_home_system_arg,
-	QuestSystem* quest_system_arg
+	QuestSystem* quest_system_arg,
+	TutorialSystem* tutorial_system_arg
 ) {
 	this->renderer = renderer_arg;
 	this->terrain = terrain_arg;
@@ -125,6 +126,7 @@ void WorldSystem::init(
 	this->audio_system = audio_system_arg;
 	this->spaceship_home_system = spaceship_home_system_arg;
 	this->quest_system = quest_system_arg;
+	this->tutorial_system = tutorial_system_arg;
 
 	// Set all states to default
 	restart_game();

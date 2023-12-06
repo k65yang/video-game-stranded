@@ -17,6 +17,7 @@
 #include "mob_system.hpp"
 #include "spaceship_home_system.hpp"
 #include "quest_system.hpp"
+#include "tutorial_system.hpp"
 #include "common.hpp"
 
 using Clock = std::chrono::high_resolution_clock;
@@ -36,6 +37,7 @@ int main()
 	AudioSystem audio_system;
 	SpaceshipHomeSystem spaceship_home_system;
 	QuestSystem quest_system;
+	TutorialSystem tutorial_system;
 
 	// Initializing window
 	GLFWwindow* window = world_system.create_window();
@@ -54,7 +56,18 @@ int main()
 	mob_system.init(&render_system, &terrain_system, &physics_system);
 	quest_system.init(&render_system);
 	spaceship_home_system.init(&render_system, &weapons_system, &quest_system);
-	world_system.init(&render_system, &terrain_system, &weapons_system, &physics_system, &mob_system, &audio_system, &spaceship_home_system, &quest_system);
+	tutorial_system.init(&render_system);
+	world_system.init(
+		&render_system, 
+		&terrain_system, 
+		&weapons_system, 
+		&physics_system, 
+		&mob_system, 
+		&audio_system, 
+		&spaceship_home_system, 
+		&quest_system,
+		&tutorial_system
+	);
 
 	// Load terrain mesh into the GPU
 	std::unordered_map<unsigned int, RenderSystem::ORIENTATIONS> orientation_map;
@@ -90,6 +103,8 @@ int main()
 		} else {
 			spaceship_home_system.step(elapsed_ms);
 		}
+
+		tutorial_system.step(elapsed_ms);
 
 		render_system.draw();
 	}

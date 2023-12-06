@@ -20,6 +20,7 @@
 #include "audio_system.hpp"
 #include "spaceship_home_system.hpp"
 #include "quest_system.hpp"
+#include "tutorial_system.hpp"
 
 #include <nlohmann/json.hpp>
 
@@ -57,7 +58,8 @@ public:
 		MobSystem* mob_system_arg, 
 		AudioSystem* audio_system_arg, 
 		SpaceshipHomeSystem* spaceship_home_system_arg,
-		QuestSystem* quest_system_arg
+		QuestSystem* quest_system_arg,
+		TutorialSystem* tutorial_system_arg
 	);
 
 	// Releases all associated resources
@@ -106,6 +108,7 @@ private:
 	AudioSystem* audio_system;
 	SpaceshipHomeSystem* spaceship_home_system;
 	QuestSystem* quest_system;
+	TutorialSystem* tutorial_system;
 	float current_speed;
 	float next_turtle_spawn;
 	float next_fish_spawn;
