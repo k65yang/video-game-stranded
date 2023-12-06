@@ -401,6 +401,11 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		}
 	}
 
+	
+	if (registry.spaceshipParts.has(spaceship_depart)) {
+		update_spaceship_frame(elapsed_ms_since_last_update);
+	}
+	
 	// Lets the editor drag
 	if (debugging.in_debug_mode && editor_place_tile)
 		map_editor_routine();
@@ -910,6 +915,26 @@ void WorldSystem::update_camera_follow() {
 	c.mode_follow = true;
 }
 
+void WorldSystem::update_spaceship_frame(float elapsed_ms_since_last_update) {
+	if (ELAPSED_TIME > 200) {
+		// Update walking animation
+		if (registry.spaceshipParts.components[0].framex != 5) {
+
+			registry.spaceshipParts.components[0].framex = (registry.spaceshipParts.components[0].framex + 1) % 6;
+			ELAPSED_TIME = 0.0f; // Reset the timer
+		}
+	}
+}
+
+void WorldSystem::update_spaceship_depart() {
+	// Remove all ship parts if all items are collected 
+	if (quest_system->submitQuestItems()) {
+		while (registry.spaceshipParts.entities.size() > 0)
+			registry.remove_all_components_of(registry.spaceshipParts.entities.back());
+		spaceship_depart = createSpaceshipDepart(renderer); 
+	}
+}
+
 // On key callback
 void WorldSystem::on_key(int key, int, int action, int mod) {
 	Motion& player_motion = registry.motions.get(player_salmon);
@@ -1012,11 +1037,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 			// Exit home screen and go back to world 
 			player.is_home = false;
 			player_motion.position = { 0,0 };
-			// Remove all ship parts if all items are collected 
-			if (quest_system->submitQuestItems()) {
-				while (registry.spaceshipParts.entities.size() > 0)
-					registry.remove_all_components_of(registry.spaceshipParts.entities.back());
-			}
+			update_spaceship_depart(); 
 		} else {
 			// Close the window if not in home screen
 			glfwSetWindowShouldClose(window, true);

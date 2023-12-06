@@ -123,6 +123,7 @@ private:
 	Entity spaceship;
 	Entity spaceship_home; 
 	Entity help_bar;
+	Entity spaceship_depart; 
 	bool tooltips_on = true;
 
 	bool user_has_first_weapon = false;
@@ -186,4 +187,12 @@ private:
 	/// <param name="elapsed_ms_since_last_update"></param>
 	void handlePlayerMovement(float elapsed_ms_since_last_update);
 	bool keyDown[KEYS];    // Uses InputKeyIndex values as index
+
+	/// <summary>
+	/// updates spaceship depart sprite 
+	/// </summary>
+	/// <param name="elapsed_ms_since_last_update"></param>
+	void update_spaceship_frame(float elapsed_ms_since_last_update);
+	// Handles the victory scene 
+	void update_spaceship_depart();
 };

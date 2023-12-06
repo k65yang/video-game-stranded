@@ -88,7 +88,7 @@ private:
 			textures_path("icon_powerup_health.png"),
 			textures_path("powerup_health.png"),
 			textures_path("powerup_speed.png"),
-			textures_path("spaceship.png"), 
+			textures_path("spaceship.png"),
 			textures_path("spaceship_home.png"),
 			textures_path("blue_block.png"),
 			textures_path("brown_block.png"),
@@ -125,6 +125,7 @@ private:
 			textures_path("q2_built.png"),
 			textures_path("q3_built.png"),
 			textures_path("q4_built.png"),
+			textures_path("spaceship_depart.png"),
 			textures_path("ghost.png"),
 			textures_path("brute.png"),
 			textures_path("disruptor.png"),
@@ -299,12 +300,11 @@ public:
 	// Do not modify this. READ ONLY!!
 	bool is_terrain_mesh_loaded = false;
 
-	// Initialize player sprite
 	float player_frame_w;
 	float player_frame_h;
-	// Initialize mob sprite
 	float mob_frame_w;
 	float mob_frame_h;
+	float s_frame_w;
 
 private:
 	// Freetype stuff

@@ -370,3 +370,30 @@ Entity createCamera(vec2 pos)
 	motion.scale = { 1 , 1 };
 	return entity;
 }
+
+Entity createSpaceshipDepart(RenderSystem* renderer) {
+	auto entity = Entity();
+
+	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Initialize the motion
+	auto& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.velocity = { 0.f, 0.f };
+	motion.position = { 0, -2.5 };
+	motion.scale = vec2({ target_resolution.x / tile_size_px * 0.20833333*1.2, target_resolution.y / tile_size_px * 0.3125*1.4 });
+
+	// Add spaceship to the spaceship_parts registry
+	SpaceshipParts& spaceship_parts = registry.spaceshipParts.emplace(entity);
+
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::SPACESHIP_DEPART,
+		 EFFECT_ASSET_ID::SPRITESHEET,
+		 GEOMETRY_BUFFER_ID::SPACESHIP_DEPART_SPRITE,
+		 RENDER_LAYER_ID::LAYER_1 });
+
+	return entity;
+}
