@@ -994,6 +994,11 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 
 		if (action == GLFW_PRESS && key == GLFW_KEY_E ) {
 			spaceship_home_system->enterSpaceship(health_bar, food_bar);
+
+			if (!player.has_entered_spaceship) {
+				tutorial_system->createTutorialText(TUTORIAL_TYPE::SPACESHIP_HOME_TUTORIAL);
+				player.has_entered_spaceship = true;
+			}
 		}
 	}
 
