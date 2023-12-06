@@ -100,7 +100,7 @@ Entity MobSystem::create_mob(vec2 mob_position, MOB_TYPE mob_type, int current_h
 	mob_info.damage = mob_damage_map.at(mob_type);
 	mob_info.aggro_range = mob_aggro_range_map.at(mob_type);
 	mob_info.is_tracking_player = false;
-	vec2 health_position = { mob_position.x, mob_position.y + 1 };
+	vec2 health_position = { mob_position.x, mob_position.y - 1 };
 	if (current_health != 0) {
 		mob_info.health = current_health;
 		// Create a health bar for the mob
@@ -159,7 +159,7 @@ Entity MobSystem::create_mob_health_bar(RenderSystem* renderer, vec2 position, i
 	motion.angle = 0.f;
 	motion.velocity = { 0.f, 0.f };
 	motion.position = position;
-	motion.scale = vec2(((float)amount / (float)mob_health_map.at(type)) * 5.5, 0.7);
+	motion.scale = vec2(((float)amount / (float)mob_health_map.at(type)) * 3.5, 0.7);
 
 	registry.renderRequests.insert(
 		entity,
