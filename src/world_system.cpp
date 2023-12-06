@@ -169,25 +169,6 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		}
 	}
 
-	// TODO: CLEAN UP THESE LOOPS they are surely not optimized
-	// Tick down tooltip timer
-	for (Entity entity : registry.tips.entities) {
-		ToolTip& tip = registry.tips.get(entity);
-		tip.timer -= elapsed_ms_since_last_update;
-		
-		// TODO: Make the tooltip fade after it has been a certain period of time (when we have opacity)
-
-		if (tip.timer < 0) {
-			registry.renderRequests.remove(entity);
-			registry.tips.remove(entity);
-		}
-	}
-
-	if (current_tooltip < tooltips.size() && registry.tips.size() == 0 && tooltips_on) {
-		help_bar = createHelp(renderer, { 0.f, -7.f }, tooltips[current_tooltip]);
-		current_tooltip++;
-	}
-
 	// Tick down iframes timer and health decrease timer
 	for (Entity entity : registry.players.entities) {
 		Player& player = registry.players.get(entity);
@@ -297,10 +278,6 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			ui_motion.position = ui_inital_position + camera_motion.position;
 		}
 	}
-
-	// TODO: deal with the help component when designing tutorial
-	Motion& help = registry.motions.get(help_bar);
-	help.position = { camera_motion.position.x, -7.f + camera_motion.position.y };
 
 	if (user_has_powerup) {
 		Motion& powerup_ui = registry.motions.get(powerup_indicator);
@@ -579,10 +556,6 @@ void WorldSystem::restart_game() {
 	// Reset the power ups
 	user_has_powerup = false;
 
-	// A function that handles the help/tutorial (some tool tips at the top of the screen)
-	help_bar = createHelp(renderer, { 0.f, -7.f }, tooltips[0]);
-	current_tooltip = 1;
-
 	// Reset quest system
 	std::vector<QUEST_ITEM_STATUS> statuses(4, QUEST_ITEM_STATUS::NOT_FOUND);
 	quest_system->resetQuestSystem(statuses);
@@ -711,16 +684,16 @@ void WorldSystem::handle_collisions() {
 				// Handle the item based on its function
 				switch (item.data) {
 					case ITEM_TYPE::QUEST_ONE:
-						quest_system->processQuestItem(item.data, QUEST_ITEM_STATUS::FOUND);
-						break;
 					case ITEM_TYPE::QUEST_TWO:
-						quest_system->processQuestItem(item.data, QUEST_ITEM_STATUS::FOUND);
-						break;
 					case ITEM_TYPE::QUEST_THREE:
-						quest_system->processQuestItem(item.data, QUEST_ITEM_STATUS::FOUND);
-						break;
 					case ITEM_TYPE::QUEST_FOUR:
 						quest_system->processQuestItem(item.data, QUEST_ITEM_STATUS::FOUND);
+						
+						if (!player.has_collected_quest_item) {
+							tutorial_system->createTutorialText(TUTORIAL_TYPE::QUEST_ITEM_TUTORIAL);
+							player.has_collected_quest_item = true;
+						}
+
 						break;
 					case ITEM_TYPE::FOOD:
 						// Add to food bar
@@ -995,10 +968,6 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		} 
 		
 		SaveGame(player, player_motion, active_weapon, weapons, mobs, items, quest_item_statuses, spaceship_home_info, p_type);
-
-		tooltips_on = false;
-		help_bar = createHelp(renderer, { 0.f, -7.f }, TEXTURE_ASSET_ID::SAVING);
-		current_tooltip = tooltips.size();
 	}
 
 	// Resetting game
@@ -1166,7 +1135,6 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	if (equipped_weapon_key_pressed && !user_has_first_weapon) {
 		// Has just equipped up the first weapon
 		user_has_first_weapon = true;
-		help_bar = createHelp(renderer, { 0.f, -7.f }, TEXTURE_ASSET_ID::HELP_WEAPON);
 	}
 	equipped_weapon_key_pressed = false;
 
@@ -1398,11 +1366,6 @@ void WorldSystem::load_game(json j) {
 	int sh_ammo_storage = j["spaceshipHome"]["ammo_storage"];
 	spaceship_home_system->resetSpaceshipHomeSystem(sh_health_storage, sh_food_storage, sh_ammo_storage);
 	if (p_is_home) spaceship_home_system->enterSpaceship(health_bar, food_bar);
-
-	// Tool tips and help bar
-	tooltips_on = false;
-	help_bar = createHelp(renderer, { camera_motion.position.x, -7.f + camera_motion.position.y }, TEXTURE_ASSET_ID::LOADED);
-	current_tooltip = tooltips.size();
 
 	// Load all weapons data
 	for (auto& weapon : j["weapons"]) {

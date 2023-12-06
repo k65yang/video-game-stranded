@@ -99,11 +99,6 @@ private:
 			textures_path("spaceship_home_health.png"),
 			textures_path("spaceship_home_ammo.png"),
 			textures_path("spaceship_home_food.png"),
-			textures_path("help1.png"),
-			textures_path("help2.png"),
-			textures_path("help3.png"),
-			textures_path("help4.png"),
-			textures_path("help_weapon.png"),
 			textures_path("q1_not_found.png"),
 			textures_path("q1_found.png"),
 			textures_path("q1_submitted.png"),
@@ -129,8 +124,6 @@ private:
 			textures_path("brute.png"),
 			textures_path("disruptor.png"),
 			textures_path("mob_turret.png"),
-			textures_path("loaded.png"),
-			textures_path("saving.png"),
 	};
 
 	// How big one terrain spritesheet is

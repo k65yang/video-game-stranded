@@ -125,14 +125,9 @@ private:
 	Entity ammo_indicator; 
 	Entity spaceship;
 	Entity spaceship_home; 
-	Entity help_bar;
-	bool tooltips_on = true;
 
 	bool user_has_first_weapon = false;
 	bool user_has_powerup = false;
-
-	int current_tooltip = 0;
-	std::vector<TEXTURE_ASSET_ID> tooltips = { TEXTURE_ASSET_ID::HELP_ONE, TEXTURE_ASSET_ID::HELP_TWO, TEXTURE_ASSET_ID::HELP_THREE, TEXTURE_ASSET_ID::HELP_FOUR };
 
 	// C++ random number generator
 	std::default_random_engine rng;
