@@ -340,9 +340,16 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 	// Mob updates
 	for (Entity entity : registry.mobs.entities) {
+		// set the health bars to be below the mob
+		Mob& mob = registry.mobs.get(entity);
+		Motion& motion = registry.motions.get(entity);
+		Motion& health = registry.motions.get(mob.health_bar);
+		vec2& mob_position = motion.position;
+		vec2 health_position = { mob_position.x, mob_position.y + 1 };
+		health.position = health_position;
+
 		// slow updates
 		if (registry.mobSlowEffects.has(entity)) {
-			Motion& motion = registry.motions.get(entity);
 			MobSlowEffect& mobSlowEffect = registry.mobSlowEffects.get(entity);
 
 			// Apply slow effect if not yet applied
@@ -558,7 +565,7 @@ void WorldSystem::restart_game() {
 	main_camera = createCamera({ 0,0 });
 
 	// Reset the spaceship home system
-	spaceship_home_system->resetSpaceshipHomeSystem(SPACESHIP_MAX_FOOD_STORAGE, SPACESHIP_MAX_AMMO_STORAGE);
+	spaceship_home_system->resetSpaceshipHomeSystem(SPACESHIP_MAX_HEALTH_STORAGE, SPACESHIP_MAX_FOOD_STORAGE, SPACESHIP_MAX_AMMO_STORAGE);
 
 	// DISABLE FOW MASK
 	//fow = createFOW(renderer, { 0,0 });
@@ -582,7 +589,7 @@ void WorldSystem::restart_game() {
 	current_tooltip = 1;
 
 	// Reset quest system
-	std::vector<QUEST_ITEM_STATUS> statuses(2, QUEST_ITEM_STATUS::NOT_FOUND);
+	std::vector<QUEST_ITEM_STATUS> statuses(4, QUEST_ITEM_STATUS::NOT_FOUND);
 	quest_system->resetQuestSystem(statuses);
 
 	// clear all used spawn locations
@@ -714,6 +721,12 @@ void WorldSystem::handle_collisions() {
 					case ITEM_TYPE::QUEST_TWO:
 						quest_system->processQuestItem(item.data, QUEST_ITEM_STATUS::FOUND);
 						break;
+					case ITEM_TYPE::QUEST_THREE:
+						quest_system->processQuestItem(item.data, QUEST_ITEM_STATUS::FOUND);
+						break;
+					case ITEM_TYPE::QUEST_FOUR:
+						quest_system->processQuestItem(item.data, QUEST_ITEM_STATUS::FOUND);
+						break;
 					case ITEM_TYPE::FOOD:
 						// Add to food bar
 						player.food += FOOD_PICKUP_AMOUNT;
@@ -810,12 +823,16 @@ void WorldSystem::handle_collisions() {
 				mob.health -= projectile.damage;
 				// printf("mob health: %i", mob.health);
 				if (mob.health <= 0) {
+					registry.remove_all_components_of(mob.health_bar);
 					registry.remove_all_components_of(entity_other);
 					audio_system->play_one_shot(AudioSystem::MOB_DEATH);
 				}
 				else {
 					audio_system->play_one_shot(AudioSystem::MOB_HIT);
+					Motion& health = registry.motions.get(mob.health_bar);
+					health.scale = vec2(((float)mob.health / (float)mob_system->mob_health_map.at(mob.type)) * 5.5, 0.7);
 				}
+
 				// Add weapon effects to the mob
 				weapons_system->applyWeaponEffects(entity, entity_other);
 
@@ -973,6 +990,8 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		std::vector<QUEST_ITEM_STATUS> quest_item_statuses {
 			inventory.quest_items[ITEM_TYPE::QUEST_ONE],
 			inventory.quest_items[ITEM_TYPE::QUEST_TWO],
+			inventory.quest_items[ITEM_TYPE::QUEST_THREE],
+			inventory.quest_items[ITEM_TYPE::QUEST_FOUR],
 		};
 
 		ITEM_TYPE p_type = ITEM_TYPE::POWERUP_NONE;
@@ -1001,9 +1020,8 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 
 	if (action == GLFW_PRESS && key == GLFW_KEY_ESCAPE) {
 		if (player.is_home) {
-			// Exit home screen and go back to world 
-			player.is_home = false;
-			player_motion.position = { 0,0 };
+			// Exit spaceship
+			spaceship_home_system->exitSpaceship();
 		} else {
 			// Close the window if not in home screen
 			glfwSetWindowShouldClose(window, true);
@@ -1304,7 +1322,9 @@ void WorldSystem::spawn_items() {
 	//  createItem(renderer, physics_system, terrain->get_random_terrain_location(ZONE_2), ITEM_TYPE::QUEST_TWO);
 
 	createItem(renderer, physics_system, {1.f, 1.f}, ITEM_TYPE::QUEST_ONE);
-	createItem(renderer, physics_system, {-1.f, -1.f}, ITEM_TYPE::QUEST_TWO);
+	createItem(renderer, physics_system, {-1.f, -1.f}, ITEM_TYPE::QUEST_TWO);	
+	createItem(renderer, physics_system, { 2.f, 1.f }, ITEM_TYPE::QUEST_THREE);
+	createItem(renderer, physics_system, { -2.f, -1.f }, ITEM_TYPE::QUEST_FOUR);
 }
 
 // Adapted from restart_game, BASICALLY a lot of optional arguments to change small things :D
@@ -1361,19 +1381,17 @@ void WorldSystem::load_game(json j) {
 	// Create a new salmon
 	player_salmon = createPlayer(renderer, physics_system, player_location);
 	Player& player = registry.players.get(player_salmon);
-	player.health = j["player"]["health"];
-	player.food = j["player"]["food"];
-	player.is_home = j["player"]["is_home"];
+	int p_health = j["player"]["health"];
+	int p_food = j["player"]["food"];
+	bool p_is_home = j["player"]["is_home"];
+	player.health = p_health;
+	player.food = p_food;
+	player.is_home = p_is_home;
 	registry.colors.insert(player_salmon, { 1, 0.8f, 0.8f, 1.0f});
 
 	// Create the main camera
 	main_camera = createCamera(player_location);
 	Motion& camera_motion = registry.motions.get(main_camera);
-
- 	// Reset spaceship home system
-	int sh_food_storage = j["spaceshipHome"]["food_storage"];
-	int sh_ammo_storage = j["spaceshipHome"]["ammo_storage"];
-	spaceship_home_system->resetSpaceshipHomeSystem(sh_food_storage, sh_ammo_storage);
 
 	// Create player health bar
 	health_bar = createBar(renderer, HEALTH_BAR_FRAME_POS, PLAYER_MAX_HEALTH, BAR_TYPE::HEALTH_BAR);
@@ -1382,6 +1400,13 @@ void WorldSystem::load_game(json j) {
 	// Create player food bar
 	food_bar = createBar(renderer, FOOD_BAR_FRAME_POS, PLAYER_MAX_FOOD, BAR_TYPE::FOOD_BAR);
 	food_frame = createFrame(renderer, FOOD_BAR_FRAME_POS, FRAME_TYPE::FOOD_FRAME);
+
+	// Reset spaceship home system
+	int sh_health_storage = j["spaceshipHome"]["health_storage"];
+	int sh_food_storage = j["spaceshipHome"]["food_storage"];
+	int sh_ammo_storage = j["spaceshipHome"]["ammo_storage"];
+	spaceship_home_system->resetSpaceshipHomeSystem(sh_health_storage, sh_food_storage, sh_ammo_storage);
+	if (p_is_home) spaceship_home_system->enterSpaceship(health_bar, food_bar);
 
 	// Tool tips and help bar
 	tooltips_on = false;

@@ -70,10 +70,11 @@ void from_json(const json& j, Weapon& weapon) {
 }
 
 void to_json(json& j, const SpaceshipHome& spaceshipHome) {
-    j = json{ {"food_storage", spaceshipHome.food_storage}, {"ammo_storage", spaceshipHome.ammo_storage} };
+    j = json{ {"health_storage", spaceshipHome.health_storage}, {"food_storage", spaceshipHome.food_storage}, {"ammo_storage", spaceshipHome.ammo_storage} };
 }
 
 void from_json(const json& j, SpaceshipHome& spaceshipHome) {
+    j.at("health_storage").get_to(spaceshipHome.health_storage);
     j.at("food_storage").get_to(spaceshipHome.food_storage);
     j.at("ammo_storage").get_to(spaceshipHome.ammo_storage);
 }
