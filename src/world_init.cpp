@@ -367,3 +367,28 @@ Entity createCamera(vec2 pos)
 	motion.scale = { 1 , 1 };
 	return entity;
 }
+
+Entity createText(RenderSystem* renderer, vec2 position, std::string str, float scale, vec3 color) {
+	auto entity = Entity();
+
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Initialize the position, scale, and physics components
+	auto& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.velocity = { 0.f, 0.f };
+	motion.position = position;
+	motion.scale = { 1.f, 1.f };
+
+	// Add entity to Text registry
+	Text& text = registry.texts.emplace(entity);
+	text.str = str;
+	text.color = color;
+	text.scale = scale;
+
+	// Add entity to ScreenUI registry
+	registry.screenUI.insert(entity, position);
+
+	return entity;
+}
