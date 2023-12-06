@@ -10,6 +10,9 @@ public:
 		MUSIC,
 		MOB_HIT,
 		MOB_DEATH,
+		PLAYER_HIT,
+		PLAYER_LOW_HEALTH,
+		PLAYER_DEATH,
 		SHOT,
 		SHOT_MG,
 		SHOT_CROSSBOW,
@@ -21,6 +24,8 @@ public:
 		RELOAD_MG,
 		RELOAD_CROSSBOW,
 		RELOAD_SHURIKEN,
+		SHIP_ENTER,
+		SHIP_LEAVE,
 	};
 
 	const unsigned NUM_CHANNELS = 16;	// Total number of channels used for sound effects
@@ -43,6 +48,9 @@ private:
 	const std::unordered_map<AUDIO, std::string> chunk_paths {
 		{MOB_DEATH, audio_path("mob_death1.wav")},
 		{MOB_HIT, audio_path("mob_hit1.wav")},
+		{PLAYER_HIT, audio_path("player_hit.wav")},
+		{PLAYER_LOW_HEALTH, audio_path("player_low_health.wav")},
+		{PLAYER_DEATH, audio_path("player_death.wav")},
 		{SHOT, audio_path("shot1.wav")},
 		{SHOT_MG, audio_path("shot_mg1.wav")},
 		{SHOT_CROSSBOW, audio_path("shot_crossbow1.wav")},
@@ -54,6 +62,8 @@ private:
 		{RELOAD_MG, audio_path("reload_mg.wav")},
 		{RELOAD_CROSSBOW, audio_path("reload_crossbow.wav")},
 		{RELOAD_SHURIKEN, audio_path("reload_shuriken.wav")},
+		{SHIP_ENTER, audio_path("ship_enter.wav")},
+		{SHIP_LEAVE, audio_path("ship_leave.wav")},
 	};
 
 	/// <summary>
@@ -63,6 +73,9 @@ private:
 		{MUSIC, MIX_MAX_VOLUME * music_volume},
 		{MOB_DEATH, MIX_MAX_VOLUME * 0.5f},
 		{MOB_HIT, MIX_MAX_VOLUME * 0.25f},
+		{PLAYER_HIT, MIX_MAX_VOLUME * 0.55f},
+		{PLAYER_LOW_HEALTH, MIX_MAX_VOLUME * 0.55f},
+		{PLAYER_DEATH, MIX_MAX_VOLUME * 0.8f},
 		{SHOT, MIX_MAX_VOLUME * 0.72f},
 		{SHOT_MG, MIX_MAX_VOLUME * 0.55f},
 		{SHOT_CROSSBOW, MIX_MAX_VOLUME * 0.75f},
@@ -72,8 +85,10 @@ private:
 		{EMPTY_CROSSBOW, MIX_MAX_VOLUME * .75f},
 		{RELOAD_SHOTGUN, MIX_MAX_VOLUME * .85f},
 		{RELOAD_MG, MIX_MAX_VOLUME * 0.5f},
-		{RELOAD_CROSSBOW, MIX_MAX_VOLUME * 0.5f},
+		{RELOAD_CROSSBOW, MIX_MAX_VOLUME * 0.45f},
 		{RELOAD_SHURIKEN, MIX_MAX_VOLUME * 0.7f},
+		{SHIP_ENTER, MIX_MAX_VOLUME * 0.7f},
+		{SHIP_LEAVE, MIX_MAX_VOLUME * 0.7f},
 	};
 
 	std::unordered_map<AUDIO, Mix_Music*> music;	// Pointers containing music in memory

@@ -659,7 +659,7 @@ void WorldSystem::handle_collisions() {
 				}
 
 				Mob& mob = registry.mobs.get(entity_other);
-				player.health -= mob.damage;
+				player.health = max(0, player.health - mob.damage);
 				mob_system->apply_mob_attack_effects(entity, entity_other);
 
 				// Shrink the health bar
@@ -670,10 +670,17 @@ void WorldSystem::handle_collisions() {
 				player.iframes_timer = IFRAMES;
 
 				if (player.health <= 0) {
+					audio_system->play_one_shot(AudioSystem::PLAYER_DEATH);
 					if (!registry.deathTimers.has(entity)) {
 						// TODO: game over screen
 						registry.deathTimers.emplace(entity);
 					}
+				}
+				else {
+					if (player.health <= PLAYER_MAX_HEALTH * 0.25f)
+						audio_system->play_one_shot(AudioSystem::PLAYER_LOW_HEALTH);
+					else
+						audio_system->play_one_shot(AudioSystem::PLAYER_HIT);
 				}
 
 				// reset health powerup values
@@ -1015,6 +1022,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		if (player.is_home) {
 			// Exit spaceship
 			spaceship_home_system->exitSpaceship();
+			audio_system->play_one_shot(AudioSystem::SHIP_LEAVE);
 		} else {
 			// Close the window if not in home screen
 			glfwSetWindowShouldClose(window, true);
@@ -1027,6 +1035,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 
 		if (action == GLFW_PRESS && key == GLFW_KEY_E ) {
 			spaceship_home_system->enterSpaceship(health_bar, food_bar);
+			audio_system->play_one_shot(AudioSystem::SHIP_ENTER);
 		}
 	}
 
