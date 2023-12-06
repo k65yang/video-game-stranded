@@ -6,6 +6,7 @@
 #include "render_system.hpp"
 #include <iostream>
 #include <random>
+#include <cmath>
 
 
 
@@ -13,23 +14,28 @@
 class ParticleSystem
 {
     
+    
 
     public:
     /// @brief ParticleSystem constructor
     ParticleSystem() {
+        
    
     }
 
     /// @brief ParticleSystem destructor
     ~ParticleSystem() {};
 
-  
+    
 
     /// @brief Initializes the particle system
     /// @param renderer_arg The render system
     void init(RenderSystem* renderer_arg) {
         this->renderer = renderer_arg;
     }
+
+ 
+
 
     /// @brief Updates particle effects
     void step(float elapsed_ms);
@@ -42,8 +48,9 @@ class ParticleSystem
     Entity ParticleSystem::emit(Entity templateParticleEntity);
 
     void ParticleSystem::createParticleTrail(Entity targetEntity, TEXTURE_ASSET_ID texture, int numberOfParticles, vec2 scale);
+    void ParticleSystem::createFloatingHeart(Entity targetEntity, TEXTURE_ASSET_ID texture, int numberOfParticles);
     void ParticleSystem::createParticleSplash(Entity projectile_entity, Entity mob_entity, int numberOfParticles, vec2 splashDirection);
-
+    void ParticleSystem::createMuzzleFlash(vec2 playerPosition, int playerDirection, int numberOfParticles);
     private:
 
     // mob color lookup table for particle splash
@@ -51,15 +58,16 @@ class ParticleSystem
         //255 255 255 for ghost and turret
         {MOB_TYPE::GHOST, vec3{1.f, 1.f, 1.f}},
         // 97 136 51 for max is 255
-        {MOB_TYPE::SLIME, vec3{0.38f, 0.53f, 0.2f}},
+        {MOB_TYPE::SLIME, vec3{0.45f, 0.6f, 0.2f}},
         //78 50 108 FOR BRUTE
-        {MOB_TYPE::BRUTE, vec3{.31f, .20f, .42f}},
+       // MOB_TYPE::BRUTE, vec3{.31f, .20f, .42f
+        {MOB_TYPE::BRUTE, vec3{.76f, .32f, .68f}},
         // 64 62 74
-        {MOB_TYPE::DISRUPTOR, vec3{.25f, .24f, .29f}},
+        {MOB_TYPE::DISRUPTOR, vec3{.01f, .37f, .44f}},
         {MOB_TYPE::TURRET, vec3{1.f, 1.f, 1.f}},
     };
 
-
+   
     
 
    

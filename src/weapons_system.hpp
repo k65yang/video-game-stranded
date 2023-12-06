@@ -45,7 +45,7 @@ class WeaponsSystem
         /// @param weapon_type The type of weapon to be created
         /// @param ammo_count The ammo of weapon to be created
         /// @return The created entity
-        Entity createWeapon(ITEM_TYPE weapon_type, int ammo_count = 10000);
+        Entity createWeapon(ITEM_TYPE weapon_type, int ammo_count = 10);
 
         /// @brief Create the weapon projectile and sets its motion
         /// @param player_x The x coordinate of the player

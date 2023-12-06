@@ -331,6 +331,12 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			hp.remaining_time_for_next_heal = hp.heal_interval_ms;
 			player.health = std::min(PLAYER_MAX_HEALTH, player.health + hp.heal_amount);
 
+			// creating particles effects for healing
+			
+			particle_system->createFloatingHeart(player_salmon, TEXTURE_ASSET_ID::HEART_PARTICLE, 6);
+			
+
+
 			// light up the health bar
 			if (registry.colors.has(health_bar)) {
 				// can happen when the light up period is longer than the heal interval
@@ -409,8 +415,9 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 		// creating particles effects for character upgrades
 		if (registry.speedPowerup.has(entity)) {
-			//particle_system->createParticleTrail(entity, TEXTURE_ASSET_ID::PLAYER_PARTICLE, 2, vec2{0.7f, 1.0f});
+			particle_system->createParticleTrail(entity, TEXTURE_ASSET_ID::PLAYER_PARTICLE, 2, vec2{0.7f, 1.0f});
 		}
+
 		
 
 	}
@@ -677,7 +684,7 @@ void WorldSystem::handle_collisions() {
 
 					vec2 correctionVec = registry.collisions.components[i].MTV * registry.collisions.components[i].overlap;
 					player_motion.position = player_motion.position + correctionVec;
-					mob_motion.position = mob_motion.position + -1.f * correctionVec;
+					mob_motion.position = mob_motion.position + -1.1f * correctionVec;
 
 					correctionCount += 1;
 					std::cout <<"iframe "<< player.iframes_timer << std::endl; // DELTE LATER
@@ -909,7 +916,7 @@ void WorldSystem::handle_collisions() {
 			if (registry.mobs.has(entity_other)) {
 
 				// blood splash particle effects
-				particle_system->createParticleSplash(entity, entity_other, 5, collisionsRegistry.components[i].MTV);
+				particle_system->createParticleSplash(entity, entity_other, 10, collisionsRegistry.components[i].MTV);
 
 				Mob& mob = registry.mobs.get(entity_other);
 
@@ -1393,6 +1400,8 @@ void WorldSystem::on_mouse_click(int button, int action, int mods) {
 			}
 
 			weapons_system->fireWeapon(player_motion.position.x, player_motion.position.y, CURSOR_ANGLE);
+			// NOT DONE
+			//particle_system->createMuzzleFlash(player_motion.position, PLAYER_DIRECTION, 7);
 		}
 	}
 

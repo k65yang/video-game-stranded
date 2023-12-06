@@ -115,6 +115,7 @@ private:
 			textures_path("mob_turret.png"),
 			textures_path("loaded.png"),
 			textures_path("saving.png"),
+			textures_path("heart_particle.png")
 	};
 
 	// How big one terrain spritesheet is
@@ -191,7 +192,9 @@ private:
 		shader_path("textured"),
 		shader_path("fog"),
 		shader_path("terrain"),
-		shader_path("particle")};
+		shader_path("particle"),
+		shader_path("textureParticle")};
+
 		
 
 	std::array<GLuint, geometry_count> vertex_buffers;

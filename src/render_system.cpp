@@ -159,9 +159,13 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 
 }
 
-void RenderSystem::drawParticles(Entity entity,
-	const mat3& view_matrix,
-	const mat3& projection)
+// refernece on instanced rendering: https://learnopengl.com/Advanced-OpenGL/Instancing
+// refernece on instanced rendering: https://ogldev.org/www/tutorial33/tutorial33.html
+// Basically first group the entities needed for the particle effect, compute the transform for each particle, setup the buffer for transforms and pass it to shader.
+// The way I did is by storing mat3 as 3 vector, each of them is a attribute in the vertex buffer.
+//  This way by calling 
+// drawElementsInstance, we reused the same geometry and do instanced rendering by drawing each instance with a different transform.
+void RenderSystem::drawParticles(Entity entity,const mat3& view_matrix,const mat3& projection)
 {
 	
 
@@ -175,7 +179,7 @@ void RenderSystem::drawParticles(Entity entity,
 
 	for (int i = 0; i < particle_entities.size(); i++) {
 		if (registry.motions.has(particle_entities[i])) {
-			mat3 transform = createModelMatrix(particle_entities[i]);	// Model matrix
+			mat3 transform = createModelMatrix(particle_entities[i]);	
 			modelMatrixes.push_back(transform);
 		}
 		
@@ -189,10 +193,6 @@ void RenderSystem::drawParticles(Entity entity,
 	glUseProgram(program);
 	gl_has_errors();
 
-	// TODO CREATE A INSTANCED RENDERING SHADER FOR PARTICLES THAT USES TEXTURE
-	// TEXTURE PARTICLE NOT SUPPORTED YET
-
-
 
 	assert(render_request.used_geometry != GEOMETRY_BUFFER_ID::GEOMETRY_COUNT);
 	const GLuint vbo = vertex_buffers[(GLuint)render_request.used_geometry];
@@ -204,8 +204,8 @@ void RenderSystem::drawParticles(Entity entity,
 	gl_has_errors();
 
 	// Input data location as in the vertex buffer
-
-	if (render_request.used_effect == EFFECT_ASSET_ID::TEXTURED)
+	// USING SPRITE WITH A QUAD
+	if (render_request.used_effect == EFFECT_ASSET_ID::TEXTUREPARTICLE)
 	{
 
 		GLint in_position_loc = glGetAttribLocation(program, "in_position");
@@ -229,7 +229,7 @@ void RenderSystem::drawParticles(Entity entity,
 		gl_has_errors();
 		assert(registry.instancedRenderRequests.has(entity));
 		GLuint texture_id =
-			texture_gl_handles[(GLuint)registry.instancedRenderRequests.get(entity).used_texture];
+			texture_gl_handles[(GLuint)render_request.used_texture];
 
 		glBindTexture(GL_TEXTURE_2D, texture_id);
 		gl_has_errors();
@@ -239,6 +239,7 @@ void RenderSystem::drawParticles(Entity entity,
 		// }
 
 	}
+	// USING CIRCLE GEOMETRY 
 	else if (render_request.used_effect == EFFECT_ASSET_ID::PARTICLE)
 	{
 		GLint in_position_loc = glGetAttribLocation(program, "in_position");
@@ -262,15 +263,16 @@ void RenderSystem::drawParticles(Entity entity,
 
 	// create a buffer to store model matrixes for all particles
 	GLuint matrixBufferID;
-	GLint Matrix_location = glGetAttribLocation(program, "modelMatrix");
-	//GLint Matrix_location = 3;
-	// create buffer
+	GLuint Matrix_location = glGetAttribLocation(program, "modelMatrix");
+	
 	glGenBuffers(1, &matrixBufferID);
+
 	// tell gpu to operate on this buffer
 	glBindBuffer(GL_ARRAY_BUFFER, matrixBufferID);
+
 	// loading the data
 	glBufferData(GL_ARRAY_BUFFER,
-		sizeof(modelMatrixes[0]) * modelMatrixes.size(), modelMatrixes.data(), GL_STATIC_DRAW);
+		sizeof(modelMatrixes[0]) * modelMatrixes.size(), modelMatrixes.data(), GL_DYNAMIC_DRAW);
 
 	// telling gpu how to read the data in the buffer, since attribute cant be bigger than vec4, we use a loop to enable and configure
 	// 3 consecutive vertex attributes. 5th parameter is the stride distance between each vertex and 
@@ -279,7 +281,7 @@ void RenderSystem::drawParticles(Entity entity,
 		glEnableVertexAttribArray(Matrix_location + i);
 		glVertexAttribPointer(Matrix_location + i, 3, GL_FLOAT, GL_FALSE,
 			sizeof(glm::mat3), (const GLvoid*)(sizeof(GLfloat) * i * 3));
-		glVertexAttribDivisor(Matrix_location, 1);
+		glVertexAttribDivisor(Matrix_location + i, 1);
 	}
 	gl_has_errors();
 
@@ -309,7 +311,7 @@ void RenderSystem::drawParticles(Entity entity,
 	GLuint projection_loc = glGetUniformLocation(currProgram, "projection");
 	glUniformMatrix3fv(projection_loc, 1, GL_FALSE, (float*)&projection);
 	gl_has_errors();
-	// Drawing of num_indices/3 triangles specified in the index buffer
+	// Drawing of num_indices/3 triangles specified in the index buffer and number of instance depending on number of particles
 	glDrawElementsInstanced(GL_TRIANGLES, num_indices, GL_UNSIGNED_SHORT, nullptr, particle_entities.size());
 	gl_has_errors();
 
@@ -580,25 +582,47 @@ void RenderSystem::draw()
 		}
 	}
 
+	// Only two layer are supported for now
+	std::vector<Entity> instanced_layer_1_entities;
+	std::vector<Entity> instanced_layer_2_entities;
+
+	for (int i = 0; i < registry.instancedRenderRequests.size(); i++) {
+		if (registry.instancedRenderRequests.components[i].layer_id == RENDER_LAYER_ID::LAYER_1) {
+			instanced_layer_1_entities.push_back(registry.instancedRenderRequests.entities[i]);
+		}
+		else {
+			instanced_layer_2_entities.push_back(registry.instancedRenderRequests.entities[i]);
+
+		}
+	}
+	
+
 
 	// Draw all textured meshes that have a position and size component in corresponded order to achieve layering. Could be optimize later
 
 	// Render terrain first
 	drawTerrain(view_2D, projection_2D);
 
+	
+
 	for (Entity entity : layer_1_entities) {
 		drawTexturedMesh(entity, view_2D, projection_2D);
 	}
+
+	// DRAW all particle effects
+	for (Entity entity : instanced_layer_1_entities) {
+		drawParticles(entity, view_2D, projection_2D);
+	}
+	
 
 	for (Entity entity : layer_2_entities) {
 		drawTexturedMesh(entity, view_2D, projection_2D);
 	}
 
 	// DRAW all particle effects
-	for (Entity entity: registry.instancedRenderRequests.entities) {
+	for (Entity entity : instanced_layer_2_entities) {
 		drawParticles(entity, view_2D, projection_2D);
 	}
-
 
 	for (Entity entity : layer_3_entities) {
 		// added guard to turn off while in debug mode 

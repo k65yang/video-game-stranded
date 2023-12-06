@@ -539,9 +539,13 @@ void PhysicsSystem::step(float elapsed_ms)
 
 	// mob against terrain - uses static BVH
 	auto& mob_entity_container = registry.mobs.entities;
-
+	auto& mob_component_container = registry.mobs.components;
 	for (int i = 0; i < mob_entity_container.size(); i++) {
-		intersectBVH(mob_entity_container[i], rootNodeIndex);
+
+		// ignore check if mob is a ghost
+		if (mob_component_container[i].type != MOB_TYPE::GHOST) {
+			intersectBVH(mob_entity_container[i], rootNodeIndex);
+		}
 	}
 
 	// player against item - brute force for now since BVH is not dynamic...
@@ -556,8 +560,6 @@ void PhysicsSystem::step(float elapsed_ms)
 	for (int i = 0; i < mob_entity_container.size(); i++) {
 		bool c = collides(player_entity, mob_entity_container[i]);
 		if (c) {
-			std::cout << "mob collision detected" << std::endl;
-
 		}
 	
 	}
