@@ -984,10 +984,10 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	}
 
 	if (action == GLFW_PRESS && key == GLFW_KEY_ESCAPE) {
-		if (player.is_home) {
-			spaceship_home_system->exitSpaceship();
-		} else if (tutorial_system->isHelpDialogOpen()) {
+		if (tutorial_system->isHelpDialogOpen()) {
 			tutorial_system->closeHelpDialog();
+		} else if (player.is_home) {
+			spaceship_home_system->exitSpaceship();
 		} else {
 			glfwSetWindowShouldClose(window, true);
 		}
@@ -1174,7 +1174,7 @@ void WorldSystem::on_mouse_move(vec2 mouse_position) {
 	}
 
 	// Change mouse cursor type if hovering over help button
-	if (tutorial_system->isMouseOverElement(mouse_pos_clip, TEXTURE_ASSET_ID::HELP_BUTTON)) {
+	if (tutorial_system->isMouseOverHelpButton(mouse_pos_clip)) {
 		GLFWcursor* cursor = glfwCreateStandardCursor(GLFW_HAND_CURSOR);
 		glfwSetCursor(window, cursor);
 	} else {
@@ -1209,7 +1209,7 @@ void WorldSystem::on_mouse_click(int button, int action, int mods) {
 			}
 		}
 
-		if (tutorial_system->isMouseOverElement(mouse_pos_clip, TEXTURE_ASSET_ID::HELP_BUTTON)) {
+		if (tutorial_system->isMouseOverHelpButton(mouse_pos_clip)) {
 			tutorial_system->openHelpDialog();
 		}
 	}

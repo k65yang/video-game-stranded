@@ -37,11 +37,10 @@ class TutorialSystem
         /// @return Returns true if the help dialog is open, false otherwise
         bool isHelpDialogOpen();
         
-        /// @brief Checks if the mouse is hovering over an element
+        /// @brief Checks if the mouse is hovering the help button
         /// @param mouse_pos The position of the mouse in clip coordinates
-        /// @param element The element to check if the mouse is hovering over
-        /// @return Returns true if the mouse is hovering over the element, false otherwise
-        bool isMouseOverElement(vec2 mouse_pos, TEXTURE_ASSET_ID element);
+        /// @return Returns true if the mouse is hovering over the help button, false otherwise
+        bool isMouseOverHelpButton(vec2 mouse_pos);
 
         /// @brief Creates tutorial text
         /// @param type The type of tutorial to create the text for
@@ -65,6 +64,7 @@ class TutorialSystem
 
         RenderSystem* renderer;
         Entity help_dialog;
+        Entity help_button;
         bool is_help_dialog_open;
 
         /// @brief Creates the help button

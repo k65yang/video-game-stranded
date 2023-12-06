@@ -22,7 +22,7 @@ void TutorialSystem::init(RenderSystem* renderer_arg) {
 
 void TutorialSystem::resetTutorialSystem() {
     is_help_dialog_open = false;
-    createHelpButton();
+    help_button = createHelpButton();
 };
 
 void TutorialSystem::openHelpDialog() {
@@ -39,17 +39,13 @@ bool TutorialSystem::isHelpDialogOpen() {
     return is_help_dialog_open;
 };
 
-bool TutorialSystem::isMouseOverElement(vec2 mouse_pos, TEXTURE_ASSET_ID element) {
-    if (element == TEXTURE_ASSET_ID::HELP_BUTTON) {
-        // Help button is a circle so check if the distance between the mouse and button is less than the radius of the button
-        vec2 element_pos = HELP_BUTTON_POSITION;
-        float radius = HELP_BUTTON_SCALE.x / 2;
-        float dist = distance(mouse_pos, element_pos);
+bool TutorialSystem::isMouseOverHelpButton(vec2 mouse_pos) {
+    // Help button is a circle so check if the distance between the mouse and button is less than the radius of the button
+    Motion& motion = registry.motions.get(help_button);
+    float radius = HELP_BUTTON_SCALE.x / 2;
+    float dist = distance(mouse_pos, motion.position);
 
-        return dist <= radius;
-    }
-
-    return false;
+    return dist <= radius;
 };
 
 Entity TutorialSystem::createTutorialText(TUTORIAL_TYPE type) {
