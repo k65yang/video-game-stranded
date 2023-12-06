@@ -10,7 +10,41 @@ in vec2 texcoord;
 
 layout(location = 0) out vec4 color;
 
+// reference: drawing ellipse in shader https://www.shadertoy.com/view/wdKXzt
+// To accomodate scaling due to aspect ratio, now fog of war shape is ellipse.
+void main()
+{
+	
+	float magnifier = 3.f;
+	float distanceScaling = 18.f;
 
+	float a = 0.55 * 16/9;
+    float b = 1.3;
+    
+    float x = texcoord.x - 0.5;
+    float y = texcoord.y - 0.5;
+    
+    float angle = 3.1415;
+    float x2 = x * cos( angle ) + y * sin( angle );
+    float y2 = y * cos( angle ) - x * sin( angle );
+	
+	float dis = pow( x, 2.0 ) / ( a * a ) + pow( y, 2.0 ) / ( b * b );
+
+	// texture from frame buffer
+    vec4 in_color = texture(screen_texture, texcoord);
+    
+    if ( dis <= 0.05 )
+    {
+		color = (1 - magnifier * dis) * in_color;    
+	}
+    else
+    {
+     	color = in_color * fow_darken_factor;
+    }
+
+}
+
+/*
 void main()
 {
 	
@@ -42,3 +76,4 @@ void main()
 	
 }
 
+*/
