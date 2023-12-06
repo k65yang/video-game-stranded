@@ -167,7 +167,7 @@ Entity MobSystem::create_mob_health_bar(RenderSystem* renderer, vec2 position, i
 			TEXTURE_ASSET_ID::RED_BLOCK,
 			EFFECT_ASSET_ID::TEXTURED,
 			GEOMETRY_BUFFER_ID::SPRITE,
-			RENDER_LAYER_ID::LAYER_4
+			RENDER_LAYER_ID::LAYER_1
 		}
 	);
 

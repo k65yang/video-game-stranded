@@ -396,7 +396,7 @@ void RenderSystem::draw()
 		if (registry.renderRequests.get(entity).layer_id == RENDER_LAYER_ID::LAYER_1) {
 
 			// if entity is item or mob
-			if (registry.items.has(entity) || (registry.mobs.has(entity))) {
+			if (registry.items.has(entity) || (registry.mobs.has(entity)) || registry.renderRequests.get(entity).used_texture == TEXTURE_ASSET_ID::RED_BLOCK) {
 
 				// put in draw array if distance to player is close enough
 				if ((distance(registry.motions.get(player_entity).position, registry.motions.get(entity).position) < fow_radius) || enableFow == 0) {
