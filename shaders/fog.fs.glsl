@@ -11,36 +11,47 @@ in vec2 texcoord;
 layout(location = 0) out vec4 color;
 
 // reference: drawing ellipse in shader https://www.shadertoy.com/view/wdKXzt
-// To accomodate scaling due to aspect ratio, now fog of war shape is ellipse.
+// reference: ellipse equation https://www.khanacademy.org/math/precalculus/x9e81a4f98389efdf:conics/x9e81a4f98389efdf:ellipse-center-radii/v/ellipse-standard-equation-from-graph
+
+// To accomodate scaling due to aspect ratio, fog of war shape is now an ellipse.
 void main()
 {
 	
 	float magnifier = 3.f;
-	float distanceScaling = 18.f;
+	float distanceScaling = 90.f;
+	float darkening = 0.75;
 
+	// horizontal distance. 16/9 is our aspect ratio
 	float a = 0.55 * 16/9;
+
+	// vertical distance
     float b = 1.3;
     
     float x = texcoord.x - 0.5;
     float y = texcoord.y - 0.5;
     
-    float angle = 3.1415;
-    float x2 = x * cos( angle ) + y * sin( angle );
-    float y2 = y * cos( angle ) - x * sin( angle );
-	
+    // calculate distance between point and fow ellipse
 	float dis = pow( x, 2.0 ) / ( a * a ) + pow( y, 2.0 ) / ( b * b );
 
 	// texture from frame buffer
     vec4 in_color = texture(screen_texture, texcoord);
-    
-    if ( dis <= 0.05 )
-    {
-		color = (1 - magnifier * dis) * in_color;    
+
+    if (enableFow == 1) {
+		
+		if ( dis <= (fowRadius / distanceScaling) )
+		{
+		// within fow
+			color = darkening * (1 - magnifier * dis) * in_color;    
+		}
+		else
+		{
+     		color = in_color * fow_darken_factor;
+		}
+	} else {
+	// fog disabled
+		color = in_color;
+
 	}
-    else
-    {
-     	color = in_color * fow_darken_factor;
-    }
 
 }
 
