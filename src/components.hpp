@@ -399,7 +399,8 @@ enum class EFFECT_ASSET_ID {
 	TEXTURED = SALMON + 1,
 	FOG = TEXTURED + 1,
 	TERRAIN = FOG + 1,
-	EFFECT_COUNT = TERRAIN + 1
+	PARTICLE = TERRAIN + 1,
+	EFFECT_COUNT = PARTICLE + 1
 };
 const int effect_count = (int)EFFECT_ASSET_ID::EFFECT_COUNT;
 
@@ -436,6 +437,13 @@ struct RenderRequest {
 	RENDER_LAYER_ID layer_id = RENDER_LAYER_ID::LAYER_COUNT;
 };
 
+struct InstancedRenderRequest {
+	std::vector<Entity> entities;
+	TEXTURE_ASSET_ID used_texture = TEXTURE_ASSET_ID::TEXTURE_COUNT;
+	EFFECT_ASSET_ID used_effect = EFFECT_ASSET_ID::EFFECT_COUNT;
+	GEOMETRY_BUFFER_ID used_geometry = GEOMETRY_BUFFER_ID::GEOMETRY_COUNT;
+};
+
 // Particle effects
 const int NUM_PARTICLES = 200;
 
@@ -448,14 +456,6 @@ struct Particle {
 	float sizeBegin, sizeEnd;
 
 }; 
-
-// Each entity that has particle effects will have a vector to track individual particles
-struct ParticleTrail {
-	TEXTURE_ASSET_ID texture;
-	Motion* motion_component_ptr;
-	bool is_alive;
-	std::set<Entity> particles;
-};
 
 struct ParticleTemplate {
 	TEXTURE_ASSET_ID texture = TEXTURE_ASSET_ID::REDBLOCK; //HARDCODED TEMPORARY TO THIS FOR NOW

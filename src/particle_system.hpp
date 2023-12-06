@@ -12,6 +12,8 @@
 // A particle system that handles everything particles related
 class ParticleSystem
 {
+    
+
     public:
     /// @brief ParticleSystem constructor
     ParticleSystem() {
@@ -37,7 +39,8 @@ class ParticleSystem
     /// @param entity To get motion related parameter for the particle
     /// @param texture texture used to represent the particle 
     
-    void ParticleSystem::emit(Entity templateParticleEntity);
+    Entity ParticleSystem::emit(Entity templateParticleEntity);
+
     void ParticleSystem::createParticleTrail(Entity targetEntity, TEXTURE_ASSET_ID texture, int numberOfParticles, vec2 scale);
     void ParticleSystem::createParticleSplash(Entity projectile_entity, Entity mob_entity, int numberOfParticles, vec2 splashDirection);
 
@@ -56,6 +59,8 @@ class ParticleSystem
         {MOB_TYPE::TURRET, vec3{1.f, 1.f, 1.f}},
     };
 
+
+    
 
    
     // The number of particles created per object at every frame

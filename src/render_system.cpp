@@ -159,6 +159,162 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 
 }
 
+void RenderSystem::drawParticles(Entity entity,
+	const mat3& view_matrix,
+	const mat3& projection)
+{
+	
+
+	assert(registry.instancedRenderRequests.has(entity));
+	const InstancedRenderRequest& render_request = registry.instancedRenderRequests.get(entity);
+
+	// CREATE MODEL MATRIX FOR ALL ENTITIES
+	std::vector<mat3> modelMatrixes;
+
+	auto& particle_entities = render_request.entities;
+
+	for (int i = 0; i < particle_entities.size(); i++) {
+		if (registry.motions.has(particle_entities[i])) {
+			mat3 transform = createModelMatrix(particle_entities[i]);	// Model matrix
+			modelMatrixes.push_back(transform);
+		}
+		
+	}
+
+	const GLuint used_effect_enum = (GLuint)render_request.used_effect;
+	assert(used_effect_enum != (GLuint)EFFECT_ASSET_ID::EFFECT_COUNT);
+	const GLuint program = (GLuint)effects[used_effect_enum];
+
+	// Setting shaders
+	glUseProgram(program);
+	gl_has_errors();
+
+	// TODO CREATE A INSTANCED RENDERING SHADER FOR PARTICLES THAT USES TEXTURE
+	// TEXTURE PARTICLE NOT SUPPORTED YET
+
+
+
+	assert(render_request.used_geometry != GEOMETRY_BUFFER_ID::GEOMETRY_COUNT);
+	const GLuint vbo = vertex_buffers[(GLuint)render_request.used_geometry];
+	const GLuint ibo = index_buffers[(GLuint)render_request.used_geometry];
+
+	// Setting vertex and index buffers
+	glBindBuffer(GL_ARRAY_BUFFER, vbo);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
+	gl_has_errors();
+
+	// Input data location as in the vertex buffer
+
+	if (render_request.used_effect == EFFECT_ASSET_ID::TEXTURED)
+	{
+
+		GLint in_position_loc = glGetAttribLocation(program, "in_position");
+		GLint in_texcoord_loc = glGetAttribLocation(program, "in_texcoord");
+		gl_has_errors();
+		assert(in_texcoord_loc >= 0);
+
+		glEnableVertexAttribArray(in_position_loc);
+		glVertexAttribPointer(in_position_loc, 3, GL_FLOAT, GL_FALSE,
+			sizeof(TexturedVertex), (void*)0);
+		gl_has_errors();
+
+		glEnableVertexAttribArray(in_texcoord_loc);
+		glVertexAttribPointer(
+			in_texcoord_loc, 2, GL_FLOAT, GL_FALSE, sizeof(TexturedVertex),
+			(void*)sizeof(
+				vec3)); // note the stride to skip the preceeding vertex position
+
+		// Enabling and binding texture to slot 0
+		glActiveTexture(GL_TEXTURE0);
+		gl_has_errors();
+		assert(registry.instancedRenderRequests.has(entity));
+		GLuint texture_id =
+			texture_gl_handles[(GLuint)registry.instancedRenderRequests.get(entity).used_texture];
+
+		glBindTexture(GL_TEXTURE_2D, texture_id);
+		gl_has_errors();
+
+		// else if (render_request.used_texture == TEXTURE_ASSET_ID::PLAYER_PARTICLE) {
+		// 	GLint isPlayer_uloc = glGetUniformLocation(program, "isPlayer");
+		// }
+
+	}
+	else if (render_request.used_effect == EFFECT_ASSET_ID::PARTICLE)
+	{
+		GLint in_position_loc = glGetAttribLocation(program, "in_position");
+		GLint in_color_loc = glGetAttribLocation(program, "in_color");
+		gl_has_errors();
+
+		glEnableVertexAttribArray(in_position_loc);
+		glVertexAttribPointer(in_position_loc, 3, GL_FLOAT, GL_FALSE,
+			sizeof(ColoredVertex), (void*)0);
+		gl_has_errors();
+
+		glEnableVertexAttribArray(in_color_loc);
+		glVertexAttribPointer(in_color_loc, 3, GL_FLOAT, GL_FALSE,
+			sizeof(ColoredVertex), (void*)sizeof(vec3));
+		gl_has_errors();
+	}
+	else
+	{
+		assert(false && "Type of render request not supported");
+	}
+
+	// create a buffer to store model matrixes for all particles
+	GLuint matrixBufferID;
+	GLint Matrix_location = glGetAttribLocation(program, "modelMatrix");
+	//GLint Matrix_location = 3;
+	// create buffer
+	glGenBuffers(1, &matrixBufferID);
+	// tell gpu to operate on this buffer
+	glBindBuffer(GL_ARRAY_BUFFER, matrixBufferID);
+	// loading the data
+	glBufferData(GL_ARRAY_BUFFER,
+		sizeof(modelMatrixes[0]) * modelMatrixes.size(), modelMatrixes.data(), GL_STATIC_DRAW);
+
+	// telling gpu how to read the data in the buffer, since attribute cant be bigger than vec4, we use a loop to enable and configure
+	// 3 consecutive vertex attributes. 5th parameter is the stride distance between each vertex and 
+	// 6th is the offset to get to the vertex attribute
+	for (unsigned int i = 0; i < 3; i++) {
+		glEnableVertexAttribArray(Matrix_location + i);
+		glVertexAttribPointer(Matrix_location + i, 3, GL_FLOAT, GL_FALSE,
+			sizeof(glm::mat3), (const GLvoid*)(sizeof(GLfloat) * i * 3));
+		glVertexAttribDivisor(Matrix_location, 1);
+	}
+	gl_has_errors();
+
+
+
+	// Getting uniform locations for glUniform* calls
+	GLint color_uloc = glGetUniformLocation(program, "fcolor");
+	const vec4 color = registry.colors.has(entity) ? registry.colors.get(entity) : vec4(1);
+	glUniform4fv(color_uloc, 1, (float*)&color);
+	gl_has_errors();
+
+	// Get number of indices from index buffer, which has elements uint16_t
+	GLint size = 0;
+	glGetBufferParameteriv(GL_ELEMENT_ARRAY_BUFFER, GL_BUFFER_SIZE, &size);
+	gl_has_errors();
+
+	GLsizei num_indices = size / sizeof(uint16_t);
+	// GLsizei num_triangles = num_indices / 3;
+
+	GLint currProgram;
+	glGetIntegerv(GL_CURRENT_PROGRAM, &currProgram);
+	// Setting uniform values to the currently bound program
+	//GLuint transform_loc = glGetUniformLocation(currProgram, "transform");
+	//glUniformMatrix3fv(transform_loc, 1, GL_FALSE, (float*)&modelMatrixes);
+	GLuint view_loc = glGetUniformLocation(currProgram, "view");
+	glUniformMatrix3fv(view_loc, 1, GL_FALSE, (float*)&view_matrix);
+	GLuint projection_loc = glGetUniformLocation(currProgram, "projection");
+	glUniformMatrix3fv(projection_loc, 1, GL_FALSE, (float*)&projection);
+	gl_has_errors();
+	// Drawing of num_indices/3 triangles specified in the index buffer
+	glDrawElementsInstanced(GL_TRIANGLES, num_indices, GL_UNSIGNED_SHORT, nullptr, particle_entities.size());
+	gl_has_errors();
+
+}
+
 // draw the intermediate texture to the screen, with some distortion to simulate
 // water
 void RenderSystem::drawToScreen()
@@ -383,6 +539,8 @@ void RenderSystem::draw()
 	std::vector<Entity> layer_2_entities;
 	std::vector<Entity> layer_3_entities;
 	std::vector<Entity> layer_4_entities;
+	
+
 	Entity player_entity = registry.players.entities[0];
 
 	for (Entity entity : registry.renderRequests.entities)
@@ -435,6 +593,12 @@ void RenderSystem::draw()
 	for (Entity entity : layer_2_entities) {
 		drawTexturedMesh(entity, view_2D, projection_2D);
 	}
+
+	// DRAW all particle effects
+	for (Entity entity: registry.instancedRenderRequests.entities) {
+		drawParticles(entity, view_2D, projection_2D);
+	}
+
 
 	for (Entity entity : layer_3_entities) {
 		// added guard to turn off while in debug mode 

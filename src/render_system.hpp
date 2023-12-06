@@ -190,7 +190,9 @@ private:
 		shader_path("salmon"),
 		shader_path("textured"),
 		shader_path("fog"),
-		shader_path("terrain"),};
+		shader_path("terrain"),
+		shader_path("particle")};
+		
 
 	std::array<GLuint, geometry_count> vertex_buffers;
 	std::array<GLuint, geometry_count> index_buffers;
@@ -282,6 +284,9 @@ public:
 	// Initialize mob sprite
 	float mob_frame_w;
 	float mob_frame_h;
+
+	void RenderSystem::drawParticles(Entity entity ,const mat3& view_matrix, const mat3& projection);
+
 
 private:
 	// Internal vertex data structure used for batched rendering

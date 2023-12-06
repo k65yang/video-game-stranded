@@ -21,6 +21,7 @@ void ParticleSystem::step(float elapsed_ms) {
         
             particle.active = false; //unnessary?
             registry.remove_all_components_of(particle_entity_container[i]);
+
             continue;
 
         }
@@ -38,7 +39,7 @@ void ParticleSystem::step(float elapsed_ms) {
 
 
 // emit a particle based on the template particle entity
-void ParticleSystem::emit(Entity templateParticleEntity) {
+Entity ParticleSystem::emit(Entity templateParticleEntity) {
     // Reserve an entity
     auto entity = Entity();
     
@@ -73,31 +74,9 @@ void ParticleSystem::emit(Entity templateParticleEntity) {
 
     entity_color = template_color;
 
-    // Add the particle to the render requests
-    // 
-    // use circle shape with color 
-    if (entity_particle.texture == TEXTURE_ASSET_ID::TEXTURE_COUNT) {
-        registry.renderRequests.insert(
-            entity,
-            { TEXTURE_ASSET_ID::TEXTURE_COUNT,
-                EFFECT_ASSET_ID::PEBBLE,
-                GEOMETRY_BUFFER_ID::PEBBLE,
-                RENDER_LAYER_ID::LAYER_1 });
-    }
-    else {
-    // use the texture
-        registry.renderRequests.insert(
-            entity,
-            { entity_particle.texture,
-                EFFECT_ASSET_ID::TEXTURED,
-                GEOMETRY_BUFFER_ID::SPRITE,
-                RENDER_LAYER_ID::LAYER_1 });
-    
-    }
-
 
     
-
+    return entity;
 }
 
 // creates particle trail for a specified entity with given texture, scale, number of particles each frame.
@@ -133,14 +112,30 @@ void ParticleSystem::createParticleTrail(Entity targetEntity, TEXTURE_ASSET_ID t
     std::random_device rd;
     std::default_random_engine gen(rd());
     std::uniform_real_distribution<float> dist(-0.1, 0.1);
+    std::vector<Entity> entities;
+
     
     // 2. emit particles based on this template and targetEntity
     for (int i = 0; i < numberOfParticles; i++) {
 
         // randomize the position of template
         template_motion.position = template_motion.position + vec2(dist(gen), dist(gen));
-        emit(template_entity);
+        entities.push_back(emit(template_entity));
+
     }
+
+    // create one render request 
+    registry.instancedRenderRequests.insert(
+        entities[0],
+        { entities,
+            template_particle.texture,
+            EFFECT_ASSET_ID::TEXTURED,
+            GEOMETRY_BUFFER_ID::SPRITE,
+            });
+
+   
+     
+  
     
 }
 
@@ -182,9 +177,9 @@ void ParticleSystem::createParticleSplash(Entity projectile_entity, Entity mob_e
     std::random_device rd;
     std::default_random_engine gen(rd());
     std::uniform_real_distribution<float> dist(-1, 1);
-
+    std::vector<Entity> entities;
     Transform t;
-
+  
     // 2. emit particles based on this template and number of particles per frame
     for (int i = 0; i < numberOfParticles; i++) {
         
@@ -196,9 +191,18 @@ void ParticleSystem::createParticleSplash(Entity projectile_entity, Entity mob_e
         template_motion.velocity.x = newVelocity.x;
         template_motion.velocity.y = newVelocity.y;
 
+        entities.push_back(emit(template_entity));
         
-        emit(template_entity);
+
     }
+
+    // create one render request 
+    registry.instancedRenderRequests.insert(entities[0],{
+        entities,
+        TEXTURE_ASSET_ID::TEXTURE_COUNT,
+            EFFECT_ASSET_ID::PARTICLE,
+            GEOMETRY_BUFFER_ID::PEBBLE,
+            });
 }
 
 

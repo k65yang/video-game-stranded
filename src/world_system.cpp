@@ -409,7 +409,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 		// creating particles effects for character upgrades
 		if (registry.speedPowerup.has(entity)) {
-			particle_system->createParticleTrail(entity, TEXTURE_ASSET_ID::PLAYER_PARTICLE, 2, vec2{0.7f, 1.0f});
+			//particle_system->createParticleTrail(entity, TEXTURE_ASSET_ID::PLAYER_PARTICLE, 2, vec2{0.7f, 1.0f});
 		}
 		
 
