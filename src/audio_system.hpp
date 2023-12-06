@@ -26,13 +26,14 @@ public:
 		RELOAD_SHURIKEN,
 		SHIP_ENTER,
 		SHIP_LEAVE,
+		CLICK
 	};
 
 	const unsigned NUM_CHANNELS = 16;	// Total number of channels used for sound effects
 	const unsigned MOB_HIT_CHANNEL = 0;	// Channel dedicated for MOB_HIT calls since it sounds super annoying
 										// Ensures only 1 MOB_HIT can be played at the same time
 
-	const float music_volume = 0.1f; // Range must be 0..1
+	const float music_volume = 0.5f; // Range must be 0..1
 
 private:
 	/// <summary>
@@ -64,6 +65,7 @@ private:
 		{RELOAD_SHURIKEN, audio_path("reload_shuriken.wav")},
 		{SHIP_ENTER, audio_path("ship_enter.wav")},
 		{SHIP_LEAVE, audio_path("ship_leave.wav")},
+		{CLICK, audio_path("empty_crossbow.wav")},	// I actually think it's great for a clicking sound
 	};
 
 	/// <summary>
@@ -82,13 +84,14 @@ private:
 		{SHOT_SHURIKEN, MIX_MAX_VOLUME * .6f},
 		{EMPTY_SHOTGUN, MIX_MAX_VOLUME * .75f},
 		{EMPTY_MG, MIX_MAX_VOLUME * 0.65f},
-		{EMPTY_CROSSBOW, MIX_MAX_VOLUME * .75f},
-		{RELOAD_SHOTGUN, MIX_MAX_VOLUME * .85f},
+		{EMPTY_CROSSBOW, MIX_MAX_VOLUME * .65f},
+		{RELOAD_SHOTGUN, MIX_MAX_VOLUME * .7f},
 		{RELOAD_MG, MIX_MAX_VOLUME * 0.5f},
-		{RELOAD_CROSSBOW, MIX_MAX_VOLUME * 0.45f},
+		{RELOAD_CROSSBOW, MIX_MAX_VOLUME * 0.65f},
 		{RELOAD_SHURIKEN, MIX_MAX_VOLUME * 0.7f},
 		{SHIP_ENTER, MIX_MAX_VOLUME * 0.7f},
 		{SHIP_LEAVE, MIX_MAX_VOLUME * 0.7f},
+		{SHIP_LEAVE, MIX_MAX_VOLUME * 0.75f},
 	};
 
 	std::unordered_map<AUDIO, Mix_Music*> music;	// Pointers containing music in memory
