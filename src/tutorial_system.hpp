@@ -58,7 +58,7 @@ class TutorialSystem
         const std::string GAME_LOADED_TEXT = "Game loaded";
         const float TUTORIAL_TEXT_SCALE = 0.5f;
 
-        const vec2 HELP_BUTTON_POSITION = { 14.f, -7.f }; 
+        const vec2 HELP_BUTTON_POSITION = { 11.f, -7.f }; 
         const vec2 HELP_DIALOG_POSITION = { 0.f, 0.f }; 
         const vec2 HELP_BUTTON_SCALE = { 1.f, 1.f }; 
         const vec2 HELP_DIALOG_SCALE = { 1.f, 1.f }; 

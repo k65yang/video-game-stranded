@@ -21,7 +21,8 @@ void TutorialSystem::init(RenderSystem* renderer_arg) {
 };
 
 void TutorialSystem::resetTutorialSystem() {
-
+    is_help_dialog_open = false;
+    createHelpButton();
 };
 
 void TutorialSystem::openHelpDialog() {
@@ -75,7 +76,32 @@ Entity TutorialSystem::createTutorialText(TUTORIAL_TYPE type) {
 };
 
 Entity TutorialSystem::createHelpButton() {
-    return Entity();
+    auto entity = Entity();
+
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Initialize the position, scale, and physics components
+	auto& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.velocity = { 0.f, 0.f };
+	motion.position = HELP_BUTTON_POSITION;
+    motion.scale = HELP_BUTTON_SCALE;
+
+    // Add entity to screen UI registry
+    registry.screenUI.insert(entity, HELP_BUTTON_POSITION);
+    
+    registry.renderRequests.insert(
+		entity,
+		{ 
+            TEXTURE_ASSET_ID::HELP_BUTTON,
+			EFFECT_ASSET_ID::TEXTURED,
+			GEOMETRY_BUFFER_ID::SPRITE,
+			RENDER_LAYER_ID::LAYER_4 
+        }
+    );
+
+	return entity;
 };
 
 Entity TutorialSystem::createHelpDialog() {

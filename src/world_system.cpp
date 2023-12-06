@@ -560,6 +560,9 @@ void WorldSystem::restart_game() {
 	std::vector<QUEST_ITEM_STATUS> statuses(4, QUEST_ITEM_STATUS::NOT_FOUND);
 	quest_system->resetQuestSystem(statuses);
 
+	// Reset tutorial system
+	tutorial_system->resetTutorialSystem();
+
 	// clear all used spawn locations
 	used_spawn_locations.clear();
 
@@ -1434,6 +1437,9 @@ void WorldSystem::load_game(json j) {
 
 	// Quest items
 	quest_system->resetQuestSystem(j["quest_item_statuses"]);
+
+	// Reset tutorial system
+	tutorial_system->resetTutorialSystem();
 
 	// clear all used spawn locations
 	used_spawn_locations.clear();
