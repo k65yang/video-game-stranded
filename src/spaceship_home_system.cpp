@@ -52,6 +52,7 @@ void SpaceshipHomeSystem::enterSpaceship(Entity player_health_bar, Entity player
 	// Submit quest items
 	if (quest_system->submitQuestItems()) {
 		printf("ALL QUEST ITEMS SUBMITTED\n");
+		ALL_ITEMS_SUBMITTED = true; 
 	}
 
 	// Regenerate health

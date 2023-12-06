@@ -72,7 +72,7 @@ void QuestSystem::processQuestItem(ITEM_TYPE type, QUEST_ITEM_STATUS new_status)
 bool QuestSystem::submitQuestItems() {
     Entity player = registry.players.entities[0];
     Inventory& inventory = registry.inventories.get(player);
-    
+
     int num_submitted = 0;
     for (auto it = inventory.quest_items.begin(); it != inventory.quest_items.end(); it++) {
         if (it->second != QUEST_ITEM_STATUS::NOT_FOUND) {

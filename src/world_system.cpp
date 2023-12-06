@@ -143,6 +143,8 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 	// Removing out of screen entities
 	auto& motion_container = registry.motions;
+	Motion& camera_motion = registry.motions.get(main_camera);
+
 
 	// Processing the player state
 	assert(registry.screenStates.components.size() <= 1);
@@ -160,16 +162,18 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 		// restart the game once the death timer expired
 		if (timer.timer_ms < 0) {
-			if (quest_system->submitQuestItems()) {
+			if (spaceship_home_system->ALL_ITEMS_SUBMITTED){
 				// pop up for victory 
-				registry.deathTimers.remove(entity);
-				restart_game();
-
+				createText(renderer, { -2,-1 }, "YOU WON!!!", 1, { 1,0,0 });
+				createText(renderer, { -2,0 }, "Press R to Restart", 1, { 1,0,0 });
+				createText(renderer, { -2,1 }, "Press ESC to exit", 1, { 1,0,0 });
 			}
-			// pop up for dying 
-			//registry.deathTimers.remove(entity);
+			else {
+				createText(renderer, { camera_motion.position.x-2,camera_motion.position.y -3}, "YOU LOST :(", 1, { 1,0,0 });
+				createText(renderer, { camera_motion.position.x-2,camera_motion.position.y -2}, "Press R to Restart", 1, { 1,0,0 });
+				createText(renderer, { camera_motion.position.x-2,camera_motion.position.y -1 }, "Press ESC to exit", 1, { 1,0,0 });
+			}
 			screen.screen_darken_factor = 0;
-			//restart_game();
 			return true;
 		}
 	}
@@ -204,7 +208,6 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		
 		if (player.health_decrease_time < 0) {
 			player.health_decrease_time = 0;
-			Motion& camera_motion = registry.motions.get(main_camera);
 			camera_motion.angle = 0.f;
 			camera_motion.scale = vec2(1.0, 1.0);
 		} 
@@ -528,8 +531,15 @@ void WorldSystem::restart_game() {
 	registry.list_all_components();
 	printf("Restarting\n");
 
+	// Reset the items submmited 
+	spaceship_home_system->ALL_ITEMS_SUBMITTED = false; 
+
 	// Reset the game speed
 	current_speed = 5.f;
+
+
+	while (registry.deathTimers.entities.size() > 0)
+		registry.remove_all_components_of(registry.deathTimers.entities.back());
 
 	// Remove all entities that we created
 	// All that have a motion, we could also iterate over all fish, turtles, ... but that would be more cumbersome
