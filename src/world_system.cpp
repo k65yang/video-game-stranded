@@ -340,9 +340,16 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 	// Mob updates
 	for (Entity entity : registry.mobs.entities) {
+		// set the health bars to be below the mob
+		Mob& mob = registry.mobs.get(entity);
+		Motion& motion = registry.motions.get(entity);
+		Motion& health = registry.motions.get(mob.health_bar);
+		vec2& mob_position = motion.position;
+		vec2 health_position = { mob_position.x, mob_position.y + 1 };
+		health.position = health_position;
+
 		// slow updates
 		if (registry.mobSlowEffects.has(entity)) {
-			Motion& motion = registry.motions.get(entity);
 			MobSlowEffect& mobSlowEffect = registry.mobSlowEffects.get(entity);
 
 			// Apply slow effect if not yet applied
