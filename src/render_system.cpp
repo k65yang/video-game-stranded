@@ -408,7 +408,7 @@ void RenderSystem::draw()
 		if (registry.renderRequests.get(entity).layer_id == RENDER_LAYER_ID::LAYER_1) {
 
 			// if entity is item or mob
-			if (registry.items.has(entity) || (registry.mobs.has(entity))) {
+			if (registry.items.has(entity) || (registry.mobs.has(entity)) || registry.renderRequests.get(entity).used_texture == TEXTURE_ASSET_ID::RED_BLOCK) {
 
 				// put in draw array if distance to player is close enough
 				if ((distance(registry.motions.get(player_entity).position, registry.motions.get(entity).position) < fow_radius) || enableFow == 0) {
@@ -470,10 +470,14 @@ void RenderSystem::draw()
 	}
 
 	// TODO: Process text rendering here and ONLY here.
-	// TODO: Add a new Text component loop to draw every string in the world here
 	// If you render text before drawToScreen(), then fog of war will dim it.
 	// If you render text before the layer_4_entities for loop, then UI will write over it
-	renderText("This is sample text", 0.0f, 2, 1, glm::vec3(1.f, 1.f, 1.f), projection_2D, view_2D);
+	for (Entity entity : registry.texts.entities) {
+		Text& text = registry.texts.get(entity);
+		Motion& motion = registry.motions.get(entity);
+
+		renderText(text.str, motion.position.x, motion.position.y, text.scale, text.color, projection_2D, view_2D);
+	}
 
 	// Do not touch anything past this point.
 	// flicker-free display with a double buffer

@@ -154,6 +154,7 @@ struct Mob {
 	int mframey = 1;
 	Entity curr_cell;
 	MOB_TYPE type;
+	Entity health_bar;
 };
 
 // Slowing effect for mobs from weapons
@@ -196,6 +197,12 @@ struct Collision
 		this->MTV = MTV;
 		};
 
+};
+
+struct Text {
+	std::string str;
+	vec3 color;
+	float scale;
 };
 
 // Data structure for toggling debug mode

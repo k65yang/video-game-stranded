@@ -43,6 +43,7 @@ public:
 	// Rendering related
 	ComponentContainer<Mesh*> meshPtrs;
 	ComponentContainer<RenderRequest> renderRequests;
+	ComponentContainer<Text> texts;
 	ComponentContainer<Camera> cameras;
 
 	ComponentContainer<ScreenState> screenStates;
@@ -77,6 +78,7 @@ public:
 		registry_list.push_back(&mobSlowEffects);
 		registry_list.push_back(&paths);
 		registry_list.push_back(&items);
+		registry_list.push_back(&questItemIndicators);
 
 		registry_list.push_back(&particleTrails);
 		registry_list.push_back(&particles);
@@ -85,6 +87,7 @@ public:
 
 		registry_list.push_back(&meshPtrs);
 		registry_list.push_back(&renderRequests);
+		registry_list.push_back(&texts);
 		registry_list.push_back(&screenStates);
 		
 		registry_list.push_back(&debugComponents);

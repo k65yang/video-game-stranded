@@ -300,7 +300,7 @@ void RenderSystem::initializeTextRenderer()
 	}
 
 	FT_Face face;
-	if (FT_New_Face(ft, font_path("arial.ttf").c_str(), 0, &face)) {
+	if (FT_New_Face(ft, font_path("Minecraft.ttf").c_str(), 0, &face)) {
 		std::cout << "ERROR::FREETYPE: Failed to load font" << std::endl;
 		return;
 	}

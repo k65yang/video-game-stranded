@@ -1,5 +1,7 @@
 #pragma once
 
+#include <format>
+
 #include "common.hpp"
 #include "tiny_ecs.hpp"
 #include "components.hpp"
@@ -33,10 +35,13 @@ class SpaceshipHomeSystem
         /// @param ammo_storage Initial amount of ammo the spaceship home stores
         void resetSpaceshipHomeSystem(int health_storage, int food_storage, int ammo_storage);
 
-        /// @brief Executes various actions when player enters spaceship
+        /// @brief Executes various actions when player enters the spaceship
         /// @param player_health_bar The entity for the player's health bar
         /// @param player_food_bar The entity for the player's food bar
         void enterSpaceship(Entity player_health_bar, Entity player_food_bar);
+
+        /// @brief Executes various actions when player exits the spaceship
+        void exitSpaceship();
 
         /// @brief Checks if player is in the spaceship home
         /// @return Returns true if the player is in the spaceship home, false otherwise
@@ -44,29 +49,26 @@ class SpaceshipHomeSystem
 
     private:
         const vec2 SPACESHIP_HOME_POSITION = { 0.f, 0.f };
-        const vec2 FOOD_ITEM_POSITION = { -6.0f, -0.5f };
-        const vec2 FOOD_STORAGE_BAR_POSITION = { -3.5f, -0.5f };
-        const vec2 FOOD_STORAGE_BAR_FRAME_POSITION = { -3.5f, -0.5f };
-        const vec2 AMMO_ITEM_POSITION = { 1.4f, -0.5f };
-        const vec2 AMMO_STORAGE_BAR_POSITION = { 5.0f, -0.5f };
-        const vec2 AMMO_STORAGE_BAR_FRAME_POSITION = { 5.0f, -0.5f };
-        const vec2 HEALTH_ITEM_POSITION = { 1.5f, -3.5f };
-        const vec2 HEALTH_STORAGE_BAR_POSITION = { 5.0f, -3.5f };
-        const vec2 HEALTH_STORAGE_BAR_FRAME_POSITION = { 5.0f, -3.5f };
+        const vec2 FOOD_ITEM_POSITION = { -6.2f, -0.5f };
+        const vec2 FOOD_STORAGE_COUNT_POSITION = { -4.7f, -0.3f };
+        const vec2 AMMO_ITEM_POSITION = { 1.8f, -0.5f };
+        const vec2 AMMO_STORAGE_COUNT_POSITION = { 4.0f, -0.4f };
+        const vec2 HEALTH_ITEM_POSITION = { 2.2f, -3.5f };
+        const vec2 HEALTH_STORAGE_COUNT_POSITION = { 3.6f, -3.2f };
+        const vec3 STORAGE_FULL_TEXT_COLOR = { 0.f, 0.f, 0.f };
+        const vec3 STORAGE_EMPTY_TEXT_COLOR = { 1.f, 0.f, 0.f };
+        const float STORAGE_COUNT_TEXT_SCALE = 0.5;
 
         RenderSystem* renderer;
         WeaponsSystem* weaponsSystem;
         QuestSystem* quest_system;
         Entity spaceship_home;
         Entity health_item;
-        Entity health_storage_bar;
-        Entity health_storage_bar_frame;
+        Entity health_storage_count;
         Entity food_item;
-        Entity food_storage_bar;
-        Entity food_storage_bar_frame;
+        Entity food_storage_count;
         Entity ammo_item;
-        Entity ammo_storage_bar;
-        Entity ammo_storage_bar_frame;
+        Entity ammo_storage_count;
 
         /// @brief Creates the spaceship home
         /// @param position Position of the spaceship home
@@ -101,4 +103,9 @@ class SpaceshipHomeSystem
         /// @param max_bar_value The max value the bar can be
         /// @param scale_factor The scale factor for the bar
         void updateStorageBar(int new_val, Motion& bar, int max_bar_value, vec2 scale_factor);
+
+        /// @brief Creates a string that reflects the remaining amount of a resource in a storage
+        /// @param storage The remaining amount of the resource in the storage
+        /// @return A string that reflects the remaining amount of a resource in a storage
+        std::string createStorageCountText(int storage);
 };
