@@ -118,7 +118,9 @@ private:
 			textures_path("loaded.png"),
 			textures_path("saving.png"),
 			// Starting screen textures
-			textures_path("start_screen.jpg"),
+			textures_path("start_screen.png"),
+			textures_path("start_button.png"),
+			textures_path("start_button_hover.png"),
 	};
 
 	// How big one terrain spritesheet is

@@ -161,8 +161,7 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 
 }
 
-// draw the intermediate texture to the screen, with some distortion to simulate
-// water
+// draw the intermediate texture to the screen
 void RenderSystem::drawToScreen()
 {
 	
@@ -184,7 +183,6 @@ void RenderSystem::drawToScreen()
 	glDisable(GL_BLEND);
 	// glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glDisable(GL_DEPTH_TEST);
-
 
 	// Draw the screen texture on the quad geometry
 	glBindBuffer(GL_ARRAY_BUFFER, vertex_buffers[(GLuint)GEOMETRY_BUFFER_ID::SCREEN_TRIANGLE]);
@@ -485,21 +483,33 @@ void RenderSystem::drawStartScreens() {
 							  // and alpha blending, one would have to sort
 							  // sprites back to front
 
-	// Generate projection matrix. This maps camera-relative coords to pixel/window coordinates.
+	// Generate projection matrix. This is unscaled (does not take into account tile width).
 	mat3 projection_2D = createUnscaledProjectionMatrix();
 
-	// Only track layer 1 entities. There should not be any other layer active at this stage.
+	// Only track layer 1 and 2 entities. There should not be any other layer active at this stage.
 	std::vector<Entity> layer_1_entities;
+	std::vector<Entity> layer_2_entities;
 	for (Entity entity : registry.renderRequests.entities) {
 		if (registry.renderRequests.get(entity).layer_id == RENDER_LAYER_ID::LAYER_1) {
 			layer_1_entities.push_back(entity);
+		} else if (registry.renderRequests.get(entity).layer_id == RENDER_LAYER_ID::LAYER_2) {
+			layer_2_entities.push_back(entity);
 		}
 	}
 
+	// Render terrain first
+	Entity main_camera = registry.get_main_camera();
+	mat3 view_2D = inverse(createModelMatrix(main_camera));
+	drawTerrain(view_2D, createScaledProjectionMatrix());
+
+	// Draw the meshes
 	for (Entity entity : layer_1_entities) {
 		// pass identity matrix for view_matrix since main camera not exist
 		drawTexturedMesh(entity, mat3(1.f), projection_2D);
-		// drawTexturedMesh(entity, projection_2D, projection_2D);
+	}
+	for (Entity entity : layer_2_entities) {
+		// pass identity matrix for view_matrix since main camera not exist
+		drawTexturedMesh(entity, mat3(1.f), projection_2D);
 	}
 
 	// Truely render to the screen. Multipass rendering with fog program

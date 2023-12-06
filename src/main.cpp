@@ -49,10 +49,15 @@ int main()
 		return EXIT_FAILURE;
 	}
 
-	// initialize the systems required for the start screen
+	// initialize all systems
 	audio_system.init();		
 	render_system.init(window);
-	start_screen_system.init(window, &render_system);
+	start_screen_system.init(window, &render_system, &terrain_system);
+
+	// Load terrain mesh into the GPU
+	std::unordered_map<unsigned int, RenderSystem::ORIENTATIONS> orientation_map;
+	terrain_system.generate_orientation_map(orientation_map);	// Gets all the tiles with directional textures
+	render_system.initializeTerrainBuffers(orientation_map);
 
 	auto t = Clock::now();
 	float total_elapsed_time = 0.f;
@@ -67,24 +72,20 @@ int main()
 
 		// printf("total_elapsed_time: %f\n", total_elapsed_time);
 
-		if (total_elapsed_time > 30000.f)
-			break;
+		// DEBUG ONLY: 30s of start screen only
+		// if (total_elapsed_time > 30000.f)
+		// 	break;
 		
-		start_screen_system.step();
+		start_screen_system.step(elapsed_ms);
 		render_system.drawStartScreens();
 	}
-
-	// initialize all other system required for the main game
+	// start_screen_system.~StartScreenSystem(); // destructor not working properly, segfaulting...
+		printf("here\n");
 	weapons_system.init(&render_system, &physics_system);
 	mob_system.init(&render_system, &terrain_system, &physics_system);
 	quest_system.init(&render_system);
 	spaceship_home_system.init(&render_system, &weapons_system, &quest_system);
 	world_system.init(&render_system, &terrain_system, &weapons_system, &physics_system, &mob_system, &audio_system, &spaceship_home_system, &quest_system);
-
-	// Load terrain mesh into the GPU
-	std::unordered_map<unsigned int, RenderSystem::ORIENTATIONS> orientation_map;
-	terrain_system.generate_orientation_map(orientation_map);	// Gets all the tiles with directional textures
-	render_system.initializeTerrainBuffers(orientation_map);
 
 	pathfinding_system.init(&terrain_system);
 	particle_system.init(&render_system);

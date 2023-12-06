@@ -343,6 +343,11 @@ Entity createPowerupIndicator(RenderSystem* renderer, vec2 position, TEXTURE_ASS
 
 Entity createCamera(vec2 pos)
 {
+	// We should only have one camera. Having multiple cameras technically 
+	// isn't an issue if we use the get_main_camera(), but this way is cleaner.
+	for (Entity e: registry.cameras.entities)
+		registry.remove_all_components_of(e);
+
 	auto entity = Entity();
 	registry.set_main_camera(entity);
 
