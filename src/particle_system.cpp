@@ -240,7 +240,7 @@ void ParticleSystem::createParticleSplash(Entity projectile_entity, Entity mob_e
     template_particle.texture = TEXTURE_ASSET_ID::TEXTURE_COUNT;
 
         // dynamic size not supported for now
-    template_particle.sizeBegin = 1.0f;
+    template_particle.sizeBegin = 0.8f;
     template_particle.sizeEnd = 0.0f;
 
     // motion component for template using projectiles motion
@@ -268,15 +268,9 @@ void ParticleSystem::createParticleSplash(Entity projectile_entity, Entity mob_e
     for (int i = 0; i < numberOfParticles; i++) {
         
         
-        // rotate velocity by +- 18 degree maximum randomly
-        //float angle = (M_PI/10) * dist(gen);
-       // t.rotate(angle);
+        template_particle.sizeBegin += (0.2 * dist(gen));
 
         template_motion.velocity = rotateByDegree(template_motion.velocity, dist(gen) * 20);
-        //vec3 newVelocity = t.mat * vec3{ template_motion.velocity,1.0f};
-        //template_motion.velocity.x = newVelocity.x;
-       // template_motion.velocity.y = newVelocity.y;
-
         template_motion.velocity.x = template_motion.velocity.x + 5.f * dist(gen);
         template_motion.velocity.y = template_motion.velocity.y + 5.f * dist(gen);
 
