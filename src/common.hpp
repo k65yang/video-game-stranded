@@ -59,8 +59,8 @@ const bool windowed_mode = true;
 
 const int tile_size_px = 50;		// Represents how many pixels a tile occupies in a row and column
 
-const unsigned short world_size_x = 128;
-const unsigned short world_size_y = 128;
+const unsigned short world_size_x = 196;
+const unsigned short world_size_y = 196;
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846f
@@ -88,7 +88,7 @@ template <typename T>
 void write_to_file(std::ofstream& file, T& data);
 
 template <typename T>
-void read_from_file(std::ofstream& file, T& data);
+void read_from_file(std::ifstream& file, T& data);
 
 
 template<typename T>

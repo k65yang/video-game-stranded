@@ -82,6 +82,7 @@ public:
 private:
 	// Input callback functions
 	void on_key(int key, int, int action, int mod);
+	void process_editor_controls(int action, int key);
 	void on_mouse_move(vec2 pos);
 	void on_mouse_click(int button, int action, int mods);
 	vec2 interpolate(vec2 p1, vec2 p2, float param);
