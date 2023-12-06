@@ -31,9 +31,13 @@ class TutorialSystem
     private:
         const vec2 QUEST_ITEM_TUTORIAL_TEXT_POSITION = { -10.f, -7.f };
         const vec2 SPACESHIP_HOME_TUTORIAL_TEXT_POSITION = { -10.f, -7.f };
-        const float TUTORIAL_TEXT_SCALE = 0.5f;
+        const vec2 GAME_SAVED_TEXT_POSITION = { -1.5f, -7.f };
+        const vec2 GAME_LOADED_TEXT_POSITION = { -1.5f, -7.f };
         const std::string QUEST_ITEM_TUTORIAL_TEXT = "You found a spaceship part! Bring it back to your spaceship to reattach it to the ship!";
         const std::string SPACESHIP_HOME_TUTORIAL_TEXT = "Welcome home! Stock up on ammo, food, and health here before you continue exploring!";
+        const std::string GAME_SAVED_TEXT = "Game saved";
+        const std::string GAME_LOADED_TEXT = "Game loaded";
+        const float TUTORIAL_TEXT_SCALE = 0.5f;
 
         RenderSystem* renderer;
 };

@@ -968,6 +968,8 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		} 
 		
 		SaveGame(player, player_motion, active_weapon, weapons, mobs, items, quest_item_statuses, spaceship_home_info, p_type);
+
+		tutorial_system->createTutorialText(TUTORIAL_TYPE::GAME_SAVED);
 	}
 
 	// Resetting game
@@ -1441,6 +1443,8 @@ void WorldSystem::load_game(json j) {
 	// for movement velocity
 	for (int i = 0; i < KEYS; i++)
 		keyDown[i] = false;
+
+	tutorial_system->createTutorialText(TUTORIAL_TYPE::GAME_LOADED);
 }
 
 void WorldSystem::load_spawned_items_mobs(json& j) {

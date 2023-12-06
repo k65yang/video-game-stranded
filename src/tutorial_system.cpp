@@ -32,6 +32,14 @@ Entity TutorialSystem::createTutorialText(TUTORIAL_TYPE type) {
             position = SPACESHIP_HOME_TUTORIAL_TEXT_POSITION;
             str = SPACESHIP_HOME_TUTORIAL_TEXT;
             break;
+        case TUTORIAL_TYPE::GAME_SAVED:
+            position = GAME_SAVED_TEXT_POSITION;
+            str = GAME_SAVED_TEXT;
+            break;
+        case TUTORIAL_TYPE::GAME_LOADED:
+            position = GAME_LOADED_TEXT_POSITION;
+            str = GAME_LOADED_TEXT;
+            break;
     }
 
     // Remove any tutorials that are currently being displayed
