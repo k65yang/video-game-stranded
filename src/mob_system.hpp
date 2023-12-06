@@ -49,6 +49,15 @@ class MobSystem
         /// @return The created entity
         Entity create_mob(vec2 mob_position, MOB_TYPE mob_type, int current_health = 0);
 
+        // Health for each mob
+        const std::map<MOB_TYPE, int> mob_health_map = {
+            {MOB_TYPE::GHOST, 50},
+            {MOB_TYPE::SLIME, 30},
+            {MOB_TYPE::BRUTE, 100},
+            {MOB_TYPE::DISRUPTOR, 50},
+            {MOB_TYPE::TURRET, 10}
+        };
+
     private:
         // Pointer to rendering system
         RenderSystem* renderer;
@@ -81,15 +90,6 @@ class MobSystem
             {MOB_TYPE::TURRET, 5}
         };
 
-        // Health for each mob
-        const std::map<MOB_TYPE, int> mob_health_map = {
-            {MOB_TYPE::GHOST, 50},
-            {MOB_TYPE::SLIME, 30},
-            {MOB_TYPE::BRUTE, 100},
-            {MOB_TYPE::DISRUPTOR, 50},
-            {MOB_TYPE::TURRET, 10}
-        };
-
         // Speed for each mob
         const std::map<MOB_TYPE, float> mob_speed_ratio_map = {
             {MOB_TYPE::GHOST, 2.5f},
@@ -120,4 +120,6 @@ class MobSystem
         /// @param duration_ms How long (in ms) the inaccuracy lasts
         /// @param inaccuracy_percent How much inaccuracy there is for the player as a percentage [0, 1.0] (0 means no inaccuracy)
         void apply_inaccuracy(Entity player, float duration_ms, float inaccuracy_percent);
+
+        Entity create_mob_health_bar(RenderSystem* renderer, vec2 position, int amount, MOB_TYPE type);
 };

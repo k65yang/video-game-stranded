@@ -110,7 +110,8 @@ int WeaponsSystem::increaseAmmo(ITEM_TYPE weapon_type, int amount) {
 }
 
 void WeaponsSystem::upgradeWeapon() {
-	active_weapon_component->level++;
+	if (active_weapon_component)
+		active_weapon_component->level++;
 }
 
 void WeaponsSystem::upgradeWeapon(ITEM_TYPE weapon_type) {
@@ -389,7 +390,7 @@ Entity WeaponsSystem::createAmmoBar(RenderSystem* renderer) {
 	motion.position = {-10.f, -4.f};
 	motion.scale = { 3, 0.4 }; 
 
-	TEXTURE_ASSET_ID texture = TEXTURE_ASSET_ID::BROWNBLOCK;
+	TEXTURE_ASSET_ID texture = TEXTURE_ASSET_ID::BROWN_BLOCK;
 	registry.renderRequests.insert(
 		entity,
 		{ texture,

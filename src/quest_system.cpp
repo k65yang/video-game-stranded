@@ -1,4 +1,6 @@
 #include "quest_system.hpp"
+#include "world_init.hpp"
+
 
 void QuestSystem::step(float elapsed_ms) {
 
@@ -15,10 +17,19 @@ void QuestSystem::resetQuestSystem(std::vector<QUEST_ITEM_STATUS> statuses) {
     Inventory& inventory = registry.inventories.get(player);
     inventory.quest_items[ITEM_TYPE::QUEST_ONE] = statuses[0];
     inventory.quest_items[ITEM_TYPE::QUEST_TWO] = statuses[1];
+    inventory.quest_items[ITEM_TYPE::QUEST_THREE] = statuses[2];
+    inventory.quest_items[ITEM_TYPE::QUEST_FOUR] = statuses[3];
 
     // Create quest item indicators
     createQuestItemIndicator(QUEST_1_INDICATOR_POSITION, ITEM_TYPE::QUEST_ONE, statuses[0]);
     createQuestItemIndicator(QUEST_2_INDICATOR_POSITION, ITEM_TYPE::QUEST_TWO, statuses[1]);
+    createQuestItemIndicator(QUEST_3_INDICATOR_POSITION, ITEM_TYPE::QUEST_THREE, statuses[2]);
+    createQuestItemIndicator(QUEST_4_INDICATOR_POSITION, ITEM_TYPE::QUEST_FOUR, statuses[3]);
+
+    if (statuses[0] == QUEST_ITEM_STATUS::SUBMITTED) createSpaceshipPart(ITEM_TYPE::QUEST_ONE);
+    if (statuses[1] == QUEST_ITEM_STATUS::SUBMITTED) createSpaceshipPart(ITEM_TYPE::QUEST_TWO);
+    if (statuses[2] == QUEST_ITEM_STATUS::SUBMITTED) createSpaceshipPart(ITEM_TYPE::QUEST_THREE);
+    if (statuses[3] == QUEST_ITEM_STATUS::SUBMITTED) createSpaceshipPart(ITEM_TYPE::QUEST_FOUR);
 };
 
 void QuestSystem::processQuestItem(ITEM_TYPE type, QUEST_ITEM_STATUS new_status) {
@@ -33,8 +44,24 @@ void QuestSystem::processQuestItem(ITEM_TYPE type, QUEST_ITEM_STATUS new_status)
     }
 
     // Create new indicator
-    vec2 position = type == ITEM_TYPE::QUEST_ONE ? QUEST_1_INDICATOR_POSITION : QUEST_2_INDICATOR_POSITION;
+    vec2 position;
+    switch (type) {
+    case ITEM_TYPE::QUEST_ONE:
+        position = QUEST_1_INDICATOR_POSITION;
+        break;
+    case ITEM_TYPE::QUEST_TWO:
+        position = QUEST_2_INDICATOR_POSITION;
+        break;
+    case ITEM_TYPE::QUEST_THREE:
+        position = QUEST_3_INDICATOR_POSITION;
+        break;
+    case ITEM_TYPE::QUEST_FOUR:
+        position = QUEST_4_INDICATOR_POSITION;
+        break;
+
+    }
     createQuestItemIndicator(position, type, new_status);
+
 
     // Update quest item status
     Entity player = registry.players.entities[0];
@@ -53,6 +80,7 @@ bool QuestSystem::submitQuestItems() {
 
             if (it->second == QUEST_ITEM_STATUS::FOUND) {
                 processQuestItem(it->first, QUEST_ITEM_STATUS::SUBMITTED);
+                createSpaceshipPart(it->first);
             }
         }
     }
@@ -71,7 +99,8 @@ Entity QuestSystem::createQuestItemIndicator(vec2 position, ITEM_TYPE type, QUES
 	motion.angle = 0.f;
 	motion.velocity = { 0.f, 0.f };
 	motion.position = position;
-	motion.scale = vec2({ 3.f, 3.f });
+    motion.scale = vec2({ target_resolution.x / tile_size_px * 0.08333333, target_resolution.y / tile_size_px * 0.125 });
+
 
     // Add entity to quest item indicator registry
     auto& questItemIndicator = registry.questItemIndicators.emplace(entity);
@@ -104,4 +133,45 @@ Entity QuestSystem::createQuestItemIndicator(vec2 position, ITEM_TYPE type, QUES
     );
 
 	return entity;
+};
+
+Entity QuestSystem::createSpaceshipPart(ITEM_TYPE type) {
+    auto entity = Entity();
+
+    Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+    registry.meshPtrs.emplace(entity, &mesh);
+
+    // Initialize the position, scale, and physics components
+    auto& motion = registry.motions.emplace(entity);
+    motion.angle = 0.f;
+    motion.velocity = { 0.f, 0.f };
+    motion.position = { 0, -2.5 };
+    motion.scale = vec2({ target_resolution.x / tile_size_px * 0.20833333, target_resolution.y / tile_size_px * 0.3125 });
+
+    TEXTURE_ASSET_ID texture = TEXTURE_ASSET_ID::PLAYER;
+    switch (type) {
+    case ITEM_TYPE::QUEST_ONE:
+        texture = TEXTURE_ASSET_ID::QUEST_1_BUILT;
+        break;
+    case ITEM_TYPE::QUEST_TWO:
+        texture = TEXTURE_ASSET_ID::QUEST_2_BUILT;
+        break;
+    case ITEM_TYPE::QUEST_THREE:
+        texture = TEXTURE_ASSET_ID::QUEST_3_BUILT;
+        break;
+    case ITEM_TYPE::QUEST_FOUR:
+        texture = TEXTURE_ASSET_ID::QUEST_4_BUILT;
+        break;
+    }
+    registry.renderRequests.insert(
+        entity,
+        {
+            texture,
+            EFFECT_ASSET_ID::TEXTURED,
+            GEOMETRY_BUFFER_ID::SPRITE,
+            RENDER_LAYER_ID::LAYER_1
+        }
+    );
+
+    return entity;
 };
