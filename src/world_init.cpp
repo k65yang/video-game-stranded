@@ -382,7 +382,7 @@ Entity createSpaceshipDepart(RenderSystem* renderer) {
 	auto& motion = registry.motions.emplace(entity);
 	motion.angle = 0.f;
 	motion.velocity = { 0.f, 0.f };
-	motion.position = { 0, -2.5 };
+	motion.position = { 0, -1.5f };
 	motion.scale = vec2({ target_resolution.x / tile_size_px * 0.20833333*1.2, target_resolution.y / tile_size_px * 0.3125*1.4 });
 
 	// Add spaceship to the spaceship_parts registry

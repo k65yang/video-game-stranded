@@ -132,11 +132,10 @@ void WorldSystem::init(
 
 // Update our game world
 bool WorldSystem::step(float elapsed_ms_since_last_update) {
-	Player& player = registry.players.get(player_salmon);
 	// Updating window title with points
-	std::stringstream title_ss;
-	title_ss << " Food: " << player.food << "  HP: " << player.health;
-	glfwSetWindowTitle(window, title_ss.str().c_str());
+	//std::stringstream title_ss;
+	//title_ss << " Food: " << player.food << "  HP: " << player.health;
+	//glfwSetWindowTitle(window, title_ss.str().c_str());
 
 	// Remove debug info from the last step
 	while (registry.debugComponents.entities.size() > 0)
@@ -240,103 +239,105 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			food.scale = interpolate(food.scale, new_food_scale, 1 - (player.food_decrease_time / IFRAMES));
 		}
 	}
-
-	// Apply food decreasing the more you travel. 
-	if (player.food > 0) {
-		if (PLAYER_TOTAL_DISTANCE >= FOOD_DECREASE_THRESHOLD ) {
-			// Decrease player's food by 1
-			player.food -= 1;
-			// Shrink the food bar
-			player.food_decrease_time = IFRAMES;
-
-			// Reset the total movement distance
-			PLAYER_TOTAL_DISTANCE = 0;
-		}
-	}
-	// else the food is below 0, player dies
-	else if (!registry.deathTimers.has(player_salmon)) {
-		registry.deathTimers.emplace(player_salmon);
-	}
-
-	// reduce window brightness if any of the present players is dying
-	screen.screen_darken_factor = 1 - min_timer_ms / 3000;
-
-	Motion& m = registry.motions.get(player_salmon);
-	//Motion& f = registry.motions.get(fow);
-	//f.position = m.position;
-
 	ELAPSED_TIME += elapsed_ms_since_last_update;
 
-	// update spritesheet with aiming direction 
-	updatePlayerDirection();
+	if (registry.players.has(player_salmon)) {
+		Player& player = registry.players.get(player_salmon);
+		Motion& m = registry.motions.get(player_salmon);
 
-	// Player Movement code, build the velocity resulting from player movement
-	handlePlayerMovement(elapsed_ms_since_last_update);
-		
-	// Camera movement mode
-	Camera& c = registry.cameras.get(main_camera);
-	Motion& camera_motion = registry.motions.get(main_camera);
-	if (c.mode_follow) {
-		/*
-		if (debugging.in_debug_mode)
-			camera_motion.velocity = { 0,0 };
-		else
-		*/
-		camera_motion.position = m.position;
-	}
-	else {
-		handle_movement(camera_motion, CAMERA_LEFT);
-	}
-	// UI Movement
-	for (Entity e : registry.screenUI.entities) {
-		if (registry.motions.has(e)) {
-			vec2& ui_inital_position = registry.screenUI.get(e);
-			Motion& ui_motion = registry.motions.get(e);
-			ui_motion.position = ui_inital_position + camera_motion.position;
-		}
-	}
+		// Apply food decreasing the more you travel. 
+		if (player.food > 0) {
+			if (PLAYER_TOTAL_DISTANCE >= FOOD_DECREASE_THRESHOLD ) {
+				// Decrease player's food by 1
+				player.food -= 1;
+				// Shrink the food bar
+				player.food_decrease_time = IFRAMES;
 
-	// TODO: deal with the help component when designing tutorial
-	Motion& help = registry.motions.get(help_bar);
-	help.position = { camera_motion.position.x, -7.f + camera_motion.position.y };
-
-	if (user_has_powerup) {
-		Motion& powerup_ui = registry.motions.get(powerup_indicator);
-		powerup_ui.position = { -9.5f + camera_motion.position.x, 5.f + camera_motion.position.y };
-	}
-
-	// health updates
-	if (registry.healthPowerup.has(player_salmon)) {
-		HealthPowerup& hp = registry.healthPowerup.get(player_salmon);
-
-		// update the time since last heal and the light up duration
-		hp.remaining_time_for_next_heal -= elapsed_ms_since_last_update;
-		hp.light_up_timer_ms -= elapsed_ms_since_last_update;
-
-		// light up expired
-		if (hp.light_up_timer_ms < 0 && registry.colors.has(health_bar)) {
-			registry.colors.remove(health_bar);
-		}
-		
-		// check if we need and can heal
-		if (player.health < PLAYER_MAX_HEALTH && hp.remaining_time_for_next_heal < 0) {
-			Motion& health = registry.motions.get(health_bar);
-			hp.remaining_time_for_next_heal = hp.heal_interval_ms;
-			player.health = std::min(PLAYER_MAX_HEALTH, player.health + hp.heal_amount);
-
-			// light up the health bar
-			if (registry.colors.has(health_bar)) {
-				// can happen when the light up period is longer than the heal interval
-			} else {
-				vec4& color = registry.colors.emplace(health_bar);
-				color = vec4(.5f, .5f, .5f, 1.f);
+				// Reset the total movement distance
+				PLAYER_TOTAL_DISTANCE = 0;
 			}
-			hp.light_up_timer_ms = hp.light_up_duration_ms;
+		}
+		// else the food is below 0, player dies
+		else if (!registry.deathTimers.has(player_salmon)) {
+			registry.deathTimers.emplace(player_salmon);
+		}
 
-			vec2 new_health_scale = vec2(((float)player.health / (float)PLAYER_MAX_HEALTH) * HEALTH_BAR_SCALE[0], HEALTH_BAR_SCALE[1]);
-			health.scale = interpolate(health.scale, new_health_scale, 1);
+		// update spritesheet with aiming direction 
+		updatePlayerDirection();
+
+		// Player Movement code, build the velocity resulting from player movement
+		handlePlayerMovement(elapsed_ms_since_last_update);
+		// Camera movement mode
+		Camera& c = registry.cameras.get(main_camera);
+		Motion& camera_motion = registry.motions.get(main_camera);
+		if (c.mode_follow) {
+			/*
+			if (debugging.in_debug_mode)
+				camera_motion.velocity = { 0,0 };
+			else
+			*/
+			camera_motion.position = m.position;
+		}
+		else {
+			handle_movement(camera_motion, CAMERA_LEFT);
+		}
+		// reduce window brightness if any of the present players is dying
+		screen.screen_darken_factor = 1 - min_timer_ms / 3000;
+
+
+		// UI Movement
+		for (Entity e : registry.screenUI.entities) {
+			if (registry.motions.has(e)) {
+				vec2& ui_inital_position = registry.screenUI.get(e);
+				Motion& ui_motion = registry.motions.get(e);
+				ui_motion.position = ui_inital_position + camera_motion.position;
+			}
+		}
+
+		// TODO: deal with the help component when designing tutorial
+		Motion& help = registry.motions.get(help_bar);
+		help.position = { camera_motion.position.x, -7.f + camera_motion.position.y };
+
+		if (user_has_powerup) {
+			Motion& powerup_ui = registry.motions.get(powerup_indicator);
+			powerup_ui.position = { -9.5f + camera_motion.position.x, 5.f + camera_motion.position.y };
+		}
+
+		// health updates
+		if (registry.healthPowerup.has(player_salmon)) {
+			HealthPowerup& hp = registry.healthPowerup.get(player_salmon);
+
+			// update the time since last heal and the light up duration
+			hp.remaining_time_for_next_heal -= elapsed_ms_since_last_update;
+			hp.light_up_timer_ms -= elapsed_ms_since_last_update;
+
+			// light up expired
+			if (hp.light_up_timer_ms < 0 && registry.colors.has(health_bar)) {
+				registry.colors.remove(health_bar);
+			}
+
+			// check if we need and can heal
+			if (player.health < PLAYER_MAX_HEALTH && hp.remaining_time_for_next_heal < 0) {
+				Motion& health = registry.motions.get(health_bar);
+				hp.remaining_time_for_next_heal = hp.heal_interval_ms;
+				player.health = std::min(PLAYER_MAX_HEALTH, player.health + hp.heal_amount);
+
+				// light up the health bar
+				if (registry.colors.has(health_bar)) {
+					// can happen when the light up period is longer than the heal interval
+				}
+				else {
+					vec4& color = registry.colors.emplace(health_bar);
+					color = vec4(.5f, .5f, .5f, 1.f);
+				}
+				hp.light_up_timer_ms = hp.light_up_duration_ms;
+
+				vec2 new_health_scale = vec2(((float)player.health / (float)PLAYER_MAX_HEALTH) * HEALTH_BAR_SCALE[0], HEALTH_BAR_SCALE[1]);
+				health.scale = interpolate(health.scale, new_health_scale, 1);
+			}
 		}
 	}
+
 
 	// Mob updates
 	for (Entity entity : registry.mobs.entities) {
@@ -916,22 +917,34 @@ void WorldSystem::update_camera_follow() {
 }
 
 void WorldSystem::update_spaceship_frame(float elapsed_ms_since_last_update) {
-	if (ELAPSED_TIME > 200) {
+	if (ELAPSED_TIME > 300) {
 		// Update walking animation
 		if (registry.spaceshipParts.components[0].framex != 5) {
 
 			registry.spaceshipParts.components[0].framex = (registry.spaceshipParts.components[0].framex + 1) % 6;
 			ELAPSED_TIME = 0.0f; // Reset the timer
 		}
+		// spaceship departs 
+		if (registry.spaceshipParts.components[0].framex == 5) {
+			Motion& spaceship_motion = registry.motions.get(spaceship_depart);
+			spaceship_motion.velocity += vec2{ 0,-0.5 };
+			//renderer->fow_radius += 1; 
+		}
 	}
 }
 
 void WorldSystem::update_spaceship_depart() {
-	// Remove all ship parts if all items are collected 
 	if (quest_system->submitQuestItems()) {
+		// Remove all ship parts if all items are collected 
 		while (registry.spaceshipParts.entities.size() > 0)
 			registry.remove_all_components_of(registry.spaceshipParts.entities.back());
+		// create depart spaceship
 		spaceship_depart = createSpaceshipDepart(renderer); 
+		// remove player		
+		registry.renderRequests.remove(player_salmon);
+		// disable player movements 
+		registry.deathTimers.emplace(player_salmon); 
+		//registry.remove_all_components_of(player_salmon); 
 	}
 }
 

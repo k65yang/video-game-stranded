@@ -79,7 +79,6 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 
 		if (render_request.used_texture == TEXTURE_ASSET_ID::PLAYER)
 		{
-
 			// set the frame for shader for player
 
 			GLint playerFrame_uloc = glGetUniformLocation(program, "spriteFrame");
