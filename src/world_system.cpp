@@ -732,15 +732,19 @@ void WorldSystem::handle_collisions() {
 						break;
 					case ITEM_TYPE::WEAPON_SHURIKEN:
 						weapons_system->increaseAmmo(ITEM_TYPE::WEAPON_SHURIKEN, 5);
+						audio_system->play_one_shot(AudioSystem::RELOAD_SHURIKEN);
 						break;
 					case ITEM_TYPE::WEAPON_CROSSBOW:
 						weapons_system->increaseAmmo(ITEM_TYPE::WEAPON_CROSSBOW, 5);
+						audio_system->play_one_shot(AudioSystem::RELOAD_CROSSBOW);
 						break;
 					case ITEM_TYPE::WEAPON_SHOTGUN:
 						weapons_system->increaseAmmo(ITEM_TYPE::WEAPON_SHOTGUN, 3);
+						audio_system->play_one_shot(AudioSystem::RELOAD_SHOTGUN);
 						break;
 					case ITEM_TYPE::WEAPON_MACHINEGUN:
 						weapons_system->increaseAmmo(ITEM_TYPE::WEAPON_MACHINEGUN, 10);
+						audio_system->play_one_shot(AudioSystem::RELOAD_MG);
 						break;
 					case ITEM_TYPE::WEAPON_UPGRADE:
 						weapons_system->upgradeWeapon();
@@ -1206,13 +1210,34 @@ void WorldSystem::on_mouse_click(int button, int action, int mods) {
 			// Play appropriate shooting noises if we've just shot
 			ITEM_TYPE fired_weapon = weapons_system->fireWeapon(player_motion.position.x, player_motion.position.y, CURSOR_ANGLE);
 
-			switch (fired_weapon) {
-				case ITEM_TYPE::WEAPON_SHOTGUN:
-					audio_system->play_one_shot(AudioSystem::SHOT); break;
-				case ITEM_TYPE::WEAPON_MACHINEGUN:
-					audio_system->play_one_shot(AudioSystem::SHOT_MG); break;
-				case ITEM_TYPE::WEAPON_CROSSBOW:
-					audio_system->play_one_shot(AudioSystem::SHOT_CROSSBOW); break;
+			// If we successfully shot...
+			if (fired_weapon != ITEM_TYPE::WEAPON_NONE)
+				switch (fired_weapon) {
+					case ITEM_TYPE::WEAPON_SHOTGUN:
+						audio_system->play_one_shot(AudioSystem::SHOT); break;
+					case ITEM_TYPE::WEAPON_MACHINEGUN:
+						audio_system->play_one_shot(AudioSystem::SHOT_MG); break;
+					case ITEM_TYPE::WEAPON_CROSSBOW:
+						audio_system->play_one_shot(AudioSystem::SHOT_CROSSBOW); break;
+					case ITEM_TYPE::WEAPON_SHURIKEN:
+						audio_system->play_one_shot(AudioSystem::SHOT_SHURIKEN); break;
+				}
+
+			// We didn't shoot successfully since we ran out of ammo
+			else if (weapons_system->getActiveWeaponAmmoCount() <= 0 && player_equipped_weapon) {
+				fired_weapon = weapons_system->getActiveWeapon();
+
+				if (fired_weapon == ITEM_TYPE::WEAPON_NONE)
+					return;
+
+				switch (fired_weapon) {
+					case ITEM_TYPE::WEAPON_SHOTGUN:
+						audio_system->play_one_shot(AudioSystem::EMPTY_SHOTGUN); break;
+					case ITEM_TYPE::WEAPON_MACHINEGUN:
+						audio_system->play_one_shot(AudioSystem::EMPTY_MG); break;
+					case ITEM_TYPE::WEAPON_CROSSBOW:
+						audio_system->play_one_shot(AudioSystem::EMPTY_CROSSBOW); break;
+				}
 			}
 		}
 	}

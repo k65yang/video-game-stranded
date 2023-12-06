@@ -13,6 +13,14 @@ public:
 		SHOT,
 		SHOT_MG,
 		SHOT_CROSSBOW,
+		SHOT_SHURIKEN,
+		EMPTY_SHOTGUN,
+		EMPTY_MG,
+		EMPTY_CROSSBOW,
+		RELOAD_SHOTGUN,
+		RELOAD_MG,
+		RELOAD_CROSSBOW,
+		RELOAD_SHURIKEN,
 	};
 
 	const unsigned NUM_CHANNELS = 16;	// Total number of channels used for sound effects
@@ -38,6 +46,14 @@ private:
 		{SHOT, audio_path("shot1.wav")},
 		{SHOT_MG, audio_path("shot_mg1.wav")},
 		{SHOT_CROSSBOW, audio_path("shot_crossbow1.wav")},
+		{SHOT_SHURIKEN, audio_path("shot_shuriken.wav")}, 
+		{EMPTY_SHOTGUN, audio_path("empty_shotgun.wav")},
+		{EMPTY_MG, audio_path("empty_mg.wav")},
+		{EMPTY_CROSSBOW, audio_path("empty_crossbow.wav")},
+		{RELOAD_SHOTGUN, audio_path("reload_shotgun.wav")},
+		{RELOAD_MG, audio_path("reload_mg.wav")},
+		{RELOAD_CROSSBOW, audio_path("reload_crossbow.wav")},
+		{RELOAD_SHURIKEN, audio_path("reload_shuriken.wav")},
 	};
 
 	/// <summary>
@@ -50,6 +66,14 @@ private:
 		{SHOT, MIX_MAX_VOLUME * 0.72f},
 		{SHOT_MG, MIX_MAX_VOLUME * 0.55f},
 		{SHOT_CROSSBOW, MIX_MAX_VOLUME * 0.75f},
+		{SHOT_SHURIKEN, MIX_MAX_VOLUME * .6f},
+		{EMPTY_SHOTGUN, MIX_MAX_VOLUME * .75f},
+		{EMPTY_MG, MIX_MAX_VOLUME * 0.65f},
+		{EMPTY_CROSSBOW, MIX_MAX_VOLUME * .75f},
+		{RELOAD_SHOTGUN, MIX_MAX_VOLUME * .85f},
+		{RELOAD_MG, MIX_MAX_VOLUME * 0.5f},
+		{RELOAD_CROSSBOW, MIX_MAX_VOLUME * 0.5f},
+		{RELOAD_SHURIKEN, MIX_MAX_VOLUME * 0.7f},
 	};
 
 	std::unordered_map<AUDIO, Mix_Music*> music;	// Pointers containing music in memory
