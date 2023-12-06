@@ -184,4 +184,11 @@ private:
 	/// <param name="elapsed_ms_since_last_update"></param>
 	void handlePlayerMovement(float elapsed_ms_since_last_update);
 	bool keyDown[KEYS];    // Uses InputKeyIndex values as index
+
+	/// <summary>
+	/// Converts a point in screen coordinates to clip coordinates
+	/// </summary>
+	/// <param name="point">The screen coordinates of the point</param>
+	/// <returns>The clip coordinates of the point</returns>
+	vec2 screen_to_clip_coords(vec2 point);
 };

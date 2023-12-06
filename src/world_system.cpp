@@ -1158,6 +1158,8 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 /// </summary>
 /// <param name="mouse_position"> Location of mouse on game screen</param>
 void WorldSystem::on_mouse_move(vec2 mouse_position) {
+	vec2 mouse_pos_clip = screen_to_clip_coords(mouse_position);
+
 	// Disable rotation when the player dies
 	if (!registry.deathTimers.has(player_salmon)) {
 		// The player is always in the middle of the screen so we need to compute the 
@@ -1169,7 +1171,14 @@ void WorldSystem::on_mouse_move(vec2 mouse_position) {
 
 		Motion& motion = registry.motions.get(player_salmon);
 		CURSOR_ANGLE = atan2(mouse_position.y - screen_centre_y, mouse_position.x - screen_centre_x);
-		//printf("View direction: %f \n", cursor_angle);
+	}
+
+	// Change mouse cursor type if hovering over help button
+	if (tutorial_system->isMouseOverElement(mouse_pos_clip, TEXTURE_ASSET_ID::HELP_BUTTON)) {
+		GLFWcursor* cursor = glfwCreateStandardCursor(GLFW_HAND_CURSOR);
+		glfwSetCursor(window, cursor);
+	} else {
+		glfwSetCursor(window, NULL);
 	}
 }
 
@@ -1206,23 +1215,9 @@ void WorldSystem::on_mouse_click(int button, int action, int mods) {
 }
 
 void WorldSystem::map_editor_routine() {
-	mat3 view_ = renderer->createModelMatrix(main_camera);
-
-	// You can cache this to save performance.
-	mat3 proj_ = inverse(renderer->createProjectionMatrix());
-
 	double xpos, ypos;
-	glfwGetCursorPos(window, &xpos, &ypos);	// For some reason it only supports doubles!
-	ivec2 screen = renderer->window_resolution;
-
-	// Recall that valid clip coordinates are between [-1, 1]. 
-	// First, we need to turn screen (pixel) coordinates into clip coordinates:
-	vec3 mouse_pos = {
-		(xpos / screen.x) * 2 - 1,		// Get the fraction of the x pos in the screen, multiply 2 to map range to [0, 2], 
-												// then offset so the range is now [-1, 1].
-		-(ypos / screen.y) * 2 + 1,		// Same thing, but recall that the y direction is opposite in glfw.
-		1.0 };									// Denote that this is a point.
-	mouse_pos = view_ * proj_ * mouse_pos;
+	glfwGetCursorPos(window, &xpos, &ypos);	// For some reason it only supports doubles!	
+	vec2 mouse_pos = screen_to_clip_coords({ xpos, ypos });
 
 	Entity tile = terrain->get_cell(mouse_pos);
 	TerrainCell& cell = registry.terrainCells.get(tile);
@@ -1247,6 +1242,26 @@ void WorldSystem::map_editor_routine() {
 
 		terrain->update_tile(tile, cell, true);	// true because we need to update adjacent cells too
 	}
+}
+
+vec2 WorldSystem::screen_to_clip_coords(vec2 point) {
+	mat3 view_ = renderer->createModelMatrix(main_camera);
+
+	// You can cache this to save performance.
+	mat3 proj_ = inverse(renderer->createProjectionMatrix());
+
+	ivec2 screen = renderer->window_resolution;
+
+	// Recall that valid clip coordinates are between [-1, 1]. 
+	// First, we need to turn screen (pixel) coordinates into clip coordinates:
+	vec3 clip_coords = {
+		(point.x / screen.x) * 2 - 1,		// Get the fraction of the x pos in the screen, multiply 2 to map range to [0, 2], 
+												// then offset so the range is now [-1, 1].
+		-(point.y / screen.y) * 2 + 1,		// Same thing, but recall that the y direction is opposite in glfw.
+		1.0 };									// Denote that this is a point.
+	clip_coords = view_ * proj_ * clip_coords;
+
+	return {clip_coords.x, clip_coords.y};
 }
 
 void WorldSystem::spawn_items() {
