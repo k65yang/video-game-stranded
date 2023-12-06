@@ -270,7 +270,7 @@ Entity createHelp(RenderSystem* renderer, vec2 position, TEXTURE_ASSET_ID textur
 	motion.position = position;
 	motion.scale = vec2({ 20.f, 6.f });
 
-	registry.tips.emplace(entity);
+	registry.tutorials.emplace(entity);
 
 	registry.renderRequests.insert(
 		entity,

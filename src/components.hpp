@@ -71,6 +71,8 @@ struct Player
 	int framex = 0; 
 	int framey = 4; 
 	bool is_home = false;
+	bool has_collected_quest_item = false;
+	bool has_entered_spaceship = false;
 };
 
 struct SpeedPowerup {
@@ -229,8 +231,8 @@ struct DeathTimer
 	float timer_ms = 3000.f;
 };
 
-struct ToolTip {
-	float timer = 3000.f;
+struct Tutorial {
+	float timer_ms = 5000.f;
 };
 
 // Single Vertex Buffer element for non-textured meshes (coloured.vs.glsl & salmon.vs.glsl)

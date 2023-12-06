@@ -29,7 +29,8 @@ class TutorialSystem
         Entity createTutorialText(TUTORIAL_TYPE type);
 
     private:
-        const vec2 TUTORIAL_TEXT_POSITION = { 0.f, -7.f };
+        const vec2 TUTORIAL_TEXT_POSITION = { -10.f, -7.f };
+        const float TUTORIAL_TEXT_SCALE = 0.5f;
         const std::string QUEST_ITEM_TUTORIAL_TEXT = "You found a spaceship part! Bring it back to your spaceship to reattach it to the ship";
         const std::string SPACESHIP_HOME_TUTORIAL_TEXT = "Welcome home! Your ammo, food, and health automatically regenerate here, but note that there is a limited amount of these resources in storage";
 
