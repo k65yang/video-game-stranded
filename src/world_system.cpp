@@ -1348,9 +1348,13 @@ void WorldSystem::load_game(json j) {
 	int p_health = j["player"]["health"];
 	int p_food = j["player"]["food"];
 	bool p_is_home = j["player"]["is_home"];
+	bool p_has_collected_quest_item = j["player"]["has_collected_quest_item"];
+	bool p_has_entered_spaceship = j["player"]["has_entered_spaceship"];
 	player.health = p_health;
 	player.food = p_food;
 	player.is_home = p_is_home;
+	player.has_collected_quest_item = p_has_collected_quest_item;
+	player.has_entered_spaceship = p_has_entered_spaceship;
 	registry.colors.insert(player_salmon, { 1, 0.8f, 0.8f, 1.0f});
 
 	// Create the main camera

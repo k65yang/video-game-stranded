@@ -5,13 +5,21 @@
 using json = nlohmann::json;
 
 void to_json(json& j, const Player& p) {
-    j = json{ {"health", p.health}, {"food", p.food}, {"is_home", p.is_home} };
+    j = json{ 
+        {"health", p.health}, 
+        {"food", p.food}, 
+        {"is_home", p.is_home}, 
+        {"has_collected_quest_item", p.has_collected_quest_item}, 
+        {"has_entered_spaceship", p.has_entered_spaceship}, 
+    };
 }
 
 void from_json(const json& j, Player& p) {
     j.at("health").get_to(p.health);
     j.at("food").get_to(p.food);
     j.at("is_home").get_to(p.is_home);
+    j.at("has_collected_quest_item").get_to(p.has_collected_quest_item);
+    j.at("has_entered_spaceship").get_to(p.has_entered_spaceship);
 }
 
 void to_json(json& j, const Mob& mob) {
