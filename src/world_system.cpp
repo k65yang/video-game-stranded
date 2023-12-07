@@ -90,17 +90,6 @@ GLFWwindow* WorldSystem::create_window() {
 		return nullptr;
 	}
 
-	// Setting callbacks to member functions (that's why the redirect is needed)
-	// Input is handled using GLFW, for more info see
-	// http://www.glfw.org/docs/latest/input_guide.html
-	glfwSetWindowUserPointer(window, this);
-	auto key_redirect = [](GLFWwindow* wnd, int _0, int _1, int _2, int _3) { ((WorldSystem*)glfwGetWindowUserPointer(wnd))->on_key(_0, _1, _2, _3); };
-	auto cursor_pos_redirect = [](GLFWwindow* wnd, double _0, double _1) { ((WorldSystem*)glfwGetWindowUserPointer(wnd))->on_mouse_move({ _0, _1 }); };
-	auto cursor_button_redirect = [](GLFWwindow* wnd, int _0, int _1, int _2) { ((WorldSystem*)glfwGetWindowUserPointer(wnd))->on_mouse_click(_0, _1, _2); };
-	glfwSetKeyCallback(window, key_redirect);
-	glfwSetCursorPosCallback(window, cursor_pos_redirect);
-	glfwSetMouseButtonCallback(window, cursor_button_redirect);
-
 	return window;
 }
 
@@ -122,6 +111,17 @@ void WorldSystem::init(
 	this->audio_system = audio_system_arg;
 	this->spaceship_home_system = spaceship_home_system_arg;
 	this->quest_system = quest_system_arg;
+
+	// Setting callbacks to member functions (that's why the redirect is needed)
+	// Input is handled using GLFW, for more info see
+	// http://www.glfw.org/docs/latest/input_guide.html
+	glfwSetWindowUserPointer(window, this);
+	auto key_redirect = [](GLFWwindow* wnd, int _0, int _1, int _2, int _3) { ((WorldSystem*)glfwGetWindowUserPointer(wnd))->on_key(_0, _1, _2, _3); };
+	auto cursor_pos_redirect = [](GLFWwindow* wnd, double _0, double _1) { ((WorldSystem*)glfwGetWindowUserPointer(wnd))->on_mouse_move({ _0, _1 }); };
+	auto cursor_button_redirect = [](GLFWwindow* wnd, int _0, int _1, int _2) { ((WorldSystem*)glfwGetWindowUserPointer(wnd))->on_mouse_click(_0, _1, _2); };
+	glfwSetKeyCallback(window, key_redirect);
+	glfwSetCursorPosCallback(window, cursor_pos_redirect);
+	glfwSetMouseButtonCallback(window, cursor_button_redirect);
 
 	// Set all states to default
 	restart_game();
@@ -1211,7 +1211,7 @@ void WorldSystem::map_editor_routine() {
 	mat3 view_ = renderer->createModelMatrix(main_camera);
 
 	// You can cache this to save performance.
-	mat3 proj_ = inverse(renderer->createProjectionMatrix());
+	mat3 proj_ = inverse(renderer->createScaledProjectionMatrix());
 
 	double xpos, ypos;
 	glfwGetCursorPos(window, &xpos, &ypos);	// For some reason it only supports doubles!
