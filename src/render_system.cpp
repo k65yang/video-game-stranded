@@ -205,6 +205,10 @@ void RenderSystem::drawToScreen()
 	GLuint enable_fow_uloc = glGetUniformLocation(fog_program, "enableFow");
 	glUniform1iv(enable_fow_uloc, 1, (int*)&enableFow);
 
+	// Aspect ratio uniform
+	GLuint aspect_ratio_uloc = glGetUniformLocation(fog_program, "aspect_ratio");
+	glUniform2iv(aspect_ratio_uloc, 1, (int*)&aspect_ratio);
+
 	gl_has_errors();
 	// Set the vertex position and vertex texture coordinates (both stored in the
 	// same VBO)

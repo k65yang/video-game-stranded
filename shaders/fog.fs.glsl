@@ -4,74 +4,42 @@ uniform sampler2D screen_texture;
 uniform float fow_darken_factor;
 uniform float fowRadius;
 uniform int enableFow;
+uniform ivec2 aspect_ratio;
 
 in vec2 texcoord;
 
 
 layout(location = 0) out vec4 color;
 
-// reference: drawing ellipse in shader https://www.shadertoy.com/view/wdKXzt
-// reference: ellipse equation https://www.khanacademy.org/math/precalculus/x9e81a4f98389efdf:conics/x9e81a4f98389efdf:ellipse-center-radii/v/ellipse-standard-equation-from-graph
 
-// To accomodate scaling due to aspect ratio, fog of war shape is now an ellipse.
 void main()
 {
-	
-	float magnifier = 3.f;
-	float distanceScaling = 90.f;
-	float darkening = 0.75;
+	// get texture from frame buffer
+	vec4 in_color = texture(screen_texture, texcoord);
 
-	// horizontal distance. 16/9 is our aspect ratio
-	float a = 0.55 * 16/9;
-
-	// vertical distance
-    float b = 1.3;
-    
-    float x = texcoord.x - 0.5;
-    float y = texcoord.y - 0.5;
-    
-    // calculate distance between point and fow ellipse
-	float dis = pow( x, 2.0 ) / ( a * a ) + pow( y, 2.0 ) / ( b * b );
-
-	// texture from frame buffer
-    vec4 in_color = texture(screen_texture, texcoord);
-
-    if (enableFow == 1) {
-		
-		if ( dis <= (fowRadius / distanceScaling) )
-		{
-		// within fow
-			color = darkening * (1 - magnifier * dis) * in_color;    
-		}
-		else
-		{
-     		color = in_color * fow_darken_factor;
-		}
-	} else {
-	// fog disabled
-		color = in_color;
-
-	}
-
-}
-
-/*
-void main()
-{
-	
-	float magnifier = 3.f;
-	float distanceScaling = 18.f;
-
-	// calculate distance between center pixel and current pixel
-	float disToFOW = distance(texcoord, vec2(0.5f, 0.5f));
-
-	// texture from frame buffer
-    vec4 in_color = texture(screen_texture, texcoord);
-
-	// referece: drawing circle with distance in glsl reference: https://www.youtube.com/watch?v=L-BA4nJJ8bQ
-
-	// For pixel within fow, adjust color based on the distance of pixel to center pixel. Else, apply a darken factor on top of current pixel color
 	if (enableFow == 1) {
+		float magnifier = 3.f;
+		float distanceScaling = 18.f;
+		vec2 f_aspect_ratio = vec2(aspect_ratio);
+		vec2 scaling = f_aspect_ratio.xy / f_aspect_ratio.yx;
+
+		// We want to scale the apparent distanced from the centre.
+		// The bigger ratio will be used as the baseline distance.
+		// The smaller side of the screen will be scaled up.
+		if (aspect_ratio.x > aspect_ratio.y) {
+			scaling.x = 1;
+		}
+		else {
+			scaling.y = 1;
+		}
+
+		// calculate distance between center pixel and current pixel
+		float disToFOW = distance(texcoord * scaling, vec2(0.5f , 0.5f) * scaling);
+
+		// referece: drawing circle with distance in glsl reference: https://www.youtube.com/watch?v=L-BA4nJJ8bQ
+
+		// For pixel within fow, adjust color based on the distance of pixel to center pixel. Else, apply a darken factor on top of current pixel color
+	
 		if (disToFOW < (fowRadius / distanceScaling)) {
 			color = (1 - magnifier * disToFOW ) * in_color;
 		} else {
@@ -87,4 +55,3 @@ void main()
 	
 }
 
-*/
