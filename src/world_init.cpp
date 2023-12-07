@@ -435,7 +435,7 @@ Entity createEndingTextPopUp(RenderSystem * renderer, vec2 position, TEXTURE_ASS
 	motion.angle = 0.f;
 	motion.velocity = { 0.f, 0.f };
 	motion.position = position;
-	motion.scale = vec2({ target_resolution.x / tile_size_px * 10/24, target_resolution.y / tile_size_px * 5/16});
+	motion.scale = vec2({ target_resolution.x / tile_size_px * 14/24, target_resolution.y / tile_size_px * 7/16});
 
 	registry.renderRequests.insert(
 		entity,

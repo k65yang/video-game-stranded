@@ -1017,6 +1017,9 @@ void WorldSystem::update_spaceship_depart() {
 			registry.remove_all_components_of(registry.spaceshipParts.entities.back());
 		// create depart spaceship
 		spaceship_depart = createSpaceshipDepart(renderer); 
+		// Iterate through all particles
+		if (registry.speedPowerup.has(player_salmon)) 
+			registry.speedPowerup.remove(player_salmon);
 		// remove particle effect
 		/*
 		if (registry.particleTrails.has(player_salmon)) 
