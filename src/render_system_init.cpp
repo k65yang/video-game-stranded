@@ -562,6 +562,27 @@ void RenderSystem::initializeGlGeometryBuffers()
 
 	bindVBOandIBO(GEOMETRY_BUFFER_ID::MOB_SPRITE, mob_vertices, mob_indices);
 
+
+	// Initialize muzzle flash 
+	// The position corresponds to the center of the texture.
+	// muzzle flash sprite sheet is 5 by 1 in w x h
+	muzzleFlash_frame_w = 0.20f; // ratio
+	muzzleFlash_frame_h = 1.0f;
+	std::vector<TexturedVertex> muzzleFlash_vertices(4);
+	muzzleFlash_vertices[0].position = { -1.f / 2, +1.f / 2, 0.f };
+	muzzleFlash_vertices[1].position = { +1.f / 2, +1.f / 2, 0.f };
+	muzzleFlash_vertices[2].position = { +1.f / 2, -1.f / 2, 0.f };
+	muzzleFlash_vertices[3].position = { -1.f / 2, -1.f / 2, 0.f };
+	muzzleFlash_vertices[3].texcoord = { 0.f, 0.f };
+	muzzleFlash_vertices[2].texcoord = { muzzleFlash_frame_w, 0.f };
+	muzzleFlash_vertices[1].texcoord = { muzzleFlash_frame_w, muzzleFlash_frame_h };
+	muzzleFlash_vertices[0].texcoord = { 0.f, muzzleFlash_frame_h };
+
+	// Counterclockwise as it's the default opengl front winding direction.
+	const std::vector<uint16_t> muzzleFlash_indices = { 0, 3, 1, 1, 3, 2 };
+
+	bindVBOandIBO(GEOMETRY_BUFFER_ID::MUZZLEFLASH_SPRITE, muzzleFlash_vertices, muzzleFlash_indices);
+
 }
 
 RenderSystem::~RenderSystem()

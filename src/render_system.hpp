@@ -314,6 +314,9 @@ public:
 	// Initialize mob sprite
 	float mob_frame_w;
 	float mob_frame_h;
+	// For muzzle flash sprite sheet animation
+	float muzzleFlash_frame_w;
+	float muzzleFlash_frame_h;
 
 private:
 	// Freetype stuff
