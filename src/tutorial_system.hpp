@@ -36,6 +36,16 @@ class TutorialSystem
         /// @brief Checks if the help dialog is open
         /// @return Returns true if the help dialog is open, false otherwise
         bool isHelpDialogOpen();
+
+        /// @brief Shows the enter spaceship text
+        void showEnterSpaceshipText();
+
+        /// @brief Hides the enter spaceship text
+        void hideEnterSpaceshipText();
+
+        /// @brief Checks if the enter spaceship text is shown
+        /// @return Returns true if the enter spaceship text is shown, false otherwise
+        bool isEnterSpaceshipTextShown();
         
         /// @brief Checks if the mouse is hovering the help button
         /// @param mouse_pos The position of the mouse in clip coordinates
@@ -53,8 +63,10 @@ class TutorialSystem
     private:
         const vec2 GAME_SAVED_TEXT_POSITION = { -1.5f, -7.f };
         const vec2 GAME_LOADED_TEXT_POSITION = { -1.5f, -7.f };
+        const vec2 ENTER_SPACESHIP_TEXT_POSITION = { 0.f, -1.f };
         const std::string GAME_SAVED_TEXT = "Game saved";
         const std::string GAME_LOADED_TEXT = "Game loaded";
+        const std::string ENTER_SPACESHIP_TEXT = "Press E to enter";
         const float TUTORIAL_TEXT_SCALE = 0.5f;
 
         const vec2 HELP_BUTTON_POSITION = { 11.f, -7.f }; 
@@ -67,7 +79,9 @@ class TutorialSystem
         RenderSystem* renderer;
         Entity help_dialog;
         Entity help_button;
+        Entity enter_spaceship_text;
         bool is_help_dialog_open;
+        bool is_enter_spaceship_text_shown;
 
         /// @brief Creates the help button
         /// @return The help button

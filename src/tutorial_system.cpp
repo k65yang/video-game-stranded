@@ -22,6 +22,8 @@ void TutorialSystem::init(RenderSystem* renderer_arg) {
 
 void TutorialSystem::resetTutorialSystem() {
     is_help_dialog_open = false;
+    is_enter_spaceship_text_shown = false;
+
     help_button = createHelpButton();
 };
 
@@ -38,6 +40,20 @@ void TutorialSystem::closeHelpDialog() {
 bool TutorialSystem::isHelpDialogOpen() {
     return is_help_dialog_open;
 };
+
+void TutorialSystem::showEnterSpaceshipText() {
+    enter_spaceship_text = createText(renderer, ENTER_SPACESHIP_TEXT_POSITION, ENTER_SPACESHIP_TEXT, TUTORIAL_TEXT_SCALE);
+    is_enter_spaceship_text_shown = true;
+}
+
+void TutorialSystem::hideEnterSpaceshipText() {
+    registry.remove_all_components_of(enter_spaceship_text);
+    is_enter_spaceship_text_shown = false;
+}
+
+bool TutorialSystem::isEnterSpaceshipTextShown() {
+    return is_enter_spaceship_text_shown;
+}
 
 bool TutorialSystem::isMouseOverHelpButton(vec2 mouse_pos) {
     // Help button is a circle so check if the distance between the mouse and button is less than the radius of the button

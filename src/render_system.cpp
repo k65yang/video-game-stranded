@@ -471,6 +471,7 @@ void RenderSystem::draw()
 		renderText(text.str, motion.position.x, motion.position.y, text.scale, text.color, projection_2D, view_2D);
 	}
 
+	// For tutorial dialogs 
 	for (Entity entity : layer_5_entities) {
 		drawTexturedMesh(entity, view_2D, projection_2D);
 	}

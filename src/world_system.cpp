@@ -996,8 +996,6 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 
 	// Enter ship if player is near
 	if (length(player_motion.position - registry.motions.get(spaceship).position) < 1.0f && !player.is_home) {
-		printf("Near entrance, press E to enter\n");
-
 		if (action == GLFW_PRESS && key == GLFW_KEY_E ) {
 			spaceship_home_system->enterSpaceship(health_bar, food_bar);
 
