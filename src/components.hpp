@@ -505,4 +505,7 @@ struct ParticleTemplate {
 	float lifeTime = 1000.0f; // in ms
 	float lifeTimeRemaining = 0.0f;
 	float sizeBegin, sizeEnd;
+	vec2 position = {0.f, 0.f};
+	vec2 velocity = { 0.f, 0.f };
+
 };
