@@ -45,7 +45,7 @@ class ParticleSystem
     /// @param entity To get motion related parameter for the particle
     /// @param texture texture used to represent the particle 
     
-    Entity ParticleSystem::emit(Entity templateParticleEntity);
+    Entity ParticleSystem::emit(ParticleTemplate temp);
 
     void ParticleSystem::createParticleTrail(Entity targetEntity, TEXTURE_ASSET_ID texture, int numberOfParticles, vec2 scale);
     void ParticleSystem::createFloatingHeart(Entity targetEntity, TEXTURE_ASSET_ID texture, int numberOfParticles);

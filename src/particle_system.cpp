@@ -60,75 +60,57 @@ void ParticleSystem::step(float elapsed_ms) {
 
 
 // Create a particle entity based on the template particle 
-Entity ParticleSystem::emit(Entity templateParticleEntity) {
+Entity ParticleSystem::emit(ParticleTemplate temp) {
     // Reserve an entity
     auto entity = Entity();
     
     // Set particle components using template particle's entity
     registry.particles.emplace(entity);
 
-    auto& template_particle = registry.particles.get(templateParticleEntity);
     auto& entity_particle = registry.particles.get(entity);
 
-    entity_particle.lifeTime = template_particle.lifeTime;
-    entity_particle.lifeTimeRemaining = template_particle.lifeTime;
-    entity_particle.texture = template_particle.texture;
-    entity_particle.sizeBegin = template_particle.sizeBegin;
-    entity_particle.sizeEnd = template_particle.sizeEnd;
-    entity_particle.active = true;
-
+    entity_particle.lifeTime = temp.lifeTime;
+    entity_particle.lifeTimeRemaining = temp.lifeTimeRemaining;
+    entity_particle.texture = temp.texture;
+    entity_particle.sizeBegin = temp.sizeBegin;
+    entity_particle.sizeEnd = temp.sizeEnd;
+    entity_particle.active = temp.active;
+    
     // Initialize the position, scale, and physics components
     registry.motions.emplace(entity);
-
-    auto& template_motion = registry.motions.get(templateParticleEntity);
     auto& entity_motion = registry.motions.get(entity);
     
-    entity_motion.position = template_motion.position;
-    entity_motion.velocity = template_motion.velocity;
-    entity_motion.scale = template_motion.scale;
+    entity_motion.position = temp.position;
+    entity_motion.velocity = temp.velocity;
+    entity_motion.scale = vec2{ temp.sizeBegin, temp.sizeBegin };
 
     // Set the colour of the particle
     registry.colors.emplace(entity);
-
-    auto& template_color = registry.colors.get(templateParticleEntity);
-    auto& entity_color = registry.colors.get(entity);
-
-    entity_color = template_color;
-
-
+    registry.colors.get(entity) = temp.color;
+  
     
     return entity;
 }
+
 
 // Creates particle trail effects for a specified entity with given texture, scale, number of particles each frame.
 // Used for speed power up
 void ParticleSystem::createParticleTrail(Entity targetEntity, TEXTURE_ASSET_ID texture, int numberOfParticles, vec2 scale) {
 
     // create the template particle
-    auto template_entity = Entity();
+    ParticleTemplate temp;
 
-    // particle component for template
-    auto& template_particle = registry.particles.emplace(template_entity);
-    template_particle.active = false;
-    template_particle.lifeTime = 500.f;
-    template_particle.lifeTimeRemaining = 0.f;
-    template_particle.texture = texture;
-
-    // not used for now since the speed effects doesnt need it
-    template_particle.sizeBegin = scale.x;
-    template_particle.sizeEnd = scale.x;
-
-
-    // motion component for template
-    auto& template_motion = registry.motions.emplace(template_entity);
-    template_motion.scale = scale;
-    template_motion.position = registry.motions.get(targetEntity).position;
+    temp.active = true;
+    temp.lifeTime = 500.f;
+    temp.lifeTimeRemaining = 500.f;
+    temp.texture = texture;
     
+    // Ideally this size should be two dimension....
+    temp.sizeBegin = scale.x;
+    temp.sizeEnd = scale.x;
 
-
-    // color component for template using target color scheme
-    auto& template_color = registry.colors.emplace(template_entity);
-    template_color = registry.colors.get(targetEntity);
+    temp.position = registry.motions.get(targetEntity).position;
+    temp.color = registry.colors.get(targetEntity);
 
 
     std::random_device rd;
@@ -139,14 +121,15 @@ void ParticleSystem::createParticleTrail(Entity targetEntity, TEXTURE_ASSET_ID t
     
     // Create particles based on template
     for (int i = 0; i < numberOfParticles; i++) {
+        ParticleTemplate sample = temp;
 
         // randomize the position
-        template_motion.position = template_motion.position + vec2(dist(gen), dist(gen));
-        entities.push_back(emit(template_entity));
+        sample.position = temp.position + vec2(dist(gen), dist(gen));
+        entities.push_back(emit(sample));
 
     }
 
-    // create one instanced render request 
+    // Create one instanced render request 
     registry.instancedRenderRequests.insert(
         entities[0],
         { entities,
@@ -163,31 +146,18 @@ void ParticleSystem::createParticleTrail(Entity targetEntity, TEXTURE_ASSET_ID t
 void ParticleSystem::createFloatingHeart(Entity targetEntity, TEXTURE_ASSET_ID texture, int numberOfParticles) {
 
   
-
     // create the template particle
-    auto template_entity = Entity();
+    ParticleTemplate temp;
 
-    // set up particle template
-    auto& template_particle = registry.particles.emplace(template_entity);
-    template_particle.active = false;
-    template_particle.lifeTime = 2000.f;
-    template_particle.lifeTimeRemaining = 0.f;
-    template_particle.texture = texture;
-    template_particle.sizeBegin = 0.3f;
-    template_particle.sizeEnd = 0.0f;
-
-    // motion component for template
-    auto& template_motion = registry.motions.emplace(template_entity);
-
-    // scale is not used
-    template_motion.scale = vec2{1.0f, 1.0f};
-    template_motion.position = registry.motions.get(targetEntity).position;
-    template_motion.velocity.y = -3.f;
-
-    
-    // color component for template using target color scheme
-    auto& template_color = registry.colors.emplace(template_entity);
-    template_color = registry.colors.get(targetEntity);
+    temp.active = true;
+    temp.lifeTime = 2000.f;
+    temp.lifeTimeRemaining = 2000.f;
+    temp.texture = texture;
+    temp.sizeBegin = 0.3f;
+    temp.sizeEnd = 0.0f;
+    temp.position = registry.motions.get(targetEntity).position;
+    temp.velocity = {0.0f, -3.0f};
+    temp.color = registry.colors.get(targetEntity);
 
 
     std::random_device rd;
@@ -198,18 +168,19 @@ void ParticleSystem::createFloatingHeart(Entity targetEntity, TEXTURE_ASSET_ID t
 
     // Create particles based on template
     for (int i = 0; i < numberOfParticles; i++) {
+        ParticleTemplate sample = temp;
 
         // randomize the x, y position and scale of hearts
-        template_particle.sizeBegin += dist(gen);
-        template_motion.position.x += 4 * dist(gen);
-        template_motion.position.y += 4 * dist(gen);
-        template_motion.velocity.y += 10 * dist(gen);
+        sample.sizeBegin =  temp.sizeBegin += dist(gen);
+        sample.position.x = temp.position.x + 4 * dist(gen);
+        sample.position.y = temp.position.y + 4 * dist(gen);
+        sample.velocity.y = temp.velocity.y + 10 * dist(gen);
 
-        entities.push_back(emit(template_entity));
+        entities.push_back(emit(sample));
 
     }
 
-    // create one instanced render request 
+    // Ccreate one instanced render request 
     registry.instancedRenderRequests.insert(
         entities[0],
         { entities,
@@ -229,58 +200,42 @@ void ParticleSystem::createParticleSplash(Entity projectile_entity, Entity mob_e
 
     auto& projectile_motion = registry.motions.get(projectile_entity);
 
-    // 1. create the template particle
-    auto template_entity = Entity();
-
-    // particle component for template
-    auto& template_particle = registry.particles.emplace(template_entity);
-    template_particle.active = false;
-    template_particle.lifeTime = 400.f;
-    template_particle.lifeTimeRemaining = 0.f;
-    template_particle.texture = TEXTURE_ASSET_ID::TEXTURE_COUNT;
-
-        // dynamic size not supported for now
-    template_particle.sizeBegin = 0.8f;
-    template_particle.sizeEnd = 0.0f;
-
-    // motion component for template using projectiles motion
-    auto& template_motion = registry.motions.emplace(template_entity);
-    template_motion.scale = projectile_motion.scale;
-    template_motion.position = projectile_motion.position;
+    // Create the template particle
+    ParticleTemplate temp;
     
-        // using inverted projectiles velocity for spalsh direction
-    template_motion.velocity = 10.f * splashDirection;
+    temp.active = true;
+    temp.lifeTime = 400.f;
+    temp.lifeTimeRemaining = 400.f;
+    temp.texture = TEXTURE_ASSET_ID::TEXTURE_COUNT;
+    temp.sizeBegin = 0.8f;
+    temp.sizeEnd = 0.0f;
+    temp.position = projectile_motion.position;
+    temp.velocity = 10.f * splashDirection;
+    temp.color = 1.2f * vec4{mob_color_map.at(registry.mobs.get(mob_entity).type), 1.0f};
 
-        // adjust angle to facing in opposite direction. might not be needed 
-    //template_motion.angle =  projectile_motion.angle + M_PI;
-    
-    // color component for template using mob color scheme
-    auto& template_color = registry.colors.emplace(template_entity);
-    template_color = 1.2f * vec4{mob_color_map.at(registry.mobs.get(mob_entity).type), 1.0f};
+   
 
     std::random_device rd;
     std::default_random_engine gen(rd());
     std::uniform_real_distribution<float> dist(-1, 1);
+
     std::vector<Entity> entities;
-    Transform t;
   
-    // 2. emit particles based on this template and number of particles per frame
+    // Emit particles based on this template and number of particles per frame
     for (int i = 0; i < numberOfParticles; i++) {
         
-        
-        template_particle.sizeBegin += (0.2 * dist(gen));
+        ParticleTemplate sampleParticle = temp;
 
-        template_motion.velocity = rotateByDegree(template_motion.velocity, dist(gen) * 20);
-        template_motion.velocity.x = template_motion.velocity.x + 5.f * dist(gen);
-        template_motion.velocity.y = template_motion.velocity.y + 5.f * dist(gen);
+        sampleParticle.sizeBegin = temp.sizeBegin += (0.2 * dist(gen));
+        sampleParticle.velocity = rotateByDegree(temp.velocity, dist(gen) * 20);
+        sampleParticle.velocity.x = temp.velocity.x + 5.f * dist(gen);
+        sampleParticle.velocity.y = temp.velocity.y + 5.f * dist(gen);
 
-        entities.push_back(emit(template_entity));
+        entities.push_back(emit(sampleParticle));
         
-        
-
     }
 
-    // create one render request 
+    // Create instanced render request 
     registry.instancedRenderRequests.insert(entities[0], {
         entities,
         TEXTURE_ASSET_ID::TEXTURE_COUNT,
@@ -288,8 +243,9 @@ void ParticleSystem::createParticleSplash(Entity projectile_entity, Entity mob_e
             GEOMETRY_BUFFER_ID::PEBBLE,
             RENDER_LAYER_ID::LAYER_2
             });
-}
 
+}
+/*
 // create particles effects that start from contact point, and 
 // spreads in a specified direction with a cone angle spread, with specified particle amounts and color
 void ParticleSystem::createMuzzleFlash(vec2 playerPosition, int playerDirection, int numberOfParticles) {
@@ -433,6 +389,8 @@ void ParticleSystem::step(float elapsed_ms) {
     particles_to_remove.clear();
 }
 */
+
+
 
 /*
 Entity ParticleSystem::createParticle(TEXTURE_ASSET_ID texture, Motion* motion_component_ptr) {

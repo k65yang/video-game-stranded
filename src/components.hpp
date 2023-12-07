@@ -502,10 +502,13 @@ struct Particle {
 
 struct ParticleTemplate {
 	TEXTURE_ASSET_ID texture = TEXTURE_ASSET_ID::TEXTURE_COUNT; //HARDCODED TEMPORARY TO THIS FOR NOW
+	bool active = false;
 	float lifeTime = 1000.0f; // in ms
-	float lifeTimeRemaining = 0.0f;
-	float sizeBegin, sizeEnd;
+	float lifeTimeRemaining = 1000.0f;
+	float sizeBegin = 1.0f;
+	float sizeEnd = 0.0f;
 	vec2 position = {0.f, 0.f};
 	vec2 velocity = { 0.f, 0.f };
+	vec4 color = vec4{ 1.0f };
 
 };
