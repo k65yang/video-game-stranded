@@ -1470,6 +1470,9 @@ void WorldSystem::load_game(json j) {
 	main_camera = createCamera(player_location);
 	Motion& camera_motion = registry.motions.get(main_camera);
 
+	// Create arrow pointing back to the ship
+	ship_arrow = createPointingArrow(renderer, player_salmon, spaceship);
+
 	// Create player health bar
 	health_bar = createBar(renderer, HEALTH_BAR_FRAME_POS, PLAYER_MAX_HEALTH, BAR_TYPE::HEALTH_BAR);
 	health_frame = createFrame(renderer, HEALTH_BAR_FRAME_POS, FRAME_TYPE::HEALTH_FRAME);
