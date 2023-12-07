@@ -42,11 +42,11 @@ class TutorialSystem
         /// @return Returns true if the mouse is hovering over the help button, false otherwise
         bool isMouseOverHelpButton(vec2 mouse_pos);
 
-        /// @brief Creates tutorial text
+        /// @brief Creates a tutorial text that disappears after some time
         /// @param type The type of tutorial to create the text for
         Entity createTutorialText(TUTORIAL_TYPE type);
 
-        /// @brief Creates tutorial dialog
+        /// @brief Creates a tutorial dialog that disappears after some time
         /// @param type The type of tutorial to create the dialog for
         Entity createTutorialDialog(TUTORIAL_TYPE type);
 
@@ -76,4 +76,7 @@ class TutorialSystem
         /// @brief Creates the help dialog
         /// @return The help dialog
         Entity createHelpDialog();
+
+        /// @brief Removes currently displayed tutorial texts/dialogs
+        void removeDisplayedTutorials();
 };

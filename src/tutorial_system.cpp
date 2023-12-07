@@ -49,6 +49,8 @@ bool TutorialSystem::isMouseOverHelpButton(vec2 mouse_pos) {
 };
 
 Entity TutorialSystem::createTutorialText(TUTORIAL_TYPE type) {
+    removeDisplayedTutorials();
+
     vec2 position;
     std::string str;
     switch(type) {
@@ -62,19 +64,17 @@ Entity TutorialSystem::createTutorialText(TUTORIAL_TYPE type) {
             break;
     }
 
-    // Remove any tutorials that are currently being displayed
-    for (Entity entity : registry.tutorials.entities) {
-        registry.remove_all_components_of(entity);
-    }
-
-    // Create tutorial text
     Entity tutorial_text = createText(renderer, position, str, TUTORIAL_TEXT_SCALE);
+
+    // Add entity to tutorial registry
     registry.tutorials.emplace(tutorial_text);
 
     return tutorial_text;
 };
 
 Entity TutorialSystem::createTutorialDialog(TUTORIAL_TYPE type) {
+    removeDisplayedTutorials();
+
     auto entity = Entity();
 
 	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
@@ -109,7 +109,7 @@ Entity TutorialSystem::createTutorialDialog(TUTORIAL_TYPE type) {
             texture,
 			EFFECT_ASSET_ID::TEXTURED,
 			GEOMETRY_BUFFER_ID::SPRITE,
-			RENDER_LAYER_ID::LAYER_4 
+			RENDER_LAYER_ID::LAYER_5 
         }
     );
 
@@ -173,3 +173,9 @@ Entity TutorialSystem::createHelpDialog() {
 
 	return entity;
 };
+
+void TutorialSystem::removeDisplayedTutorials() {
+    for (Entity entity : registry.tutorials.entities) {
+        registry.remove_all_components_of(entity);
+    }
+}
