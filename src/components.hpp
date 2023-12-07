@@ -122,6 +122,7 @@ struct Weapon {
 	float elapsed_last_shot_time_ms;     // controls fire rate, the time that the weapon was fired last
 	float projectile_velocity;           // speed of projectiles of this weapon
 	int projectile_damage;               // weapon damage
+	float knockback_force;				 // magnitude of knockback on enemy
 	int ammo_count;						 // Ammo
 	int level;							 // Weapon level
 };
@@ -433,7 +434,8 @@ enum class TEXTURE_ASSET_ID {
 	BRUTE = GHOST + 1,
 	DISRUPTOR = BRUTE + 1,
 	TURRET = DISRUPTOR + 1,
-	START_SCREEN_ONE = TURRET + 1,
+	HEART_PARTICLE = TURRET + 1,
+	START_SCREEN_ONE = HEART_PARTICLE + 1,
 	START_SCREEN_TWO = START_SCREEN_ONE + 1,
 	START_BUTTON = START_SCREEN_TWO + 1,
 	START_BUTTON_HOVER = START_BUTTON + 1,
@@ -449,8 +451,11 @@ enum class EFFECT_ASSET_ID {
 	TEXTURED = SALMON + 1,
 	FOG = TEXTURED + 1,
 	TERRAIN = FOG + 1,
-	TEXT = TERRAIN + 1,
+	PARTICLE = TERRAIN + 1,
+	TEXTUREPARTICLE = PARTICLE + 1,
+	TEXT = TEXTUREPARTICLE + 1,
 	EFFECT_COUNT = TEXT + 1
+
 };
 const int effect_count = (int)EFFECT_ASSET_ID::EFFECT_COUNT;
 
@@ -488,18 +493,36 @@ struct RenderRequest {
 	RENDER_LAYER_ID layer_id = RENDER_LAYER_ID::LAYER_COUNT;
 };
 
+struct InstancedRenderRequest {
+	std::vector<Entity> entities;
+	TEXTURE_ASSET_ID used_texture = TEXTURE_ASSET_ID::TEXTURE_COUNT;
+	EFFECT_ASSET_ID used_effect = EFFECT_ASSET_ID::EFFECT_COUNT;
+	GEOMETRY_BUFFER_ID used_geometry = GEOMETRY_BUFFER_ID::GEOMETRY_COUNT;
+	RENDER_LAYER_ID layer_id = RENDER_LAYER_ID::LAYER_COUNT;
+};
+
 // Particle effects
 const int NUM_PARTICLES = 200;
 
 // Struct describing particles 
 struct Particle {
-	
+	bool active = false;
+	TEXTURE_ASSET_ID texture = TEXTURE_ASSET_ID::TEXTURE_COUNT; //HARDCODED TEMPORARY TO THIS FOR NOW
+	float lifeTime = 1000.0f; // in ms
+	float lifeTimeRemaining = 0.0f;
+	float sizeBegin, sizeEnd;
+
 }; 
 
-// Each entity that has particle effects will have a vector to track individual particles
-struct ParticleTrail {
-	TEXTURE_ASSET_ID texture;
-	Motion* motion_component_ptr;
-	bool is_alive;
-	std::set<Entity> particles;
+struct ParticleTemplate {
+	TEXTURE_ASSET_ID texture = TEXTURE_ASSET_ID::TEXTURE_COUNT; //HARDCODED TEMPORARY TO THIS FOR NOW
+	bool active = false;
+	float lifeTime = 1000.0f; // in ms
+	float lifeTimeRemaining = 1000.0f;
+	float sizeBegin = 1.0f;
+	float sizeEnd = 0.0f;
+	vec2 position = {0.f, 0.f};
+	vec2 velocity = { 0.f, 0.f };
+	vec4 color = vec4{ 1.0f };
+
 };

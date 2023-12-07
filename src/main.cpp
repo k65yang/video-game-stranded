@@ -92,12 +92,11 @@ int main()
 		&audio_system, 
 		&spaceship_home_system, 
 		&quest_system,
-		&tutorial_system
+		&tutorial_system,
+		&particle_system
 	);
-
 	pathfinding_system.init(&terrain_system);
-	particle_system.init(&render_system);
-
+	
 	// variable timestep loop
 	while (!world_system.is_over()) {
 		// Processes system messages, if this wasn't present the window would become unresponsive
@@ -116,10 +115,10 @@ int main()
 			terrain_system.step(elapsed_ms);
 			pathfinding_system.step(elapsed_ms);
 			weapons_system.step(elapsed_ms);
-			particle_system.step(elapsed_ms);
 			mob_system.step(elapsed_ms);
 			quest_system.step(elapsed_ms);
 			world_system.handle_collisions();
+			particle_system.step(elapsed_ms);
 		} else {
 			spaceship_home_system.step(elapsed_ms);
 		}
