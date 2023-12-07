@@ -124,6 +124,7 @@ private:
 	Entity spaceship_home; 
 	Entity help_bar;
 	Entity spaceship_depart; 
+	Entity pop_up_text; 
 	bool tooltips_on = true;
 
 	bool user_has_first_weapon = false;

@@ -18,6 +18,7 @@ const float FOOD_DECREASE_RATE = 10.f;	// Decreases by 10 units per second (when
 float CURSOR_ANGLE = 0;
 int PLAYER_DIRECTION = 2;  // Default to facing up
 float ELAPSED_TIME = 0;
+bool PLAYER_DEATH_FROM_FOOD = false; 
 
 
 // Create the fish world
@@ -164,14 +165,16 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		if (timer.timer_ms < 0) {
 			if (spaceship_home_system->ALL_ITEMS_SUBMITTED){
 				// pop up for victory 
-				createText(renderer, { -2,-1 }, "YOU WON!!!", 1, { 1,0,0 });
-				createText(renderer, { -2,0 }, "Press R to Restart", 1, { 1,0,0 });
-				createText(renderer, { -2,1 }, "Press ESC to exit", 1, { 1,0,0 });
+				pop_up_text = createEndingTextPopUp(renderer, { 0,0 }, TEXTURE_ASSET_ID::VICTORY_TEXT); 
 			}
 			else {
-				createText(renderer, { camera_motion.position.x-2,camera_motion.position.y -3}, "YOU LOST :(", 1, { 1,0,0 });
-				createText(renderer, { camera_motion.position.x-2,camera_motion.position.y -2}, "Press R to Restart", 1, { 1,0,0 });
-				createText(renderer, { camera_motion.position.x-2,camera_motion.position.y -1 }, "Press ESC to exit", 1, { 1,0,0 });
+				if (PLAYER_DEATH_FROM_FOOD) {
+					pop_up_text = createEndingTextPopUp(renderer, { camera_motion.position.x,camera_motion.position.y }, TEXTURE_ASSET_ID::DEATH_TEXT_F);
+				}
+				else {
+					pop_up_text = createEndingTextPopUp(renderer, { camera_motion.position.x,camera_motion.position.y}, TEXTURE_ASSET_ID::DEATH_TEXT_H);
+
+				}
 			}
 			screen.screen_darken_factor = 0;
 			return true;
@@ -271,6 +274,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		// else the food is below 0, player dies
 		else if (!registry.deathTimers.has(player_salmon)) {
 			registry.deathTimers.emplace(player_salmon);
+			PLAYER_DEATH_FROM_FOOD = true; 
 		}
 
 		// update spritesheet with aiming direction 
@@ -536,6 +540,7 @@ void WorldSystem::restart_game() {
 
 	// Reset the game speed
 	current_speed = 5.f;
+	bool PLAYER_DEATH_FROM_FOOD = false;
 
 
 	while (registry.deathTimers.entities.size() > 0)
@@ -963,12 +968,15 @@ void WorldSystem::update_spaceship_frame(float elapsed_ms_since_last_update) {
 }
 
 void WorldSystem::update_spaceship_depart() {
-	if (quest_system->submitQuestItems()) {
+	if (spaceship_home_system->ALL_ITEMS_SUBMITTED) {
 		// Remove all ship parts if all items are collected 
 		while (registry.spaceshipParts.entities.size() > 0)
 			registry.remove_all_components_of(registry.spaceshipParts.entities.back());
 		// create depart spaceship
 		spaceship_depart = createSpaceshipDepart(renderer); 
+		// remove particle effect
+		if (registry.particleTrails.has(player_salmon)) 
+			registry.particleTrails.get(player_salmon).is_alive = false;
 		// remove player		
 		registry.renderRequests.remove(player_salmon);
 		// disable player movements 
@@ -1090,7 +1098,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 
 	// Enter ship if player is near 
 	if (registry.spaceshipParts.has(spaceship)) {
-		if (length(player_motion.position - registry.motions.get(spaceship).position) < 1.0f && !player.is_home) {
+		if (length(player_motion.position - registry.motions.get(spaceship).position - vec2{0,0.5}) < 1.0f && !player.is_home) {
 			printf("Near entrance, press E to enter\n");
 
 			if (action == GLFW_PRESS && key == GLFW_KEY_E ) {

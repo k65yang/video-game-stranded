@@ -422,3 +422,27 @@ Entity createSpaceshipDepart(RenderSystem* renderer) {
 
 	return entity;
 }
+
+
+Entity createEndingTextPopUp(RenderSystem * renderer, vec2 position, TEXTURE_ASSET_ID texture) {
+	auto entity = Entity();
+
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Initialize the position, scale, and physics components
+	auto& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.velocity = { 0.f, 0.f };
+	motion.position = position;
+	motion.scale = vec2({ target_resolution.x / tile_size_px * 10/24, target_resolution.y / tile_size_px * 5/16});
+
+	registry.renderRequests.insert(
+		entity,
+		{ texture,
+			EFFECT_ASSET_ID::TEXTURED,
+			GEOMETRY_BUFFER_ID::SPRITE,
+			RENDER_LAYER_ID::LAYER_4 });
+
+	return entity;
+	}

@@ -56,3 +56,6 @@ Entity createQuestItem(RenderSystem* renderer, vec2 position, TEXTURE_ASSET_ID t
 Entity createCamera(vec2 pos);
 
 Entity createText(RenderSystem* renderer, vec2 position, std::string str, float scale=1.f, vec3 color={1.f, 1.f, 1.f});
+
+// the ending screen text 
+Entity createEndingTextPopUp(RenderSystem* renderer, vec2 position, TEXTURE_ASSET_ID texture);
