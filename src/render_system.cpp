@@ -315,6 +315,10 @@ void RenderSystem::drawParticles(Entity entity,const mat3& view_matrix,const mat
 	glDrawElementsInstanced(GL_TRIANGLES, num_indices, GL_UNSIGNED_SHORT, nullptr, particle_entities.size());
 	gl_has_errors();
 
+	// Free up the buffers
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
 }
 
 // draw the intermediate texture to the screen
