@@ -688,7 +688,7 @@ void WorldSystem::handle_collisions() {
 					//std::cout << "player is invincible......" << std::endl;
 
 					// skip damage
-					return;
+					break;
 				}
 
 				Mob& mob = registry.mobs.get(entity_other);
