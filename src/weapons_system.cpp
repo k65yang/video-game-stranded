@@ -63,6 +63,7 @@ Entity WeaponsSystem::createWeapon(ITEM_TYPE weapon_type) {
 	weapon.projectile_damage = weapon_damage_map[weapon_type];
 	weapon.ammo_count = weapon_ammo_capacity_map[weapon_type]; 
 	
+
     return entity;
 }
 
@@ -163,7 +164,7 @@ ITEM_TYPE WeaponsSystem::getActiveWeapon() {
 }
 
 int WeaponsSystem::getActiveWeaponAmmoCount() {
-	return active_weapon_component->ammo_count;
+	return !active_weapon_component ? 0 : active_weapon_component->ammo_count;
 }
 
 ITEM_TYPE WeaponsSystem::fireWeapon(float player_x, float player_y, float player_angle) {
@@ -284,11 +285,15 @@ void WeaponsSystem::applyWeaponEffects(Entity proj, Entity mob) {
 	Projectile& projectile = registry.projectiles.get(proj);
 	Weapon& weapon = registry.weapons.get(projectile.weapon);
 
+
 	// Apply the weapon effects to the mob if necessary
 	if (weapon.weapon_type == ITEM_TYPE::WEAPON_CROSSBOW && active_weapon_component->level >= 1) {
 		applySlow(mob, 10000.f, 0.1);
 	}
 }
+
+
+
 
 void WeaponsSystem::applySlow(Entity mob, float duration_ms, float slow_ratio) {
 	// If the slow effect exists, assume that it is already applied.

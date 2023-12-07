@@ -17,6 +17,7 @@
 #include "mob_system.hpp"
 #include "spaceship_home_system.hpp"
 #include "quest_system.hpp"
+#include "start_screen_system.hpp"
 #include "common.hpp"
 
 using Clock = std::chrono::high_resolution_clock;
@@ -35,6 +36,7 @@ int main()
 	MobSystem mob_system;
 	AudioSystem audio_system;
 	SpaceshipHomeSystem spaceship_home_system;
+	StartScreenSystem start_screen_system;
 	QuestSystem quest_system;
 
 	// Initializing window
@@ -47,25 +49,50 @@ int main()
 		return EXIT_FAILURE;
 	}
 
-	// initialize the main systems
-	audio_system.init();
+	// Initialize systems needed to display the start screen
+	audio_system.init();		
 	render_system.init(window);
+	particle_system.init(&render_system);
 	weapons_system.init(&render_system, &physics_system);
 	mob_system.init(&render_system, &terrain_system, &physics_system);
 	quest_system.init(&render_system);
 	spaceship_home_system.init(&render_system, &weapons_system, &quest_system);
-	world_system.init(&render_system, &terrain_system, &weapons_system, &physics_system, &mob_system, &audio_system, &spaceship_home_system, &quest_system);
+	world_system.init(&render_system, &terrain_system, &weapons_system, &physics_system, &mob_system, &audio_system, &spaceship_home_system, &quest_system, &particle_system);
+	start_screen_system.init(window, &render_system, &terrain_system);
+
 
 	// Load terrain mesh into the GPU
 	std::unordered_map<unsigned int, RenderSystem::ORIENTATIONS> orientation_map;
 	terrain_system.generate_orientation_map(orientation_map);	// Gets all the tiles with directional textures
 	render_system.initializeTerrainBuffers(orientation_map);
 
+	auto t = Clock::now();
+	float total_elapsed_time = 0.f;
+	while(!start_screen_system.is_finished()) {
+		// Processes system messages, if this wasn't present the window would become unresponsive
+		glfwPollEvents();
+
+		auto now = Clock::now();
+		float elapsed_ms = (float)(std::chrono::duration_cast<std::chrono::microseconds>(now - t)).count() / 1000;
+		t = now;
+		total_elapsed_time += elapsed_ms;
+		
+		start_screen_system.step(elapsed_ms);
+		render_system.drawStartScreens();
+	}
+	// start_screen_system.~StartScreenSystem(); // destructor not working properly, segfaulting...
+
+	// Initialize all other systems
+	weapons_system.init(&render_system, &physics_system);
+	mob_system.init(&render_system, &terrain_system, &physics_system);
+	quest_system.init(&render_system);
+	spaceship_home_system.init(&render_system, &weapons_system, &quest_system);
+	world_system.init(&render_system, &terrain_system, &weapons_system, &physics_system, &mob_system, &audio_system, &spaceship_home_system, &quest_system, &particle_system);
+
 	pathfinding_system.init(&terrain_system);
-	particle_system.init(&render_system);
+	
 
 	// variable timestep loop
-	auto t = Clock::now();
 	while (!world_system.is_over()) {
 		// Processes system messages, if this wasn't present the window would become unresponsive
 		glfwPollEvents();
@@ -83,10 +110,10 @@ int main()
 			terrain_system.step(elapsed_ms);
 			pathfinding_system.step(elapsed_ms);
 			weapons_system.step(elapsed_ms);
-			particle_system.step(elapsed_ms);
 			mob_system.step(elapsed_ms);
 			quest_system.step(elapsed_ms);
 			world_system.handle_collisions();
+			particle_system.step(elapsed_ms);
 		} else {
 			spaceship_home_system.step(elapsed_ms);
 		}

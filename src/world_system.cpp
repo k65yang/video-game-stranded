@@ -70,9 +70,6 @@ GLFWwindow* WorldSystem::create_window() {
 #endif
 	glfwWindowHint(GLFW_RESIZABLE, 0);
 
-	// TODO: make a more elegant solution via manipulating the projection matrix instead of this hack
-	// so UI elements are aspect ratio and resolution independent in theory
-	// Build window size using screen dimensions
 	const GLFWvidmode* mode = glfwGetVideoMode(glfwGetPrimaryMonitor());
 	int y = mode->height;
 	int s = y / aspect_ratio.y;	// scale factor such that s * aspect_ratio = {mode->width, mode->height}. 
@@ -94,6 +91,34 @@ GLFWwindow* WorldSystem::create_window() {
 		return nullptr;
 	}
 
+	return window;
+}
+
+
+
+void WorldSystem::init(
+	RenderSystem* renderer_arg, 
+	TerrainSystem* terrain_arg, 
+	WeaponsSystem* weapons_system_arg, 
+	PhysicsSystem* physics_system_arg, 
+	MobSystem* mob_system_arg, 
+	AudioSystem* audio_system_arg,
+	SpaceshipHomeSystem* spaceship_home_system_arg,
+	QuestSystem* quest_system_arg,
+	ParticleSystem* particle_system_arg
+) {
+
+	this->renderer = renderer_arg;
+	this->terrain = terrain_arg;
+	this->weapons_system = weapons_system_arg;
+	this->mob_system = mob_system_arg;
+	this->physics_system = physics_system_arg;
+	this->audio_system = audio_system_arg;
+	this->spaceship_home_system = spaceship_home_system_arg;
+	this->quest_system = quest_system_arg;
+	this->particle_system = particle_system_arg;
+
+
 	// Setting callbacks to member functions (that's why the redirect is needed)
 	// Input is handled using GLFW, for more info see
 	// http://www.glfw.org/docs/latest/input_guide.html
@@ -104,28 +129,6 @@ GLFWwindow* WorldSystem::create_window() {
 	glfwSetKeyCallback(window, key_redirect);
 	glfwSetCursorPosCallback(window, cursor_pos_redirect);
 	glfwSetMouseButtonCallback(window, cursor_button_redirect);
-
-	return window;
-}
-
-void WorldSystem::init(
-	RenderSystem* renderer_arg, 
-	TerrainSystem* terrain_arg, 
-	WeaponsSystem* weapons_system_arg, 
-	PhysicsSystem* physics_system_arg, 
-	MobSystem* mob_system_arg, 
-	AudioSystem* audio_system_arg,
-	SpaceshipHomeSystem* spaceship_home_system_arg,
-	QuestSystem* quest_system_arg
-) {
-	this->renderer = renderer_arg;
-	this->terrain = terrain_arg;
-	this->weapons_system = weapons_system_arg;
-	this->mob_system = mob_system_arg;
-	this->physics_system = physics_system_arg;
-	this->audio_system = audio_system_arg;
-	this->spaceship_home_system = spaceship_home_system_arg;
-	this->quest_system = quest_system_arg;
 
 	// Set all states to default
 	restart_game();
@@ -207,6 +210,9 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 		if (player.iframes_timer < 0) {
 			player.iframes_timer = 0;
+			physics_system->isPlayerInvincible = false;
+			//std::cout << "player is normalll..." << std::endl; //DELETE LATER
+
 		}
 		
 		if (player.health_decrease_time < 0) {
@@ -259,13 +265,13 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		Player& player = registry.players.get(player_salmon);
 		Motion& m = registry.motions.get(player_salmon);
 
-		// Apply food decreasing the more you travel. 
-		if (player.food > 0) {
-			if (PLAYER_TOTAL_DISTANCE >= FOOD_DECREASE_THRESHOLD ) {
-				// Decrease player's food by 1
-				player.food -= 1;
-				// Shrink the food bar
-				player.food_decrease_time = IFRAMES;
+	// Apply food decreasing the more you travel. 
+	if (player.food > 0) {
+		if (PLAYER_TOTAL_DISTANCE >= FOOD_DECREASE_THRESHOLD && !debugging.in_debug_mode) {
+			// Decrease player's food by 1
+			player.food -= 1;
+			// Shrink the food bar
+			player.food_decrease_time = IFRAMES;
 
 				// Reset the total movement distance
 				PLAYER_TOTAL_DISTANCE = 0;
@@ -337,15 +343,20 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 				hp.remaining_time_for_next_heal = hp.heal_interval_ms;
 				player.health = std::min(PLAYER_MAX_HEALTH, player.health + hp.heal_amount);
 
-				// light up the health bar
-				if (registry.colors.has(health_bar)) {
-					// can happen when the light up period is longer than the heal interval
-				}
-				else {
-					vec4& color = registry.colors.emplace(health_bar);
-					color = vec4(.5f, .5f, .5f, 1.f);
-				}
-				hp.light_up_timer_ms = hp.light_up_duration_ms;
+			// creating particles effects for healing
+			
+			particle_system->createFloatingHeart(player_salmon, TEXTURE_ASSET_ID::HEART_PARTICLE, 6);
+			
+
+
+			// light up the health bar
+			if (registry.colors.has(health_bar)) {
+				// can happen when the light up period is longer than the heal interval
+			} else {
+				vec4& color = registry.colors.emplace(health_bar);
+				color = vec4(.5f, .5f, .5f, 1.f);
+			}
+			hp.light_up_timer_ms = hp.light_up_duration_ms;
 
 				vec2 new_health_scale = vec2(((float)player.health / (float)PLAYER_MAX_HEALTH) * HEALTH_BAR_SCALE[0], HEALTH_BAR_SCALE[1]);
 				health.scale = interpolate(health.scale, new_health_scale, 1);
@@ -361,7 +372,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		Motion& motion = registry.motions.get(entity);
 		Motion& health = registry.motions.get(mob.health_bar);
 		vec2& mob_position = motion.position;
-		vec2 health_position = { mob_position.x, mob_position.y + 1 };
+		vec2 health_position = { mob_position.x, mob_position.y - 1 };
 		health.position = health_position;
 
 		// slow updates
@@ -422,7 +433,16 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 				printf("INACCURACY REMOVED\n");
 			}
 		}
+
+		// creating particles effects for character upgrades
+		if (registry.speedPowerup.has(entity)) {
+			particle_system->createParticleTrail(entity, TEXTURE_ASSET_ID::PLAYER_PARTICLE, 2, vec2{0.7f, 1.0f});
+		}
+
+		
+
 	}
+
 
 	
 	if (registry.spaceshipParts.has(spaceship_depart)) {
@@ -642,6 +662,7 @@ void WorldSystem::handle_collisions() {
 	// Loop over all collisions detected by the physics system
 	auto& collisionsRegistry = registry.collisions;
 	vec2 hasCorrectedDirection = {0,0};
+	int correctionCount = 0;
 
 	for (uint i = 0; i < collisionsRegistry.components.size(); i++) {
 		// The entity and its collider
@@ -680,22 +701,27 @@ void WorldSystem::handle_collisions() {
 
 			// Checking Player - Mobs
 			if (registry.mobs.has(entity_other)) {
-
-				// prevent player stack on top of mob upon colliding
-				/* TODO for m4
-				Motion& player_motion = registry.motions.get(entity);
-				vec2 correctionVec = registry.collisions.components[i].MTV * registry.collisions.components[i].overlap;
-				player_motion.position = player_motion.position + correctionVec;
-				*/
-
+				
+				
 				if (player.iframes_timer > 0 || registry.deathTimers.has(entity)) {
-					// Don't damage and discard all other collisions for a bit
-					collisionsRegistry.clear();
-					return;
+					// discard all player vs mob collision
+					for (int i = 0; i < collisionsRegistry.size(); i++) {
+						if (registry.players.has(collisionsRegistry.entities[i]) && registry.mobs.has(collisionsRegistry.components[i].other_entity))
+							collisionsRegistry.remove(collisionsRegistry.entities[i]);
+						//std::cout << "removed one colliisions." << std::endl;
+
+					}
+
+					// set player to ignore mob collision
+					physics_system->isPlayerInvincible = true;
+					//std::cout << "player is invincible......" << std::endl;
+
+					// skip damage
+					break;
 				}
 
 				Mob& mob = registry.mobs.get(entity_other);
-				player.health -= mob.damage;
+				player.health = max(0, player.health - mob.damage);
 				mob_system->apply_mob_attack_effects(entity, entity_other);
 
 				// Shrink the health bar
@@ -706,10 +732,17 @@ void WorldSystem::handle_collisions() {
 				player.iframes_timer = IFRAMES;
 
 				if (player.health <= 0) {
+					audio_system->play_one_shot(AudioSystem::PLAYER_DEATH);
 					if (!registry.deathTimers.has(entity)) {
 						// TODO: game over screen
 						registry.deathTimers.emplace(entity);
 					}
+				}
+				else {
+					if (player.health <= PLAYER_MAX_HEALTH * 0.25f)
+						audio_system->play_one_shot(AudioSystem::PLAYER_LOW_HEALTH);
+					else
+						audio_system->play_one_shot(AudioSystem::PLAYER_HIT);
 				}
 
 				// reset health powerup values
@@ -746,15 +779,19 @@ void WorldSystem::handle_collisions() {
 				switch (item.data) {
 					case ITEM_TYPE::QUEST_ONE:
 						quest_system->processQuestItem(item.data, QUEST_ITEM_STATUS::FOUND);
+						audio_system->play_one_shot(AudioSystem::QUEST_PICKUP);
 						break;
 					case ITEM_TYPE::QUEST_TWO:
 						quest_system->processQuestItem(item.data, QUEST_ITEM_STATUS::FOUND);
+						audio_system->play_one_shot(AudioSystem::QUEST_PICKUP);
 						break;
 					case ITEM_TYPE::QUEST_THREE:
 						quest_system->processQuestItem(item.data, QUEST_ITEM_STATUS::FOUND);
+						audio_system->play_one_shot(AudioSystem::QUEST_PICKUP);
 						break;
 					case ITEM_TYPE::QUEST_FOUR:
 						quest_system->processQuestItem(item.data, QUEST_ITEM_STATUS::FOUND);
+						audio_system->play_one_shot(AudioSystem::QUEST_PICKUP);
 						break;
 					case ITEM_TYPE::FOOD:
 						// Add to food bar
@@ -762,21 +799,26 @@ void WorldSystem::handle_collisions() {
 						if (player.food > PLAYER_MAX_FOOD) {
 							player.food = PLAYER_MAX_FOOD;
 						}
+
 						break;
 					case ITEM_TYPE::WEAPON_NONE:
 						// Do nothing
 						break;
 					case ITEM_TYPE::WEAPON_SHURIKEN:
 						weapons_system->increaseAmmo(ITEM_TYPE::WEAPON_SHURIKEN, 5);
+						audio_system->play_one_shot(AudioSystem::RELOAD_SHURIKEN);
 						break;
 					case ITEM_TYPE::WEAPON_CROSSBOW:
 						weapons_system->increaseAmmo(ITEM_TYPE::WEAPON_CROSSBOW, 5);
+						audio_system->play_one_shot(AudioSystem::RELOAD_CROSSBOW);
 						break;
 					case ITEM_TYPE::WEAPON_SHOTGUN:
 						weapons_system->increaseAmmo(ITEM_TYPE::WEAPON_SHOTGUN, 3);
+						audio_system->play_one_shot(AudioSystem::RELOAD_SHOTGUN);
 						break;
 					case ITEM_TYPE::WEAPON_MACHINEGUN:
 						weapons_system->increaseAmmo(ITEM_TYPE::WEAPON_MACHINEGUN, 10);
+						audio_system->play_one_shot(AudioSystem::RELOAD_MG);
 						break;
 					case ITEM_TYPE::WEAPON_UPGRADE:
 						weapons_system->upgradeWeapon();
@@ -798,11 +840,7 @@ void WorldSystem::handle_collisions() {
 						speedPowerup.old_speed = current_speed;
 						current_speed *= 2;
 
-						// Give a particle trail to the player
-						ParticleTrail& pt = registry.particleTrails.emplace(player_salmon);
-						pt.is_alive = true;
-						pt.texture = TEXTURE_ASSET_ID::PLAYER_PARTICLE;
-						pt.motion_component_ptr = &registry.motions.get(player_salmon);
+		
 
 						// Add the powerup indicator
 						if (user_has_powerup)
@@ -810,6 +848,7 @@ void WorldSystem::handle_collisions() {
 						powerup_indicator = createPowerupIndicator(renderer, {-9.5f, 5.f}, TEXTURE_ASSET_ID::ICON_POWERUP_SPEED);
 						user_has_powerup = true;
 						break;
+
 					}
 					case ITEM_TYPE::POWERUP_HEALTH:
 						// remove the speed power up if already equipped
@@ -818,8 +857,6 @@ void WorldSystem::handle_collisions() {
 							current_speed = registry.speedPowerup.get(player_salmon).old_speed;
 							registry.speedPowerup.remove(player_salmon);
 
-							// Set the particle trail to dead
-							registry.particleTrails.get(player_salmon).is_alive = false;
 						}
 
 						// Give health powerup to player. Use default values in struct definition.
@@ -838,6 +875,8 @@ void WorldSystem::handle_collisions() {
 			}
 		}
 
+		
+
 		// Collisions involving projectiles. 
 		// For now, the projectile will be removed upon any collisions with mobs/terrain
 		// In the future, an idea could be "pass-through weapons", weapons that can collateral?
@@ -846,6 +885,10 @@ void WorldSystem::handle_collisions() {
 
 			// Checking Projectile - Mobs
 			if (registry.mobs.has(entity_other)) {
+
+				// blood splash particle effects
+				particle_system->createParticleSplash(entity, entity_other, 10, collisionsRegistry.components[i].MTV);
+
 				Mob& mob = registry.mobs.get(entity_other);
 
 				// Mob takes damage. Kill if no hp left.
@@ -859,7 +902,7 @@ void WorldSystem::handle_collisions() {
 				else {
 					audio_system->play_one_shot(AudioSystem::MOB_HIT);
 					Motion& health = registry.motions.get(mob.health_bar);
-					health.scale = vec2(((float)mob.health / (float)mob_system->mob_health_map.at(mob.type)) * 5.5, 0.7);
+					health.scale = vec2(((float)mob.health / (float)mob_system->mob_health_map.at(mob.type)) * 3.5, 0.7);
 				}
 
 				// Add weapon effects to the mob
@@ -975,8 +1018,10 @@ void WorldSystem::update_spaceship_depart() {
 		// create depart spaceship
 		spaceship_depart = createSpaceshipDepart(renderer); 
 		// remove particle effect
+		/*
 		if (registry.particleTrails.has(player_salmon)) 
 			registry.particleTrails.get(player_salmon).is_alive = false;
+			*/
 		// remove player		
 		registry.renderRequests.remove(player_salmon);
 		// disable player movements 
@@ -992,30 +1037,6 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 
 	// Movement with velocity handled in step function  
 	update_key_presses(key, action);
-
-	/*
-	if (action == GLFW_PRESS && key == GLFW_KEY_G) {
-		Motion& player = registry.motions.get(player_salmon);
-		Entity tile = terrain->get_cell(player.position);
-		TerrainCell& cell = registry.terrainCells.get(tile);
-		cell.terrain_type = TERRAIN_TYPE::ROCK;
-		terrain->update_tile(tile, cell);
-	}
-
-	if (action == GLFW_PRESS && key == GLFW_KEY_V) {
-		Motion& player = registry.motions.get(player_salmon);
-		Entity tile = terrain->get_cell(player.position);
-
-		std::vector<Entity> entities;
-		terrain->get_accessible_neighbours(tile, entities);
-		for (Entity e : entities) {
-			TerrainCell& cell = registry.terrainCells.get(e);
-			cell.terrain_type = TERRAIN_TYPE::ROCK;
-			cell.flag |= TERRAIN_FLAGS::COLLIDABLE;
-			terrain->update_tile(e, cell);
-		}
-	}
-	*/
 
 	// Saving and reloading
 	if (action == GLFW_PRESS && key == GLFW_KEY_L) {
@@ -1076,9 +1097,6 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 
 	// Resetting game
 	if (action == GLFW_RELEASE && key == GLFW_KEY_R) {
-		int w, h;
-		glfwGetWindowSize(window, &w, &h);
-
 		restart_game();
 	}
 
@@ -1086,9 +1104,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		if (player.is_home) {
 			// Exit spaceship
 			spaceship_home_system->exitSpaceship();
-			// Exit home screen and go back to world 
-			//player.is_home = false;
-			//player_motion.position = { 0,0 };
+			audio_system->play_one_shot(AudioSystem::SHIP_LEAVE);
 			update_spaceship_depart(); 
 		} else {
 			// Close the window if not in home screen
@@ -1103,91 +1119,19 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 
 			if (action == GLFW_PRESS && key == GLFW_KEY_E ) {
 				spaceship_home_system->enterSpaceship(health_bar, food_bar);
+				audio_system->play_one_shot(AudioSystem::SHIP_ENTER);
+
 			}
 		}
 	}
 
 
-	// Debugging
-	/*if (key == GLFW_KEY_D) {
-		if (action == GLFW_RELEASE)
-			debugging.in_debug_mode = false;
-		else
-			debugging.in_debug_mode = true;
-	}*/
+	if (key == GLFW_KEY_F1 && action == GLFW_PRESS)
+		debugging.hide_ui = !debugging.hide_ui;
 
 	// Level editor controls
 	if (debugging.in_debug_mode && action == GLFW_PRESS) {
-		if (key == GLFW_KEY_KP_1) {	// numpad 1
-			// Toggle collidable flag
-			editor_flag ^= TERRAIN_FLAGS::COLLIDABLE;
-			if (editor_flag & TERRAIN_FLAGS::COLLIDABLE)
-				std::cout << "New terrain are now collidable" << std::endl;
-			else
-				std::cout << "New terrain are now non-collidable" << std::endl;
-		}
-		if (key == GLFW_KEY_KP_2) {	// numpad 2
-			// Toggles pathfindable flag
-			editor_flag ^= TERRAIN_FLAGS::DISABLE_PATHFIND;
-			if (editor_flag & TERRAIN_FLAGS::DISABLE_PATHFIND)
-				std::cout << "New terrain are now inaccessible to mobs" << std::endl;
-			else
-				std::cout << "New terrain are now accessible for mobs" << std::endl;
-		}
-		if (key == GLFW_KEY_KP_3) {	// numpad 3
-			// Toggles pathfindable flag
-			editor_flag ^= TERRAIN_FLAGS::ALLOW_SPAWNS;
-			if (editor_flag & TERRAIN_FLAGS::ALLOW_SPAWNS)
-				std::cout << "New terrain can now be spawned by items and mobs (if no collision)" << std::endl;
-			else
-				std::cout << "New terrain are now removed from the spawning pool" << std::endl;
-		}
-		if (key == GLFW_KEY_KP_SUBTRACT) {	// numpad -
-			// Goes down a TERRAIN_TYPE
-			if (editor_terrain == 0) {
-				editor_terrain = static_cast<TERRAIN_TYPE>(TERRAIN_COUNT - 1);
-			}
-			else {
-				editor_terrain = static_cast<TERRAIN_TYPE>(editor_terrain - 1);
-			}
-			std::cout << "Tile: " << std::to_string(editor_terrain) << std::endl;
-		}
-		if (key == GLFW_KEY_KP_ADD) {	// numpad '+'
-			// Goes up a TERRAIN_TYPE
-
-			editor_terrain = static_cast<TERRAIN_TYPE>(editor_terrain + 1);
-			if (editor_terrain == TERRAIN_COUNT) {
-				editor_terrain = static_cast<TERRAIN_TYPE>(0);
-			}
-			std::cout << "Tile: " << std::to_string(editor_terrain) << std::endl;
-		}
-		if (key == GLFW_KEY_KP_DECIMAL)	// numpad '.'
-			// Saves map data
-			terrain->save_grid(loaded_map_name);	
-		/*
-		if (key == GLFW_KEY_PAGE_UP) { // PageUp ke
-			// This expands the map to world_size_x, world_size_y.
-			// Make sure you disable item and mob spawning because physics and pathfinding
-			// will break!!
-			terrain->expand_map(world_size_x, world_size_y);
-			//restart_game();
-			renderer->empty_terrain_buffer();
-			
-			std::unordered_map<unsigned, RenderSystem::ORIENTATIONS> orientations;
-			terrain->generate_orientation_map(orientations);
-			renderer->initializeTerrainBuffers(orientations);
-
-			for (unsigned int i = 0; i < registry.terrainCells.entities.size(); i++) {
-				Entity e = registry.terrainCells.entities[i];
-				TerrainCell& cell = registry.terrainCells.components[i];
-
-				if (cell.flag & TERRAIN_FLAGS::COLLIDABLE)
-					createDefaultCollider(e);
-			}
-
-			physics_system->initStaticBVH(registry.colliders.size());
-		}
-		*/
+		process_editor_controls(action, key);
 	}
 
 	// Press B to toggle debug mode
@@ -1254,6 +1198,81 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		weapons_system->upgradeWeapon();
 	}
 }
+void WorldSystem::process_editor_controls(int action, int key)
+{
+	if (key == GLFW_KEY_KP_1) {	// numpad 1
+		// Toggle collidable flag
+		editor_flag ^= TERRAIN_FLAGS::COLLIDABLE;
+		if (editor_flag & TERRAIN_FLAGS::COLLIDABLE)
+			std::cout << "New terrain are collidable" << std::endl;
+		else
+			std::cout << "New terrain are non-collidable" << std::endl;
+	}
+	if (key == GLFW_KEY_KP_2) {	// numpad 2
+		// Toggles pathfindable flag
+		editor_flag ^= TERRAIN_FLAGS::DISABLE_PATHFIND;
+		if (editor_flag & TERRAIN_FLAGS::DISABLE_PATHFIND)
+			std::cout << "New terrain is now accessible for regular mobs" << std::endl;
+		else
+			std::cout << "New terrain will not be accessible for regular mobs" << std::endl;
+	}
+	if (key == GLFW_KEY_KP_3) {	// numpad 3
+		// Toggles pathfindable flag
+		editor_flag ^= TERRAIN_FLAGS::ALLOW_SPAWNS;
+		if (editor_flag & TERRAIN_FLAGS::ALLOW_SPAWNS)
+			std::cout << "New terrain allows random item and mob spawning" << std::endl;
+		else
+			std::cout << "New terrain will not allow random spawning" << std::endl;
+	}
+	if (key == GLFW_KEY_KP_SUBTRACT) {	// numpad -
+		// Goes down a TERRAIN_TYPE
+		if (editor_terrain == 0) {
+			editor_terrain = static_cast<TERRAIN_TYPE>(TERRAIN_COUNT - 1);
+		}
+		else {
+			editor_terrain = static_cast<TERRAIN_TYPE>(editor_terrain - 1);
+		}
+		std::cout << "Tile: " << std::to_string(editor_terrain) << std::endl;
+	}
+	if (key == GLFW_KEY_KP_ADD) {	// numpad '+'
+		// Goes up a TERRAIN_TYPE
+
+		editor_terrain = static_cast<TERRAIN_TYPE>(editor_terrain + 1);
+		if (editor_terrain == TERRAIN_COUNT) {
+			editor_terrain = static_cast<TERRAIN_TYPE>(0);
+		}
+		std::cout << "Tile: " << std::to_string(editor_terrain) << std::endl;
+	}
+	if (key == GLFW_KEY_KP_DECIMAL)	// numpad '.'
+		// Saves map data
+		terrain->save_grid(loaded_map_name);
+	if (key == GLFW_KEY_PAGE_UP) { // PageUp key
+		// This expands the map to world_size_x, world_size_y.
+		// Make sure you disable item and mob spawning because physics and pathfinding
+		// will break!!
+		assert(registry.mobs.entities.empty());
+		assert(registry.items.entities.empty());
+		assert(registry.healthPowerup.entities.empty());
+		assert(registry.speedPowerup.entities.empty());
+
+		terrain->expand_map(world_size_x, world_size_y);
+		renderer->empty_terrain_buffer();
+
+		std::unordered_map<unsigned, RenderSystem::ORIENTATIONS> orientations;
+		terrain->generate_orientation_map(orientations);
+		renderer->initializeTerrainBuffers(orientations);
+
+		for (unsigned int i = 0; i < registry.terrainCells.entities.size(); i++) {
+		Entity e = registry.terrainCells.entities[i];
+		TerrainCell& cell = registry.terrainCells.components[i];
+
+		if (cell.flag & TERRAIN_FLAGS::COLLIDABLE)
+			physics_system->createDefaultCollider(e);
+		}
+
+		physics_system->initStaticBVH(registry.colliders.size());
+	}
+}
 /// <summary>
 /// Rotates player to follow mouse movement
 /// </summary>
@@ -1287,13 +1306,34 @@ void WorldSystem::on_mouse_click(int button, int action, int mods) {
 			// Play appropriate shooting noises if we've just shot
 			ITEM_TYPE fired_weapon = weapons_system->fireWeapon(player_motion.position.x, player_motion.position.y, CURSOR_ANGLE);
 
-			switch (fired_weapon) {
-				case ITEM_TYPE::WEAPON_SHOTGUN:
-					audio_system->play_one_shot(AudioSystem::SHOT); break;
-				case ITEM_TYPE::WEAPON_MACHINEGUN:
-					audio_system->play_one_shot(AudioSystem::SHOT_MG); break;
-				case ITEM_TYPE::WEAPON_CROSSBOW:
-					audio_system->play_one_shot(AudioSystem::SHOT_CROSSBOW); break;
+			// If we successfully shot...
+			if (fired_weapon != ITEM_TYPE::WEAPON_NONE)
+				switch (fired_weapon) {
+					case ITEM_TYPE::WEAPON_SHOTGUN:
+						audio_system->play_one_shot(AudioSystem::SHOT); break;
+					case ITEM_TYPE::WEAPON_MACHINEGUN:
+						audio_system->play_one_shot(AudioSystem::SHOT_MG); break;
+					case ITEM_TYPE::WEAPON_CROSSBOW:
+						audio_system->play_one_shot(AudioSystem::SHOT_CROSSBOW); break;
+					case ITEM_TYPE::WEAPON_SHURIKEN:
+						audio_system->play_one_shot(AudioSystem::SHOT_SHURIKEN); break;
+				}
+
+			// We didn't shoot successfully since we ran out of ammo
+			else if (weapons_system->getActiveWeaponAmmoCount() <= 0 && player_equipped_weapon) {
+				fired_weapon = weapons_system->getActiveWeapon();
+
+				if (fired_weapon == ITEM_TYPE::WEAPON_NONE)
+					return;
+
+				switch (fired_weapon) {
+					case ITEM_TYPE::WEAPON_SHOTGUN:
+						audio_system->play_one_shot(AudioSystem::EMPTY_SHOTGUN); break;
+					case ITEM_TYPE::WEAPON_MACHINEGUN:
+						audio_system->play_one_shot(AudioSystem::EMPTY_MG); break;
+					case ITEM_TYPE::WEAPON_CROSSBOW:
+						audio_system->play_one_shot(AudioSystem::EMPTY_CROSSBOW); break;
+				}
 			}
 		}
 	}
@@ -1310,7 +1350,7 @@ void WorldSystem::map_editor_routine() {
 	mat3 view_ = renderer->createModelMatrix(main_camera);
 
 	// You can cache this to save performance.
-	mat3 proj_ = inverse(renderer->createProjectionMatrix());
+	mat3 proj_ = inverse(renderer->createScaledProjectionMatrix());
 
 	double xpos, ypos;
 	glfwGetCursorPos(window, &xpos, &ypos);	// For some reason it only supports doubles!
@@ -1517,11 +1557,6 @@ void WorldSystem::load_game(json j) {
 				speedPowerup.old_speed = current_speed;
 				current_speed *= 2;
 
-				// Give a particle trail to the player
-				ParticleTrail& pt = registry.particleTrails.emplace(player_salmon);
-				pt.is_alive = true;
-				pt.texture = TEXTURE_ASSET_ID::PLAYER_PARTICLE;
-				pt.motion_component_ptr = &registry.motions.get(player_salmon);
 
 				// UI Indicator
 				powerup_indicator = createPowerupIndicator(renderer, { -9.5f + camera_motion.position.x, 5.f + camera_motion.position.y }, TEXTURE_ASSET_ID::ICON_POWERUP_SPEED);
