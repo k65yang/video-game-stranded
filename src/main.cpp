@@ -108,8 +108,10 @@ int main()
 			(float)(std::chrono::duration_cast<std::chrono::microseconds>(now - t)).count() / 1000;
 		t = now;
 
-		// Pause game when player is in spaceship home  
-		if (!spaceship_home_system.isHome()) {
+		// Pause game when player is in spaceship home or help dialog is open  
+		if (spaceship_home_system.isHome() || tutorial_system.isHelpDialogOpen()) {
+			spaceship_home_system.step(elapsed_ms);
+		} else {
 			world_system.step(elapsed_ms);
 			physics_system.step(elapsed_ms);
 			terrain_system.step(elapsed_ms);
@@ -119,12 +121,9 @@ int main()
 			quest_system.step(elapsed_ms);
 			world_system.handle_collisions();
 			particle_system.step(elapsed_ms);
-		} else {
-			spaceship_home_system.step(elapsed_ms);
 		}
 
 		tutorial_system.step(elapsed_ms);
-
 		render_system.draw();
 	}
 
