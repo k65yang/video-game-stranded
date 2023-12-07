@@ -46,6 +46,7 @@ public:
 	int numberOfColliders;
 	float detectRange;
 	void step(float elapsed_ms);
+	bool isPlayerInvincible = false;
 
 	/// <summary>
 	/// Initializes the static BVH with N:number of colliders (all terrain colliders). Total number of tree nodes is 2N - 1.

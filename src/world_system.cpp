@@ -196,6 +196,9 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 		if (player.iframes_timer < 0) {
 			player.iframes_timer = 0;
+			physics_system->isPlayerInvincible = false;
+			//std::cout << "player is normalll..." << std::endl; //DELETE LATER
+
 		}
 		
 		if (player.health_decrease_time < 0) {
@@ -672,8 +675,19 @@ void WorldSystem::handle_collisions() {
 				
 				
 				if (player.iframes_timer > 0 || registry.deathTimers.has(entity)) {
-					// Don't damage and discard all other collisions for a bit
-					collisionsRegistry.clear();
+					// discard all player vs mob collision
+					for (int i = 0; i < collisionsRegistry.size(); i++) {
+						if (registry.players.has(collisionsRegistry.entities[i]) && registry.mobs.has(collisionsRegistry.components[i].other_entity))
+							collisionsRegistry.remove(collisionsRegistry.entities[i]);
+						//std::cout << "removed one colliisions." << std::endl;
+
+					}
+
+					// set player to ignore mob collision
+					physics_system->isPlayerInvincible = true;
+					//std::cout << "player is invincible......" << std::endl;
+
+					// skip damage
 					return;
 				}
 

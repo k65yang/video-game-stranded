@@ -671,12 +671,15 @@ void PhysicsSystem::step(float elapsed_ms)
 
 	// player against mob - brute force...
 
-	for (int i = 0; i < mob_entity_container.size(); i++) {
-		bool c = collides(player_entity, mob_entity_container[i]);
-		if (c) {
+	// ignore check against mob if player is invincible. The bool is updated by iframe timer
+	if (!isPlayerInvincible) {
+		for (int i = 0; i < mob_entity_container.size(); i++) {
+			bool c = collides(player_entity, mob_entity_container[i]);
+
+
 		}
-	
 	}
+	
 
 	// projectile against mob - brute force...
 	for (int i = 0; i < projectile_entity_container.size(); i++) {
