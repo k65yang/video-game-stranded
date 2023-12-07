@@ -51,3 +51,22 @@ Milestone 3
 <b></b> <br>
 ## How to start
 Build instructions are exactly the same as A1/A2. The .exe is even named salmon.exe! Make sure to regenerate the CMake cache if you are having build errors.
+
+<b></b> <br>
+### Image Credits
+
+_Only assets taken from the web are credited here. If the image is not mentioned, then we made it ourselves._
+
+Player upgrade - Healing Icon: https://www.flaticon.com/free-icon/regeneration_4490839?term=healing&page=1&position=8&origin=search&related_id=4490839
+
+Player upgrade - Speed Icon: https://www.flaticon.com/free-icon/speed_1409012?related_id=1409083&origin=search
+
+Shuriken Weapon Icon: ???
+
+Crossbow Weapon Icon: https://www.flaticon.com/free-icon/crossbow_486976
+
+Shotgun Weapon Icon: https://simon-develop.itch.io/shotgun 
+
+Machine Gun Weapon Icon: https://pixabay.com/vectors/kalashnikov-rifle-russian-weapon-155147/
+
+Start Button: https://www.flaticon.com/free-icon/start-button_5261929?related_id=5261874&origin=search 
