@@ -1212,6 +1212,8 @@ void WorldSystem::on_mouse_click(int button, int action, int mods) {
 
 		if (!tutorial_system->isHelpDialogOpen() && tutorial_system->isMouseOverHelpButton(mouse_pos_clip)) {
 			tutorial_system->openHelpDialog();
+		} else if (tutorial_system->isHelpDialogOpen() && tutorial_system->isMouseOverHelpButton(mouse_pos_clip)) {
+			tutorial_system->closeHelpDialog();
 		}
 	}
 
