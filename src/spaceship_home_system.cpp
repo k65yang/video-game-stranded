@@ -55,23 +55,23 @@ void SpaceshipHomeSystem::enterSpaceship(Entity player_health_bar, Entity player
 	}
 
 	// Regenerate health
-	regenerateStat(player_info.health, spaceship_home_info.health_storage, PLAYER_MAX_HEALTH);
+	updateStat(player_info.health, spaceship_home_info.health_storage, PLAYER_MAX_HEALTH);
 	updateStatBar(player_info.health, player_health_bar_motion, PLAYER_MAX_HEALTH, HEALTH_BAR_SCALE);
 	health_storage_count = createText(
 		renderer, 
 		HEALTH_STORAGE_COUNT_POSITION, 
-		createStorageCountText(spaceship_home_info.health_storage), 
+		createStorageCountTextString(spaceship_home_info.health_storage), 
 		STORAGE_COUNT_TEXT_SCALE, 
 		spaceship_home_info.health_storage > 0 ? STORAGE_FULL_TEXT_COLOR : STORAGE_EMPTY_TEXT_COLOR 
 	);
 
 	// Regenerate food
-	regenerateStat(player_info.food, spaceship_home_info.food_storage, PLAYER_MAX_FOOD);
+	updateStat(player_info.food, spaceship_home_info.food_storage, PLAYER_MAX_FOOD);
 	updateStatBar(player_info.food, player_food_bar_motion, PLAYER_MAX_FOOD, FOOD_BAR_SCALE);
 	food_storage_count = createText(
 		renderer, 
 		FOOD_STORAGE_COUNT_POSITION, 
-		createStorageCountText(spaceship_home_info.food_storage), 
+		createStorageCountTextString(spaceship_home_info.food_storage), 
 		STORAGE_COUNT_TEXT_SCALE, 
 		spaceship_home_info.food_storage > 0 ? STORAGE_FULL_TEXT_COLOR : STORAGE_EMPTY_TEXT_COLOR 
 	);
@@ -90,7 +90,7 @@ void SpaceshipHomeSystem::enterSpaceship(Entity player_health_bar, Entity player
 	ammo_storage_count = createText(
 		renderer, 
 		AMMO_STORAGE_COUNT_POSITION, 
-		createStorageCountText(spaceship_home_info.ammo_storage), 
+		createStorageCountTextString(spaceship_home_info.ammo_storage), 
 		STORAGE_COUNT_TEXT_SCALE, 
 		spaceship_home_info.ammo_storage > 0 ? STORAGE_FULL_TEXT_COLOR : STORAGE_EMPTY_TEXT_COLOR 
 	);
@@ -114,6 +114,18 @@ void SpaceshipHomeSystem::exitSpaceship() {
 
 bool SpaceshipHomeSystem::isHome() {
     return registry.players.components[0].is_home;
+};
+
+bool SpaceshipHomeSystem::isMouseOverStorageItem(vec2 mouse_pos, ITEM_TYPE type) {
+	return false;
+};
+
+void SpaceshipHomeSystem::regenerateStat(RESOURCE_TYPE type) {
+
+};
+
+Entity SpaceshipHomeSystem::updateStorageCountText(RESOURCE_TYPE type) {
+	return Entity();
 };
 
 Entity SpaceshipHomeSystem::createSpaceshipHome(vec2 position, int health_storage, int food_storage, int ammo_storage) {
@@ -192,7 +204,7 @@ Entity SpaceshipHomeSystem::createSpaceshipHomeItem(vec2 position, TEXTURE_ASSET
 	return entity;
 };
 
-void SpaceshipHomeSystem::regenerateStat(int& stat, int& storage, int max_stat_value) {
+void SpaceshipHomeSystem::updateStat(int& stat, int& storage, int max_stat_value) {
 	int missing = max_stat_value - stat;
 	
 	if (missing <= storage) {
@@ -212,6 +224,6 @@ void SpaceshipHomeSystem::updateStorageBar(int new_val, Motion& bar, int max_bar
 	bar.scale = vec2(scale_factor.x, ((float) new_val / (float) max_bar_value) * scale_factor.y);
 };
 
-std::string SpaceshipHomeSystem::createStorageCountText(int storage) {
+std::string SpaceshipHomeSystem::createStorageCountTextString(int storage) {
 	return "x " + std::to_string(storage);
 };

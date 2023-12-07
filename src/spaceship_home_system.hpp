@@ -45,6 +45,21 @@ class SpaceshipHomeSystem
         /// @return Returns true if the player is in the spaceship home, false otherwise
         bool isHome();
 
+        /// @brief Checks if the mouse is hovering over a storage item
+        /// @param mouse_pos The position of the mouse in clip coordinates
+        /// @param type The storage item to check
+        /// @return Returns true if the mouse is hovering over the storage item, false otherwise
+        bool isMouseOverStorageItem(vec2 mouse_pos, ITEM_TYPE type);
+
+        /// @brief Regenerates a stat of the player (ex. health, food, ammo) using a resource stored in the spaceship 
+        /// @param type The type of the resource to use to regenerate the stat
+        void regenerateStat(RESOURCE_TYPE type);
+
+        /// @brief Updates the text count for a resource in storage
+        /// @param type The type of the resource to update the text count for
+        /// @return The updated text count
+        Entity updateStorageCountText(RESOURCE_TYPE type);
+
     private:
         const vec2 SPACESHIP_HOME_POSITION = { 0.f, 0.f };
         const vec2 FOOD_ITEM_POSITION = { -6.2f, -0.5f };
@@ -82,11 +97,11 @@ class SpaceshipHomeSystem
         /// @return The created entity
         Entity createSpaceshipHomeItem(vec2 position, TEXTURE_ASSET_ID texture);
 
-        /// @brief Regenerates a stat of the player (ex. health, food, ammo) using resources stored in the spaceship
+        /// @brief Updates a stat of the player (ex. health, food, ammo) using resources stored in the spaceship
         /// @param stat The current value of the stat
         /// @param storage The current value of the resoure in the spaceship
         /// @param max_stat_value The max value the player can have for the stat
-        void regenerateStat(int& stat, int& storage, int max_stat_value);
+        void updateStat(int& stat, int& storage, int max_stat_value);
 
         /// @brief Updates the scale of a player stat bar
         /// @param new_val The new value for the bar
@@ -105,5 +120,5 @@ class SpaceshipHomeSystem
         /// @brief Creates a string that reflects the remaining amount of a resource in a storage
         /// @param storage The remaining amount of the resource in the storage
         /// @return A string that reflects the remaining amount of a resource in a storage
-        std::string createStorageCountText(int storage);
+        std::string createStorageCountTextString(int storage);
 };
