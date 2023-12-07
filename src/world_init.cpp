@@ -20,7 +20,7 @@ Entity createPlayer(RenderSystem* renderer, PhysicsSystem* physics, vec2 pos)
 	motion.angle = 0.f;
 	motion.velocity = { 0.f, 0.f };
 	//motion.scale = vec2({ 100/49, 1 });
-	motion.scale = vec2({ target_resolution.x / tile_size_px * 0.08503401, target_resolution.y / tile_size_px * 0.0625 });
+	motion.scale = vec2({ target_resolution.x / tile_size_px * 2.85714286/24, target_resolution.y / tile_size_px * 0.0625 });
 
 	// Initialize the collider
 	

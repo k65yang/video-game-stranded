@@ -526,7 +526,7 @@ void RenderSystem::initializeGlGeometryBuffers()
 // The position corresponds to the center of the texture.
 	// This is hardcoded dimensions of the texture/ num of frame in texture 
 	player_frame_w = 0.25f; 
-	player_frame_h = (float)1/9;
+	player_frame_h = (float)1/5;
 	std::vector<TexturedVertex> player_vertices(4);
 	player_vertices[0].position = { -1.f / 2, +1.f / 2, 0.f };
 	player_vertices[1].position = { +1.f / 2, +1.f / 2, 0.f };

@@ -458,13 +458,13 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 void WorldSystem::updatePlayerDirection() {
 	if (CURSOR_ANGLE >= -M_PI / 4 && CURSOR_ANGLE < M_PI / 4) 
-		PLAYER_DIRECTION = 8;  // Weapom, Right
+		PLAYER_DIRECTION = 0;  // Weapom, Right
 	else if (CURSOR_ANGLE >= M_PI / 4 && CURSOR_ANGLE < 3 * M_PI / 4) 
-		PLAYER_DIRECTION = 5;  // Weapom, Down
+		PLAYER_DIRECTION = 1;  // Weapom, Down
 	else if (CURSOR_ANGLE >= -3 * M_PI / 4 && CURSOR_ANGLE < -M_PI / 4) 
-		PLAYER_DIRECTION = 6;  // Weapom, UP
+		PLAYER_DIRECTION = 2;  // Weapom, UP
 	else 
-		PLAYER_DIRECTION = 7;  // Weapom, left
+		PLAYER_DIRECTION = 4;  // Weapom, left
 
 
 	// Update player's direction
@@ -507,7 +507,7 @@ void WorldSystem::handlePlayerMovement(float elapsed_ms_since_last_update) {
 		Motion& m = registry.motions.get(player_salmon);
 		Player& player = registry.players.get(player_salmon);
 		m.velocity = { 0, 0 };
-		registry.players.components[0].framey = 1;
+		registry.players.components[0].framey = 3; // dead sprite
 		if (player.health <=  0) {
 			Motion& health = registry.motions.get(health_bar);
 			health.scale = { 0,0 };
