@@ -561,6 +561,8 @@ void WorldSystem::restart_game() {
 	// Reset the game speed
 	current_speed = 5.f;
 	bool PLAYER_DEATH_FROM_FOOD = false;
+	renderer->enableFow = 1;
+
 
 
 	while (registry.deathTimers.entities.size() > 0)
@@ -1005,6 +1007,9 @@ void WorldSystem::update_spaceship_frame(float elapsed_ms_since_last_update) {
 		if (registry.spaceshipParts.components[0].framex == 5) {
 			Motion& spaceship_motion = registry.motions.get(spaceship_depart);
 			spaceship_motion.velocity += vec2{ 0,-0.5 };
+			debugging.in_debug_mode = !debugging.in_debug_mode;
+			renderer->enableFow = 0;
+
 			//renderer->fow_radius += 1; 
 		}
 	}
