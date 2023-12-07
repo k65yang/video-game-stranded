@@ -10,7 +10,9 @@ void MobSystem::spawn_mobs() {
 	std::map<ZONE_NUMBER,int> zone_mob_slime = {
 		{ZONE_1, 5},    
 		{ZONE_2, 10},	
-		{ZONE_3, 10},	
+		{ZONE_3, 20},
+		{ZONE_4, 20},
+		{ZONE_5, 20},
 	};
 	std::vector<vec2> zone_slime_locations = terrain->get_mob_spawn_locations(zone_mob_slime);
 
@@ -23,6 +25,8 @@ void MobSystem::spawn_mobs() {
 		{ZONE_1, 0},    
 		{ZONE_2, 7},	
 		{ZONE_3, 10},
+		{ZONE_4, 10},
+		{ZONE_5, 10},
 	};
 	std::vector<vec2> zone_ghost_locations = terrain->get_mob_spawn_locations(zone_mob_ghost);
 
@@ -35,6 +39,8 @@ void MobSystem::spawn_mobs() {
 		{ZONE_1, 0},    
 		{ZONE_2, 5},	
 		{ZONE_3, 15},
+		{ZONE_4, 30},
+		{ZONE_5, 30},
 	};
 	std::vector<vec2> zone_brute_locations = terrain->get_mob_spawn_locations(zone_mob_brute);
 
@@ -47,6 +53,8 @@ void MobSystem::spawn_mobs() {
 		{ZONE_1, 0},    
 		{ZONE_2, 0},	
 		{ZONE_3, 30},		// I'm in danger
+		{ZONE_4, 20},
+		{ZONE_5, 20},
 	};
 	std::vector<vec2> zone_disruptor_locations = terrain->get_mob_spawn_locations(zone_mob_disruptor);
 

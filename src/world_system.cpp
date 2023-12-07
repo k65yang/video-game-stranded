@@ -1295,7 +1295,9 @@ void WorldSystem::spawn_items() {
 		{ZONE_0, 0},
 		{ZONE_1, 0},    
 		{ZONE_2, 2},	
-		{ZONE_3, 4},
+		{ZONE_3, 8},
+		{ZONE_4, 12},
+		{ZONE_5, 12},
 	};
 
 	// lookup table for food per zone
@@ -1304,6 +1306,18 @@ void WorldSystem::spawn_items() {
 		{ZONE_1, 10},    
 		{ZONE_2, 20},	
 		{ZONE_3, 40},
+		{ZONE_4, 40},
+		{ZONE_5, 40},
+	};
+
+	// lookup table for ammo
+	std::map<ZONE_NUMBER,int> zone_ammo = {
+		{ZONE_0, 0},
+		{ZONE_1, 2},    
+		{ZONE_2, 3},	
+		{ZONE_3, 7},
+		{ZONE_4, 8},
+		{ZONE_5, 8},
 	};
 
 	for (int zone_num = ZONE_0; zone_num != ZONE_COUNT; zone_num++) {
@@ -1318,18 +1332,17 @@ void WorldSystem::spawn_items() {
 		for (int i = 0; i < zone_food[zone]; i++) {
 			createItem(renderer, physics_system, terrain->get_random_terrain_location(zone), ITEM_TYPE::FOOD);
 		}
+
+		// spawn ammo
+		std::vector<ITEM_TYPE> weapons = {ITEM_TYPE::WEAPON_SHURIKEN, ITEM_TYPE::WEAPON_CROSSBOW, ITEM_TYPE::WEAPON_SHOTGUN, ITEM_TYPE::WEAPON_MACHINEGUN};
+		for (auto& weapon : weapons) {
+			for (int i = 0; i < zone_ammo[zone]; i++) {
+				createItem(renderer, physics_system, terrain->get_random_terrain_location(zone), weapon);
+			}
+		}
 	}
 
-	// TESTING: Force one spawn of each weapon in zone 1
-	 createItem(renderer, physics_system, terrain->get_random_terrain_location(ZONE_1), ITEM_TYPE::WEAPON_SHURIKEN);
-	 createItem(renderer, physics_system, terrain->get_random_terrain_location(ZONE_1), ITEM_TYPE::WEAPON_CROSSBOW);
-	 createItem(renderer, physics_system, terrain->get_random_terrain_location(ZONE_1), ITEM_TYPE::WEAPON_SHOTGUN);
-	 createItem(renderer, physics_system, terrain->get_random_terrain_location(ZONE_1), ITEM_TYPE::WEAPON_MACHINEGUN);
-
-	 // TESTING: Force spawn quest items in zone 2
-	//  createItem(renderer, physics_system, terrain->get_random_terrain_location(ZONE_2), ITEM_TYPE::QUEST_ONE);
-	//  createItem(renderer, physics_system, terrain->get_random_terrain_location(ZONE_2), ITEM_TYPE::QUEST_TWO);
-
+	// TESTING: Quest items beside the ship
 	createItem(renderer, physics_system, {1.f, 1.f}, ITEM_TYPE::QUEST_ONE);
 	createItem(renderer, physics_system, {-1.f, -1.f}, ITEM_TYPE::QUEST_TWO);	
 	createItem(renderer, physics_system, { 2.f, 1.f }, ITEM_TYPE::QUEST_THREE);

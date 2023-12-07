@@ -78,7 +78,9 @@ public:
 		{ZONE_0, 10},
 		{ZONE_1, 17},
 		{ZONE_2, 40},
-		{ZONE_3, 64}
+		{ZONE_3, 64},
+		{ZONE_4, 85},
+		{ZONE_5, 100},
 	};
 
 	/// @brief Function to get randomized spawn locations per zone
