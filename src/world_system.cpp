@@ -1185,6 +1185,15 @@ void WorldSystem::on_mouse_click(int button, int action, int mods) {
 	vec2 mouse_pos_clip = screen_to_clip_coords({ xpos, ypos });
 
 	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
+		// Open/close help dialog when help button is clicked
+		if (!tutorial_system->isHelpDialogOpen() && tutorial_system->isMouseOverHelpButton(mouse_pos_clip)) {
+			tutorial_system->openHelpDialog();
+			return;
+		} else if (tutorial_system->isHelpDialogOpen() && tutorial_system->isMouseOverHelpButton(mouse_pos_clip)) {
+			tutorial_system->closeHelpDialog();
+			return;
+		}
+
 		if (!registry.deathTimers.has(player_salmon) && !spaceship_home_system->isHome()) {
 			// if theres ammo in current weapon 
 			Motion& player_motion = registry.motions.get(player_salmon);
@@ -1221,12 +1230,6 @@ void WorldSystem::on_mouse_click(int button, int action, int mods) {
 						audio_system->play_one_shot(AudioSystem::EMPTY_CROSSBOW); break;
 				}
 			}
-		}
-
-		if (!tutorial_system->isHelpDialogOpen() && tutorial_system->isMouseOverHelpButton(mouse_pos_clip)) {
-			tutorial_system->openHelpDialog();
-		} else if (tutorial_system->isHelpDialogOpen() && tutorial_system->isMouseOverHelpButton(mouse_pos_clip)) {
-			tutorial_system->closeHelpDialog();
 		}
 	}
 
