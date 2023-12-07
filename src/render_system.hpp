@@ -135,6 +135,7 @@ private:
 			textures_path("start_screen.png"),
 			textures_path("start_button.png"),
 			textures_path("start_button_hover.png"),
+			textures_path("muzzle_flash_sheet.png"),
 	};
 
 	// How big one terrain spritesheet is
