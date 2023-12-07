@@ -495,14 +495,17 @@ void RenderSystem::drawStartScreens() {
 	// Generate projection matrix. This is unscaled (does not take into account tile width).
 	mat3 projection_2D = createUnscaledProjectionMatrix();
 
-	// Only track layer 1 and 2 entities. There should not be any other layer active at this stage.
+	// Only track layer 1, 2, and 3 entities. There should not be any other layer active at this stage.
 	std::vector<Entity> layer_1_entities;
 	std::vector<Entity> layer_2_entities;
+	std::vector<Entity> layer_3_entities;
 	for (Entity entity : registry.renderRequests.entities) {
 		if (registry.renderRequests.get(entity).layer_id == RENDER_LAYER_ID::LAYER_1) {
 			layer_1_entities.push_back(entity);
 		} else if (registry.renderRequests.get(entity).layer_id == RENDER_LAYER_ID::LAYER_2) {
 			layer_2_entities.push_back(entity);
+		} else if (registry.renderRequests.get(entity).layer_id == RENDER_LAYER_ID::LAYER_3) {
+			layer_3_entities.push_back(entity);
 		}
 	}
 
@@ -510,6 +513,13 @@ void RenderSystem::drawStartScreens() {
 	Entity main_camera = registry.get_main_camera();
 	mat3 view_2D = inverse(createModelMatrix(main_camera));
 	drawTerrain(view_2D, createScaledProjectionMatrix());
+
+	// Truely render to the screen. Multipass rendering with fog program
+	drawToScreen();
+
+	// Re-enable blending
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	// Draw the meshes
 	for (Entity entity : layer_1_entities) {
@@ -520,13 +530,17 @@ void RenderSystem::drawStartScreens() {
 		// pass identity matrix for view_matrix since main camera not exist
 		drawTexturedMesh(entity, mat3(1.f), projection_2D);
 	}
+	for (Entity entity : layer_3_entities) {
+		// pass identity matrix for view_matrix since main camera not exist
+		drawTexturedMesh(entity, mat3(1.f), projection_2D);
+	}
 
-	// Truely render to the screen. Multipass rendering with fog program
-	 drawToScreen();
+	for (Entity entity : registry.texts.entities) {
+		Text& text = registry.texts.get(entity);
+		Motion& motion = registry.motions.get(entity);
 
-	// Re-enable blending
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		renderText(text.str, motion.position.x, motion.position.y, text.scale, text.color, projection_2D, mat3(1.f));
+	}
 
 	// flicker-free display with a double buffer
 	glfwSwapBuffers(window);
@@ -634,7 +648,14 @@ void RenderSystem::empty_terrain_buffer()
 /// <param name="color">Text colour</param>
 /// <param name="projection_matrix">The projection matrix</param>
 /// <param name="view_matrix">The camera view matrix</param>
-void RenderSystem::renderText(std::string text, float x, float y, float scale, glm::vec3 color, mat3& projection_matrix, mat3& view_matrix) {
+void RenderSystem::renderText(
+	std::string text, 
+	float x, 
+	float y, 
+	float scale, 
+	glm::vec3 color, 
+	const mat3& projection_matrix, 
+	const mat3& view_matrix) {
 	// Switch to text vao
 	glBindVertexArray(text_vao);
 	// Load the vertex buffer allocated for "TEXT"

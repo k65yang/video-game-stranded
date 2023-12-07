@@ -75,13 +75,11 @@ void StartScreenSystem::step(float elapsed_ms) {
         
     // Check if we need to load a new start screen
     if (prev_screen_idx != screen_idx) {
-
         // Remove everything from the current screen
         clear_used_entities();
 
         // Set up the correct screen
         setupScreen(screen_idx);
-
         prev_screen_idx = screen_idx;
     }
 
@@ -94,6 +92,22 @@ void StartScreenSystem::step(float elapsed_ms) {
     if (camera_movement[movement_idx].second <= 0.f) {
         camera_movement[movement_idx].second = 2500.f;
         ++movement_idx %= camera_movement.size();
+    }
+
+    // Do special things depending on the screen
+    if (screen_idx == 0) {
+        // pass
+    } else if (screen_idx == 1) {
+        // have the spaceship, parts, and player fall diagonally and spin across the screen
+        vec2 norm_velocity = normalize(vec2(window_w, window_h));
+
+        for (Entity e : moving_entities) {
+            Motion& motion = registry.motions.get(e);
+
+            // 0.5 velocity and 0.5 degree rotation every frame
+            motion.position += (norm_velocity * .5f);
+            motion.angle = std::fmod((motion.angle + 0.00872665f), (2 * M_PI));
+        }
     }
 }
 
@@ -119,7 +133,7 @@ void StartScreenSystem::setupScreen(int screen_num) {
 		{ screen_textures[screen_num],
 			EFFECT_ASSET_ID::TEXTURED,
 			GEOMETRY_BUFFER_ID::SPRITE,
-			RENDER_LAYER_ID::LAYER_1 });
+			RENDER_LAYER_ID::LAYER_2 });
     used_entities.push_back(entity);
 
     // Call helpers for additional objects on the specific screen
@@ -127,6 +141,10 @@ void StartScreenSystem::setupScreen(int screen_num) {
     {
     case 0:
         setupScreenOneObjects();
+        break;
+
+    case 1:
+        setupScreenTwoObjects();
         break;
     
     default:
@@ -159,7 +177,7 @@ void StartScreenSystem::setupScreenOneObjects() {
 		{ TEXTURE_ASSET_ID::START_BUTTON,
 			EFFECT_ASSET_ID::TEXTURED,
 			GEOMETRY_BUFFER_ID::SPRITE,
-			RENDER_LAYER_ID::LAYER_2 });
+			RENDER_LAYER_ID::LAYER_3 });
     
     screen_one_hover_swaps["start_button"].first = entity_one;
     used_entities.push_back(entity_one);
@@ -181,7 +199,7 @@ void StartScreenSystem::setupScreenOneObjects() {
 		{ TEXTURE_ASSET_ID::START_BUTTON_HOVER,
 			EFFECT_ASSET_ID::TEXTURED,
 			GEOMETRY_BUFFER_ID::SPRITE,
-			RENDER_LAYER_ID::LAYER_3 });
+			RENDER_LAYER_ID::LAYER_4 });
     
     screen_one_hover_swaps["start_button"].second = entity_two;
     used_entities.push_back(entity_two);
@@ -190,6 +208,138 @@ void StartScreenSystem::setupScreenOneObjects() {
     // Add 20px buffer into the shape
     screen_one_buttons["start_button"].push_back({button_x - button_width/2 + 20, button_y + button_height/2 - 20});
     screen_one_buttons["start_button"].push_back({button_x + button_width/2 - 20, button_y - button_height/2 + 20});
+}
+
+void StartScreenSystem::setupScreenTwoObjects() {
+    renderer->enableFow = 1;
+    renderer->fow_radius = 0.f;
+
+    // Spaceship
+    auto spaceship_entity = Entity();
+    Mesh& mesh_spaceship = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+    registry.meshPtrs.emplace(spaceship_entity, &mesh_spaceship);
+
+    auto& motion_two = registry.motions.emplace(spaceship_entity);
+	motion_two.angle = 0.f;
+	motion_two.velocity = { 0.f, 0.f };
+	motion_two.position = { -150, -150 };
+	motion_two.scale = vec2({ 221, 282 });
+
+    registry.renderRequests.insert(
+		spaceship_entity,
+		{ TEXTURE_ASSET_ID::SPACESHIP,
+			EFFECT_ASSET_ID::TEXTURED,
+			GEOMETRY_BUFFER_ID::SPRITE,
+			RENDER_LAYER_ID::LAYER_1 });
+    
+    used_entities.push_back(spaceship_entity);
+    moving_entities.push_back(spaceship_entity);
+
+    // Spaceship part 1
+    auto part1_entity = Entity();
+    Mesh& mesh_part1 = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+    registry.meshPtrs.emplace(part1_entity, &mesh_part1);
+
+    auto& motion_part1 = registry.motions.emplace(part1_entity);
+	motion_part1.angle = 0.f;
+	motion_part1.velocity = { 0.f, 0.f };
+	motion_part1.position = { 50, -150 };
+	motion_part1.scale = vec2({ 75, 75 });
+
+    registry.renderRequests.insert(
+		part1_entity,
+		{ TEXTURE_ASSET_ID::QUEST_1_ITEM,
+			EFFECT_ASSET_ID::TEXTURED,
+			GEOMETRY_BUFFER_ID::SPRITE,
+			RENDER_LAYER_ID::LAYER_1 });
+    
+    used_entities.push_back(part1_entity);
+    moving_entities.push_back(part1_entity);
+
+    // Spaceship part 2
+    auto part2_entity = Entity();
+    Mesh& mesh_part2 = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+    registry.meshPtrs.emplace(part2_entity, &mesh_part2);
+
+    auto& motion_part2 = registry.motions.emplace(part2_entity);
+	motion_part2.angle = 0.f;
+	motion_part2.velocity = { 0.f, 0.f };
+	motion_part2.position = { -100, 50 };
+	motion_part2.scale = vec2({ 75, 75 });
+
+    registry.renderRequests.insert(
+		part2_entity,
+		{ TEXTURE_ASSET_ID::QUEST_2_ITEM,
+			EFFECT_ASSET_ID::TEXTURED,
+			GEOMETRY_BUFFER_ID::SPRITE,
+			RENDER_LAYER_ID::LAYER_1 });
+    
+    used_entities.push_back(part2_entity);
+    moving_entities.push_back(part2_entity);
+
+
+    // Spaceship part 3
+    auto part3_entity = Entity();
+    Mesh& mesh_part3 = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+    registry.meshPtrs.emplace(part3_entity, &mesh_part3);
+
+    auto& motion_part3 = registry.motions.emplace(part3_entity);
+	motion_part3.angle = 0.f;
+	motion_part3.velocity = { 0.f, 0.f };
+	motion_part3.position = { -25, -25 };
+	motion_part3.scale = vec2({ 75, 75 });
+
+    registry.renderRequests.insert(
+		part3_entity,
+		{ TEXTURE_ASSET_ID::QUEST_3_ITEM,
+			EFFECT_ASSET_ID::TEXTURED,
+			GEOMETRY_BUFFER_ID::SPRITE,
+			RENDER_LAYER_ID::LAYER_1 });
+    
+    used_entities.push_back(part3_entity);
+    moving_entities.push_back(part3_entity);
+
+    // Spaceship part 4
+    auto part4_entity = Entity();
+    Mesh& mesh_part4 = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+    registry.meshPtrs.emplace(part4_entity, &mesh_part4);
+
+    auto& motion_part4 = registry.motions.emplace(part4_entity);
+	motion_part4.angle = 0.f;
+	motion_part4.velocity = { 0.f, 0.f };
+	motion_part4.position = { 125, -100 };
+	motion_part4.scale = vec2({ 75, 75 });
+
+    registry.renderRequests.insert(
+		part4_entity,
+		{ TEXTURE_ASSET_ID::QUEST_4_ITEM,
+			EFFECT_ASSET_ID::TEXTURED,
+			GEOMETRY_BUFFER_ID::SPRITE,
+			RENDER_LAYER_ID::LAYER_1 });
+    
+    used_entities.push_back(part4_entity);
+    moving_entities.push_back(part4_entity);
+
+    // Player
+    auto player_entity = Entity();
+    Mesh& mesh_player = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+    registry.meshPtrs.emplace(player_entity, &mesh_player);
+
+    auto& motion_player = registry.motions.emplace(player_entity);
+	motion_player.angle = 0.f;
+	motion_player.velocity = { 0.f, 0.f };
+	motion_player.position = { -350, -275 };
+	motion_player.scale = vec2({ 60, 85 });
+
+    registry.renderRequests.insert(
+		player_entity,
+		{ TEXTURE_ASSET_ID::PLAYER_STANDING,
+			EFFECT_ASSET_ID::TEXTURED,
+			GEOMETRY_BUFFER_ID::SPRITE,
+			RENDER_LAYER_ID::LAYER_1 });
+    
+    used_entities.push_back(player_entity);
+    moving_entities.push_back(player_entity);
 }
 
 void StartScreenSystem::on_mouse_move(vec2 mouse_position) {
@@ -210,9 +360,9 @@ void StartScreenSystem::on_mouse_move(vec2 mouse_position) {
             Entity e_two = screen_one_hover_swaps["start_button"].second;
 
             RenderRequest& one_rr = registry.renderRequests.get(e_one);
-            one_rr.layer_id = one_rr.layer_id == RENDER_LAYER_ID::LAYER_2 ? RENDER_LAYER_ID::LAYER_3 : RENDER_LAYER_ID::LAYER_2;
+            one_rr.layer_id = one_rr.layer_id == RENDER_LAYER_ID::LAYER_3 ? RENDER_LAYER_ID::LAYER_4 : RENDER_LAYER_ID::LAYER_3;
             RenderRequest& two_rr = registry.renderRequests.get(e_two);
-            two_rr.layer_id = two_rr.layer_id == RENDER_LAYER_ID::LAYER_2 ? RENDER_LAYER_ID::LAYER_3 : RENDER_LAYER_ID::LAYER_2;
+            two_rr.layer_id = two_rr.layer_id == RENDER_LAYER_ID::LAYER_3 ? RENDER_LAYER_ID::LAYER_4 : RENDER_LAYER_ID::LAYER_3;
 
             was_hovering = is_currently_hovering;
         }
@@ -231,6 +381,11 @@ void StartScreenSystem::on_mouse_click(int button, int action, int mods) {
     if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
         if (screen_idx == 0 && was_hovering) {
             screen_idx++;
+        } else if (screen_idx == 1) {
+            screen_idx++;
+
+            // Reconfigure render fow defaults
+            renderer->fow_radius = 4.5f;
         }
 	}
 }
