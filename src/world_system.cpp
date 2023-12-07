@@ -694,7 +694,7 @@ void WorldSystem::handle_collisions() {
 						quest_system->processQuestItem(item.data, QUEST_ITEM_STATUS::FOUND);
 						
 						if (!player.has_collected_quest_item) {
-							tutorial_system->createTutorialText(TUTORIAL_TYPE::QUEST_ITEM_TUTORIAL);
+							tutorial_system->createTutorialDialog(TUTORIAL_TYPE::QUEST_ITEM_TUTORIAL);
 							player.has_collected_quest_item = true;
 						}
 
@@ -1002,7 +1002,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 			spaceship_home_system->enterSpaceship(health_bar, food_bar);
 
 			if (!player.has_entered_spaceship) {
-				tutorial_system->createTutorialText(TUTORIAL_TYPE::SPACESHIP_HOME_TUTORIAL);
+				tutorial_system->createTutorialDialog(TUTORIAL_TYPE::SPACESHIP_HOME_TUTORIAL);
 				player.has_entered_spaceship = true;
 			}
 		}

@@ -46,21 +46,23 @@ class TutorialSystem
         /// @param type The type of tutorial to create the text for
         Entity createTutorialText(TUTORIAL_TYPE type);
 
+        /// @brief Creates tutorial dialog
+        /// @param type The type of tutorial to create the dialog for
+        Entity createTutorialDialog(TUTORIAL_TYPE type);
+
     private:
-        const vec2 QUEST_ITEM_TUTORIAL_TEXT_POSITION = { -10.f, -7.f };
-        const vec2 SPACESHIP_HOME_TUTORIAL_TEXT_POSITION = { -10.f, -7.f };
         const vec2 GAME_SAVED_TEXT_POSITION = { -1.5f, -7.f };
         const vec2 GAME_LOADED_TEXT_POSITION = { -1.5f, -7.f };
-        const std::string QUEST_ITEM_TUTORIAL_TEXT = "You found a spaceship part! Bring it back to your spaceship to reattach it to the ship!";
-        const std::string SPACESHIP_HOME_TUTORIAL_TEXT = "Welcome home! Stock up on ammo, food, and health here before you continue exploring!";
         const std::string GAME_SAVED_TEXT = "Game saved";
         const std::string GAME_LOADED_TEXT = "Game loaded";
         const float TUTORIAL_TEXT_SCALE = 0.5f;
 
         const vec2 HELP_BUTTON_POSITION = { 11.f, -7.f }; 
         const vec2 HELP_DIALOG_POSITION = { 0.f, 0.f }; 
+        const vec2 TUTORIAL_DIALOG_POSITION = { 0.f, -5.f };
         const vec2 HELP_BUTTON_SCALE = { 1.f, 1.f }; 
         const vec2 HELP_DIALOG_SCALE = { 14.f, 10.f }; 
+        const vec2 TUTORIAL_DIALOG_SCALE = { 8.f, 5.f };
 
         RenderSystem* renderer;
         Entity help_dialog;

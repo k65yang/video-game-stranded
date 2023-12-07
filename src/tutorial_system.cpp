@@ -52,14 +52,6 @@ Entity TutorialSystem::createTutorialText(TUTORIAL_TYPE type) {
     vec2 position;
     std::string str;
     switch(type) {
-        case TUTORIAL_TYPE::QUEST_ITEM_TUTORIAL:
-            position = QUEST_ITEM_TUTORIAL_TEXT_POSITION;
-            str = QUEST_ITEM_TUTORIAL_TEXT;
-            break;
-        case TUTORIAL_TYPE::SPACESHIP_HOME_TUTORIAL:
-            position = SPACESHIP_HOME_TUTORIAL_TEXT_POSITION;
-            str = SPACESHIP_HOME_TUTORIAL_TEXT;
-            break;
         case TUTORIAL_TYPE::GAME_SAVED:
             position = GAME_SAVED_TEXT_POSITION;
             str = GAME_SAVED_TEXT;
@@ -80,6 +72,48 @@ Entity TutorialSystem::createTutorialText(TUTORIAL_TYPE type) {
     registry.tutorials.emplace(tutorial_text);
 
     return tutorial_text;
+};
+
+Entity TutorialSystem::createTutorialDialog(TUTORIAL_TYPE type) {
+    auto entity = Entity();
+
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Initialize the position, scale, and physics components
+	auto& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.velocity = { 0.f, 0.f };
+	motion.position = TUTORIAL_DIALOG_POSITION;
+    motion.scale = TUTORIAL_DIALOG_SCALE;
+
+    // Add entity to screen UI registry
+    registry.screenUI.insert(entity, TUTORIAL_DIALOG_POSITION);
+
+    // Add entity to tutorial registry
+    registry.tutorials.emplace(entity);
+
+    TEXTURE_ASSET_ID texture = TEXTURE_ASSET_ID::QUEST_ITEM_TUTORIAL_DIALOG;
+    switch(type) {
+        case TUTORIAL_TYPE::QUEST_ITEM_TUTORIAL:
+            texture = TEXTURE_ASSET_ID::QUEST_ITEM_TUTORIAL_DIALOG;
+            break;
+        case TUTORIAL_TYPE::SPACESHIP_HOME_TUTORIAL:
+            texture = TEXTURE_ASSET_ID::SPACESHIP_HOME_TUTORIAL_DIALOG;
+            break;
+    }
+    
+    registry.renderRequests.insert(
+		entity,
+		{ 
+            texture,
+			EFFECT_ASSET_ID::TEXTURED,
+			GEOMETRY_BUFFER_ID::SPRITE,
+			RENDER_LAYER_ID::LAYER_4 
+        }
+    );
+
+	return entity;
 };
 
 Entity TutorialSystem::createHelpButton() {
