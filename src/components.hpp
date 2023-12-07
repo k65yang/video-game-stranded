@@ -126,11 +126,14 @@ struct Weapon {
 	int level;							 // Weapon level
 };
 
-// The spaceship 
 struct SpaceshipHome {
 	int health_storage;
 	int food_storage;
 	int ammo_storage;
+};
+
+struct Spaceship {
+
 };
 
 // The projectile

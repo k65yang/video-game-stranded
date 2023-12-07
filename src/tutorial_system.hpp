@@ -36,21 +36,17 @@ class TutorialSystem
         /// @brief Checks if the help dialog is open
         /// @return Returns true if the help dialog is open, false otherwise
         bool isHelpDialogOpen();
-
-        /// @brief Shows the enter spaceship text
-        void showEnterSpaceshipText();
-
-        /// @brief Hides the enter spaceship text
-        void hideEnterSpaceshipText();
-
-        /// @brief Checks if the enter spaceship text is shown
-        /// @return Returns true if the enter spaceship text is shown, false otherwise
-        bool isEnterSpaceshipTextShown();
         
         /// @brief Checks if the mouse is hovering the help button
         /// @param mouse_pos The position of the mouse in clip coordinates
         /// @return Returns true if the mouse is hovering over the help button, false otherwise
         bool isMouseOverHelpButton(vec2 mouse_pos);
+
+        /// @brief Checks if the player is near the spaceship
+        /// @param player_pos The position of the player
+        /// @param spaceship_pos The position of the spaceship
+        /// @return Returns true if the player is near the spaceship, false otherwise
+        bool isPlayerNearSpaceship(vec2 player_pos, vec2 spaceship_pos);
 
         /// @brief Creates a tutorial text that disappears after some time
         /// @param type The type of tutorial to create the text for
@@ -63,7 +59,6 @@ class TutorialSystem
     private:
         const vec2 GAME_SAVED_TEXT_POSITION = { -1.5f, -7.f };
         const vec2 GAME_LOADED_TEXT_POSITION = { -1.5f, -7.f };
-        const vec2 ENTER_SPACESHIP_TEXT_POSITION = { 0.f, -1.f };
         const std::string GAME_SAVED_TEXT = "Game saved";
         const std::string GAME_LOADED_TEXT = "Game loaded";
         const std::string ENTER_SPACESHIP_TEXT = "Press E to enter";
@@ -90,6 +85,16 @@ class TutorialSystem
         /// @brief Creates the help dialog
         /// @return The help dialog
         Entity createHelpDialog();
+
+        /// @brief Shows the enter spaceship text
+        void showEnterSpaceshipText();
+
+        /// @brief Hides the enter spaceship text
+        void hideEnterSpaceshipText();
+
+        /// @brief Checks if the enter spaceship text is shown
+        /// @return Returns true if the enter spaceship text is shown, false otherwise
+        bool isEnterSpaceshipTextShown();
 
         /// @brief Removes currently displayed tutorial texts/dialogs
         void removeDisplayedTutorials();

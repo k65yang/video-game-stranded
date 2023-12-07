@@ -29,6 +29,7 @@ public:
 
 	ComponentContainer<Mob> mobs;
 	ComponentContainer<SpaceshipHome> spaceshipHomes; 
+	ComponentContainer<Spaceship> spaceships; 
 	ComponentContainer<MobSlowEffect> mobSlowEffects;
 	ComponentContainer<Path> paths;
 	ComponentContainer<Item> items;
@@ -74,6 +75,7 @@ public:
 
 		registry_list.push_back(&mobs);
 		registry_list.push_back(&spaceshipHomes);
+		registry_list.push_back(&spaceships);
 		registry_list.push_back(&mobSlowEffects);
 		registry_list.push_back(&paths);
 		registry_list.push_back(&items);

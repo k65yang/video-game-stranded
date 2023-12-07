@@ -994,9 +994,9 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		}
 	}
 
-	// Enter ship if player is near
-	if (length(player_motion.position - registry.motions.get(spaceship).position) < 1.0f && !player.is_home) {
-		if (action == GLFW_PRESS && key == GLFW_KEY_E ) {
+	if (action == GLFW_PRESS && key == GLFW_KEY_E ) {
+		// Enter ship if player is near
+		if (tutorial_system->isPlayerNearSpaceship(player_motion.position, registry.motions.get(spaceship).position) && !player.is_home) {
 			spaceship_home_system->enterSpaceship(health_bar, food_bar);
 
 			if (!player.has_entered_spaceship) {
@@ -1005,7 +1005,6 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 			}
 		}
 	}
-
 
 	// Debugging
 	/*if (key == GLFW_KEY_D) {

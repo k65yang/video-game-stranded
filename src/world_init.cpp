@@ -129,6 +129,9 @@ Entity createSpaceship(RenderSystem* renderer, vec2 position) {
 	motion.position = position;
 	motion.scale = vec2({ target_resolution.x / tile_size_px * 0.20833333, target_resolution.y / tile_size_px * 0.3125});
 
+	// Add entity to spaceship registry
+	registry.spaceships.emplace(entity);
+
 	registry.renderRequests.insert(
 		entity,
 		{ TEXTURE_ASSET_ID::SPACESHIP,

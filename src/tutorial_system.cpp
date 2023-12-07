@@ -14,6 +14,19 @@ void TutorialSystem::step(float elapsed_ms) {
             registry.remove_all_components_of(entity);
         }
     }
+
+    // Show/hide enter spaceship text
+    Entity player = registry.players.entities[0];
+    Entity spaceship = registry.spaceships.entities[0];
+    Motion& player_motion = registry.motions.get(player);
+    Player& player_info = registry.players.get(player);
+    Motion& spaceship_motion = registry.motions.get(spaceship);
+    
+    if (isPlayerNearSpaceship(player_motion.position, spaceship_motion.position) && !player_info.is_home && !isEnterSpaceshipTextShown()) {
+        showEnterSpaceshipText();
+    } else if (!isPlayerNearSpaceship(player_motion.position, spaceship_motion.position) && isEnterSpaceshipTextShown() || player_info.is_home) {
+        hideEnterSpaceshipText();
+    }
 };
 
 void TutorialSystem::init(RenderSystem* renderer_arg) {
@@ -40,20 +53,6 @@ void TutorialSystem::closeHelpDialog() {
 bool TutorialSystem::isHelpDialogOpen() {
     return is_help_dialog_open;
 };
-
-void TutorialSystem::showEnterSpaceshipText() {
-    enter_spaceship_text = createText(renderer, ENTER_SPACESHIP_TEXT_POSITION, ENTER_SPACESHIP_TEXT, TUTORIAL_TEXT_SCALE);
-    is_enter_spaceship_text_shown = true;
-}
-
-void TutorialSystem::hideEnterSpaceshipText() {
-    registry.remove_all_components_of(enter_spaceship_text);
-    is_enter_spaceship_text_shown = false;
-}
-
-bool TutorialSystem::isEnterSpaceshipTextShown() {
-    return is_enter_spaceship_text_shown;
-}
 
 bool TutorialSystem::isMouseOverHelpButton(vec2 mouse_pos) {
     // Help button is a circle so check if the distance between the mouse and button is less than the radius of the button
@@ -190,8 +189,32 @@ Entity TutorialSystem::createHelpDialog() {
 	return entity;
 };
 
+void TutorialSystem::showEnterSpaceshipText() {
+    Entity spaceship = registry.spaceships.entities[0];
+    Motion& spaceship_motion = registry.motions.get(spaceship);
+    const vec2 ENTER_SPACESHIP_TEXT_POSITION = { spaceship_motion.position.x - 2.0f, spaceship_motion.position.y };
+
+    enter_spaceship_text = createText(renderer, ENTER_SPACESHIP_TEXT_POSITION, ENTER_SPACESHIP_TEXT, TUTORIAL_TEXT_SCALE);
+    registry.screenUI.remove(enter_spaceship_text);    // Remove from screen ui registry so text does not move with camera
+
+    is_enter_spaceship_text_shown = true;
+};
+
+void TutorialSystem::hideEnterSpaceshipText() {
+    registry.remove_all_components_of(enter_spaceship_text);
+    is_enter_spaceship_text_shown = false;
+};
+
+bool TutorialSystem::isEnterSpaceshipTextShown() {
+    return is_enter_spaceship_text_shown;
+};
+
+bool TutorialSystem::isPlayerNearSpaceship(vec2 player_pos, vec2 spaceship_pos) {
+    return distance(player_pos, spaceship_pos) < 2.f;
+};
+
 void TutorialSystem::removeDisplayedTutorials() {
     for (Entity entity : registry.tutorials.entities) {
         registry.remove_all_components_of(entity);
     }
-}
+};
