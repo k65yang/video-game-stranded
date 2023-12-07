@@ -562,6 +562,7 @@ void WorldSystem::restart_game() {
 
 	// Reset tutorial system
 	tutorial_system->resetTutorialSystem();
+	tutorial_system->openHelpDialog();
 
 	// clear all used spawn locations
 	used_spawn_locations.clear();
