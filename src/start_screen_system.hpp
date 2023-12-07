@@ -37,12 +37,14 @@ class StartScreenSystem
     // Tracking which screen to show
     std::vector <TEXTURE_ASSET_ID> screen_textures = {
         TEXTURE_ASSET_ID::START_SCREEN_ONE,
+        TEXTURE_ASSET_ID::START_SCREEN_TWO,
     };
     int screen_idx;
     int prev_screen_idx;
 
     // Tracking used entities for the current screen
     std::vector<Entity> used_entities;
+    std::vector<Entity> moving_entities;
 
     // Track locations of buttons in each screen
     std::map<std::string, std::vector<vec2>> screen_one_buttons = {
@@ -79,6 +81,7 @@ class StartScreenSystem
 
     // Setup additional screen objects for each individual screen
     void setupScreenOneObjects();
+    void setupScreenTwoObjects();
 
     // Helper to check if cursor is hovering over the button
     bool is_hovering(vec2 position, vec2 top_left, vec2 bottom_right);
