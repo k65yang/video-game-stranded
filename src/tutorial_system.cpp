@@ -192,7 +192,7 @@ Entity TutorialSystem::createHelpDialog() {
 void TutorialSystem::showEnterSpaceshipText() {
     Entity spaceship = registry.spaceships.entities[0];
     Motion& spaceship_motion = registry.motions.get(spaceship);
-    const vec2 ENTER_SPACESHIP_TEXT_POSITION = { spaceship_motion.position.x - 2.0f, spaceship_motion.position.y };
+    const vec2 ENTER_SPACESHIP_TEXT_POSITION = { spaceship_motion.position.x - 2.0f, spaceship_motion.position.y - 2.0f };
 
     enter_spaceship_text = createText(renderer, ENTER_SPACESHIP_TEXT_POSITION, ENTER_SPACESHIP_TEXT, TUTORIAL_TEXT_SCALE);
     registry.screenUI.remove(enter_spaceship_text);    // Remove from screen ui registry so text does not move with camera
