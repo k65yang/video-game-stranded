@@ -69,6 +69,7 @@ private:
 	// Make sure these paths remain in sync with the associated enumerators.
 	const std::array<std::string, texture_count> texture_paths = {
 			textures_path("player_spritesheet.png"),
+			textures_path("player_standing.png"),
 			textures_path("player_particle.png"),
 			textures_path("mob_spritesheet.png"),
 			textures_path("red_block.png"),
@@ -128,6 +129,7 @@ private:
 			textures_path("disruptor.png"),
 			textures_path("mob_turret.png"),
 			textures_path("start_screen.png"),
+			textures_path("intro_screen.png"),
 			textures_path("start_button.png"),
 			textures_path("start_button_hover.png")
 	};
@@ -297,7 +299,7 @@ public:
 
 	// Render text to screen using freetype
 	// Code based off: https://learnopengl.com/In-Practice/Text-Rendering
-	void renderText(std::string text, float x, float y, float scale, glm::vec3 color, mat3& projection_matrix, mat3& view_matrix);
+	void renderText(std::string text, float x, float y, float scale, glm::vec3 color, const mat3& projection_matrix, const mat3& view_matrix);
 
 	// Do not modify this. READ ONLY!!
 	bool is_terrain_mesh_loaded = false;
