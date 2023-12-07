@@ -430,7 +430,8 @@ enum class TEXTURE_ASSET_ID {
 	START_SCREEN_TWO = START_SCREEN_ONE + 1,
 	START_BUTTON = START_SCREEN_TWO + 1,
 	START_BUTTON_HOVER = START_BUTTON + 1,
-	TEXTURE_COUNT = START_BUTTON_HOVER + 1,
+	POINTING_ARROW = START_BUTTON_HOVER + 1,
+	TEXTURE_COUNT = POINTING_ARROW + 1,
 
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
@@ -516,4 +517,14 @@ struct ParticleTemplate {
 	vec2 velocity = { 0.f, 0.f };
 	vec4 color = vec4{ 1.0f };
 
+};
+
+struct PointingArrow {
+
+	PointingArrow(Entity target) {
+		this->target = target;
+	}
+
+	Entity target;
+	vec2 radius_offset = { 5, 0 };
 };
