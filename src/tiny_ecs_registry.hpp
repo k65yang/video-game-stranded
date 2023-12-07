@@ -12,7 +12,7 @@ class ECSRegistry
 public:
 	// Manually created list of all components this game has
 	ComponentContainer<DeathTimer> deathTimers;
-	ComponentContainer<ToolTip> tips;
+	ComponentContainer<Tutorial> tutorials;
 	ComponentContainer<Motion> motions;
 	ComponentContainer<Collision> collisions;
 
@@ -29,6 +29,7 @@ public:
 
 	ComponentContainer<Mob> mobs;
 	ComponentContainer<SpaceshipHome> spaceshipHomes; 
+	ComponentContainer<Spaceship> spaceships; 
 	ComponentContainer<MobSlowEffect> mobSlowEffects;
 	ComponentContainer<Path> paths;
 	ComponentContainer<Item> items;
@@ -61,6 +62,7 @@ public:
 	ECSRegistry()
 	{
 		registry_list.push_back(&deathTimers);
+		registry_list.push_back(&tutorials);
 		registry_list.push_back(&motions);
 		registry_list.push_back(&collisions);
 
@@ -75,6 +77,7 @@ public:
 
 		registry_list.push_back(&mobs);
 		registry_list.push_back(&spaceshipHomes);
+		registry_list.push_back(&spaceships);
 		registry_list.push_back(&mobSlowEffects);
 		registry_list.push_back(&paths);
 		registry_list.push_back(&items);
