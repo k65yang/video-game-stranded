@@ -1219,8 +1219,10 @@ void WorldSystem::on_mouse_click(int button, int action, int mods) {
 			// if theres ammo in current weapon 
 			Motion& player_motion = registry.motions.get(player_salmon);
 
+			float projectileSpawnOffset = 1.2f;
 			// Play appropriate shooting noises if we've just shot
-			ITEM_TYPE fired_weapon = weapons_system->fireWeapon(player_motion.position.x, player_motion.position.y, CURSOR_ANGLE);
+			// Added offset to spawn projectile a bit outward. 
+			ITEM_TYPE fired_weapon = weapons_system->fireWeapon(player_motion.position.x + projectileSpawnOffset * cos(CURSOR_ANGLE), player_motion.position.y + projectileSpawnOffset * sin(CURSOR_ANGLE), CURSOR_ANGLE);
 			
 			// If we successfully shot...
 			if (fired_weapon != ITEM_TYPE::WEAPON_NONE) {
