@@ -46,6 +46,7 @@ public:
 	int numberOfColliders;
 	float detectRange;
 	void step(float elapsed_ms);
+	bool isPlayerInvincible = false;
 
 	/// <summary>
 	/// Initializes the static BVH with N:number of colliders (all terrain colliders). Total number of tree nodes is 2N - 1.
@@ -68,7 +69,7 @@ public:
 	/// <param name="entity"></param>
 	/// <param name="nodeIndex">This is always the rootnode index</param>
 	void intersectBVH(Entity entity, const int nodeIndex);
-	void collides(Entity entity1, Entity entity2);
+	bool collides(Entity entity1, Entity entity2);
 
 	/// <summary>
 	/// create coord of a box given a scale(width/height). Points are in local coord and center is 0,0. 

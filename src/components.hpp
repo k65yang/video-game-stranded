@@ -113,6 +113,7 @@ struct Weapon {
 	float elapsed_last_shot_time_ms;     // controls fire rate, the time that the weapon was fired last
 	float projectile_velocity;           // speed of projectiles of this weapon
 	int projectile_damage;               // weapon damage
+	float knockback_force;				 // magnitude of knockback on enemy
 	int ammo_count;						 // Ammo
 	int level;							 // Weapon level
 };
@@ -149,6 +150,7 @@ struct Mob {
 	int mframey = 1;
 	Entity curr_cell;
 	MOB_TYPE type;
+	Entity health_bar;
 };
 
 // Slowing effect for mobs from weapons
@@ -203,6 +205,7 @@ struct Text {
 struct Debug {
 	bool in_debug_mode = 0;
 	bool in_freeze_mode = 0;
+	bool hide_ui = 0;
 };
 extern Debug debugging;
 
@@ -221,7 +224,7 @@ struct DebugComponent
 // A timer that will be associated to dying salmon
 struct DeathTimer
 {
-	float timer_ms = 3000.f;
+	float timer_ms = 5000.f;
 };
 
 struct ToolTip {
@@ -360,7 +363,8 @@ struct Collider
 
 enum class TEXTURE_ASSET_ID {
 	PLAYER = 0,
-	PLAYER_PARTICLE = PLAYER + 1,
+	PLAYER_STANDING = PLAYER + 1,
+	PLAYER_PARTICLE = PLAYER_STANDING + 1,
 	SLIME = PLAYER_PARTICLE + 1,
 	RED_BLOCK = SLIME + 1,
 	WEAPON_UPGRADE = RED_BLOCK + 1,
@@ -421,7 +425,13 @@ enum class TEXTURE_ASSET_ID {
 	TURRET = DISRUPTOR + 1,
 	LOADED = TURRET + 1,
 	SAVING = LOADED + 1,
-	TEXTURE_COUNT = SAVING + 1,
+	HEART_PARTICLE = SAVING + 1,
+	START_SCREEN_ONE = HEART_PARTICLE + 1,
+	START_SCREEN_TWO = START_SCREEN_ONE + 1,
+	START_BUTTON = START_SCREEN_TWO + 1,
+	START_BUTTON_HOVER = START_BUTTON + 1,
+	TEXTURE_COUNT = START_BUTTON_HOVER + 1,
+
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 
@@ -433,8 +443,11 @@ enum class EFFECT_ASSET_ID {
 	TEXTURED = SALMON + 1,
 	FOG = TEXTURED + 1,
 	TERRAIN = FOG + 1,
-	TEXT = TERRAIN + 1,
+	PARTICLE = TERRAIN + 1,
+	TEXTUREPARTICLE = PARTICLE + 1,
+	TEXT = TEXTUREPARTICLE + 1,
 	EFFECT_COUNT = TEXT + 1
+
 };
 const int effect_count = (int)EFFECT_ASSET_ID::EFFECT_COUNT;
 
@@ -460,12 +473,19 @@ enum class RENDER_LAYER_ID {
 	LAYER_2 = LAYER_1 + 1,
 	LAYER_3 = LAYER_2 + 1,      
 	LAYER_4 = LAYER_3 + 1,      // UI elements
-	LAYER_COUNT = LAYER_4 + 1
-
+	LAYER_COUNT = LAYER_4 + 1,
 };
 const int geometry_count = (int)GEOMETRY_BUFFER_ID::GEOMETRY_COUNT;
 
 struct RenderRequest {
+	TEXTURE_ASSET_ID used_texture = TEXTURE_ASSET_ID::TEXTURE_COUNT;
+	EFFECT_ASSET_ID used_effect = EFFECT_ASSET_ID::EFFECT_COUNT;
+	GEOMETRY_BUFFER_ID used_geometry = GEOMETRY_BUFFER_ID::GEOMETRY_COUNT;
+	RENDER_LAYER_ID layer_id = RENDER_LAYER_ID::LAYER_COUNT;
+};
+
+struct InstancedRenderRequest {
+	std::vector<Entity> entities;
 	TEXTURE_ASSET_ID used_texture = TEXTURE_ASSET_ID::TEXTURE_COUNT;
 	EFFECT_ASSET_ID used_effect = EFFECT_ASSET_ID::EFFECT_COUNT;
 	GEOMETRY_BUFFER_ID used_geometry = GEOMETRY_BUFFER_ID::GEOMETRY_COUNT;
@@ -477,13 +497,23 @@ const int NUM_PARTICLES = 200;
 
 // Struct describing particles 
 struct Particle {
-	
+	bool active = false;
+	TEXTURE_ASSET_ID texture = TEXTURE_ASSET_ID::TEXTURE_COUNT; //HARDCODED TEMPORARY TO THIS FOR NOW
+	float lifeTime = 1000.0f; // in ms
+	float lifeTimeRemaining = 0.0f;
+	float sizeBegin, sizeEnd;
+
 }; 
 
-// Each entity that has particle effects will have a vector to track individual particles
-struct ParticleTrail {
-	TEXTURE_ASSET_ID texture;
-	Motion* motion_component_ptr;
-	bool is_alive;
-	std::set<Entity> particles;
+struct ParticleTemplate {
+	TEXTURE_ASSET_ID texture = TEXTURE_ASSET_ID::TEXTURE_COUNT; //HARDCODED TEMPORARY TO THIS FOR NOW
+	bool active = false;
+	float lifeTime = 1000.0f; // in ms
+	float lifeTimeRemaining = 1000.0f;
+	float sizeBegin = 1.0f;
+	float sizeEnd = 0.0f;
+	vec2 position = {0.f, 0.f};
+	vec2 velocity = { 0.f, 0.f };
+	vec4 color = vec4{ 1.0f };
+
 };

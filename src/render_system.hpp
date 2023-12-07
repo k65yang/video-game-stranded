@@ -69,6 +69,7 @@ private:
 	// Make sure these paths remain in sync with the associated enumerators.
 	const std::array<std::string, texture_count> texture_paths = {
 			textures_path("player_spritesheet.png"),
+			textures_path("player_standing.png"),
 			textures_path("player_particle.png"),
 			textures_path("mob_spritesheet.png"),
 			textures_path("red_block.png"),
@@ -131,6 +132,14 @@ private:
 			textures_path("mob_turret.png"),
 			textures_path("loaded.png"),
 			textures_path("saving.png"),
+			textures_path("heart_particle.png"),
+      
+			// Starting screen textures
+			textures_path("start_screen.png"),
+			textures_path("intro_screen.png"),
+			textures_path("start_button.png"),
+			textures_path("start_button_hover.png"),
+
 	};
 
 	// How big one terrain spritesheet is
@@ -207,7 +216,10 @@ private:
 		shader_path("textured"),
 		shader_path("fog"),
 		shader_path("terrain"),
+		shader_path("particle"),
+		shader_path("textureParticle"),
 		shader_path("text")};
+
 
 	std::array<GLuint, geometry_count> vertex_buffers;
 	std::array<GLuint, geometry_count> index_buffers;
@@ -273,11 +285,15 @@ public:
 	// Destroy resources associated to one or all entities created by the system
 	~RenderSystem();
 
-	// Draw all entities
+	// Draw all entities when in the world
 	void draw();
 
+	// Draw all entities when in the start screens
+	void drawStartScreens();
+
 	mat3 createModelMatrix(Entity entity);
-	mat3 createProjectionMatrix();
+	mat3 createScaledProjectionMatrix();
+	mat3 createUnscaledProjectionMatrix();
 
 	/// <summary>
 	/// Modifies the terrain vertex buffer to regenerate rendering values for a specific tile.
@@ -294,7 +310,7 @@ public:
 
 	// Render text to screen using freetype
 	// Code based off: https://learnopengl.com/In-Practice/Text-Rendering
-	void renderText(std::string text, float x, float y, float scale, glm::vec3 color, mat3& projection_matrix, mat3& view_matrix);
+	void renderText(std::string text, float x, float y, float scale, glm::vec3 color, const mat3& projection_matrix, const mat3& view_matrix);
 
 	// Do not modify this. READ ONLY!!
 	bool is_terrain_mesh_loaded = false;
@@ -305,6 +321,9 @@ public:
 	// Initialize mob sprite
 	float mob_frame_w;
 	float mob_frame_h;
+
+	void drawParticles(Entity entity ,const mat3& view_matrix, const mat3& projection);
+
 
 private:
 	// Freetype stuff

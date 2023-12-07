@@ -33,7 +33,6 @@ public:
 	ComponentContainer<Path> paths;
 	ComponentContainer<Item> items;
 
-	ComponentContainer<ParticleTrail> particleTrails;
 	ComponentContainer<Particle> particles;
 
 	ComponentContainer<vec2> screenUI;
@@ -42,7 +41,10 @@ public:
 	// Rendering related
 	ComponentContainer<Mesh*> meshPtrs;
 	ComponentContainer<RenderRequest> renderRequests;
+	ComponentContainer<InstancedRenderRequest> instancedRenderRequests;
+
 	ComponentContainer<Text> texts;
+
 	ComponentContainer<Camera> cameras;
 
 	ComponentContainer<ScreenState> screenStates;
@@ -78,14 +80,16 @@ public:
 		registry_list.push_back(&items);
 		registry_list.push_back(&questItemIndicators);
 
-		registry_list.push_back(&particleTrails);
 		registry_list.push_back(&particles);
 
 		registry_list.push_back(&screenUI);
 
 		registry_list.push_back(&meshPtrs);
 		registry_list.push_back(&renderRequests);
+    
+		registry_list.push_back(&instancedRenderRequests);
 		registry_list.push_back(&texts);
+
 		registry_list.push_back(&screenStates);
 		
 		registry_list.push_back(&debugComponents);
