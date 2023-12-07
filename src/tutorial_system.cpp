@@ -133,7 +133,7 @@ Entity TutorialSystem::createHelpDialog() {
             TEXTURE_ASSET_ID::HELP_DIALOG,
 			EFFECT_ASSET_ID::TEXTURED,
 			GEOMETRY_BUFFER_ID::SPRITE,
-			RENDER_LAYER_ID::LAYER_4 
+			RENDER_LAYER_ID::LAYER_5
         }
     );
 

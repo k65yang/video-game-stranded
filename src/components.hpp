@@ -464,7 +464,8 @@ enum class RENDER_LAYER_ID {
 	LAYER_2 = LAYER_1 + 1,
 	LAYER_3 = LAYER_2 + 1,      
 	LAYER_4 = LAYER_3 + 1,      // UI elements
-	LAYER_COUNT = LAYER_4 + 1
+	LAYER_5 = LAYER_4 + 1,      
+	LAYER_COUNT = LAYER_5 + 1
 
 };
 const int geometry_count = (int)GEOMETRY_BUFFER_ID::GEOMETRY_COUNT;

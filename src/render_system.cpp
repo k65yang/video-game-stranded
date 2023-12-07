@@ -383,6 +383,7 @@ void RenderSystem::draw()
 	std::vector<Entity> layer_2_entities;
 	std::vector<Entity> layer_3_entities;
 	std::vector<Entity> layer_4_entities;
+	std::vector<Entity> layer_5_entities;
 	Entity player_entity = registry.players.entities[0];
 
 	for (Entity entity : registry.renderRequests.entities)
@@ -416,6 +417,9 @@ void RenderSystem::draw()
 		}
 		else if (registry.renderRequests.get(entity).layer_id == RENDER_LAYER_ID::LAYER_4) {
 			layer_4_entities.push_back(entity);
+		} 
+		else if (registry.renderRequests.get(entity).layer_id == RENDER_LAYER_ID::LAYER_5) {
+			layer_5_entities.push_back(entity);
 		}
 		else {
 			assert(registry.renderRequests.get(entity).layer_id != RENDER_LAYER_ID::LAYER_COUNT && "entity render request with incorrect layer ID (LAYER_COUNT)");
@@ -465,6 +469,10 @@ void RenderSystem::draw()
 		Motion& motion = registry.motions.get(entity);
 
 		renderText(text.str, motion.position.x, motion.position.y, text.scale, text.color, projection_2D, view_2D);
+	}
+
+	for (Entity entity : layer_5_entities) {
+		drawTexturedMesh(entity, view_2D, projection_2D);
 	}
 
 	// Do not touch anything past this point.
