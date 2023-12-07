@@ -127,6 +127,9 @@ private:
 			textures_path("brute.png"),
 			textures_path("disruptor.png"),
 			textures_path("mob_turret.png"),
+			textures_path("start_screen.png"),
+			textures_path("start_button.png"),
+			textures_path("start_button_hover.png")
 	};
 
 	// How big one terrain spritesheet is
@@ -269,11 +272,15 @@ public:
 	// Destroy resources associated to one or all entities created by the system
 	~RenderSystem();
 
-	// Draw all entities
+	// Draw all entities when in the world
 	void draw();
 
+	// Draw all entities when in the start screens
+	void drawStartScreens();
+
 	mat3 createModelMatrix(Entity entity);
-	mat3 createProjectionMatrix();
+	mat3 createScaledProjectionMatrix();
+	mat3 createUnscaledProjectionMatrix();
 
 	/// <summary>
 	/// Modifies the terrain vertex buffer to regenerate rendering values for a specific tile.

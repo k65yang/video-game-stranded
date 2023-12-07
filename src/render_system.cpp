@@ -159,8 +159,7 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 
 }
 
-// draw the intermediate texture to the screen, with some distortion to simulate
-// water
+// draw the intermediate texture to the screen
 void RenderSystem::drawToScreen()
 {
 	
@@ -182,7 +181,6 @@ void RenderSystem::drawToScreen()
 	glDisable(GL_BLEND);
 	// glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glDisable(GL_DEPTH_TEST);
-
 
 	// Draw the screen texture on the quad geometry
 	glBindBuffer(GL_ARRAY_BUFFER, vertex_buffers[(GLuint)GEOMETRY_BUFFER_ID::SCREEN_TRIANGLE]);
@@ -361,10 +359,10 @@ void RenderSystem::draw()
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glDisable(GL_DEPTH_TEST); // native OpenGL does not work with a depth buffer
-							  // and alpha blending, one would have to sort
-							  // sprites back to front
+	// and alpha blending, one would have to sort
+	// sprites back to front
 	gl_has_errors();
-	
+
 	Entity main_camera = registry.get_main_camera();
 	//	Generate view matrix. This converts world space coordinates into camera-relative coords from its POV.
 	//	The reason why we inverse:
@@ -377,7 +375,7 @@ void RenderSystem::draw()
 	mat3 view_2D = inverse(createModelMatrix(main_camera));
 
 	// Generate projection matrix. This maps camera-relative coords to pixel/window coordinates.
-	mat3 projection_2D = createProjectionMatrix();
+	mat3 projection_2D = createScaledProjectionMatrix();
 
 	std::vector<Entity> layer_1_entities;
 	std::vector<Entity> layer_2_entities;
@@ -392,12 +390,11 @@ void RenderSystem::draw()
 			continue;
 		// Note, its not very efficient to access elements indirectly via the entity
 		// albeit iterating through all Sprites in sequence. A good point to optimize
-		
-		// resort them in different queue of render request based on layer they belong to
+		// re-sort them in different queue of render request based on layer they belong to
 		if (registry.renderRequests.get(entity).layer_id == RENDER_LAYER_ID::LAYER_1) {
 
 			// if entity is item or mob
-			if (registry.items.has(entity) || (registry.mobs.has(entity))) {
+			if (registry.items.has(entity) || (registry.mobs.has(entity)) || registry.renderRequests.get(entity).used_texture == TEXTURE_ASSET_ID::RED_BLOCK) {
 
 				// put in draw array if distance to player is close enough
 				if ((distance(registry.motions.get(player_entity).position, registry.motions.get(entity).position) < fow_radius) || enableFow == 0) {
@@ -405,7 +402,7 @@ void RenderSystem::draw()
 				}
 			}
 			else {
-			// draw everything else
+				// draw everything else
 				layer_1_entities.push_back(entity);
 			}
 		}
@@ -440,9 +437,9 @@ void RenderSystem::draw()
 		drawTexturedMesh(entity, view_2D, projection_2D);
 	}
 
-	for (Entity entity : layer_3_entities) {
-		// added guard to turn off while in debug mode 
-		if (debugging.in_debug_mode == false) {
+	// added guard to turn off while in debug mode 
+	if (debugging.in_debug_mode == false) {
+		for (Entity entity : layer_3_entities) {
 			drawTexturedMesh(entity, view_2D, projection_2D);
 		}
 	}
@@ -456,9 +453,10 @@ void RenderSystem::draw()
 
 	// Draw for UI elements
 	
-	// TODO: for UI elements, have new projection matrices that use screen coordinates instead of map coordinates
-	for (Entity entity : layer_4_entities) {
-		drawTexturedMesh(entity, view_2D, projection_2D);
+	if (!debugging.hide_ui) {
+		for (Entity entity : layer_4_entities) {
+			drawTexturedMesh(entity, view_2D, projection_2D);
+		}
 	}
 
 	// TODO: Process text rendering here and ONLY here.
@@ -477,6 +475,68 @@ void RenderSystem::draw()
 	}
 
 	// Do not touch anything past this point.
+	// flicker-free display with a double buffer
+	glfwSwapBuffers(window);
+	gl_has_errors();
+}
+
+// Set up and teardown of this function is identical to draw()
+void RenderSystem::drawStartScreens() {
+	// Getting size of window
+	int w, h;
+	glfwGetFramebufferSize(window, &w, &h); // Note, this will be 2x the resolution given to glfwCreateWindow on retina displays
+
+	// First render to the custom framebuffer
+	glBindFramebuffer(GL_FRAMEBUFFER, frame_buffer);
+	gl_has_errors();
+	// Clearing backbuffer
+	glViewport(0, 0, w, h);
+	glDepthRange(0.00001, 10);
+	glClearColor(0, 0, 0, 1.0);
+	glClearDepth(10.f);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glDisable(GL_DEPTH_TEST); // native OpenGL does not work with a depth buffer
+							  // and alpha blending, one would have to sort
+							  // sprites back to front
+
+	// Generate projection matrix. This is unscaled (does not take into account tile width).
+	mat3 projection_2D = createUnscaledProjectionMatrix();
+
+	// Only track layer 1 and 2 entities. There should not be any other layer active at this stage.
+	std::vector<Entity> layer_1_entities;
+	std::vector<Entity> layer_2_entities;
+	for (Entity entity : registry.renderRequests.entities) {
+		if (registry.renderRequests.get(entity).layer_id == RENDER_LAYER_ID::LAYER_1) {
+			layer_1_entities.push_back(entity);
+		} else if (registry.renderRequests.get(entity).layer_id == RENDER_LAYER_ID::LAYER_2) {
+			layer_2_entities.push_back(entity);
+		}
+	}
+
+	// Render terrain first
+	Entity main_camera = registry.get_main_camera();
+	mat3 view_2D = inverse(createModelMatrix(main_camera));
+	drawTerrain(view_2D, createScaledProjectionMatrix());
+
+	// Draw the meshes
+	for (Entity entity : layer_1_entities) {
+		// pass identity matrix for view_matrix since main camera not exist
+		drawTexturedMesh(entity, mat3(1.f), projection_2D);
+	}
+	for (Entity entity : layer_2_entities) {
+		// pass identity matrix for view_matrix since main camera not exist
+		drawTexturedMesh(entity, mat3(1.f), projection_2D);
+	}
+
+	// Truely render to the screen. Multipass rendering with fog program
+	 drawToScreen();
+
+	// Re-enable blending
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
 	// flicker-free display with a double buffer
 	glfwSwapBuffers(window);
 	gl_has_errors();
@@ -504,7 +564,7 @@ mat3 RenderSystem::createModelMatrix(Entity entity)
 /// Generates an orthogonal projection matrix. 
 /// </summary>
 /// <returns>An orthogonal projection matrix relative to the window size</returns>
-mat3 RenderSystem::createProjectionMatrix()
+mat3 RenderSystem::createScaledProjectionMatrix()
 {
 	// Othogonal projection matrix.
 	// Same code as the template since it scales with aspect ratio.
@@ -527,6 +587,23 @@ mat3 RenderSystem::createProjectionMatrix()
 	float tx = -(right + left) / (right - left) * tile_size_px_scaled;
 	float ty = -(top + bottom) / (top - bottom) * tile_size_px_scaled;
 
+	return {{sx, 0.f, 0.f}, {0.f, sy, 0.f}, {tx, ty, 1.f}};
+}
+
+mat3 RenderSystem::createUnscaledProjectionMatrix()
+{
+	// Code taken from salmon template
+	float left = 0.f;
+	float top = 0.f;
+
+	gl_has_errors();
+	float right = (float) window_resolution.x;
+	float bottom = (float) window_resolution.y;
+
+	float sx = 2.f / (right - left);
+	float sy = 2.f / (top - bottom);
+	float tx = -(right + left) / (right - left);
+	float ty = -(top + bottom) / (top - bottom);
 	return {{sx, 0.f, 0.f}, {0.f, sy, 0.f}, {tx, ty, 1.f}};
 }
 

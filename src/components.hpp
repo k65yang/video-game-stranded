@@ -161,6 +161,7 @@ struct Mob {
 	int mframey = 1;
 	Entity curr_cell;
 	MOB_TYPE type;
+	Entity health_bar;
 };
 
 // Slowing effect for mobs from weapons
@@ -215,6 +216,7 @@ struct Text {
 struct Debug {
 	bool in_debug_mode = 0;
 	bool in_freeze_mode = 0;
+	bool hide_ui = 0;
 };
 extern Debug debugging;
 
@@ -233,7 +235,7 @@ struct DebugComponent
 // A timer that will be associated to dying salmon
 struct DeathTimer
 {
-	float timer_ms = 3000.f;
+	float timer_ms = 5000.f;
 };
 
 struct Tutorial {
@@ -430,7 +432,10 @@ enum class TEXTURE_ASSET_ID {
 	BRUTE = GHOST + 1,
 	DISRUPTOR = BRUTE + 1,
 	TURRET = DISRUPTOR + 1,
-	TEXTURE_COUNT = TURRET + 1,
+	START_SCREEN_ONE = TURRET + 1,
+	START_BUTTON = START_SCREEN_ONE + 1,
+	START_BUTTON_HOVER = START_BUTTON + 1,
+	TEXTURE_COUNT = START_BUTTON_HOVER + 1,
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 
@@ -471,7 +476,6 @@ enum class RENDER_LAYER_ID {
 	LAYER_4 = LAYER_3 + 1,      // UI elements
 	LAYER_5 = LAYER_4 + 1,      
 	LAYER_COUNT = LAYER_5 + 1
-
 };
 const int geometry_count = (int)GEOMETRY_BUFFER_ID::GEOMETRY_COUNT;
 
