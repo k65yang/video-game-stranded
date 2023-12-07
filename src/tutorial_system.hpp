@@ -60,7 +60,7 @@ class TutorialSystem
         const vec2 HELP_BUTTON_POSITION = { 11.f, -7.f }; 
         const vec2 HELP_DIALOG_POSITION = { 0.f, 0.f }; 
         const vec2 HELP_BUTTON_SCALE = { 1.f, 1.f }; 
-        const vec2 HELP_DIALOG_SCALE = { 1.f, 1.f }; 
+        const vec2 HELP_DIALOG_SCALE = { 14.f, 10.f }; 
 
         RenderSystem* renderer;
         Entity help_dialog;
