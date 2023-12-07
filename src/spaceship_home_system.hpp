@@ -45,11 +45,16 @@ class SpaceshipHomeSystem
         /// @return Returns true if the player is in the spaceship home, false otherwise
         bool isHome();
 
+        /// @brief Checks if the mouse is hovering over any storage item
+        /// @param mouse_pos The position of the mouse in clip coordinates
+        /// @return Returns true if the mouse is hovering over any storage item, false otherwise
+        bool isMouseOverAnyStorageItem(vec2 mouse_pos);
+
         /// @brief Checks if the mouse is hovering over a storage item
         /// @param mouse_pos The position of the mouse in clip coordinates
         /// @param type The storage item to check
         /// @return Returns true if the mouse is hovering over the storage item, false otherwise
-        bool isMouseOverStorageItem(vec2 mouse_pos, ITEM_TYPE type);
+        bool isMouseOverStorageItem(vec2 mouse_pos, TEXTURE_ASSET_ID type);
 
         /// @brief Regenerates a stat of the player (ex. health, food, ammo) using a resource stored in the spaceship 
         /// @param type The type of the resource to use to regenerate the stat
@@ -63,10 +68,13 @@ class SpaceshipHomeSystem
     private:
         const vec2 SPACESHIP_HOME_POSITION = { 0.f, 0.f };
         const vec2 FOOD_ITEM_POSITION = { -6.2f, -0.5f };
+        const vec2 FOOD_ITEM_SCALE = { target_resolution.x / tile_size_px * 0.11, target_resolution.y / tile_size_px * 0.09 };
         const vec2 FOOD_STORAGE_COUNT_POSITION = { -4.7f, -0.3f };
         const vec2 AMMO_ITEM_POSITION = { 1.8f, -0.5f };
-        const vec2 AMMO_STORAGE_COUNT_POSITION = { 4.0f, -0.4f };
+        const vec2 AMMO_ITEM_SCALE = { target_resolution.x / tile_size_px * 0.15, target_resolution.y / tile_size_px * 0.1 };
+        const vec2 AMMO_STORAGE_COUNT_POSITION = { 3.9f, -0.3f };
         const vec2 HEALTH_ITEM_POSITION = { 2.2f, -3.5f };
+        const vec2 HEALTH_ITEM_SCALE = { target_resolution.x / tile_size_px * 0.1, target_resolution.y / tile_size_px * 0.13 };
         const vec2 HEALTH_STORAGE_COUNT_POSITION = { 3.6f, -3.2f };
         const vec3 STORAGE_FULL_TEXT_COLOR = { 0.f, 0.f, 0.f };
         const vec3 STORAGE_EMPTY_TEXT_COLOR = { 1.f, 0.f, 0.f };

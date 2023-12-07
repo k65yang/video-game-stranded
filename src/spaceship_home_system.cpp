@@ -116,8 +116,43 @@ bool SpaceshipHomeSystem::isHome() {
     return registry.players.components[0].is_home;
 };
 
-bool SpaceshipHomeSystem::isMouseOverStorageItem(vec2 mouse_pos, ITEM_TYPE type) {
-	return false;
+bool SpaceshipHomeSystem::isMouseOverAnyStorageItem(vec2 mouse_pos) {
+	return 
+		isMouseOverStorageItem(mouse_pos, TEXTURE_ASSET_ID::SPACESHIP_HOME_AMMO) ||
+		isMouseOverStorageItem(mouse_pos, TEXTURE_ASSET_ID::SPACESHIP_HOME_FOOD) ||
+		isMouseOverStorageItem(mouse_pos, TEXTURE_ASSET_ID::SPACESHIP_HOME_HEALTH);
+};
+
+bool SpaceshipHomeSystem::isMouseOverStorageItem(vec2 mouse_pos, TEXTURE_ASSET_ID type) {
+	float width;
+	float height;
+	vec2 center;
+	vec2 top_left;
+	switch(type) {
+		case TEXTURE_ASSET_ID::SPACESHIP_HOME_AMMO:
+			width = AMMO_ITEM_SCALE.x;
+			height = AMMO_ITEM_SCALE.y;
+			center = registry.motions.get(ammo_item).position;
+			break;
+		case TEXTURE_ASSET_ID::SPACESHIP_HOME_FOOD:
+			width = FOOD_ITEM_SCALE.x;
+			height = FOOD_ITEM_SCALE.y;
+			center = registry.motions.get(food_item).position;
+			break;
+		case TEXTURE_ASSET_ID::SPACESHIP_HOME_HEALTH:
+			width = HEALTH_ITEM_SCALE.x;
+			height = HEALTH_ITEM_SCALE.y;
+			center = registry.motions.get(health_item).position;
+			break;
+	}
+
+	top_left = { center.x - width / 2, center.y - height / 2 };
+
+	return 
+		mouse_pos.x > top_left.x &&
+		mouse_pos.x < top_left.x + width &&
+		mouse_pos.y > top_left.y &&
+		mouse_pos.y < top_left.y + height;
 };
 
 void SpaceshipHomeSystem::regenerateStat(RESOURCE_TYPE type) {
@@ -181,13 +216,13 @@ Entity SpaceshipHomeSystem::createSpaceshipHomeItem(vec2 position, TEXTURE_ASSET
 
 	switch(texture) {
 		case TEXTURE_ASSET_ID::SPACESHIP_HOME_HEALTH:
-			motion.scale = { target_resolution.x / tile_size_px * 0.1875, target_resolution.y / tile_size_px * 0.28125 };
+			motion.scale = HEALTH_ITEM_SCALE;
 			break;
 		case TEXTURE_ASSET_ID::SPACESHIP_HOME_FOOD:
-			motion.scale = { target_resolution.x / tile_size_px * 0.125, target_resolution.y / tile_size_px * 0.1875 };
+			motion.scale = FOOD_ITEM_SCALE;
 			break;
 		case TEXTURE_ASSET_ID::SPACESHIP_HOME_AMMO:
-			motion.scale = { target_resolution.x / tile_size_px * 0.3, target_resolution.y / tile_size_px * 0.3 };
+			motion.scale = AMMO_ITEM_SCALE;
 			break;
 	}
 

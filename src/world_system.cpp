@@ -1196,8 +1196,10 @@ void WorldSystem::on_mouse_move(vec2 mouse_position) {
 		CURSOR_ANGLE = atan2(mouse_position.y - screen_centre_y, mouse_position.x - screen_centre_x);
 	}
 
-	// Change mouse cursor type if hovering over help button
-	if (tutorial_system->isMouseOverHelpButton(mouse_pos_clip)) {
+	// Change mouse cursor type if hovering over help button or storage item
+	if (tutorial_system->isMouseOverHelpButton(mouse_pos_clip) || 
+		spaceship_home_system->isHome() && !tutorial_system->isHelpDialogOpen() && spaceship_home_system->isMouseOverAnyStorageItem(mouse_pos_clip)
+	) {
 		GLFWcursor* cursor = glfwCreateStandardCursor(GLFW_HAND_CURSOR);
 		glfwSetCursor(window, cursor);
 	} else {
