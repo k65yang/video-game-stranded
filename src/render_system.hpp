@@ -265,11 +265,13 @@ public:
 
 	void initializeGlMeshes();
 	Mesh& getMesh(GEOMETRY_BUFFER_ID id) { return meshes[(int)id]; };
+	void initializeSpriteSheetQuad(GEOMETRY_BUFFER_ID gid, int numberOfRowSprites, float numberOfColumnSprites);
 
 	void initializeGlGeometryBuffers();
 	// Initialize the screen texture used as intermediate render target
 	// The draw loop first renders to this texture, then it is used for the water
 	// shader
+
 	bool initScreenTexture();
 
 	// Initialize text vertex buffers and text vao
@@ -308,6 +310,7 @@ public:
 	// Do not modify this. READ ONLY!!
 	bool is_terrain_mesh_loaded = false;
 
+	/* CLEAN LATER
 	// Initialize player sprite
 	float player_frame_w;
 	float player_frame_h;
@@ -317,6 +320,7 @@ public:
 	// For muzzle flash sprite sheet animation
 	float muzzleFlash_frame_w;
 	float muzzleFlash_frame_h;
+	*/
 
 private:
 	// Freetype stuff

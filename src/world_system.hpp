@@ -124,6 +124,7 @@ private:
 	Entity spaceship;
 	Entity spaceship_home; 
 	Entity help_bar;
+	Entity muzzleFlash;
 	bool tooltips_on = true;
 
 	bool user_has_first_weapon = false;
@@ -187,4 +188,7 @@ private:
 	/// <param name="elapsed_ms_since_last_update"></param>
 	void handlePlayerMovement(float elapsed_ms_since_last_update);
 	bool keyDown[KEYS];    // Uses InputKeyIndex values as index
+
+	void emitMuzzleFlash(vec2 position, int PLAYER_DIRECTION);
+
 };

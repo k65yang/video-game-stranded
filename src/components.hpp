@@ -63,8 +63,6 @@ struct Player
 	int decrease_food_to = PLAYER_MAX_FOOD;
 	float iframes_timer = 0; // in ms
 	int food = PLAYER_MAX_FOOD;
-	int framex = 0; 
-	int framey = 4; 
 	bool is_home = false;
 };
 
@@ -145,8 +143,6 @@ struct Mob {
 	int aggro_range;
 	int health;
 	float speed_ratio;
-	int mframex = 0;
-	int mframey = 1;
 	Entity curr_cell;
 	MOB_TYPE type;
 	Entity health_bar;
@@ -333,6 +329,16 @@ struct Collider
 	mat2 rotation;	// might need for later when we have entity(mobs) that can rotate its sprites
 	vec2 scale; // used for AABB broad phase detection
 	int flag;  // for filtering 
+};
+
+// component for entity using sprite sheet animation
+struct Animation {
+	int framex = 0; // row index on the sprite from sprite sheet
+	int framey = 0; // column index 
+
+	float frame_dimension_w = 1.0f;
+	float frame_dimension_h = 1.0f;
+	// frame dimension on width and height are set up under initializeGlGeometryBuffers() from render_system_init.cpp
 };
 
 

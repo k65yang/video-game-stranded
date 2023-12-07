@@ -409,6 +409,17 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	if (debugging.in_debug_mode && editor_place_tile)
 		map_editor_routine();
 
+	// update for muzzle flash animation
+	// change to next frame if not at last frame
+	if (registry.animations.get(muzzleFlash).framex != 4) {
+		registry.animations.get(muzzleFlash).framex += 1;
+	}
+	else {
+	// set to transparent
+		registry.colors.get(muzzleFlash).a = 0.0f;
+	}
+		
+
 	return true;
 }
 
@@ -424,13 +435,14 @@ void WorldSystem::updatePlayerDirection() {
 
 
 	// Update player's direction
-	registry.players.components[0].framey = PLAYER_DIRECTION;
+	registry.animations.get(player_salmon).framey = PLAYER_DIRECTION;
 	
 	}
 
 void WorldSystem::handlePlayerMovement(float elapsed_ms_since_last_update) {
 	// Check if any movement keys are pressed and if player is not dead
 	bool anyMovementKeysPressed = keyDown[LEFT] || keyDown[RIGHT] || keyDown[UP] || keyDown[DOWN];
+	auto& player_animation = registry.animations.get(player_salmon);
 
 	// We'll consider moveVelocity existing in player space
 	// Allow movement if player is not dead 
@@ -450,12 +462,12 @@ void WorldSystem::handlePlayerMovement(float elapsed_ms_since_last_update) {
 
 			if (ELAPSED_TIME > 100) {
 				// Update walking animation
-				registry.players.components[0].framex = (registry.players.components[0].framex + 1) % 4;
+				player_animation.framex = (player_animation.framex + 1) % 4;
 				ELAPSED_TIME = 0.0f; // Reset the timer
 				}
 		} else {
 			// No movement keys pressed, set back to the first frame
-			registry.players.components[0].framex = 0;
+			player_animation.framex = 0;
 			}
 		}
 	else if (registry.deathTimers.has(player_salmon)) {
@@ -463,7 +475,9 @@ void WorldSystem::handlePlayerMovement(float elapsed_ms_since_last_update) {
 		Motion& m = registry.motions.get(player_salmon);
 		Player& player = registry.players.get(player_salmon);
 		m.velocity = { 0, 0 };
-		registry.players.components[0].framey = 1;
+
+
+		player_animation.framey = 1;
 		if (player.health <=  0) {
 			Motion& health = registry.motions.get(health_bar);
 			health.scale = { 0,0 };
@@ -603,6 +617,9 @@ void WorldSystem::restart_game() {
 	// for movement velocity
 	for (int i = 0; i < KEYS; i++)
 	  keyDown[i] = false;
+
+	muzzleFlash = createMuzzleFlash(renderer, vec2(0.f));
+
 }
 
 // Compute collisions between entities
@@ -1204,20 +1221,24 @@ void WorldSystem::on_mouse_click(int button, int action, int mods) {
 
 			// Play appropriate shooting noises if we've just shot
 			ITEM_TYPE fired_weapon = weapons_system->fireWeapon(player_motion.position.x, player_motion.position.y, CURSOR_ANGLE);
-
+			
 			// If we successfully shot...
-			if (fired_weapon != ITEM_TYPE::WEAPON_NONE)
-				switch (fired_weapon) {
-					case ITEM_TYPE::WEAPON_SHOTGUN:
-						audio_system->play_one_shot(AudioSystem::SHOT); break;
-					case ITEM_TYPE::WEAPON_MACHINEGUN:
-						audio_system->play_one_shot(AudioSystem::SHOT_MG); break;
-					case ITEM_TYPE::WEAPON_CROSSBOW:
-						audio_system->play_one_shot(AudioSystem::SHOT_CROSSBOW); break;
-					case ITEM_TYPE::WEAPON_SHURIKEN:
-						audio_system->play_one_shot(AudioSystem::SHOT_SHURIKEN); break;
-				}
+			if (fired_weapon != ITEM_TYPE::WEAPON_NONE) {
 
+				emitMuzzleFlash(player_motion.position, PLAYER_DIRECTION);
+
+				switch (fired_weapon) {
+				case ITEM_TYPE::WEAPON_SHOTGUN:
+					audio_system->play_one_shot(AudioSystem::SHOT); break;
+				case ITEM_TYPE::WEAPON_MACHINEGUN:
+					audio_system->play_one_shot(AudioSystem::SHOT_MG); break;
+				case ITEM_TYPE::WEAPON_CROSSBOW:
+					audio_system->play_one_shot(AudioSystem::SHOT_CROSSBOW); break;
+				case ITEM_TYPE::WEAPON_SHURIKEN:
+					audio_system->play_one_shot(AudioSystem::SHOT_SHURIKEN); break;
+				}
+			
+			}
 			// We didn't shoot successfully since we ran out of ammo
 			else if (weapons_system->getActiveWeaponAmmoCount() <= 0 && player_equipped_weapon) {
 				fired_weapon = weapons_system->getActiveWeapon();
@@ -1487,6 +1508,11 @@ void WorldSystem::load_game(json j) {
 	// for movement velocity
 	for (int i = 0; i < KEYS; i++)
 		keyDown[i] = false;
+
+	// create muzzle flash entity
+	createMuzzleFlash(renderer, vec2{ 0,0 });
+	
+
 }
 
 void WorldSystem::load_spawned_items_mobs(json& j) {
@@ -1497,4 +1523,47 @@ void WorldSystem::load_spawned_items_mobs(json& j) {
 	for (auto& mob : j["mobs"]) {
 		mob_system->create_mob({ mob[1]["position_x"], mob[1]["position_y"] }, mob[0]["type"], mob[0]["health"]);
 	}
+}
+
+void WorldSystem::emitMuzzleFlash(vec2 position, int PLAYER_DIRECTION) {
+	auto& m = registry.motions.get(muzzleFlash);
+	vec2 offset;
+
+	// caluclate offset position and angle 
+	switch (PLAYER_DIRECTION)
+	{
+		case 5: //Down
+			offset = vec2{ 0.f, 1.0f };
+			m.angle = (90.f * M_PI / 180.f);
+			break;
+		case 6: //UP
+			offset = vec2{ 0.f, -1.0f };
+			m.angle = (270.f * M_PI / 180.f);
+
+			break;
+		case 7: //LEFT
+			offset = vec2{ -1.4f, 0.0f };
+			m.angle = (180.f * M_PI / 180.f);
+			break;
+		case 8: //RIGHT
+			offset = vec2{ 1.4f, 0.0f };
+			m.angle = (0.f * M_PI / 180.f);
+			break;
+		default:
+			offset = vec2{ 0.f, 1.0f };
+			m.angle = (90.f * M_PI / 180.f);
+			break;
+	}
+
+	// move muzzle flash to target position
+	m.position = position + offset;
+
+	// set to start from first frame
+	registry.animations.get(muzzleFlash).framex = 0;
+
+	// set alpha
+	 registry.colors.get(muzzleFlash).a = 1.0f;
+
+
+
 }
