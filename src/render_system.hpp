@@ -320,7 +320,7 @@ public:
 	float mob_frame_w;
 	float mob_frame_h;
 
-	void RenderSystem::drawParticles(Entity entity ,const mat3& view_matrix, const mat3& projection);
+	void drawParticles(Entity entity ,const mat3& view_matrix, const mat3& projection);
 
 
 private:

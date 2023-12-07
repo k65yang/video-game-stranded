@@ -45,12 +45,13 @@ class ParticleSystem
     /// @param entity To get motion related parameter for the particle
     /// @param texture texture used to represent the particle 
     
-    Entity ParticleSystem::emit(ParticleTemplate temp);
+    Entity emit(ParticleTemplate temp);
 
-    void ParticleSystem::createParticleTrail(Entity targetEntity, TEXTURE_ASSET_ID texture, int numberOfParticles, vec2 scale);
-    void ParticleSystem::createFloatingHeart(Entity targetEntity, TEXTURE_ASSET_ID texture, int numberOfParticles);
-    void ParticleSystem::createParticleSplash(Entity projectile_entity, Entity mob_entity, int numberOfParticles, vec2 splashDirection);
-    void ParticleSystem::createMuzzleFlash(vec2 playerPosition, int playerDirection, int numberOfParticles);
+    void createParticleTrail(Entity targetEntity, TEXTURE_ASSET_ID texture, int numberOfParticles, vec2 scale);
+    void createFloatingHeart(Entity targetEntity, TEXTURE_ASSET_ID texture, int numberOfParticles);
+    void createParticleSplash(Entity projectile_entity, Entity mob_entity, int numberOfParticles, vec2 splashDirection);
+    // void createMuzzleFlash(vec2 playerPosition, int playerDirection, int numberOfParticles);
+
     private:
 
     // mob color lookup table for particle splash
