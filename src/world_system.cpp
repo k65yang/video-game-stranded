@@ -90,17 +90,6 @@ GLFWwindow* WorldSystem::create_window() {
 		return nullptr;
 	}
 
-	// Setting callbacks to member functions (that's why the redirect is needed)
-	// Input is handled using GLFW, for more info see
-	// http://www.glfw.org/docs/latest/input_guide.html
-	glfwSetWindowUserPointer(window, this);
-	auto key_redirect = [](GLFWwindow* wnd, int _0, int _1, int _2, int _3) { ((WorldSystem*)glfwGetWindowUserPointer(wnd))->on_key(_0, _1, _2, _3); };
-	auto cursor_pos_redirect = [](GLFWwindow* wnd, double _0, double _1) { ((WorldSystem*)glfwGetWindowUserPointer(wnd))->on_mouse_move({ _0, _1 }); };
-	auto cursor_button_redirect = [](GLFWwindow* wnd, int _0, int _1, int _2) { ((WorldSystem*)glfwGetWindowUserPointer(wnd))->on_mouse_click(_0, _1, _2); };
-	glfwSetKeyCallback(window, key_redirect);
-	glfwSetCursorPosCallback(window, cursor_pos_redirect);
-	glfwSetMouseButtonCallback(window, cursor_button_redirect);
-
 	return window;
 }
 
@@ -128,6 +117,17 @@ void WorldSystem::init(
 	this->quest_system = quest_system_arg;
 	this->particle_system = particle_system_arg;
 
+
+	// Setting callbacks to member functions (that's why the redirect is needed)
+	// Input is handled using GLFW, for more info see
+	// http://www.glfw.org/docs/latest/input_guide.html
+	glfwSetWindowUserPointer(window, this);
+	auto key_redirect = [](GLFWwindow* wnd, int _0, int _1, int _2, int _3) { ((WorldSystem*)glfwGetWindowUserPointer(wnd))->on_key(_0, _1, _2, _3); };
+	auto cursor_pos_redirect = [](GLFWwindow* wnd, double _0, double _1) { ((WorldSystem*)glfwGetWindowUserPointer(wnd))->on_mouse_move({ _0, _1 }); };
+	auto cursor_button_redirect = [](GLFWwindow* wnd, int _0, int _1, int _2) { ((WorldSystem*)glfwGetWindowUserPointer(wnd))->on_mouse_click(_0, _1, _2); };
+	glfwSetKeyCallback(window, key_redirect);
+	glfwSetCursorPosCallback(window, cursor_pos_redirect);
+	glfwSetMouseButtonCallback(window, cursor_button_redirect);
 
 	// Set all states to default
 	restart_game();
@@ -678,7 +678,7 @@ void WorldSystem::handle_collisions() {
 				}
 
 				Mob& mob = registry.mobs.get(entity_other);
-				player.health -= mob.damage;
+				player.health = max(0, player.health - mob.damage);
 				mob_system->apply_mob_attack_effects(entity, entity_other);
 
 				// Shrink the health bar
@@ -689,10 +689,17 @@ void WorldSystem::handle_collisions() {
 				player.iframes_timer = IFRAMES;
 
 				if (player.health <= 0) {
+					audio_system->play_one_shot(AudioSystem::PLAYER_DEATH);
 					if (!registry.deathTimers.has(entity)) {
 						// TODO: game over screen
 						registry.deathTimers.emplace(entity);
 					}
+				}
+				else {
+					if (player.health <= PLAYER_MAX_HEALTH * 0.25f)
+						audio_system->play_one_shot(AudioSystem::PLAYER_LOW_HEALTH);
+					else
+						audio_system->play_one_shot(AudioSystem::PLAYER_HIT);
 				}
 
 				// reset health powerup values
@@ -729,15 +736,19 @@ void WorldSystem::handle_collisions() {
 				switch (item.data) {
 					case ITEM_TYPE::QUEST_ONE:
 						quest_system->processQuestItem(item.data, QUEST_ITEM_STATUS::FOUND);
+						audio_system->play_one_shot(AudioSystem::QUEST_PICKUP);
 						break;
 					case ITEM_TYPE::QUEST_TWO:
 						quest_system->processQuestItem(item.data, QUEST_ITEM_STATUS::FOUND);
+						audio_system->play_one_shot(AudioSystem::QUEST_PICKUP);
 						break;
 					case ITEM_TYPE::QUEST_THREE:
 						quest_system->processQuestItem(item.data, QUEST_ITEM_STATUS::FOUND);
+						audio_system->play_one_shot(AudioSystem::QUEST_PICKUP);
 						break;
 					case ITEM_TYPE::QUEST_FOUR:
 						quest_system->processQuestItem(item.data, QUEST_ITEM_STATUS::FOUND);
+						audio_system->play_one_shot(AudioSystem::QUEST_PICKUP);
 						break;
 					case ITEM_TYPE::FOOD:
 						// Add to food bar
@@ -752,15 +763,19 @@ void WorldSystem::handle_collisions() {
 						break;
 					case ITEM_TYPE::WEAPON_SHURIKEN:
 						weapons_system->increaseAmmo(ITEM_TYPE::WEAPON_SHURIKEN, 5);
+						audio_system->play_one_shot(AudioSystem::RELOAD_SHURIKEN);
 						break;
 					case ITEM_TYPE::WEAPON_CROSSBOW:
 						weapons_system->increaseAmmo(ITEM_TYPE::WEAPON_CROSSBOW, 5);
+						audio_system->play_one_shot(AudioSystem::RELOAD_CROSSBOW);
 						break;
 					case ITEM_TYPE::WEAPON_SHOTGUN:
 						weapons_system->increaseAmmo(ITEM_TYPE::WEAPON_SHOTGUN, 3);
+						audio_system->play_one_shot(AudioSystem::RELOAD_SHOTGUN);
 						break;
 					case ITEM_TYPE::WEAPON_MACHINEGUN:
 						weapons_system->increaseAmmo(ITEM_TYPE::WEAPON_MACHINEGUN, 10);
+						audio_system->play_one_shot(AudioSystem::RELOAD_MG);
 						break;
 					case ITEM_TYPE::WEAPON_UPGRADE:
 						weapons_system->upgradeWeapon();
@@ -1009,6 +1024,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		if (player.is_home) {
 			// Exit spaceship
 			spaceship_home_system->exitSpaceship();
+			audio_system->play_one_shot(AudioSystem::SHIP_LEAVE);
 		} else {
 			// Close the window if not in home screen
 			glfwSetWindowShouldClose(window, true);
@@ -1021,6 +1037,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 
 		if (action == GLFW_PRESS && key == GLFW_KEY_E ) {
 			spaceship_home_system->enterSpaceship(health_bar, food_bar);
+			audio_system->play_one_shot(AudioSystem::SHIP_ENTER);
 		}
 	}
 
@@ -1205,13 +1222,34 @@ void WorldSystem::on_mouse_click(int button, int action, int mods) {
 			// Play appropriate shooting noises if we've just shot
 			ITEM_TYPE fired_weapon = weapons_system->fireWeapon(player_motion.position.x, player_motion.position.y, CURSOR_ANGLE);
 
-			switch (fired_weapon) {
-				case ITEM_TYPE::WEAPON_SHOTGUN:
-					audio_system->play_one_shot(AudioSystem::SHOT); break;
-				case ITEM_TYPE::WEAPON_MACHINEGUN:
-					audio_system->play_one_shot(AudioSystem::SHOT_MG); break;
-				case ITEM_TYPE::WEAPON_CROSSBOW:
-					audio_system->play_one_shot(AudioSystem::SHOT_CROSSBOW); break;
+			// If we successfully shot...
+			if (fired_weapon != ITEM_TYPE::WEAPON_NONE)
+				switch (fired_weapon) {
+					case ITEM_TYPE::WEAPON_SHOTGUN:
+						audio_system->play_one_shot(AudioSystem::SHOT); break;
+					case ITEM_TYPE::WEAPON_MACHINEGUN:
+						audio_system->play_one_shot(AudioSystem::SHOT_MG); break;
+					case ITEM_TYPE::WEAPON_CROSSBOW:
+						audio_system->play_one_shot(AudioSystem::SHOT_CROSSBOW); break;
+					case ITEM_TYPE::WEAPON_SHURIKEN:
+						audio_system->play_one_shot(AudioSystem::SHOT_SHURIKEN); break;
+				}
+
+			// We didn't shoot successfully since we ran out of ammo
+			else if (weapons_system->getActiveWeaponAmmoCount() <= 0 && player_equipped_weapon) {
+				fired_weapon = weapons_system->getActiveWeapon();
+
+				if (fired_weapon == ITEM_TYPE::WEAPON_NONE)
+					return;
+
+				switch (fired_weapon) {
+					case ITEM_TYPE::WEAPON_SHOTGUN:
+						audio_system->play_one_shot(AudioSystem::EMPTY_SHOTGUN); break;
+					case ITEM_TYPE::WEAPON_MACHINEGUN:
+						audio_system->play_one_shot(AudioSystem::EMPTY_MG); break;
+					case ITEM_TYPE::WEAPON_CROSSBOW:
+						audio_system->play_one_shot(AudioSystem::EMPTY_CROSSBOW); break;
+				}
 			}
 		}
 	}
@@ -1228,7 +1266,7 @@ void WorldSystem::map_editor_routine() {
 	mat3 view_ = renderer->createModelMatrix(main_camera);
 
 	// You can cache this to save performance.
-	mat3 proj_ = inverse(renderer->createProjectionMatrix());
+	mat3 proj_ = inverse(renderer->createScaledProjectionMatrix());
 
 	double xpos, ypos;
 	glfwGetCursorPos(window, &xpos, &ypos);	// For some reason it only supports doubles!

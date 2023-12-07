@@ -164,7 +164,7 @@ ITEM_TYPE WeaponsSystem::getActiveWeapon() {
 }
 
 int WeaponsSystem::getActiveWeaponAmmoCount() {
-	return active_weapon_component->ammo_count;
+	return !active_weapon_component ? 0 : active_weapon_component->ammo_count;
 }
 
 ITEM_TYPE WeaponsSystem::fireWeapon(float player_x, float player_y, float player_angle) {
