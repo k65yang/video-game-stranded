@@ -66,10 +66,10 @@ class TutorialSystem
 
         const vec2 HELP_BUTTON_POSITION = { 11.f, -7.f }; 
         const vec2 HELP_DIALOG_POSITION = { 0.f, 0.f }; 
-        const vec2 TUTORIAL_DIALOG_POSITION = { 0.f, -5.f };
-        const vec2 HELP_BUTTON_SCALE = { 1.f, 1.f }; 
-        const vec2 HELP_DIALOG_SCALE = { 14.f, 10.f }; 
-        const vec2 TUTORIAL_DIALOG_SCALE = { 8.f, 5.f };
+        const vec2 TUTORIAL_DIALOG_POSITION = { 0.f, -4.f };
+        const vec2 HELP_BUTTON_SCALE = { target_resolution.x / tile_size_px * 0.05f, target_resolution.y / tile_size_px * 0.07f}; 
+        const vec2 HELP_DIALOG_SCALE = { target_resolution.x / tile_size_px * 0.5f, target_resolution.y / tile_size_px * 0.5f }; 
+        const vec2 TUTORIAL_DIALOG_SCALE = { target_resolution.x / tile_size_px * 0.3f, target_resolution.y / tile_size_px * 0.45f };
 
         RenderSystem* renderer;
         Entity help_dialog;
