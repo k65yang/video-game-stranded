@@ -669,19 +669,7 @@ void WorldSystem::handle_collisions() {
 
 			// Checking Player - Mobs
 			if (registry.mobs.has(entity_other)) {
-
-				// prevent player stack on top of mob upon colliding
-				if (correctionCount < 3) {
-					Motion& player_motion = registry.motions.get(entity);
-					Motion& mob_motion = registry.motions.get(entity_other);
-
-					vec2 correctionVec = registry.collisions.components[i].MTV * registry.collisions.components[i].overlap;
-					player_motion.position = player_motion.position + correctionVec;
-					mob_motion.position = mob_motion.position + -1.1f * correctionVec;
-
-					correctionCount += 1;
 				
-				}
 				
 				if (player.iframes_timer > 0 || registry.deathTimers.has(entity)) {
 					// Don't damage and discard all other collisions for a bit
@@ -829,16 +817,7 @@ void WorldSystem::handle_collisions() {
 			}
 		}
 
-		// mob vs terrain collision resolution - making sure mob doesnt stuck/go through in terrain
-
-		if (registry.mobs.has(entity)) {
-			if (registry.terrainCells.has(entity_other))
-			{
-				Motion& motion = registry.motions.get(entity);
-				vec2 correctionVec = registry.collisions.components[i].MTV * registry.collisions.components[i].overlap;
-				motion.position = motion.position + correctionVec;
-			}
-		}
+		
 
 		// Collisions involving projectiles. 
 		// For now, the projectile will be removed upon any collisions with mobs/terrain

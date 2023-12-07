@@ -124,15 +124,7 @@ class WeaponsSystem
             {ITEM_TYPE::WEAPON_MACHINEGUN, 5},
         };
 
-
-        // Weapon knockbacks
-        std::map<ITEM_TYPE, float> weapon_knockback_map{
-            {ITEM_TYPE::WEAPON_NONE, 0.f},
-            {ITEM_TYPE::WEAPON_SHURIKEN, 0.4f},
-            {ITEM_TYPE::WEAPON_CROSSBOW, 0.2f},
-            {ITEM_TYPE::WEAPON_SHOTGUN, 0.f},
-            {ITEM_TYPE::WEAPON_MACHINEGUN, 0.1f},
-        };
+        
 
         // Weapon ammo capacity
         std::map<ITEM_TYPE, int> weapon_ammo_capacity_map {
