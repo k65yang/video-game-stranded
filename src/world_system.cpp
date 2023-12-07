@@ -93,6 +93,8 @@ GLFWwindow* WorldSystem::create_window() {
 	return window;
 }
 
+
+
 void WorldSystem::init(
 	RenderSystem* renderer_arg, 
 	TerrainSystem* terrain_arg, 
@@ -101,8 +103,10 @@ void WorldSystem::init(
 	MobSystem* mob_system_arg, 
 	AudioSystem* audio_system_arg,
 	SpaceshipHomeSystem* spaceship_home_system_arg,
-	QuestSystem* quest_system_arg
+	QuestSystem* quest_system_arg,
+	ParticleSystem* particle_system_arg
 ) {
+
 	this->renderer = renderer_arg;
 	this->terrain = terrain_arg;
 	this->weapons_system = weapons_system_arg;
@@ -111,6 +115,8 @@ void WorldSystem::init(
 	this->audio_system = audio_system_arg;
 	this->spaceship_home_system = spaceship_home_system_arg;
 	this->quest_system = quest_system_arg;
+	this->particle_system = particle_system_arg;
+
 
 	// Setting callbacks to member functions (that's why the redirect is needed)
 	// Input is handled using GLFW, for more info see
@@ -190,6 +196,9 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 		if (player.iframes_timer < 0) {
 			player.iframes_timer = 0;
+			physics_system->isPlayerInvincible = false;
+			//std::cout << "player is normalll..." << std::endl; //DELETE LATER
+
 		}
 		
 		if (player.health_decrease_time < 0) {
@@ -321,6 +330,12 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			hp.remaining_time_for_next_heal = hp.heal_interval_ms;
 			player.health = std::min(PLAYER_MAX_HEALTH, player.health + hp.heal_amount);
 
+			// creating particles effects for healing
+			
+			particle_system->createFloatingHeart(player_salmon, TEXTURE_ASSET_ID::HEART_PARTICLE, 6);
+			
+
+
 			// light up the health bar
 			if (registry.colors.has(health_bar)) {
 				// can happen when the light up period is longer than the heal interval
@@ -403,6 +418,14 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 				printf("INACCURACY REMOVED\n");
 			}
 		}
+
+		// creating particles effects for character upgrades
+		if (registry.speedPowerup.has(entity)) {
+			particle_system->createParticleTrail(entity, TEXTURE_ASSET_ID::PLAYER_PARTICLE, 2, vec2{0.7f, 1.0f});
+		}
+
+		
+
 	}
 
 	// Lets the editor drag
@@ -610,6 +633,7 @@ void WorldSystem::handle_collisions() {
 	// Loop over all collisions detected by the physics system
 	auto& collisionsRegistry = registry.collisions;
 	vec2 hasCorrectedDirection = {0,0};
+	int correctionCount = 0;
 
 	for (uint i = 0; i < collisionsRegistry.components.size(); i++) {
 		// The entity and its collider
@@ -648,18 +672,23 @@ void WorldSystem::handle_collisions() {
 
 			// Checking Player - Mobs
 			if (registry.mobs.has(entity_other)) {
-
-				// prevent player stack on top of mob upon colliding
-				/* TODO for m4
-				Motion& player_motion = registry.motions.get(entity);
-				vec2 correctionVec = registry.collisions.components[i].MTV * registry.collisions.components[i].overlap;
-				player_motion.position = player_motion.position + correctionVec;
-				*/
-
+				
+				
 				if (player.iframes_timer > 0 || registry.deathTimers.has(entity)) {
-					// Don't damage and discard all other collisions for a bit
-					collisionsRegistry.clear();
-					return;
+					// discard all player vs mob collision
+					for (int i = 0; i < collisionsRegistry.size(); i++) {
+						if (registry.players.has(collisionsRegistry.entities[i]) && registry.mobs.has(collisionsRegistry.components[i].other_entity))
+							collisionsRegistry.remove(collisionsRegistry.entities[i]);
+						//std::cout << "removed one colliisions." << std::endl;
+
+					}
+
+					// set player to ignore mob collision
+					physics_system->isPlayerInvincible = true;
+					//std::cout << "player is invincible......" << std::endl;
+
+					// skip damage
+					break;
 				}
 
 				Mob& mob = registry.mobs.get(entity_other);
@@ -741,6 +770,7 @@ void WorldSystem::handle_collisions() {
 						if (player.food > PLAYER_MAX_FOOD) {
 							player.food = PLAYER_MAX_FOOD;
 						}
+
 						break;
 					case ITEM_TYPE::WEAPON_NONE:
 						// Do nothing
@@ -781,11 +811,7 @@ void WorldSystem::handle_collisions() {
 						speedPowerup.old_speed = current_speed;
 						current_speed *= 2;
 
-						// Give a particle trail to the player
-						ParticleTrail& pt = registry.particleTrails.emplace(player_salmon);
-						pt.is_alive = true;
-						pt.texture = TEXTURE_ASSET_ID::PLAYER_PARTICLE;
-						pt.motion_component_ptr = &registry.motions.get(player_salmon);
+		
 
 						// Add the powerup indicator
 						if (user_has_powerup)
@@ -793,6 +819,7 @@ void WorldSystem::handle_collisions() {
 						powerup_indicator = createPowerupIndicator(renderer, {-9.5f, 5.f}, TEXTURE_ASSET_ID::ICON_POWERUP_SPEED);
 						user_has_powerup = true;
 						break;
+
 					}
 					case ITEM_TYPE::POWERUP_HEALTH:
 						// remove the speed power up if already equipped
@@ -801,8 +828,6 @@ void WorldSystem::handle_collisions() {
 							current_speed = registry.speedPowerup.get(player_salmon).old_speed;
 							registry.speedPowerup.remove(player_salmon);
 
-							// Set the particle trail to dead
-							registry.particleTrails.get(player_salmon).is_alive = false;
 						}
 
 						// Give health powerup to player. Use default values in struct definition.
@@ -821,6 +846,8 @@ void WorldSystem::handle_collisions() {
 			}
 		}
 
+		
+
 		// Collisions involving projectiles. 
 		// For now, the projectile will be removed upon any collisions with mobs/terrain
 		// In the future, an idea could be "pass-through weapons", weapons that can collateral?
@@ -829,6 +856,10 @@ void WorldSystem::handle_collisions() {
 
 			// Checking Projectile - Mobs
 			if (registry.mobs.has(entity_other)) {
+
+				// blood splash particle effects
+				particle_system->createParticleSplash(entity, entity_other, 10, collisionsRegistry.components[i].MTV);
+
 				Mob& mob = registry.mobs.get(entity_other);
 
 				// Mob takes damage. Kill if no hp left.
@@ -1456,11 +1487,6 @@ void WorldSystem::load_game(json j) {
 				speedPowerup.old_speed = current_speed;
 				current_speed *= 2;
 
-				// Give a particle trail to the player
-				ParticleTrail& pt = registry.particleTrails.emplace(player_salmon);
-				pt.is_alive = true;
-				pt.texture = TEXTURE_ASSET_ID::PLAYER_PARTICLE;
-				pt.motion_component_ptr = &registry.motions.get(player_salmon);
 
 				// UI Indicator
 				powerup_indicator = createPowerupIndicator(renderer, { -9.5f + camera_motion.position.x, 5.f + camera_motion.position.y }, TEXTURE_ASSET_ID::ICON_POWERUP_SPEED);

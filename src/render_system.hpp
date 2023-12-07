@@ -132,11 +132,14 @@ private:
 			textures_path("mob_turret.png"),
 			textures_path("loaded.png"),
 			textures_path("saving.png"),
+			textures_path("heart_particle.png"),
+      
 			// Starting screen textures
 			textures_path("start_screen.png"),
 			textures_path("intro_screen.png"),
 			textures_path("start_button.png"),
 			textures_path("start_button_hover.png"),
+
 	};
 
 	// How big one terrain spritesheet is
@@ -213,7 +216,10 @@ private:
 		shader_path("textured"),
 		shader_path("fog"),
 		shader_path("terrain"),
+		shader_path("particle"),
+		shader_path("textureParticle"),
 		shader_path("text")};
+
 
 	std::array<GLuint, geometry_count> vertex_buffers;
 	std::array<GLuint, geometry_count> index_buffers;
@@ -315,6 +321,9 @@ public:
 	// Initialize mob sprite
 	float mob_frame_w;
 	float mob_frame_h;
+
+	void drawParticles(Entity entity ,const mat3& view_matrix, const mat3& projection);
+
 
 private:
 	// Freetype stuff

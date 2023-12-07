@@ -52,7 +52,14 @@ int main()
 	// Initialize systems needed to display the start screen
 	audio_system.init();		
 	render_system.init(window);
+	particle_system.init(&render_system);
+	weapons_system.init(&render_system, &physics_system);
+	mob_system.init(&render_system, &terrain_system, &physics_system);
+	quest_system.init(&render_system);
+	spaceship_home_system.init(&render_system, &weapons_system, &quest_system);
+	world_system.init(&render_system, &terrain_system, &weapons_system, &physics_system, &mob_system, &audio_system, &spaceship_home_system, &quest_system, &particle_system);
 	start_screen_system.init(window, &render_system, &terrain_system);
+
 
 	// Load terrain mesh into the GPU
 	std::unordered_map<unsigned int, RenderSystem::ORIENTATIONS> orientation_map;
@@ -80,10 +87,10 @@ int main()
 	mob_system.init(&render_system, &terrain_system, &physics_system);
 	quest_system.init(&render_system);
 	spaceship_home_system.init(&render_system, &weapons_system, &quest_system);
-	world_system.init(&render_system, &terrain_system, &weapons_system, &physics_system, &mob_system, &audio_system, &spaceship_home_system, &quest_system);
+	world_system.init(&render_system, &terrain_system, &weapons_system, &physics_system, &mob_system, &audio_system, &spaceship_home_system, &quest_system, &particle_system);
 
 	pathfinding_system.init(&terrain_system);
-	particle_system.init(&render_system);
+	
 
 	// variable timestep loop
 	while (!world_system.is_over()) {
@@ -103,10 +110,10 @@ int main()
 			terrain_system.step(elapsed_ms);
 			pathfinding_system.step(elapsed_ms);
 			weapons_system.step(elapsed_ms);
-			particle_system.step(elapsed_ms);
 			mob_system.step(elapsed_ms);
 			quest_system.step(elapsed_ms);
 			world_system.handle_collisions();
+			particle_system.step(elapsed_ms);
 		} else {
 			spaceship_home_system.step(elapsed_ms);
 		}

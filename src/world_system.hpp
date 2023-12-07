@@ -20,6 +20,7 @@
 #include "audio_system.hpp"
 #include "spaceship_home_system.hpp"
 #include "quest_system.hpp"
+#include "particle_system.hpp"
 
 #include <nlohmann/json.hpp>
 
@@ -49,6 +50,9 @@ public:
 	GLFWwindow* create_window();
 
 	// starts the game
+
+
+
 	void init(
 		RenderSystem* renderer, 
 		TerrainSystem* terrain_arg, 
@@ -57,8 +61,10 @@ public:
 		MobSystem* mob_system_arg, 
 		AudioSystem* audio_system_arg, 
 		SpaceshipHomeSystem* spaceship_home_system_arg,
-		QuestSystem* quest_system_arg
+		QuestSystem* quest_system_arg,
+    ParticleSystem* particle_system_arg
 	);
+
 
 	// Releases all associated resources
 	~WorldSystem();
@@ -105,8 +111,10 @@ private:
 	MobSystem* mob_system;
 	PhysicsSystem* physics_system;
 	AudioSystem* audio_system;
-	SpaceshipHomeSystem* spaceship_home_system;
+  SpaceshipHomeSystem* spaceship_home_system;
 	QuestSystem* quest_system;
+	ParticleSystem* particle_system;
+  
 	float current_speed;
 	float next_turtle_spawn;
 	float next_fish_spawn;
