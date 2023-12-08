@@ -23,6 +23,14 @@ bool RenderSystem::init(GLFWwindow* window_arg, const ivec2 window_size)
 
 	// Get window resolution
 	window_resolution = window_size;
+	if (!windowed_mode) {
+		auto mode = glfwGetVideoMode(glfwGetPrimaryMonitor());
+		vec2 screen_resolution = { mode->width, mode->height };
+		screen_to_window_correction = vec2(window_resolution) / screen_resolution;
+	}
+	else {
+		screen_to_window_correction = { 1, 1 };
+	}
 
 	// Load OpenGL function pointers
 	const int is_fine = gl3w_init();
