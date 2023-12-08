@@ -76,6 +76,9 @@ class WeaponsSystem
         /// @brief Sets the specified weapon to the active weapon type
         void setActiveWeapon(ITEM_TYPE weapon_type);
 
+        /// @brief create non selected indicators
+        void createNonselectedWeaponIndicators();
+
         /// @brief Gets the ammo count for the active weapon
         /// @return The ammo count (0 if not weapon equipped)
         int getActiveWeaponAmmoCount();
@@ -86,9 +89,21 @@ class WeaponsSystem
         Entity active_weapon_entity;                // technically not needed, but track it anyways
         Weapon* active_weapon_component = nullptr;  // starts off by pointing to nothing
 
-        // Tracking the weapon and ammo indicator
+   
         Entity weapon_indicator;
         Entity ammo_indicator;
+
+        // Tracking the weapon and ammo indicator
+        Entity shuriken_weapon_indicator;
+        Entity crossbow_weapon_indicator;
+        Entity shot_gun_weapon_indicator;
+        Entity machine_gun_weapon_indicator;
+
+        Entity shuriken_ammo_indicator;
+        Entity crossbow_ammo_indicator;
+        Entity shot_gun_ammo_indicator;
+        Entity machine_gun_ammo_indicator;
+
 
         // Pointer to rendering system for projectiles
         RenderSystem* renderer;
@@ -189,12 +204,13 @@ class WeaponsSystem
         /// @param position The position of the weapon indicator (unused)
         /// @param weapon_texture The texture of the weapon
         /// @return The entity of the weapon indicator
-        Entity createWeaponIndicator(RenderSystem* renderer, TEXTURE_ASSET_ID weapon_texture);
+        Entity createWeaponIndicator(RenderSystem* renderer, TEXTURE_ASSET_ID weapon_texture, vec2 position, vec2 scale);
+
 
         /// @brief Create the ammo bar
         /// @param renderer The rendering system
         /// @return The entity of the ammo bar
-        Entity createAmmoBar(RenderSystem* renderer);
+        Entity createAmmoBar(RenderSystem* renderer, vec2 position, vec2 scale);
 
         /// @brief Checks if the given ITEM_TYPE is a weapon
         /// @param test the ITEM_TYPE to be tested
@@ -211,4 +227,13 @@ class WeaponsSystem
 
         /// @brief Helper to update the scale of the ammo bar
         void updateAmmoBar();
+
+        bool updateSideIndicatorHelper(Entity weapon_indicator, Entity ammo_indicator, Weapon& weapon);
+
+        void setIndicatorAlpha(ITEM_TYPE weapon_type, bool turnOn, bool hasAmmo);
+
+        bool updateSideBars(ITEM_TYPE targetWeaponToUpdate);
+
+        
+
 };

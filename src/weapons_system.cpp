@@ -103,6 +103,13 @@ int WeaponsSystem::increaseAmmo(ITEM_TYPE weapon_type, int amount) {
 			
 			weapon.ammo_count += amount_increased;
 			updateAmmoBar();
+
+			// adjust sidebar ammo for previous weapon
+			bool hasAmmo = updateSideBars(weapon_type);
+
+			// set previous weapon indicator to be visible
+			setIndicatorAlpha(weapon_type, true, hasAmmo);
+
 			return amount_increased;
 		}
 	}
@@ -136,6 +143,14 @@ void WeaponsSystem::setActiveWeapon(ITEM_TYPE weapon_type) {
 
 		// Find the correct weapon in the weapons vector
 		if (weapon.weapon_type == weapon_type) {
+
+			// adjust sidebar ammo for previous weapon
+			bool hasAmmo = updateSideBars(active_weapon_type);
+
+			// set previous weapon indicator to be visible
+			setIndicatorAlpha(active_weapon_type, true, hasAmmo);
+
+
 			// Set the weapon indicator first
 			if (active_weapon_component) { // Delete existing weapon/ammo indicator
 				registry.remove_all_components_of(weapon_indicator);
@@ -147,12 +162,17 @@ void WeaponsSystem::setActiveWeapon(ITEM_TYPE weapon_type) {
 			active_weapon_component = &weapon;
 
 			// Add the new UI elements for the weapon
-			weapon_indicator = createWeaponIndicator(renderer, weapon_indicator_textures_map[weapon_type]);
-			registry.screenUI.insert(weapon_indicator, { -10.f, -6.f });
+			weapon_indicator = createWeaponIndicator(renderer, weapon_indicator_textures_map[weapon_type], vec2{ -10.f, -6.f }, vec2{ 2.5, 2.5 });
+			ammo_indicator = createAmmoBar(renderer, { -10.f, -4.f }, { 3.0, 0.4 });
 
-			ammo_indicator = createAmmoBar(renderer);
-			registry.screenUI.insert(ammo_indicator, {-10.f, -4.f});
+			// set selected weapon indicator to invisible
+			setIndicatorAlpha(active_weapon_type, false, false);
+			
+
+			
+			// New scale for ammo bar. 
 			updateAmmoBar();
+
 			break;
 		}
 	}
@@ -377,7 +397,7 @@ Entity WeaponsSystem::createProjectile(RenderSystem* renderer, PhysicsSystem* ph
 	return entity;
 }
 
-Entity WeaponsSystem::createAmmoBar(RenderSystem* renderer) {
+Entity WeaponsSystem::createAmmoBar(RenderSystem* renderer, vec2 position, vec2 scale) {
 	auto entity = Entity();
 
 	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
@@ -387,8 +407,15 @@ Entity WeaponsSystem::createAmmoBar(RenderSystem* renderer) {
 	auto& motion = registry.motions.emplace(entity);
 	motion.angle = 0.f;
 	motion.velocity = { 0.f, 0.f };
-	motion.position = {-10.f, -4.f};
-	motion.scale = { 3, 0.4 }; 
+	motion.position = position;
+	motion.scale = scale; 
+
+	// Set up color component for alpha adjustmnet later
+	auto& color = registry.colors.emplace(entity);
+	color = vec4{ 1.0f };
+
+	registry.screenUI.insert(entity, position);
+
 
 	TEXTURE_ASSET_ID texture = TEXTURE_ASSET_ID::BROWN_BLOCK;
 	registry.renderRequests.insert(
@@ -401,7 +428,7 @@ Entity WeaponsSystem::createAmmoBar(RenderSystem* renderer) {
 	return entity;
 }
 
-Entity WeaponsSystem::createWeaponIndicator(RenderSystem* renderer, TEXTURE_ASSET_ID weapon_texture) {
+Entity WeaponsSystem::createWeaponIndicator(RenderSystem* renderer, TEXTURE_ASSET_ID weapon_texture, vec2 position, vec2 scale) {
 	auto entity = Entity();
 
 	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
@@ -411,8 +438,14 @@ Entity WeaponsSystem::createWeaponIndicator(RenderSystem* renderer, TEXTURE_ASSE
 	auto& motion = registry.motions.emplace(entity);
 	motion.angle = 0.f;
 	motion.velocity = { 0.f, 0.f };
-	motion.position = { -10.f, -6.f };
-	motion.scale = vec2({ 2.5, 2.5 });
+	motion.position = position;
+	motion.scale = scale;
+
+	// Set up color component for alpha adjustmnet later
+	auto& color = registry.colors.emplace(entity);
+	color = vec4{ 1.0f };
+
+	registry.screenUI.insert(entity, position);
 
 	registry.renderRequests.insert(
 		entity,
@@ -423,6 +456,8 @@ Entity WeaponsSystem::createWeaponIndicator(RenderSystem* renderer, TEXTURE_ASSE
 
 	return entity;
 }
+
+
 
 bool WeaponsSystem::isValidWeapon(ITEM_TYPE test) {
 	static const std::set<ITEM_TYPE> weapons_list{
@@ -445,4 +480,134 @@ void WeaponsSystem::updateAmmoBar() {
 			(float)active_weapon_component->ammo_count / 
 			(float)weapon_ammo_capacity_map[active_weapon_type]) * 3.f, 
 			0.4f);
+}
+
+
+
+bool WeaponsSystem::updateSideIndicatorHelper(Entity weapon_indicator, Entity ammo_indicator, Weapon& weapon) {
+	Motion& ammo_motion = registry.motions.get(ammo_indicator);
+	
+	ammo_motion.scale = vec2(((float)weapon.ammo_count / (float)weapon_ammo_capacity_map[weapon.weapon_type]) * 1.3f, 0.2f);
+
+	auto& color = registry.colors.get(weapon_indicator);
+	bool hasAmmo = true;
+
+	
+	// lower alpha when empty ammo
+	if (weapon.ammo_count == 0) {
+		color.a = 0.2f;
+		hasAmmo = false;
+	}
+	
+
+	return hasAmmo;
+}
+
+// update side bar given a weapon that has property change
+bool WeaponsSystem::updateSideBars(ITEM_TYPE targetWeaponToUpdate) {
+	bool hasAmmo = true;
+	// Iterate through the weapon components until the specified weapon is found
+	for (uint i = 0; i < registry.weapons.size(); i++) {
+		Weapon& weapon = registry.weapons.components[i];
+		if (weapon.weapon_type == targetWeaponToUpdate) {
+			switch (targetWeaponToUpdate) {
+
+				//update ammo indicator ui scale and weapon indicator ui color
+				case ITEM_TYPE::WEAPON_SHURIKEN:
+					hasAmmo = updateSideIndicatorHelper(shuriken_weapon_indicator, shuriken_ammo_indicator, weapon);
+					break;
+				case ITEM_TYPE::WEAPON_CROSSBOW:
+					hasAmmo = updateSideIndicatorHelper(crossbow_weapon_indicator, crossbow_ammo_indicator, weapon);
+					break;
+				case ITEM_TYPE::WEAPON_SHOTGUN:
+					hasAmmo = updateSideIndicatorHelper(shot_gun_weapon_indicator, shot_gun_ammo_indicator,weapon);
+					break;
+				case ITEM_TYPE::WEAPON_MACHINEGUN:
+					hasAmmo = updateSideIndicatorHelper(machine_gun_weapon_indicator, machine_gun_ammo_indicator, weapon);
+					break;
+
+				default:
+					break;
+
+			}
+		}
+		
+	}
+
+	return hasAmmo;
+}
+
+
+void WeaponsSystem::createNonselectedWeaponIndicators() {
+	vec2 shuriken_indicator_pos = {-11.0f, -2.0f};
+	vec2 shuriken_indicator_size = vec2{ 1.0f };
+	vec2 shuriken_ammo_pos = {shuriken_indicator_pos.x, shuriken_indicator_pos.y + 0.7f};
+	vec2 shuriken_ammo_size = { 1.3f, 0.2f };
+	float spaceBetweenIndicators = 1.5f;
+
+	// NON SELECTED WEAPON INDICATORS
+	shuriken_weapon_indicator = createWeaponIndicator(renderer, weapon_indicator_textures_map[ITEM_TYPE::WEAPON_SHURIKEN],
+		shuriken_indicator_pos, shuriken_indicator_size);
+	shuriken_ammo_indicator = createAmmoBar(renderer, shuriken_ammo_pos, shuriken_ammo_size);
+	
+
+	crossbow_weapon_indicator = createWeaponIndicator(renderer, weapon_indicator_textures_map[ITEM_TYPE::WEAPON_CROSSBOW], 
+		{ shuriken_indicator_pos.x, shuriken_indicator_pos.y + spaceBetweenIndicators * 1 } , shuriken_indicator_size);
+	crossbow_ammo_indicator = createAmmoBar(renderer, { shuriken_ammo_pos.x , shuriken_ammo_pos.y + spaceBetweenIndicators * 1 }, shuriken_ammo_size);
+	
+
+	shot_gun_weapon_indicator = createWeaponIndicator(renderer, weapon_indicator_textures_map[ITEM_TYPE::WEAPON_SHOTGUN],
+		{ shuriken_indicator_pos.x, shuriken_indicator_pos.y + spaceBetweenIndicators * 2 }, shuriken_indicator_size);
+	shot_gun_ammo_indicator = createAmmoBar(renderer, { shuriken_ammo_pos.x , shuriken_ammo_pos.y + spaceBetweenIndicators * 2 }, shuriken_ammo_size);
+	
+
+	machine_gun_weapon_indicator = createWeaponIndicator(renderer, weapon_indicator_textures_map[ITEM_TYPE::WEAPON_MACHINEGUN],
+		{ shuriken_indicator_pos.x, shuriken_indicator_pos.y + spaceBetweenIndicators * 3 }, shuriken_indicator_size);
+	machine_gun_ammo_indicator = createAmmoBar(renderer, { shuriken_ammo_pos.x , shuriken_ammo_pos.y + spaceBetweenIndicators * 3 }, shuriken_ammo_size);
+	
+	
+	updateSideBars(ITEM_TYPE::WEAPON_SHURIKEN);
+	updateSideBars(ITEM_TYPE::WEAPON_CROSSBOW);
+	updateSideBars(ITEM_TYPE::WEAPON_SHOTGUN);
+	updateSideBars(ITEM_TYPE::WEAPON_MACHINEGUN);
+
+}
+
+void WeaponsSystem::setIndicatorAlpha(ITEM_TYPE weapon_type, bool turnOn, bool hasAmmo) {
+	float value;
+
+	// dim when no ammo and trying to turn indicator on
+	if (turnOn == true && hasAmmo == false) {
+		value = 0.2f;
+	}
+	else {
+		value = turnOn ? 1.0f : 0.0f;
+	}
+
+	// change the selected side indicator to transparent
+	switch (weapon_type) {
+	case ITEM_TYPE::WEAPON_SHURIKEN:
+		registry.colors.get(shuriken_weapon_indicator).a = value;
+		registry.colors.get(shuriken_ammo_indicator).a = value;
+		break;
+	case ITEM_TYPE::WEAPON_CROSSBOW:
+		registry.colors.get(crossbow_weapon_indicator).a = value;
+		registry.colors.get(crossbow_ammo_indicator).a = value;
+		break;
+	case ITEM_TYPE::WEAPON_SHOTGUN:
+		registry.colors.get(shot_gun_weapon_indicator).a = value;
+		registry.colors.get(shot_gun_ammo_indicator).a = value;
+		break;
+	case ITEM_TYPE::WEAPON_MACHINEGUN:
+		registry.colors.get(machine_gun_weapon_indicator).a = value;
+		registry.colors.get(machine_gun_ammo_indicator).a = value;
+		break;
+
+	default:
+		break;
+	}
+
+
+
+	
 }

@@ -592,6 +592,8 @@ void WorldSystem::restart_game() {
 	// Reset the weapon indicator
 	user_has_first_weapon = false;
 
+	weapons_system->createNonselectedWeaponIndicators();
+
 	// Reset the power ups
 	user_has_powerup = false;
 
@@ -620,6 +622,8 @@ void WorldSystem::restart_game() {
 
 	muzzleFlash = createMuzzleFlash(renderer, vec2(0.f));
 
+	// Debugging for memory/component leaks
+	registry.list_all_components();
 }
 
 // Compute collisions between entities
