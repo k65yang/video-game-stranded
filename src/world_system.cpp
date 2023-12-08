@@ -1035,7 +1035,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 
 		load_game(data);
 	}
-	
+
 	if (action == GLFW_PRESS && key == GLFW_KEY_K) {
 		// Save the game state (player location, weapon, health, food, mobs & location)
 		Player& player = registry.players.get(player_salmon);
@@ -1045,7 +1045,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		ITEM_TYPE active_weapon = weapons_system->getActiveWeapon();
 
 		std::vector<Weapon> weapons;
-		for (auto& weapon_entity: registry.weapons.entities) {
+		for (auto& weapon_entity : registry.weapons.entities) {
 			weapons.push_back(registry.weapons.get(weapon_entity));
 		}
 
@@ -1059,7 +1059,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 			items.push_back({ registry.items.get(item), registry.motions.get(item) });
 		}
 
-		std::vector<QUEST_ITEM_STATUS> quest_item_statuses {
+		std::vector<QUEST_ITEM_STATUS> quest_item_statuses{
 			inventory.quest_items[ITEM_TYPE::QUEST_ONE],
 			inventory.quest_items[ITEM_TYPE::QUEST_TWO],
 			inventory.quest_items[ITEM_TYPE::QUEST_THREE],
@@ -1070,11 +1070,12 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		if (user_has_powerup) {
 			if (registry.healthPowerup.has(player_salmon)) {
 				p_type = ITEM_TYPE::POWERUP_HEALTH;
-			} else {
+			}
+			else {
 				p_type = ITEM_TYPE::POWERUP_SPEED;
-			}	
-		} 
-		
+			}
+		}
+
 		SaveGame(player, player_motion, active_weapon, weapons, mobs, items, quest_item_statuses, spaceship_home_info, p_type);
 
 		tutorial_system->createTutorialText(TUTORIAL_TYPE::GAME_SAVED);
@@ -1088,20 +1089,22 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	if (action == GLFW_PRESS && key == GLFW_KEY_ESCAPE) {
 		if (tutorial_system->isHelpDialogOpen()) {
 			tutorial_system->closeHelpDialog();
-		} else if (player.is_home) {
+		}
+		else if (player.is_home) {
 			spaceship_home_system->exitSpaceship();
 			audio_system->play_one_shot(AudioSystem::SHIP_LEAVE);
-			update_spaceship_depart(); 
-		} else {
+			update_spaceship_depart();
+		}
+		else {
 			glfwSetWindowShouldClose(window, true);
 		}
 	}
-
 	if (registry.spaceships.has(spaceship)) {
-		if (action == GLFW_PRESS && key == GLFW_KEY_E ) {
+
+		if (action == GLFW_PRESS && key == GLFW_KEY_E) {
 			// Enter ship if player is near
 			if (tutorial_system->isPlayerNearSpaceship(player_motion.position, registry.motions.get(spaceship).position) && !player.is_home) {
-				spaceship_home_system->enterSpaceship(health_bar, food_bar);
+				spaceship_home_system->enterSpaceship();
 				audio_system->play_one_shot(AudioSystem::SHIP_ENTER);
 
 				if (!player.has_entered_spaceship) {
@@ -1111,6 +1114,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 			}
 		}
 	}
+
 
 
 
@@ -1280,8 +1284,10 @@ void WorldSystem::on_mouse_move(vec2 mouse_position) {
 		CURSOR_ANGLE = atan2(mouse_position.y - screen_centre_y, mouse_position.x - screen_centre_x);
 	}
 
-	// Change mouse cursor type if hovering over help button
-	if (tutorial_system->isMouseOverHelpButton(mouse_pos_clip)) {
+	// Change mouse cursor type if hovering over help button or storage item
+	if (tutorial_system->isMouseOverHelpButton(mouse_pos_clip) || 
+		spaceship_home_system->isHome() && !tutorial_system->isHelpDialogOpen() && spaceship_home_system->isMouseOverAnyStorageItem(mouse_pos_clip)
+	) {
 		GLFWcursor* cursor = glfwCreateStandardCursor(GLFW_HAND_CURSOR);
 		glfwSetCursor(window, cursor);
 	} else {
@@ -1308,7 +1314,18 @@ void WorldSystem::on_mouse_click(int button, int action, int mods) {
 			return;
 		}
 
-		if (!registry.deathTimers.has(player_salmon) && !spaceship_home_system->isHome()) {
+		// Regenerate stat if spaceship storage item is clicked
+		if (spaceship_home_system->isHome() && !tutorial_system->isHelpDialogOpen()) {
+			if (spaceship_home_system->isMouseOverStorageItem(mouse_pos_clip, TEXTURE_ASSET_ID::SPACESHIP_HOME_AMMO)) {
+				spaceship_home_system->regenerateStat(RESOURCE_TYPE::AMMO, food_bar, health_bar);
+			} else if (spaceship_home_system->isMouseOverStorageItem(mouse_pos_clip, TEXTURE_ASSET_ID::SPACESHIP_HOME_FOOD)) {
+				spaceship_home_system->regenerateStat(RESOURCE_TYPE::FOOD, food_bar, health_bar);
+			} else if (spaceship_home_system->isMouseOverStorageItem(mouse_pos_clip, TEXTURE_ASSET_ID::SPACESHIP_HOME_HEALTH)) {
+				spaceship_home_system->regenerateStat(RESOURCE_TYPE::HEALTH, food_bar, health_bar);
+			}
+		}
+
+		if (!registry.deathTimers.has(player_salmon) && !spaceship_home_system->isHome() && !tutorial_system->isHelpDialogOpen()) {
 			// if theres ammo in current weapon 
 			Motion& player_motion = registry.motions.get(player_salmon);
 
@@ -1538,7 +1555,7 @@ void WorldSystem::load_game(json j) {
 	int sh_food_storage = j["spaceshipHome"]["food_storage"];
 	int sh_ammo_storage = j["spaceshipHome"]["ammo_storage"];
 	spaceship_home_system->resetSpaceshipHomeSystem(sh_health_storage, sh_food_storage, sh_ammo_storage);
-	if (p_is_home) spaceship_home_system->enterSpaceship(health_bar, food_bar);
+	if (p_is_home) spaceship_home_system->enterSpaceship();
 
 	// Load all weapons data
 	for (auto& weapon : j["weapons"]) {

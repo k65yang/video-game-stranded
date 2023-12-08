@@ -128,7 +128,6 @@ private:
 			textures_path("spaceship_depart.png"),
 			textures_path("brute.png"),
 			textures_path("disruptor.png"),
-			textures_path("mob_turret.png"),
 			textures_path("death_text_f.png"),
 			textures_path("death_text_h.png"),
 			textures_path("victory_text.png"),
