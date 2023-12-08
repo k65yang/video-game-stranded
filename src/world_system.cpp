@@ -777,6 +777,8 @@ void WorldSystem::handle_collisions() {
 							tutorial_system->createTutorialDialog(TUTORIAL_TYPE::QUEST_ITEM_TUTORIAL);
 							player.has_collected_quest_item = true;
 						}
+
+						break;
 					case ITEM_TYPE::FOOD:
 						// Add to food bar
 						player.food += FOOD_PICKUP_AMOUNT;
