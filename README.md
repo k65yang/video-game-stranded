@@ -70,3 +70,7 @@ Shotgun Weapon Icon: https://simon-develop.itch.io/shotgun
 Machine Gun Weapon Icon: https://pixabay.com/vectors/kalashnikov-rifle-russian-weapon-155147/
 
 Start Button: https://www.flaticon.com/free-icon/start-button_5261929?related_id=5261874&origin=search 
+
+Muzzle flash: https://opengameart.org/content/16-toon-muzzle-flash
+
+
