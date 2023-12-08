@@ -53,7 +53,7 @@ For our submission for milestone 1, we were able to successfully complete all fe
 
 #### Milestone 4
 
-<b>Comprehensive tutorial</b>"PhysicsSystem::buildBVH()"<br>
+<b>Comprehensive tutorial</b> tutorial_system.cpp/hpp<br>
 
 <b>Optimize user interaction and REPORT it</b> See below. <br>
 
@@ -67,7 +67,7 @@ For our submission for milestone 1, we were able to successfully complete all fe
 
 <b>Story elements</b> start_screen_system.cpp/hpp, "WorldSystem::update_spaceship_depart" in world_system.cpp
 
-<b>(Numerous?) In-House Integrated Assets</b> All weapon textures including ammo and icons, "/data/textures/mob_spritesheet.png", "/data/textures/player_spritesheet.png", All sound effects in "/data/audio" are mixed and combined in-house using external sound sample libraries.
+<b>(Numerous?) In-House Integrated Assets</b> All weapon textures including ammo and icons, "/data/textures/mob_spritesheet.png", "/data/textures/player_spritesheet.png", All sound effects in "/data/audio" are mixed and combined in-house using external sound sample libraries. Every texture atlas in "data/textures/terrain" are also handcrafted.
 
 ### Game Balancing and User Interaction Report
 
