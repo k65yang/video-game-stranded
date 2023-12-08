@@ -88,7 +88,7 @@ public:
 	/// @brief Function to get randomized spawn locations per zone
 	/// @param num_per_zone Map specifying how many mobs to spawn per zone
 	/// @return List of spawn locations
-	std::vector<vec2> get_mob_spawn_locations(std::map<ZONE_NUMBER,int> num_per_zone);
+	std::vector<vec2> get_mob_spawn_locations(std::unordered_map<ZONE_NUMBER,int> num_per_zone);
 
 	/// <summary>
 	/// Initializes the world grid with the given size. Each axis should preferably be odd.

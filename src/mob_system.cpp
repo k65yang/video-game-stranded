@@ -7,7 +7,7 @@ void MobSystem::step(float elapsed_ms) {
 // NOTE: do not add more mobs than there are grid cells available in the zone!!!
 void MobSystem::spawn_mobs() {
 	// spawn slimes
-	std::map<ZONE_NUMBER,int> zone_mob_slime = {
+	std::unordered_map<ZONE_NUMBER,int> zone_mob_slime = {
 		{ZONE_1, 5},    
 		{ZONE_2, 10},	
 		{ZONE_3, 20},
@@ -21,7 +21,7 @@ void MobSystem::spawn_mobs() {
 	}
 
 	// spawn ghosts
-	std::map<ZONE_NUMBER,int> zone_mob_ghost = {
+	std::unordered_map<ZONE_NUMBER,int> zone_mob_ghost = {
 		{ZONE_1, 0},    
 		{ZONE_2, 7},	
 		{ZONE_3, 10},
@@ -35,7 +35,7 @@ void MobSystem::spawn_mobs() {
 	}
 
 	// spawn brutes
-	std::map<ZONE_NUMBER,int> zone_mob_brute = {
+	std::unordered_map<ZONE_NUMBER,int> zone_mob_brute = {
 		{ZONE_1, 0},    
 		{ZONE_2, 5},	
 		{ZONE_3, 15},
@@ -49,7 +49,7 @@ void MobSystem::spawn_mobs() {
 	}
 
 	// spawn DISRUPTOR
-	std::map<ZONE_NUMBER,int> zone_mob_disruptor = {
+	std::unordered_map<ZONE_NUMBER,int> zone_mob_disruptor = {
 		{ZONE_1, 0},    
 		{ZONE_2, 0},	
 		{ZONE_3, 30},		// I'm in danger

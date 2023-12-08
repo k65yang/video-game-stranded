@@ -1291,7 +1291,7 @@ void WorldSystem::map_editor_routine() {
 
 void WorldSystem::spawn_items() {
 	// lookup table for weapon upgrades per zone
-	std::map<ZONE_NUMBER,int> zone_weapon_upgrades = {
+	std::unordered_map<ZONE_NUMBER,int> zone_weapon_upgrades = {
 		{ZONE_0, 0},
 		{ZONE_1, 0},    
 		{ZONE_2, 2},	
@@ -1301,7 +1301,7 @@ void WorldSystem::spawn_items() {
 	};
 
 	// lookup table for food per zone
-	std::map<ZONE_NUMBER,int> zone_food = {
+	std::unordered_map<ZONE_NUMBER,int> zone_food = {
 		{ZONE_0, 3},
 		{ZONE_1, 10},    
 		{ZONE_2, 20},	
@@ -1311,7 +1311,7 @@ void WorldSystem::spawn_items() {
 	};
 
 	// lookup table for ammo
-	std::map<ZONE_NUMBER,int> zone_ammo = {
+	std::unordered_map<ZONE_NUMBER,int> zone_ammo = {
 		{ZONE_0, 0},
 		{ZONE_1, 2},    
 		{ZONE_2, 3},	

@@ -50,7 +50,7 @@ class MobSystem
         Entity create_mob(vec2 mob_position, MOB_TYPE mob_type, int current_health = 0);
 
         // Health for each mob
-        const std::map<MOB_TYPE, int> mob_health_map = {
+        const std::unordered_map<MOB_TYPE, int> mob_health_map = {
             {MOB_TYPE::GHOST, 50},
             {MOB_TYPE::SLIME, 30},
             {MOB_TYPE::BRUTE, 100},
@@ -73,7 +73,7 @@ class MobSystem
 
         // Harcoded mob data
         // Damage for each mob
-        const std::map<MOB_TYPE, int> mob_damage_map = {
+        const std::unordered_map<MOB_TYPE, int> mob_damage_map = {
             {MOB_TYPE::GHOST, 10},
             {MOB_TYPE::SLIME, 15},
             {MOB_TYPE::BRUTE, 50},
@@ -82,7 +82,7 @@ class MobSystem
         };
 
         // Aggro range for each mob
-        const std::map<MOB_TYPE, int> mob_aggro_range_map = {
+        const std::unordered_map<MOB_TYPE, int> mob_aggro_range_map = {
             {MOB_TYPE::GHOST, 10},
             {MOB_TYPE::SLIME, 10},
             {MOB_TYPE::BRUTE, 10},
@@ -91,7 +91,7 @@ class MobSystem
         };
 
         // Speed for each mob
-        const std::map<MOB_TYPE, float> mob_speed_ratio_map = {
+        const std::unordered_map<MOB_TYPE, float> mob_speed_ratio_map = {
             {MOB_TYPE::GHOST, 2.5f},
             {MOB_TYPE::SLIME, 2.f},
             {MOB_TYPE::BRUTE, 0.5f},
@@ -100,7 +100,7 @@ class MobSystem
         };
 
         // Texture for each mob
-        const std::map<MOB_TYPE, TEXTURE_ASSET_ID> mob_textures_map = {
+        const std::unordered_map<MOB_TYPE, TEXTURE_ASSET_ID> mob_textures_map = {
             {MOB_TYPE::GHOST, TEXTURE_ASSET_ID::GHOST},
             {MOB_TYPE::SLIME, TEXTURE_ASSET_ID::SLIME},
             {MOB_TYPE::BRUTE, TEXTURE_ASSET_ID::BRUTE},
