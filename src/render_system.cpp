@@ -81,14 +81,35 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 			// set the frame for shader
 			Animation& animation = registry.animations.get(entity);
 
+
 			GLint frame_uloc = glGetUniformLocation(program, "spriteFrame");
 			glUniform2f(frame_uloc, animation.framex, animation.framey);
+
+
 
 			// Set the frame dimensions for the player
 			GLint frameDimensions_uloc = glGetUniformLocation(program, "frameDimensions");
 			glUniform2f(frameDimensions_uloc, animation.frame_dimension_w, animation.frame_dimension_h);
 			gl_has_errors();
 		}
+
+		else if (render_request.used_texture == TEXTURE_ASSET_ID::SPACESHIP_DEPART) {
+			// set the frame for shader for mob 
+
+			GLint sFrame_uloc = glGetUniformLocation(program, "spriteFrame");
+			glUniform2f(sFrame_uloc,registry.spaceships.get(entity).framex, 0);
+			//printf("printing in mob i framey %d \n", registry.mobs.get(entity).mframey);
+
+			// Set the frame dimensions for the mob
+			GLint frameDimensions_uloc = glGetUniformLocation(program, "frameDimensions");
+			glUniform2f(frameDimensions_uloc, s_frame_w, 1);
+			gl_has_errors();
+
+		}
+		// else if (render_request.used_texture == TEXTURE_ASSET_ID::PLAYER_PARTICLE) {
+		// 	GLint isPlayer_uloc = glGetUniformLocation(program, "isPlayer");
+		// }
+
 
 	}
 	else if (render_request.used_effect == EFFECT_ASSET_ID::SALMON || render_request.used_effect == EFFECT_ASSET_ID::PEBBLE)

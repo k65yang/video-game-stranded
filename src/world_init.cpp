@@ -20,7 +20,7 @@ Entity createPlayer(RenderSystem* renderer, PhysicsSystem* physics, vec2 pos)
 	motion.angle = 0.f;
 	motion.velocity = { 0.f, 0.f };
 	//motion.scale = vec2({ 100/49, 1 });
-	motion.scale = vec2({ target_resolution.x / tile_size_px * 0.08503401, target_resolution.y / tile_size_px * 0.0625 });
+	motion.scale = vec2({ target_resolution.x / tile_size_px * 2.85714286/24, target_resolution.y / tile_size_px * 0.0625 });
 
 	// Initialize the collider
 	physics->createMeshCollider(entity, GEOMETRY_BUFFER_ID::PLAYER_MESH, renderer);
@@ -63,7 +63,7 @@ Entity createItem(RenderSystem* renderer, PhysicsSystem* physics, vec2 position,
 	motion.angle = 0.f;
 	motion.velocity = { 0.f, 0.f };
 	motion.position = position;
-
+	
 	// Initialise the item data field
 	auto& item = registry.items.emplace(entity);
 	item.data = type;
@@ -424,6 +424,7 @@ Entity createText(RenderSystem* renderer, vec2 position, std::string str, float 
 	return entity;
 }
 
+
 Entity createMuzzleFlash(RenderSystem* renderer, vec2 position) {
 	auto entity = Entity();
 
@@ -457,3 +458,54 @@ Entity createMuzzleFlash(RenderSystem* renderer, vec2 position) {
 	
 	return entity;
 }
+
+Entity createSpaceshipDepart(RenderSystem* renderer) {
+	auto entity = Entity();
+
+	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Initialize the motion
+	auto& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.velocity = { 0.f, 0.f };
+	motion.position = { 0, -1.5f };
+	motion.scale = vec2({ target_resolution.x / tile_size_px * 0.20833333*1.2, target_resolution.y / tile_size_px * 0.3125*1.4 });
+
+	// Add entity to spaceship registry
+	registry.spaceships.emplace(entity);
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::SPACESHIP_DEPART,
+		 EFFECT_ASSET_ID::SPRITESHEET,
+		 GEOMETRY_BUFFER_ID::SPACESHIP_DEPART_SPRITE,
+		 RENDER_LAYER_ID::LAYER_1 });
+
+	return entity;
+}
+
+
+Entity createEndingTextPopUp(RenderSystem * renderer, vec2 position, TEXTURE_ASSET_ID texture) {
+	auto entity = Entity();
+
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Initialize the position, scale, and physics components
+	auto& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.velocity = { 0.f, 0.f };
+	motion.position = position;
+	motion.scale = vec2({ target_resolution.x / tile_size_px * 14/24, target_resolution.y / tile_size_px * 7/16});
+
+	registry.renderRequests.insert(
+		entity,
+		{ texture,
+			EFFECT_ASSET_ID::TEXTURED,
+			GEOMETRY_BUFFER_ID::SPRITE,
+			RENDER_LAYER_ID::LAYER_4 });
+
+	return entity;
+	}
+

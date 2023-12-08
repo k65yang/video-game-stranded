@@ -89,7 +89,7 @@ private:
 			textures_path("icon_powerup_health.png"),
 			textures_path("powerup_health.png"),
 			textures_path("powerup_speed.png"),
-			textures_path("spaceship.png"), 
+			textures_path("spaceship.png"),
 			textures_path("spaceship_home.png"),
 			textures_path("blue_block.png"),
 			textures_path("brown_block.png"),
@@ -123,10 +123,14 @@ private:
 			textures_path("help_button.png"),					
 			textures_path("help_dialog.png"),		
 			textures_path("quest_item_tutorial_dialog.png"),					
-			textures_path("spaceship_home_tutorial_dialog.png"),		
+			textures_path("spaceship_home_tutorial_dialog.png"),	
 			textures_path("ghost.png"),
+			textures_path("spaceship_depart.png"),
 			textures_path("brute.png"),
 			textures_path("disruptor.png"),
+			textures_path("death_text_f.png"),
+			textures_path("death_text_h.png"),
+			textures_path("victory_text.png"),
 			textures_path("heart_particle.png"),
 			// Starting screen textures
 			textures_path("start_screen.png"),
@@ -314,17 +318,18 @@ public:
 	// Do not modify this. READ ONLY!!
 	bool is_terrain_mesh_loaded = false;
 
-	/* CLEAN LATER
-	// Initialize player sprite
+
 	float player_frame_w;
 	float player_frame_h;
-	// Initialize mob sprite
 	float mob_frame_w;
 	float mob_frame_h;
+
 	// For muzzle flash sprite sheet animation
 	float muzzleFlash_frame_w;
 	float muzzleFlash_frame_h;
-	*/
+
+	float s_frame_w;
+
 
 	void drawParticles(Entity entity ,const mat3& view_matrix, const mat3& projection);
 

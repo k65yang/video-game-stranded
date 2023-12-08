@@ -50,6 +50,7 @@ void SpaceshipHomeSystem::enterSpaceship() {
 	// Submit quest items
 	if (quest_system->submitQuestItems()) {
 		printf("ALL QUEST ITEMS SUBMITTED\n");
+		ALL_ITEMS_SUBMITTED = true; 
 	}
 
 	// Create ammo storage count

@@ -18,6 +18,8 @@ class SpaceshipHomeSystem
         {
         }
 
+        bool ALL_ITEMS_SUBMITTED = false; 
+
         /// @brief Function to update spaceship home system in world time
         /// @param elapsed_ms How many ms elapsed since last update
         void step(float elapsed_ms);
