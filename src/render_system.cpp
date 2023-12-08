@@ -303,6 +303,7 @@ void RenderSystem::drawParticles(Entity entity,const mat3& view_matrix,const mat
 	gl_has_errors();
 
 	// Free up the buffers
+	glDeleteBuffers(1, &matrixBufferID);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
