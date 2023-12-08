@@ -687,32 +687,6 @@ void WorldSystem::handle_collisions() {
 		// Collisions involving the player
 		if (registry.players.has(entity)) {
 			Player& player = registry.players.get(entity);
-			// Checking Player - Spaceship (For regen)
-			// only regnerate after spaceship exit 
-			/*
-			if (entity_other == spaceship) {
-				player.health = PLAYER_MAX_HEALTH;
-				player.food = PLAYER_MAX_FOOD;
-
-				Motion& health = registry.motions.get(health_bar);
-				Motion& food = registry.motions.get(food_bar);
-				health.scale = HEALTH_BAR_SCALE;
-				food.scale = FOOD_BAR_SCALE;
-
-				Spaceship& s = registry.spaceship.get(home);
-				s.in_home = TRUE;
-
-				Motion& camera_motion = registry.motions.get(main_camera);
-				//// update Spaceship home movement 
-				Motion& s_motion = registry.motions.get(home);
-				s_motion.position = { camera_motion.position.x,camera_motion.position.y };
-
-
-				printf("nearhome\n");
-
-
-			}
-			*/
 
 			// Checking Player - Mobs
 			if (registry.mobs.has(entity_other)) {
@@ -1026,14 +1000,11 @@ void WorldSystem::update_spaceship_frame(float elapsed_ms_since_last_update) {
 void WorldSystem::update_spaceship_depart() {
 	if (spaceship_home_system->ALL_ITEMS_SUBMITTED) {
 		// Remove all ship parts if all items are collected
-		//while (registry.spaceships.entities.size() > 0)
-		//	registry.remove_all_components_of(registry.spaceships.entities.back());
-		for (int i = 0; i <= 3 ;i++ ) {
-			if (registry.spaceships.entities.size() > 0) {
-				registry.remove_all_components_of(registry.spaceships.entities.back());
-			}
-		}
-
+		while (registry.spaceships.entities.size() > 0)
+			registry.remove_all_components_of(registry.spaceships.entities.back());
+		// Remove arrow 
+		registry.pointingArrows.remove(ship_arrow); 
+		registry.renderRequests.remove(ship_arrow);
 		// create depart spaceship
 		spaceship_depart = createSpaceshipDepart(renderer); 
 		// Iterate through all particles
@@ -1043,7 +1014,6 @@ void WorldSystem::update_spaceship_depart() {
 		registry.renderRequests.remove(player_salmon);
 		// disable player movements 
 		registry.deathTimers.emplace(player_salmon); 
-		//registry.remove_all_components_of(player_salmon); 
 	}
 }
 
@@ -1127,18 +1097,21 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		}
 	}
 
-	if (action == GLFW_PRESS && key == GLFW_KEY_E ) {
-		// Enter ship if player is near
-		if (tutorial_system->isPlayerNearSpaceship(player_motion.position, registry.motions.get(spaceship).position) && !player.is_home) {
-			spaceship_home_system->enterSpaceship(health_bar, food_bar);
-			audio_system->play_one_shot(AudioSystem::SHIP_ENTER);
+	if (registry.spaceships.has(spaceship)) {
+		if (action == GLFW_PRESS && key == GLFW_KEY_E ) {
+			// Enter ship if player is near
+			if (tutorial_system->isPlayerNearSpaceship(player_motion.position, registry.motions.get(spaceship).position) && !player.is_home) {
+				spaceship_home_system->enterSpaceship(health_bar, food_bar);
+				audio_system->play_one_shot(AudioSystem::SHIP_ENTER);
 
-			if (!player.has_entered_spaceship) {
-				tutorial_system->createTutorialDialog(TUTORIAL_TYPE::SPACESHIP_HOME_TUTORIAL);
-				player.has_entered_spaceship = true;
+				if (!player.has_entered_spaceship) {
+					tutorial_system->createTutorialDialog(TUTORIAL_TYPE::SPACESHIP_HOME_TUTORIAL);
+					player.has_entered_spaceship = true;
+				}
 			}
 		}
 	}
+
 
 
 	if (key == GLFW_KEY_F1 && action == GLFW_PRESS)
