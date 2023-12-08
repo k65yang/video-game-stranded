@@ -64,7 +64,7 @@ class ParticleSystem
        // MOB_TYPE::BRUTE, vec3{.31f, .20f, .42f
         {MOB_TYPE::BRUTE, vec3{.76f, .32f, .68f}},
         // 64 62 74
-        {MOB_TYPE::DISRUPTOR, vec3{.01f, .37f, .44f}},
+        {MOB_TYPE::DISRUPTOR, vec3{.05f, .53f, .57f}},
         {MOB_TYPE::TURRET, vec3{1.f, 1.f, 1.f}},
     };
 
