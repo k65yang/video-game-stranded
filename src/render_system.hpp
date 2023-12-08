@@ -127,7 +127,6 @@ private:
 			textures_path("ghost.png"),
 			textures_path("brute.png"),
 			textures_path("disruptor.png"),
-			textures_path("mob_turret.png"),
 			textures_path("heart_particle.png"),
 			// Starting screen textures
 			textures_path("start_screen.png"),
