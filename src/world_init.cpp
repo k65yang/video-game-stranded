@@ -350,7 +350,7 @@ Entity createPowerupIndicator(RenderSystem* renderer, vec2 position, TEXTURE_ASS
 	motion.angle = 0.f;
 	motion.velocity = { 0.f, 0.f };
 	motion.position = position;
-	motion.scale = vec2({ 2.f, 2.f });
+	motion.scale = vec2({ 1.5f, 1.5f });
 
 	registry.renderRequests.insert(
 		entity,

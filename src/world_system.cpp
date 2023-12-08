@@ -331,7 +331,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 		if (user_has_powerup) {
 			Motion& powerup_ui = registry.motions.get(powerup_indicator);
-			powerup_ui.position = { -9.5f + camera_motion.position.x, 5.f + camera_motion.position.y };
+			powerup_ui.position = { 9.5f +0.5+ camera_motion.position.x, 6.f + camera_motion.position.y };
 		}
 
 		// health updates
@@ -851,7 +851,7 @@ void WorldSystem::handle_collisions() {
 						// Add the powerup indicator
 						if (user_has_powerup)
 							registry.remove_all_components_of(powerup_indicator);
-						powerup_indicator = createPowerupIndicator(renderer, {-9.5f, 5.f}, TEXTURE_ASSET_ID::ICON_POWERUP_SPEED);
+						powerup_indicator = createPowerupIndicator(renderer, {9.5f+0.5, 6.f}, TEXTURE_ASSET_ID::ICON_POWERUP_SPEED);
 						user_has_powerup = true;
 						break;
 
@@ -871,7 +871,7 @@ void WorldSystem::handle_collisions() {
 						// Add the powerup indicator
 						if (user_has_powerup)
 							registry.remove_all_components_of(powerup_indicator);
-						powerup_indicator = createPowerupIndicator(renderer, {-9.5f, 5.f}, TEXTURE_ASSET_ID::ICON_POWERUP_HEALTH);
+						powerup_indicator = createPowerupIndicator(renderer, {9.5f+0.5, 6.f}, TEXTURE_ASSET_ID::ICON_POWERUP_HEALTH);
 						user_has_powerup = true;
 						break;
 				}
@@ -1622,14 +1622,14 @@ void WorldSystem::load_game(json j) {
 
 
 				// UI Indicator
-				powerup_indicator = createPowerupIndicator(renderer, { -9.5f + camera_motion.position.x, 5.f + camera_motion.position.y }, TEXTURE_ASSET_ID::ICON_POWERUP_SPEED);
+				powerup_indicator = createPowerupIndicator(renderer, { 9.5f+0.5 + camera_motion.position.x, 6.f + camera_motion.position.y }, TEXTURE_ASSET_ID::ICON_POWERUP_SPEED);
 				break;
 			}
 			case ITEM_TYPE::POWERUP_HEALTH:
 			{
 				// Give health powerup to player. Use default values in struct definition.
 				registry.healthPowerup.emplace(player_salmon);
-				powerup_indicator = createPowerupIndicator(renderer, { -9.5f + camera_motion.position.x, 5.f + camera_motion.position.y }, TEXTURE_ASSET_ID::ICON_POWERUP_HEALTH);
+				powerup_indicator = createPowerupIndicator(renderer, { 9.5f+0.5 + camera_motion.position.x, 6.f + camera_motion.position.y }, TEXTURE_ASSET_ID::ICON_POWERUP_HEALTH);
 				break;
 			}
 		}

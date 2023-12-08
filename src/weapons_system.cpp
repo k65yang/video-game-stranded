@@ -544,11 +544,11 @@ bool WeaponsSystem::updateSideBars(ITEM_TYPE targetWeaponToUpdate) {
 
 
 void WeaponsSystem::createNonselectedWeaponIndicators() {
-	vec2 shuriken_indicator_pos = {-11.0f, -2.0f};
-	vec2 shuriken_indicator_size = vec2{ 1.0f };
-	vec2 shuriken_ammo_pos = {shuriken_indicator_pos.x, shuriken_indicator_pos.y + 0.7f};
+	vec2 shuriken_indicator_pos = {-11.0f +0.5, -2.0f -0.7};
+	vec2 shuriken_indicator_size = vec2{ 1.5f };
+	vec2 shuriken_ammo_pos = {shuriken_indicator_pos.x, shuriken_indicator_pos.y + 1.f};
 	vec2 shuriken_ammo_size = { 1.3f, 0.2f };
-	float spaceBetweenIndicators = 1.5f;
+	float spaceBetweenIndicators = 2.f;
 
 	// NON SELECTED WEAPON INDICATORS
 	shuriken_weapon_indicator = createWeaponIndicator(renderer, side_weapon_indicator_textures_map[ITEM_TYPE::WEAPON_SHURIKEN],
