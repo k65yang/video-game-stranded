@@ -205,9 +205,9 @@ void ParticleSystem::createParticleSplash(Entity projectile_entity, Entity mob_e
     
     temp.active = true;
     temp.lifeTime = 400.f;
-    temp.lifeTimeRemaining = 400.f;
+    temp.lifeTimeRemaining = 500.f;
     temp.texture = TEXTURE_ASSET_ID::TEXTURE_COUNT;
-    temp.sizeBegin = 0.8f;
+    temp.sizeBegin = 0.6f;
     temp.sizeEnd = 0.0f;
     temp.position = projectile_motion.position;
     temp.velocity = 10.f * splashDirection;
@@ -228,8 +228,8 @@ void ParticleSystem::createParticleSplash(Entity projectile_entity, Entity mob_e
 
         sampleParticle.sizeBegin = temp.sizeBegin += (0.2 * dist(gen));
         sampleParticle.velocity = rotateByDegree(temp.velocity, dist(gen) * 20);
-        sampleParticle.velocity.x = temp.velocity.x + 5.f * dist(gen);
-        sampleParticle.velocity.y = temp.velocity.y + 5.f * dist(gen);
+        sampleParticle.velocity.x = temp.velocity.x + 3.f * dist(gen);
+        sampleParticle.velocity.y = temp.velocity.y + 3.f * dist(gen);
 
         entities.push_back(emit(sampleParticle));
         

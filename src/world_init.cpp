@@ -23,7 +23,6 @@ Entity createPlayer(RenderSystem* renderer, PhysicsSystem* physics, vec2 pos)
 	motion.scale = vec2({ target_resolution.x / tile_size_px * 2.85714286/24, target_resolution.y / tile_size_px * 0.0625 });
 
 	// Initialize the collider
-	
 	physics->createMeshCollider(entity, GEOMETRY_BUFFER_ID::PLAYER_MESH, renderer);
 
 	// Add the player to the players registry
@@ -32,6 +31,14 @@ Entity createPlayer(RenderSystem* renderer, PhysicsSystem* physics, vec2 pos)
 	// Add player to inventory registry
 	Inventory& inventory = registry.inventories.emplace(entity);
 
+	// Attach animation component
+	Animation& animation = registry.animations.emplace(entity);
+	animation.framex = 0;
+	animation.framey = 4;
+
+	// make sure the division does not get round down using int
+	animation.frame_dimension_w = (float)(1.0f / 4.0f);
+	animation.frame_dimension_h = (float)(1.0f / 5.0f);
 	registry.renderRequests.insert(
 		entity,
 		{ TEXTURE_ASSET_ID::PLAYER,
@@ -131,6 +138,7 @@ Entity createSpaceship(RenderSystem* renderer, vec2 position) {
 
 	// Add entity to spaceship registry
 	registry.spaceships.emplace(entity);
+
 
 	registry.renderRequests.insert(
 		entity,
@@ -342,7 +350,7 @@ Entity createPowerupIndicator(RenderSystem* renderer, vec2 position, TEXTURE_ASS
 	motion.angle = 0.f;
 	motion.velocity = { 0.f, 0.f };
 	motion.position = position;
-	motion.scale = vec2({ 2.f, 2.f });
+	motion.scale = vec2({ 1.5f, 1.5f });
 
 	registry.renderRequests.insert(
 		entity,
@@ -417,6 +425,41 @@ Entity createText(RenderSystem* renderer, vec2 position, std::string str, float 
 	return entity;
 }
 
+
+Entity createMuzzleFlash(RenderSystem* renderer, vec2 position) {
+	auto entity = Entity();
+
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::MUZZLEFLASH_SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Initialize the position, scale, and physics components
+	auto& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.position = position;
+	motion.scale = { 1.f, 1.f };
+	
+	// Attach animation component
+	Animation& animation = registry.animations.emplace(entity);
+	animation.framex = 0;
+	animation.framey = 0;
+	animation.frame_dimension_w = (float)(1.0f / 5.0f);
+	animation.frame_dimension_h = (float)(1.0f / 1.0f);
+
+	// Attach color and set to transparent
+	auto& color = registry.colors.emplace(entity);
+	color = vec4(1.f);
+
+
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::MUZZLE_SHEET,
+			EFFECT_ASSET_ID::SPRITESHEET,
+			GEOMETRY_BUFFER_ID::MUZZLEFLASH_SPRITE,
+			RENDER_LAYER_ID::LAYER_2 });
+	
+	return entity;
+}
+
 Entity createSpaceshipDepart(RenderSystem* renderer) {
 	auto entity = Entity();
 
@@ -430,6 +473,17 @@ Entity createSpaceshipDepart(RenderSystem* renderer) {
 	motion.velocity = { 0.f, 0.f };
 	motion.position = { 0, -1.5f };
 	motion.scale = vec2({ target_resolution.x / tile_size_px * 0.20833333*1.2, target_resolution.y / tile_size_px * 0.3125*1.4 });
+
+
+	// attach animation
+	auto& animation = registry.animations.emplace(entity);
+	animation.framex = 0;
+	animation.framey = 1;
+	animation.frame_dimension_w = (float)(1.0f / 6.0f);
+	animation.frame_dimension_h = (float)(1.0f / 1.0f);
+
+
+
 
 	// Add entity to spaceship registry
 	registry.spaceships.emplace(entity);
@@ -466,3 +520,4 @@ Entity createEndingTextPopUp(RenderSystem * renderer, vec2 position, TEXTURE_ASS
 
 	return entity;
 	}
+

@@ -132,6 +132,7 @@ private:
 	Entity spaceship;
 	Entity spaceship_home; 
 	Entity help_bar;
+	Entity muzzleFlash;
 	Entity ship_arrow;
 
 	Entity spaceship_depart; 
@@ -197,12 +198,16 @@ private:
 	void handlePlayerMovement(float elapsed_ms_since_last_update);
 	bool keyDown[KEYS];    // Uses InputKeyIndex values as index
 
+
+	void emitMuzzleFlash(vec2 position, int PLAYER_DIRECTION);
+
 	/// <summary>
 	/// Converts a point in screen coordinates to clip coordinates
 	/// </summary>
 	/// <param name="point">The screen coordinates of the point</param>
 	/// <returns>The clip coordinates of the point</returns>
 	vec2 screen_to_clip_coords(vec2 point);
+
 
 	/// <summary>
 	/// updates spaceship depart sprite 
@@ -211,4 +216,5 @@ private:
 	void update_spaceship_frame(float elapsed_ms_since_last_update);
 	// Handles the victory scene 
 	void update_spaceship_depart();
+
 };

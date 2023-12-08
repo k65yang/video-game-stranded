@@ -120,10 +120,10 @@ private:
 			textures_path("q2_built.png"),
 			textures_path("q3_built.png"),
 			textures_path("q4_built.png"),
-			textures_path("help_button.png"),					
-			textures_path("help_dialog.png"),		
-			textures_path("quest_item_tutorial_dialog.png"),					
-			textures_path("spaceship_home_tutorial_dialog.png"),	
+			textures_path("help_button.png"),
+			textures_path("help_dialog.png"),
+			textures_path("quest_item_tutorial_dialog.png"),
+			textures_path("spaceship_home_tutorial_dialog.png"),
 			textures_path("ghost.png"),
 			textures_path("spaceship_depart.png"),
 			textures_path("brute.png"),
@@ -137,7 +137,14 @@ private:
 			textures_path("intro_screen.png"),
 			textures_path("start_button.png"),
 			textures_path("start_button_hover.png"),
+			textures_path("muzzle_flash_sheet.png"),
 			textures_path("ship_arrow.png"),
+
+			textures_path("shuriken_side_icon.png"),
+			textures_path("crossbow_side_icon.png"),
+			textures_path("shotgun_side_icon.png"),
+			textures_path("machinegun_side_icon.png"),
+
 
 	};
 
@@ -275,11 +282,13 @@ public:
 
 	void initializeGlMeshes();
 	Mesh& getMesh(GEOMETRY_BUFFER_ID id) { return meshes[(int)id]; };
+	void initializeSpriteSheetQuad(GEOMETRY_BUFFER_ID gid, int numberOfRowSprites, float numberOfColumnSprites);
 
 	void initializeGlGeometryBuffers();
 	// Initialize the screen texture used as intermediate render target
 	// The draw loop first renders to this texture, then it is used for the water
 	// shader
+
 	bool initScreenTexture();
 
 	// Initialize text vertex buffers and text vao
@@ -317,12 +326,6 @@ public:
 
 	// Do not modify this. READ ONLY!!
 	bool is_terrain_mesh_loaded = false;
-
-	float player_frame_w;
-	float player_frame_h;
-	float mob_frame_w;
-	float mob_frame_h;
-	float s_frame_w;
 
 	void drawParticles(Entity entity ,const mat3& view_matrix, const mat3& projection);
 

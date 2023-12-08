@@ -109,13 +109,20 @@ Entity MobSystem::create_mob(vec2 mob_position, MOB_TYPE mob_type, int current_h
 	mob_info.curr_cell = terrain->get_cell(motion.position);
 	mob_info.type = mob_type;
 
-
 	// Initialize the collider
 	physics->createMeshCollider(entity, GEOMETRY_BUFFER_ID::MOB001_MESH, renderer);
 
 	TEXTURE_ASSET_ID texture = mob_textures_map.at(mob_type);
 	switch (mob_type) {
 		case MOB_TYPE::SLIME:	// Handle slime differently because it has a sprite sheet animation
+		{
+			// Attach animation component
+			Animation& animation = registry.animations.emplace(entity);
+			animation.framex = 0;
+			animation.framey = 1;
+			animation.frame_dimension_w = (float)(1.0f / 7.0f);
+			animation.frame_dimension_h = (float)(1.0f / 4.0f);
+
 			registry.renderRequests.insert(
 				entity,
 				{	
@@ -126,6 +133,7 @@ Entity MobSystem::create_mob(vec2 mob_position, MOB_TYPE mob_type, int current_h
 				}
 			);
 			break;
+		}
 		default:
 			registry.renderRequests.insert(
 				entity,

@@ -53,6 +53,7 @@ public:
 	ComponentContainer<DebugComponent> debugComponents;
 	ComponentContainer<vec4> colors;
 	ComponentContainer<Collider> colliders;
+	ComponentContainer<Animation> animations;
 
 
 	// Terrain-related
@@ -100,6 +101,7 @@ public:
 		registry_list.push_back(&debugComponents);
 		registry_list.push_back(&colors);
 		registry_list.push_back(&colliders);
+		registry_list.push_back(&animations);
 
 
 		registry_list.push_back(&cameras);

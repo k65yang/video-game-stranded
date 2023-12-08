@@ -35,7 +35,7 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 
 	// Input data location as in the vertex buffer
 
-	if (render_request.used_effect == EFFECT_ASSET_ID::TEXTURED ||render_request.used_effect == EFFECT_ASSET_ID::SPRITESHEET)
+	if (render_request.used_effect == EFFECT_ASSET_ID::TEXTURED || render_request.used_effect == EFFECT_ASSET_ID::SPRITESHEET)
 	{
 
 		// Skip rendering spaceship home screen if player is at world 
@@ -76,48 +76,23 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 
 		glBindTexture(GL_TEXTURE_2D, texture_id);
 		gl_has_errors();
+		
+		if (registry.animations.has(entity)) {
+			// set the frame for shader
+			Animation& animation = registry.animations.get(entity);
 
-		if (render_request.used_texture == TEXTURE_ASSET_ID::PLAYER)
-		{
-			// set the frame for shader for player
 
-			GLint playerFrame_uloc = glGetUniformLocation(program, "spriteFrame");
-			glUniform2f(playerFrame_uloc, registry.players.components[0].framex, registry.players.components[0].framey);
+			GLint frame_uloc = glGetUniformLocation(program, "spriteFrame");
+			glUniform2f(frame_uloc, animation.framex, animation.framey);
+
+
 
 			// Set the frame dimensions for the player
 			GLint frameDimensions_uloc = glGetUniformLocation(program, "frameDimensions");
-			glUniform2f(frameDimensions_uloc, player_frame_w, player_frame_h);
+			glUniform2f(frameDimensions_uloc, animation.frame_dimension_w, animation.frame_dimension_h);
 			gl_has_errors();
 		}
-		else if (render_request.used_texture == TEXTURE_ASSET_ID::SLIME) {
-			// set the frame for shader for mob 
 
-			GLint mFrame_uloc = glGetUniformLocation(program, "spriteFrame");
-			glUniform2f(mFrame_uloc, registry.mobs.get(entity).mframex, registry.mobs.get(entity).mframey);
-			//printf("printing in mob i framey %d \n", registry.mobs.get(entity).mframey);
-
-			// Set the frame dimensions for the mob
-			GLint frameDimensions_uloc = glGetUniformLocation(program, "frameDimensions");
-			glUniform2f(frameDimensions_uloc, mob_frame_w, mob_frame_h);
-			gl_has_errors();
-
-		}
-		else if (render_request.used_texture == TEXTURE_ASSET_ID::SPACESHIP_DEPART) {
-			// set the frame for shader for mob 
-
-			GLint sFrame_uloc = glGetUniformLocation(program, "spriteFrame");
-			glUniform2f(sFrame_uloc,registry.spaceships.get(entity).framex, 0);
-			//printf("printing in mob i framey %d \n", registry.mobs.get(entity).mframey);
-
-			// Set the frame dimensions for the mob
-			GLint frameDimensions_uloc = glGetUniformLocation(program, "frameDimensions");
-			glUniform2f(frameDimensions_uloc, s_frame_w, 1);
-			gl_has_errors();
-
-		}
-		// else if (render_request.used_texture == TEXTURE_ASSET_ID::PLAYER_PARTICLE) {
-		// 	GLint isPlayer_uloc = glGetUniformLocation(program, "isPlayer");
-		// }
 
 	}
 	else if (render_request.used_effect == EFFECT_ASSET_ID::SALMON || render_request.used_effect == EFFECT_ASSET_ID::PEBBLE)

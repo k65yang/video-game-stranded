@@ -333,7 +333,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 		if (user_has_powerup) {
 			Motion& powerup_ui = registry.motions.get(powerup_indicator);
-			powerup_ui.position = { -9.5f + camera_motion.position.x, 5.f + camera_motion.position.y };
+			powerup_ui.position = { 9.5f +0.5+ camera_motion.position.x, 6.f + camera_motion.position.y };
 		}
 
 		// health updates
@@ -465,6 +465,17 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	if (debugging.in_debug_mode && editor_place_tile)
 		map_editor_routine();
 
+	// update for muzzle flash animation
+	// change to next frame if not at last frame
+	if (registry.animations.get(muzzleFlash).framex != 4) {
+		registry.animations.get(muzzleFlash).framex += 1;
+	}
+	else {
+	// set to transparent
+		registry.colors.get(muzzleFlash).a = 0.0f;
+	}
+		
+
 	return true;
 }
 
@@ -480,13 +491,14 @@ void WorldSystem::updatePlayerDirection() {
 
 
 	// Update player's direction
-	registry.players.components[0].framey = PLAYER_DIRECTION;
+	registry.animations.get(player_salmon).framey = PLAYER_DIRECTION;
 	
 	}
 
 void WorldSystem::handlePlayerMovement(float elapsed_ms_since_last_update) {
 	// Check if any movement keys are pressed and if player is not dead
 	bool anyMovementKeysPressed = keyDown[LEFT] || keyDown[RIGHT] || keyDown[UP] || keyDown[DOWN];
+	auto& player_animation = registry.animations.get(player_salmon);
 
 	// We'll consider moveVelocity existing in player space
 	// Allow movement if player is not dead 
@@ -506,12 +518,12 @@ void WorldSystem::handlePlayerMovement(float elapsed_ms_since_last_update) {
 
 			if (ELAPSED_TIME > 100) {
 				// Update walking animation
-				registry.players.components[0].framex = (registry.players.components[0].framex + 1) % 4;
+				player_animation.framex = (player_animation.framex + 1) % 4;
 				ELAPSED_TIME = 0.0f; // Reset the timer
 				}
 		} else {
 			// No movement keys pressed, set back to the first frame
-			registry.players.components[0].framex = 0;
+			player_animation.framex = 0;
 			}
 		}
 	else if (registry.deathTimers.has(player_salmon)) {
@@ -519,7 +531,10 @@ void WorldSystem::handlePlayerMovement(float elapsed_ms_since_last_update) {
 		Motion& m = registry.motions.get(player_salmon);
 		Player& player = registry.players.get(player_salmon);
 		m.velocity = { 0, 0 };
-		registry.players.components[0].framey = 3; // dead sprite
+
+		player_animation.framey = 3;
+
+	
 		if (player.health <=  0) {
 			Motion& health = registry.motions.get(health_bar);
 			health.scale = { 0,0 };
@@ -647,6 +662,8 @@ void WorldSystem::restart_game() {
 	// Reset the weapon indicator
 	user_has_first_weapon = false;
 
+	weapons_system->createNonselectedWeaponIndicators();
+
 	// Reset the power ups
 	user_has_powerup = false;
 
@@ -672,6 +689,11 @@ void WorldSystem::restart_game() {
 	// for movement velocity
 	for (int i = 0; i < KEYS; i++)
 	  keyDown[i] = false;
+
+	muzzleFlash = createMuzzleFlash(renderer, vec2(0.f));
+
+	// Debugging for memory/component leaks
+	registry.list_all_components();
 }
 
 // Compute collisions between entities
@@ -833,7 +855,7 @@ void WorldSystem::handle_collisions() {
 						// Add the powerup indicator
 						if (user_has_powerup)
 							registry.remove_all_components_of(powerup_indicator);
-						powerup_indicator = createPowerupIndicator(renderer, {-9.5f, 5.f}, TEXTURE_ASSET_ID::ICON_POWERUP_SPEED);
+						powerup_indicator = createPowerupIndicator(renderer, {9.5f+0.5, 6.f}, TEXTURE_ASSET_ID::ICON_POWERUP_SPEED);
 						user_has_powerup = true;
 						break;
 
@@ -853,7 +875,7 @@ void WorldSystem::handle_collisions() {
 						// Add the powerup indicator
 						if (user_has_powerup)
 							registry.remove_all_components_of(powerup_indicator);
-						powerup_indicator = createPowerupIndicator(renderer, {-9.5f, 5.f}, TEXTURE_ASSET_ID::ICON_POWERUP_HEALTH);
+						powerup_indicator = createPowerupIndicator(renderer, {9.5f+0.5, 6.f}, TEXTURE_ASSET_ID::ICON_POWERUP_HEALTH);
 						user_has_powerup = true;
 						break;
 				}
@@ -984,13 +1006,14 @@ void WorldSystem::update_camera_follow() {
 void WorldSystem::update_spaceship_frame(float elapsed_ms_since_last_update) {
 	if (ELAPSED_TIME > 300) {
 		// Update walking animation
-		if (registry.spaceships.components[0].framex != 5) {
+		auto& a = registry.animations.get(spaceship_depart);
+		if (a.framex != 5) {
 
-			registry.spaceships.components[0].framex = (registry.spaceships.components[0].framex + 1) % 6;
+			a.framex = (a.framex + 1) % 6;
 			ELAPSED_TIME = 0.0f; // Reset the timer
 		}
 		// spaceship departs 
-		if (registry.spaceships.components[0].framex == 5) {
+		if (a.framex == 5) {
 			Motion& spaceship_motion = registry.motions.get(spaceship_depart);
 			spaceship_motion.velocity += vec2{ 0,-0.5 };
 			debugging.in_debug_mode = !debugging.in_debug_mode;
@@ -1335,22 +1358,28 @@ void WorldSystem::on_mouse_click(int button, int action, int mods) {
 			// if theres ammo in current weapon 
 			Motion& player_motion = registry.motions.get(player_salmon);
 
+			float projectileSpawnOffset = 1.4f;
 			// Play appropriate shooting noises if we've just shot
-			ITEM_TYPE fired_weapon = weapons_system->fireWeapon(player_motion.position.x, player_motion.position.y, CURSOR_ANGLE);
-
+			// Added offset to spawn projectile a bit outward. 
+			ITEM_TYPE fired_weapon = weapons_system->fireWeapon(player_motion.position.x + projectileSpawnOffset * cos(CURSOR_ANGLE), player_motion.position.y + projectileSpawnOffset * sin(CURSOR_ANGLE), CURSOR_ANGLE);
+			
 			// If we successfully shot...
-			if (fired_weapon != ITEM_TYPE::WEAPON_NONE)
-				switch (fired_weapon) {
-					case ITEM_TYPE::WEAPON_SHOTGUN:
-						audio_system->play_one_shot(AudioSystem::SHOT); break;
-					case ITEM_TYPE::WEAPON_MACHINEGUN:
-						audio_system->play_one_shot(AudioSystem::SHOT_MG); break;
-					case ITEM_TYPE::WEAPON_CROSSBOW:
-						audio_system->play_one_shot(AudioSystem::SHOT_CROSSBOW); break;
-					case ITEM_TYPE::WEAPON_SHURIKEN:
-						audio_system->play_one_shot(AudioSystem::SHOT_SHURIKEN); break;
-				}
+			if (fired_weapon != ITEM_TYPE::WEAPON_NONE) {
 
+				emitMuzzleFlash(player_motion.position, PLAYER_DIRECTION);
+
+				switch (fired_weapon) {
+				case ITEM_TYPE::WEAPON_SHOTGUN:
+					audio_system->play_one_shot(AudioSystem::SHOT); break;
+				case ITEM_TYPE::WEAPON_MACHINEGUN:
+					audio_system->play_one_shot(AudioSystem::SHOT_MG); break;
+				case ITEM_TYPE::WEAPON_CROSSBOW:
+					audio_system->play_one_shot(AudioSystem::SHOT_CROSSBOW); break;
+				case ITEM_TYPE::WEAPON_SHURIKEN:
+					audio_system->play_one_shot(AudioSystem::SHOT_SHURIKEN); break;
+				}
+			
+			}
 			// We didn't shoot successfully since we ran out of ammo
 			else if (weapons_system->getActiveWeaponAmmoCount() <= 0 && player_equipped_weapon) {
 				fired_weapon = weapons_system->getActiveWeapon();
@@ -1615,14 +1644,14 @@ void WorldSystem::load_game(json j) {
 
 
 				// UI Indicator
-				powerup_indicator = createPowerupIndicator(renderer, { -9.5f + camera_motion.position.x, 5.f + camera_motion.position.y }, TEXTURE_ASSET_ID::ICON_POWERUP_SPEED);
+				powerup_indicator = createPowerupIndicator(renderer, { 9.5f+0.5 + camera_motion.position.x, 6.f + camera_motion.position.y }, TEXTURE_ASSET_ID::ICON_POWERUP_SPEED);
 				break;
 			}
 			case ITEM_TYPE::POWERUP_HEALTH:
 			{
 				// Give health powerup to player. Use default values in struct definition.
 				registry.healthPowerup.emplace(player_salmon);
-				powerup_indicator = createPowerupIndicator(renderer, { -9.5f + camera_motion.position.x, 5.f + camera_motion.position.y }, TEXTURE_ASSET_ID::ICON_POWERUP_HEALTH);
+				powerup_indicator = createPowerupIndicator(renderer, { 9.5f+0.5 + camera_motion.position.x, 6.f + camera_motion.position.y }, TEXTURE_ASSET_ID::ICON_POWERUP_HEALTH);
 				break;
 			}
 		}
@@ -1643,7 +1672,9 @@ void WorldSystem::load_game(json j) {
 	for (int i = 0; i < KEYS; i++)
 		keyDown[i] = false;
 
+
 	tutorial_system->createTutorialText(TUTORIAL_TYPE::GAME_LOADED);
+
 }
 
 void WorldSystem::load_spawned_items_mobs(json& j) {
@@ -1654,4 +1685,51 @@ void WorldSystem::load_spawned_items_mobs(json& j) {
 	for (auto& mob : j["mobs"]) {
 		mob_system->create_mob({ mob[1]["position_x"], mob[1]["position_y"] }, mob[0]["type"], mob[0]["health"]);
 	}
+}
+
+void WorldSystem::emitMuzzleFlash(vec2 position, int PLAYER_DIRECTION) {
+	auto& m = registry.motions.get(muzzleFlash);
+	vec2 offset;
+
+	float horizonatalOffset = 1.75f;
+	float verticalOffset = 1.1f;
+
+	// caluclate offset position and angle 
+	switch (PLAYER_DIRECTION)
+	{
+		case 1: //Down
+			offset = vec2{ 0.f, verticalOffset };
+			m.angle = (90.f * M_PI / 180.f);
+			break;
+		case 2: //UP
+			offset = vec2{ 0.f, -verticalOffset };
+			m.angle = (270.f * M_PI / 180.f);
+
+			break;
+		case 4: //LEFT
+			offset = vec2{ -horizonatalOffset, -0.05f };
+			m.angle = (180.f * M_PI / 180.f);
+			break;
+		case 0: //RIGHT
+			offset = vec2{ horizonatalOffset, -0.05f };
+			m.angle = (0.f * M_PI / 180.f);
+			break;
+		default:
+			offset = vec2{ 0.f, verticalOffset };
+			m.angle = (90.f * M_PI / 180.f);
+			break;
+
+	}
+
+	// move muzzle flash to target position
+	m.position = position + offset;
+
+	// set to start from first frame
+	registry.animations.get(muzzleFlash).framex = 0;
+
+	// set alpha
+	 registry.colors.get(muzzleFlash).a = 1.0f;
+
+
+
 }

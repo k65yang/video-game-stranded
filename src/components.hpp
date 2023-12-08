@@ -76,8 +76,6 @@ struct Player
 	int decrease_food_to = PLAYER_MAX_FOOD;
 	float iframes_timer = 0; // in ms
 	int food = PLAYER_MAX_FOOD;
-	int framex = 0; 
-	int framey = 4; 
 	bool is_home = false;
 	bool has_collected_quest_item = false;
 	bool has_entered_spaceship = false;
@@ -140,8 +138,6 @@ struct SpaceshipHome {
 };
 
 struct Spaceship {
-	int framex = 0;
-
 };
 
 // The projectile
@@ -165,8 +161,6 @@ struct Mob {
 	int aggro_range;
 	int health;
 	float speed_ratio;
-	int mframex = 0;
-	int mframey = 1;
 	Entity curr_cell;
 	MOB_TYPE type;
 	Entity health_bar;
@@ -357,6 +351,16 @@ struct Collider
 	int flag;  // for filtering 
 };
 
+// component for entity using sprite sheet animation
+struct Animation {
+	int framex = 0; // row index on the sprite from sprite sheet
+	int framey = 0; // column index 
+
+	float frame_dimension_w = 1.0f;
+	float frame_dimension_h = 1.0f;
+	// frame dimension on width and height are set up under initializeGlGeometryBuffers() from render_system_init.cpp
+};
+
 
 /**
  * The following enumerators represent global identifiers refering to graphic
@@ -451,8 +455,15 @@ enum class TEXTURE_ASSET_ID {
 	START_SCREEN_TWO = START_SCREEN_ONE + 1,
 	START_BUTTON = START_SCREEN_TWO + 1,
 	START_BUTTON_HOVER = START_BUTTON + 1,
-	POINTING_ARROW = START_BUTTON_HOVER + 1,
-	TEXTURE_COUNT = POINTING_ARROW + 1,
+	MUZZLE_SHEET = START_BUTTON_HOVER + 1,
+	POINTING_ARROW = MUZZLE_SHEET + 1,
+	SIDEICON_SHURIKEN = POINTING_ARROW + 1,
+	SIDEICON_CROSSBOW = SIDEICON_SHURIKEN + 1,
+	SIDEICON_SHOTGUN = SIDEICON_CROSSBOW + 1,
+	SIDEICON_MACHINEGUN = SIDEICON_SHOTGUN + 1,
+	TEXTURE_COUNT = SIDEICON_MACHINEGUN + 1,
+
+
 
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
@@ -488,7 +499,9 @@ enum class GEOMETRY_BUFFER_ID {
 	PLAYER_MESH = TERRAIN + 1,
 	MOB001_MESH = PLAYER_MESH + 1,
 	TEXT = MOB001_MESH + 1,
-	GEOMETRY_COUNT = TEXT + 1
+	MUZZLEFLASH_SPRITE = TEXT + 1,
+	GEOMETRY_COUNT = MUZZLEFLASH_SPRITE + 1
+
 };
 
 enum class RENDER_LAYER_ID {
