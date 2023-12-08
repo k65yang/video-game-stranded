@@ -138,8 +138,6 @@ struct SpaceshipHome {
 };
 
 struct Spaceship {
-	int framex = 0;
-
 };
 
 // The projectile

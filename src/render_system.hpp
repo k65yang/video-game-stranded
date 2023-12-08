@@ -318,19 +318,6 @@ public:
 	// Do not modify this. READ ONLY!!
 	bool is_terrain_mesh_loaded = false;
 
-
-	float player_frame_w;
-	float player_frame_h;
-	float mob_frame_w;
-	float mob_frame_h;
-
-	// For muzzle flash sprite sheet animation
-	float muzzleFlash_frame_w;
-	float muzzleFlash_frame_h;
-
-	float s_frame_w;
-
-
 	void drawParticles(Entity entity ,const mat3& view_matrix, const mat3& projection);
 
 

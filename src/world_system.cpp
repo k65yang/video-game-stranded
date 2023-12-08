@@ -530,12 +530,9 @@ void WorldSystem::handlePlayerMovement(float elapsed_ms_since_last_update) {
 		Player& player = registry.players.get(player_salmon);
 		m.velocity = { 0, 0 };
 
+		player_animation.framey = 3;
 
-
-		player_animation.framey = 1;
-    //TODO FIX
-		registry.players.components[0].framey = 3; // dead sprite
-
+	
 		if (player.health <=  0) {
 			Motion& health = registry.motions.get(health_bar);
 			health.scale = { 0,0 };
@@ -1005,13 +1002,14 @@ void WorldSystem::update_camera_follow() {
 void WorldSystem::update_spaceship_frame(float elapsed_ms_since_last_update) {
 	if (ELAPSED_TIME > 300) {
 		// Update walking animation
-		if (registry.spaceships.components[0].framex != 5) {
+		auto& a = registry.animations.get(spaceship_depart);
+		if (a.framex != 5) {
 
-			registry.spaceships.components[0].framex = (registry.spaceships.components[0].framex + 1) % 6;
+			a.framex = (a.framex + 1) % 6;
 			ELAPSED_TIME = 0.0f; // Reset the timer
 		}
 		// spaceship departs 
-		if (registry.spaceships.components[0].framex == 5) {
+		if (a.framex == 5) {
 			Motion& spaceship_motion = registry.motions.get(spaceship_depart);
 			spaceship_motion.velocity += vec2{ 0,-0.5 };
 			debugging.in_debug_mode = !debugging.in_debug_mode;
@@ -1354,7 +1352,7 @@ void WorldSystem::on_mouse_click(int button, int action, int mods) {
 			// if theres ammo in current weapon 
 			Motion& player_motion = registry.motions.get(player_salmon);
 
-			float projectileSpawnOffset = 1.2f;
+			float projectileSpawnOffset = 1.4f;
 			// Play appropriate shooting noises if we've just shot
 			// Added offset to spawn projectile a bit outward. 
 			ITEM_TYPE fired_weapon = weapons_system->fireWeapon(player_motion.position.x + projectileSpawnOffset * cos(CURSOR_ANGLE), player_motion.position.y + projectileSpawnOffset * sin(CURSOR_ANGLE), CURSOR_ANGLE);
@@ -1671,30 +1669,34 @@ void WorldSystem::emitMuzzleFlash(vec2 position, int PLAYER_DIRECTION) {
 	auto& m = registry.motions.get(muzzleFlash);
 	vec2 offset;
 
+	float horizonatalOffset = 1.75f;
+	float verticalOffset = 1.1f;
+
 	// caluclate offset position and angle 
 	switch (PLAYER_DIRECTION)
 	{
-		case 5: //Down
-			offset = vec2{ 0.f, 1.0f };
+		case 1: //Down
+			offset = vec2{ 0.f, verticalOffset };
 			m.angle = (90.f * M_PI / 180.f);
 			break;
-		case 6: //UP
-			offset = vec2{ 0.f, -1.0f };
+		case 2: //UP
+			offset = vec2{ 0.f, -verticalOffset };
 			m.angle = (270.f * M_PI / 180.f);
 
 			break;
-		case 7: //LEFT
-			offset = vec2{ -1.4f, 0.0f };
+		case 4: //LEFT
+			offset = vec2{ -horizonatalOffset, -0.05f };
 			m.angle = (180.f * M_PI / 180.f);
 			break;
-		case 8: //RIGHT
-			offset = vec2{ 1.4f, 0.0f };
+		case 0: //RIGHT
+			offset = vec2{ horizonatalOffset, -0.05f };
 			m.angle = (0.f * M_PI / 180.f);
 			break;
 		default:
-			offset = vec2{ 0.f, 1.0f };
+			offset = vec2{ 0.f, verticalOffset };
 			m.angle = (90.f * M_PI / 180.f);
 			break;
+
 	}
 
 	// move muzzle flash to target position

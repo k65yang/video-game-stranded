@@ -38,7 +38,7 @@ Entity createPlayer(RenderSystem* renderer, PhysicsSystem* physics, vec2 pos)
 
 	// make sure the division does not get round down using int
 	animation.frame_dimension_w = (float)(1.0f / 4.0f);
-	animation.frame_dimension_h = (float)(1.0f / 9.0f);
+	animation.frame_dimension_h = (float)(1.0f / 5.0f);
 	registry.renderRequests.insert(
 		entity,
 		{ TEXTURE_ASSET_ID::PLAYER,
@@ -138,6 +138,7 @@ Entity createSpaceship(RenderSystem* renderer, vec2 position) {
 
 	// Add entity to spaceship registry
 	registry.spaceships.emplace(entity);
+
 
 	registry.renderRequests.insert(
 		entity,
@@ -472,6 +473,17 @@ Entity createSpaceshipDepart(RenderSystem* renderer) {
 	motion.velocity = { 0.f, 0.f };
 	motion.position = { 0, -1.5f };
 	motion.scale = vec2({ target_resolution.x / tile_size_px * 0.20833333*1.2, target_resolution.y / tile_size_px * 0.3125*1.4 });
+
+
+	// attach animation
+	auto& animation = registry.animations.emplace(entity);
+	animation.framex = 0;
+	animation.framey = 1;
+	animation.frame_dimension_w = (float)(1.0f / 6.0f);
+	animation.frame_dimension_h = (float)(1.0f / 1.0f);
+
+
+
 
 	// Add entity to spaceship registry
 	registry.spaceships.emplace(entity);

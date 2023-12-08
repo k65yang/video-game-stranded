@@ -525,28 +525,17 @@ void RenderSystem::initializeGlGeometryBuffers()
 	// The position corresponds to the center of the texture.
 	// This is hardcoded dimensions of the texture/ num of frame in texture 
 
-	initializeSpriteSheetQuad(GEOMETRY_BUFFER_ID::PLAYER_SPRITE, 4, 9);
-
-
-  //TODO
-	player_frame_w = 0.25f; 
-	player_frame_h = (float)1/5;
-	std::vector<TexturedVertex> player_vertices(4);
-	player_vertices[0].position = { -1.f / 2, +1.f / 2, 0.f };
-	player_vertices[1].position = { +1.f / 2, +1.f / 2, 0.f };
-	player_vertices[2].position = { +1.f / 2, -1.f / 2, 0.f };
-	player_vertices[3].position = { -1.f / 2, -1.f / 2, 0.f };
-	player_vertices[3].texcoord = { 0.f, 0.f };
-	player_vertices[2].texcoord = { player_frame_w, 0.f };
-	player_vertices[1].texcoord = { player_frame_w, player_frame_h};
-	player_vertices[0].texcoord = { 0.f, player_frame_h};
-
+	initializeSpriteSheetQuad(GEOMETRY_BUFFER_ID::PLAYER_SPRITE, 4, 5);
 
 	// Initialize mob spritesheet
 	initializeSpriteSheetQuad(GEOMETRY_BUFFER_ID::MOB_SPRITE, 7, 4);
 
 	// Initialize muzzle flash 
 	initializeSpriteSheetQuad(GEOMETRY_BUFFER_ID::MUZZLEFLASH_SPRITE, 5, 1);
+
+	// initislize spaceship depart spritesheet
+	initializeSpriteSheetQuad(GEOMETRY_BUFFER_ID::SPACESHIP_DEPART_SPRITE, 6, 1);
+
 }
 
 // Helper function to initialize the geometry buffer for sprite sheet animation
@@ -572,26 +561,6 @@ void RenderSystem::initializeSpriteSheetQuad(GEOMETRY_BUFFER_ID gid, int numberO
 	const std::vector<uint16_t> quad_indices = { 0, 3, 1, 1, 3, 2 };
 
 	bindVBOandIBO(gid, quad_vertices, quad_indices);
-
-	// Initialize mob sprite
-// The position corresponds to the center of the texture.
-	// This is hardcoded dimensions of the texture/ num of frame in texture 
-	s_frame_w = 1/6.f;
-	std::vector<TexturedVertex> spaceship_depart_vertices(4);
-	spaceship_depart_vertices[0].position = { -1.f / 2, +1.f / 2, 0.f };
-	spaceship_depart_vertices[1].position = { +1.f / 2, +1.f / 2, 0.f };
-	spaceship_depart_vertices[2].position = { +1.f / 2, -1.f / 2, 0.f };
-	spaceship_depart_vertices[3].position = { -1.f / 2, -1.f / 2, 0.f };
-	spaceship_depart_vertices[3].texcoord = { 0.f, 0.f };
-	spaceship_depart_vertices[2].texcoord = { s_frame_w, 0.f };
-	spaceship_depart_vertices[1].texcoord = { s_frame_w, 1 };
-	spaceship_depart_vertices[0].texcoord = { 0.f, 1 };
-
-	// Counterclockwise as it's the default opengl front winding direction.
-	const std::vector<uint16_t> spaceship_depart_indices = { 0, 3, 1, 1, 3, 2 };
-
-	bindVBOandIBO(GEOMETRY_BUFFER_ID::SPACESHIP_DEPART_SPRITE, spaceship_depart_vertices, spaceship_depart_indices);
-
 }
 
 RenderSystem::~RenderSystem()
