@@ -1317,7 +1317,7 @@ void WorldSystem::spawn_items() {
 		{ZONE_2, 3},	
 		{ZONE_3, 7},
 		{ZONE_4, 8},
-		{ZONE_5, 8},
+		{ZONE_5, 16},
 	};
 
 	for (int zone_num = ZONE_0; zone_num != ZONE_COUNT; zone_num++) {

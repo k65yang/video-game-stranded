@@ -38,9 +38,9 @@ void MobSystem::spawn_mobs() {
 	std::unordered_map<ZONE_NUMBER,int> zone_mob_brute = {
 		{ZONE_1, 0},    
 		{ZONE_2, 5},	
-		{ZONE_3, 15},
-		{ZONE_4, 30},
-		{ZONE_5, 30},
+		{ZONE_3, 10},
+		{ZONE_4, 25},
+		{ZONE_5, 35},
 	};
 	std::vector<vec2> zone_brute_locations = terrain->get_mob_spawn_locations(zone_mob_brute);
 
