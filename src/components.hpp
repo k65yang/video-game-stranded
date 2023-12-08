@@ -23,7 +23,7 @@ enum class QUEST_ITEM_STATUS {
 enum class RESOURCE_TYPE {
 	AMMO = 0,
 	FOOD = AMMO + 1,
-	HEALTH = FOOD
+	HEALTH = FOOD + 1
 };
 
 enum class TUTORIAL_TYPE {

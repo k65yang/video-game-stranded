@@ -34,9 +34,7 @@ class SpaceshipHomeSystem
         void resetSpaceshipHomeSystem(int health_storage, int food_storage, int ammo_storage);
 
         /// @brief Executes various actions when player enters the spaceship
-        /// @param player_health_bar The entity for the player's health bar
-        /// @param player_food_bar The entity for the player's food bar
-        void enterSpaceship(Entity player_health_bar, Entity player_food_bar);
+        void enterSpaceship();
 
         /// @brief Executes various actions when player exits the spaceship
         void exitSpaceship();
@@ -58,12 +56,9 @@ class SpaceshipHomeSystem
 
         /// @brief Regenerates a stat of the player (ex. health, food, ammo) using a resource stored in the spaceship 
         /// @param type The type of the resource to use to regenerate the stat
-        void regenerateStat(RESOURCE_TYPE type);
-
-        /// @brief Updates the text count for a resource in storage
-        /// @param type The type of the resource to update the text count for
-        /// @return The updated text count
-        Entity updateStorageCountText(RESOURCE_TYPE type);
+        /// @param player_health_bar The entity for the player's health bar
+        /// @param player_food_bar The entity for the player's food bar
+        void regenerateStat(RESOURCE_TYPE type, Entity player_food_bar, Entity player_health_bar);
 
     private:
         const vec2 SPACESHIP_HOME_POSITION = { 0.f, 0.f };
@@ -124,6 +119,11 @@ class SpaceshipHomeSystem
         /// @param max_bar_value The max value the bar can be
         /// @param scale_factor The scale factor for the bar
         void updateStorageBar(int new_val, Motion& bar, int max_bar_value, vec2 scale_factor);
+
+        /// @brief Updates the text count for a resource in storage
+        /// @param type The type of the resource to update the text count for
+        /// @return The updated text count
+        Entity updateStorageCountText(RESOURCE_TYPE type);
 
         /// @brief Creates a string that reflects the remaining amount of a resource in a storage
         /// @param storage The remaining amount of the resource in the storage
