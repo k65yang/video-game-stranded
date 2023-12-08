@@ -244,6 +244,10 @@ public:
 	// glfwGetVideoMode(glfwGetPrimaryMonitor()) method.
 	ivec2 window_resolution;
 
+	// If there is a mismatch between the monitor resolution and the window resolution, multiply
+	// this after getting the raw position of the mouse.
+	vec2 screen_to_window_correction;
+
 	/// <summary>
 	/// Binds and allocates a given vertex and index buffer under the "index" that is gid in GPU memory.
 	/// </summary>

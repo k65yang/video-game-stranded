@@ -1280,12 +1280,14 @@ void WorldSystem::on_mouse_move(vec2 mouse_position) {
 		// The player is always in the middle of the screen so we need to compute the 
 		// rotation angle w.r.t. the centre of the screen
 		ivec2 window_size = renderer->window_resolution;
+		vec2 cursor = mouse_position * renderer->screen_to_window_correction;
 
 		float screen_centre_x = window_size.x/2;
 		float screen_centre_y = window_size.y/2;
 
+
 		Motion& motion = registry.motions.get(player_salmon);
-		CURSOR_ANGLE = atan2(mouse_position.y - screen_centre_y, mouse_position.x - screen_centre_x);
+		CURSOR_ANGLE = atan2(cursor.y - screen_centre_y, cursor.x - screen_centre_x);
 	}
 
 	// Change mouse cursor type if hovering over help button or storage item
@@ -1409,6 +1411,7 @@ void WorldSystem::map_editor_routine() {
 }
 
 vec2 WorldSystem::screen_to_clip_coords(vec2 point) {
+	point *= renderer->screen_to_window_correction;
 	mat3 view_ = renderer->createModelMatrix(main_camera);
 
 	// You can cache this to save performance.
