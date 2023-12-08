@@ -1237,7 +1237,7 @@ void WorldSystem::on_mouse_click(int button, int action, int mods) {
 			}
 		}
 
-		if (!registry.deathTimers.has(player_salmon) && !spaceship_home_system->isHome()) {
+		if (!registry.deathTimers.has(player_salmon) && !spaceship_home_system->isHome() && !tutorial_system->isHelpDialogOpen()) {
 			// if theres ammo in current weapon 
 			Motion& player_motion = registry.motions.get(player_salmon);
 
