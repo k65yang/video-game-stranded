@@ -14,7 +14,7 @@
 #include <sstream>
 
 // World initialization
-bool RenderSystem::init(GLFWwindow* window_arg)
+bool RenderSystem::init(GLFWwindow* window_arg, const ivec2 window_size)
 {
 	this->window = window_arg;
 
@@ -22,13 +22,7 @@ bool RenderSystem::init(GLFWwindow* window_arg)
 	glfwSwapInterval(1); // vsync
 
 	// Get window resolution
-	if (windowed_mode) {
-		window_resolution = target_resolution;
-	}
-	else {
-		const GLFWvidmode* mode = glfwGetVideoMode(glfwGetPrimaryMonitor());
-		window_resolution = { mode->width, mode->height };
-	}
+	window_resolution = window_size;
 
 	// Load OpenGL function pointers
 	const int is_fine = gl3w_init();

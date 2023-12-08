@@ -226,7 +226,7 @@ private:
 
 public:
 	// Initialize the window
-	bool init(GLFWwindow* window);
+	bool init(GLFWwindow* window, const ivec2 window_size);
 
 	// fog of war related variable
 
