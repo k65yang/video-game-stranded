@@ -5,7 +5,7 @@ For our submission for milestone 1, we were able to successfully complete all fe
 
 ## WHERE ARE OUR FEATURES LOCATED:
 
-Milestone 1
+#### Milestone 1
 
 <b>Key-frame/state interpolation (health and food bars):</b> world_system.cpp, "interpolate", and in "step", where we tick down the timers and call the interpolate function. <br>
 
@@ -21,7 +21,7 @@ Milestone 1
 <br/>
 <br/>
 
-Milestone 2
+#### Milestone 2
 
 <b>User input logic response on left click:</b> "WorldSystem::on_mouse_click", "WeaponsSystem::fireWeapon" <br>
 
@@ -38,7 +38,7 @@ Milestone 2
 <br/>
 <br/>
 
-Milestone 3
+#### Milestone 3
 
 <b>Precise collision w/ bounding volume hierarchy</b>"PhysicsSystem::buildBVH()"<br>
 
@@ -47,6 +47,28 @@ Milestone 3
 <b>Reloadability</b> save.cpp, save.hpp <br>
 
 <b>Consistent game resolution</b> "aspect_ratio" , "targetResolution" in common.hpp, "RenderSystem::createProjectionMatrix()", "WorldSystem::create_window()"
+
+
+### Game Balancing
+
+The following table lists some changes that we made in response to cross play comments in effort to better balance the game.
+
+| Comment | Game Change |
+| --------------- | --------------- |
+| "Only other thing I would maybe change is making the game slightly more difficult. I think there is food everywhere and the monsters don't do too much damage"    | - Increased mob spawn rate </br> -Slightly increased damage from all mobs.  |
+| "more clarity with the quest would be nice, it was pretty hard to find the quest items"    | - Added a screen in the beginning of the game to explain what the player needs to do </br>- Updated quest item sprites so they are more easily seen </br> - Updated tutorial system to tell player what they need to do once they get a quest item |
+| "I think if there were other reasons to return to the ship that could be cool too"    | - Added the condition where the player must return to the ship to hand in their quest items </br> - To beat the game, the player must return to the ship (once they have all quest items) and they can see their ship blast off    |
+| "I think it's a bit too easy to run around enemies, since they can't catch up to you"    | - Increased enemy speed </br> - Increase aggro range of enemies (they start tracking you from further away so there is a bigger mob!) </br> - Updated a mob type to be terrain agnostic (will not be slowed by terrain effects and can go through walls!)    |
+| "Food drains quite fast so you have to keep an eye on it"    | - Greatly increased food spawns    |
+| "It would be more fun to be able to understand the map and fighting capabilities a little better"    | - Updated the player UI to be more explicit on the weapons the player has </br> - Added additional tutorial popups for controls    |
+
+The following table lists some of the balance issues the developers ran into during testing and how it was fixed.
+
+| Issue | Game Change |
+| --------------- | --------------- |
+| Row 1, Col 1    | Row 1, Col 2    |
+| Row 2, Col 1    | Row 2, Col 2    |
+| Row 3, Col 1    | Row 3, Col 2    |
 
 <b></b> <br>
 ## How to start
