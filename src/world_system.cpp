@@ -382,7 +382,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		Motion& motion = registry.motions.get(entity);
 		Motion& health = registry.motions.get(mob.health_bar);
 		vec2& mob_position = motion.position;
-		vec2 health_position = { mob_position.x, mob_position.y - 1 };
+		vec2 health_position = { mob_position.x, mob_position.y - 0.8 };
 		health.position = health_position;
 
 		// slow updates
@@ -888,7 +888,7 @@ void WorldSystem::handle_collisions() {
 				else {
 					audio_system->play_one_shot(AudioSystem::MOB_HIT);
 					Motion& health = registry.motions.get(mob.health_bar);
-					health.scale = vec2(((float)mob.health / (float)mob_system->mob_health_map.at(mob.type)) * 3.5, 0.7);
+					health.scale = vec2(((float)mob.health / (float)mob_system->mob_health_map.at(mob.type)) * 2.5, 0.3);
 				}
 
 				// Add weapon effects to the mob
