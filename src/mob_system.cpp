@@ -53,20 +53,6 @@ void MobSystem::spawn_mobs() {
 	for (const auto& spawn_location: zone_disruptor_locations) {
 		create_mob(spawn_location, MOB_TYPE::DISRUPTOR);
 	}
-
-	// TODO: for milestone 4
-	// // spawn turret
-	// std::map<ZONE_NUMBER,int> zone_mob_turret = {
-	// 	{ZONE_0, 5},
-	// 	{ZONE_1, 0},    
-	// 	{ZONE_2, 0},	
-	// 	{ZONE_3, 0},
-	// };
-	// std::vector<vec2> zone_turret_locations = terrain->get_mob_spawn_locations(zone_mob_turret);
-
-	// for (const auto& spawn_location: zone_turret_locations) {
-	// 	create_mob(spawn_location, MOB_TYPE::TURRET);
-	// }
 }
 
 void MobSystem::apply_mob_attack_effects(Entity player, Entity mob) {

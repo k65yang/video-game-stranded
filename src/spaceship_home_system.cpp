@@ -23,22 +23,20 @@ void SpaceshipHomeSystem::resetSpaceshipHomeSystem(int health_storage, int food_
 	// Create spaceship home
 	spaceship_home = createSpaceshipHome(SPACESHIP_HOME_POSITION, health_storage, food_storage, ammo_storage);
 
-	// Create health storage elements
+	// Create health storage item
 	health_item = createSpaceshipHomeItem(HEALTH_ITEM_POSITION, TEXTURE_ASSET_ID::SPACESHIP_HOME_HEALTH);
 
-	// Create food storage elements
+	// Create food storage item
 	food_item = createSpaceshipHomeItem(FOOD_ITEM_POSITION, TEXTURE_ASSET_ID::SPACESHIP_HOME_FOOD);
 
-	// Create ammo storage elements
+	// Create ammo storage item
 	ammo_item = createSpaceshipHomeItem(AMMO_ITEM_POSITION, TEXTURE_ASSET_ID::SPACESHIP_HOME_AMMO);
 };
 
-void SpaceshipHomeSystem::enterSpaceship(Entity player_health_bar, Entity player_food_bar) {
+void SpaceshipHomeSystem::enterSpaceship() {
 	SpaceshipHome& spaceship_home_info = registry.spaceshipHomes.get(spaceship_home);
 	Entity player = registry.players.entities[0]; 
 	Player& player_info = registry.players.get(player);
-	Motion& player_health_bar_motion = registry.motions.get(player_health_bar);
-	Motion& player_food_bar_motion = registry.motions.get(player_food_bar);
 
 	// Set player to be home
 	player_info.is_home = true;
@@ -54,45 +52,31 @@ void SpaceshipHomeSystem::enterSpaceship(Entity player_health_bar, Entity player
 		printf("ALL QUEST ITEMS SUBMITTED\n");
 	}
 
-	// Regenerate health
-	regenerateStat(player_info.health, spaceship_home_info.health_storage, PLAYER_MAX_HEALTH);
-	updateStatBar(player_info.health, player_health_bar_motion, PLAYER_MAX_HEALTH, HEALTH_BAR_SCALE);
-	health_storage_count = createText(
+	// Create ammo storage count
+	ammo_storage_count = createText(
 		renderer, 
-		HEALTH_STORAGE_COUNT_POSITION, 
-		createStorageCountText(spaceship_home_info.health_storage), 
+		AMMO_STORAGE_COUNT_POSITION, 
+		createStorageCountTextString(spaceship_home_info.ammo_storage), 
 		STORAGE_COUNT_TEXT_SCALE, 
-		spaceship_home_info.health_storage > 0 ? STORAGE_FULL_TEXT_COLOR : STORAGE_EMPTY_TEXT_COLOR 
+		spaceship_home_info.ammo_storage > 0 ? STORAGE_FULL_TEXT_COLOR : STORAGE_EMPTY_TEXT_COLOR 
 	);
 
-	// Regenerate food
-	regenerateStat(player_info.food, spaceship_home_info.food_storage, PLAYER_MAX_FOOD);
-	updateStatBar(player_info.food, player_food_bar_motion, PLAYER_MAX_FOOD, FOOD_BAR_SCALE);
+	// Create food storage count
 	food_storage_count = createText(
 		renderer, 
 		FOOD_STORAGE_COUNT_POSITION, 
-		createStorageCountText(spaceship_home_info.food_storage), 
+		createStorageCountTextString(spaceship_home_info.food_storage), 
 		STORAGE_COUNT_TEXT_SCALE, 
 		spaceship_home_info.food_storage > 0 ? STORAGE_FULL_TEXT_COLOR : STORAGE_EMPTY_TEXT_COLOR 
 	);
 
-	// Reload all weapons. This can be problematic because it always reloads in a specific order.
-	// TODO: Somehow give options to player to reload specific weapons.
-	int amount_reloaded = 0;
-	amount_reloaded = weaponsSystem->increaseAmmo(ITEM_TYPE::WEAPON_SHURIKEN, spaceship_home_info.ammo_storage);
-	spaceship_home_info.ammo_storage -= amount_reloaded;
-	amount_reloaded = weaponsSystem->increaseAmmo(ITEM_TYPE::WEAPON_CROSSBOW, spaceship_home_info.ammo_storage);
-	spaceship_home_info.ammo_storage -= amount_reloaded;
-	amount_reloaded = weaponsSystem->increaseAmmo(ITEM_TYPE::WEAPON_SHOTGUN, spaceship_home_info.ammo_storage);
-	spaceship_home_info.ammo_storage -= amount_reloaded;
-	amount_reloaded = weaponsSystem->increaseAmmo(ITEM_TYPE::WEAPON_MACHINEGUN, spaceship_home_info.ammo_storage);
-	spaceship_home_info.ammo_storage -= amount_reloaded;
-	ammo_storage_count = createText(
+	// Create health storage text
+	health_storage_count = createText(
 		renderer, 
-		AMMO_STORAGE_COUNT_POSITION, 
-		createStorageCountText(spaceship_home_info.ammo_storage), 
+		HEALTH_STORAGE_COUNT_POSITION, 
+		createStorageCountTextString(spaceship_home_info.health_storage), 
 		STORAGE_COUNT_TEXT_SCALE, 
-		spaceship_home_info.ammo_storage > 0 ? STORAGE_FULL_TEXT_COLOR : STORAGE_EMPTY_TEXT_COLOR 
+		spaceship_home_info.health_storage > 0 ? STORAGE_FULL_TEXT_COLOR : STORAGE_EMPTY_TEXT_COLOR 
 	);
 };
 
@@ -114,6 +98,119 @@ void SpaceshipHomeSystem::exitSpaceship() {
 
 bool SpaceshipHomeSystem::isHome() {
     return registry.players.components[0].is_home;
+};
+
+bool SpaceshipHomeSystem::isMouseOverAnyStorageItem(vec2 mouse_pos) {
+	return 
+		isMouseOverStorageItem(mouse_pos, TEXTURE_ASSET_ID::SPACESHIP_HOME_AMMO) ||
+		isMouseOverStorageItem(mouse_pos, TEXTURE_ASSET_ID::SPACESHIP_HOME_FOOD) ||
+		isMouseOverStorageItem(mouse_pos, TEXTURE_ASSET_ID::SPACESHIP_HOME_HEALTH);
+};
+
+bool SpaceshipHomeSystem::isMouseOverStorageItem(vec2 mouse_pos, TEXTURE_ASSET_ID type) {
+	float width;
+	float height;
+	vec2 center;
+	vec2 top_left;
+	switch(type) {
+		case TEXTURE_ASSET_ID::SPACESHIP_HOME_AMMO:
+			width = AMMO_ITEM_SCALE.x;
+			height = AMMO_ITEM_SCALE.y;
+			center = registry.motions.get(ammo_item).position;
+			break;
+		case TEXTURE_ASSET_ID::SPACESHIP_HOME_FOOD:
+			width = FOOD_ITEM_SCALE.x;
+			height = FOOD_ITEM_SCALE.y;
+			center = registry.motions.get(food_item).position;
+			break;
+		case TEXTURE_ASSET_ID::SPACESHIP_HOME_HEALTH:
+			width = HEALTH_ITEM_SCALE.x;
+			height = HEALTH_ITEM_SCALE.y;
+			center = registry.motions.get(health_item).position;
+			break;
+	}
+
+	top_left = { center.x - width / 2, center.y - height / 2 };
+
+	return 
+		mouse_pos.x > top_left.x &&
+		mouse_pos.x < top_left.x + width &&
+		mouse_pos.y > top_left.y &&
+		mouse_pos.y < top_left.y + height;
+};
+
+void SpaceshipHomeSystem::regenerateStat(RESOURCE_TYPE type, Entity player_food_bar, Entity player_health_bar) {
+	SpaceshipHome& spaceship_home_info = registry.spaceshipHomes.get(spaceship_home);
+	Player& player_info = registry.players.get(registry.players.entities[0]);
+	Motion& player_health_bar_motion = registry.motions.get(player_health_bar);
+	Motion& player_food_bar_motion = registry.motions.get(player_food_bar);
+
+	switch(type) {
+		case RESOURCE_TYPE::AMMO:
+		{
+			// TODO: Somehow give options to player to reload specific weapons.
+			int amount_reloaded = 0;
+			amount_reloaded = weaponsSystem->increaseAmmo(ITEM_TYPE::WEAPON_SHURIKEN, spaceship_home_info.ammo_storage);
+			spaceship_home_info.ammo_storage -= amount_reloaded;
+			amount_reloaded = weaponsSystem->increaseAmmo(ITEM_TYPE::WEAPON_CROSSBOW, spaceship_home_info.ammo_storage);
+			spaceship_home_info.ammo_storage -= amount_reloaded;
+			amount_reloaded = weaponsSystem->increaseAmmo(ITEM_TYPE::WEAPON_SHOTGUN, spaceship_home_info.ammo_storage);
+			spaceship_home_info.ammo_storage -= amount_reloaded;
+			amount_reloaded = weaponsSystem->increaseAmmo(ITEM_TYPE::WEAPON_MACHINEGUN, spaceship_home_info.ammo_storage);
+			spaceship_home_info.ammo_storage -= amount_reloaded;
+			ammo_storage_count = updateStorageCountText(RESOURCE_TYPE::AMMO);
+			break;
+		}
+		case RESOURCE_TYPE::FOOD:
+			updateStat(player_info.food, spaceship_home_info.food_storage, PLAYER_MAX_FOOD);
+			updateStatBar(player_info.food, player_food_bar_motion, PLAYER_MAX_FOOD, FOOD_BAR_SCALE);
+			food_storage_count = updateStorageCountText(RESOURCE_TYPE::FOOD);
+			break;
+		case RESOURCE_TYPE::HEALTH:
+			updateStat(player_info.health, spaceship_home_info.health_storage, PLAYER_MAX_HEALTH);
+			updateStatBar(player_info.health, player_health_bar_motion, PLAYER_MAX_HEALTH, HEALTH_BAR_SCALE);
+			health_storage_count = updateStorageCountText(RESOURCE_TYPE::HEALTH);
+			break;
+	}
+};
+
+Entity SpaceshipHomeSystem::updateStorageCountText(RESOURCE_TYPE type) {
+	SpaceshipHome& spaceship_home_info = registry.spaceshipHomes.get(spaceship_home);
+
+	Entity old_count;
+	vec2 position;
+	int amt_in_storage;
+	switch(type) {
+		case RESOURCE_TYPE::AMMO:
+			old_count = ammo_storage_count;
+			position = AMMO_STORAGE_COUNT_POSITION;
+			amt_in_storage = spaceship_home_info.ammo_storage;
+			break;
+		case RESOURCE_TYPE::FOOD:
+			old_count = food_storage_count;
+			position = FOOD_STORAGE_COUNT_POSITION;
+			amt_in_storage = spaceship_home_info.food_storage;
+			break;
+		case RESOURCE_TYPE::HEALTH:
+			old_count = health_storage_count;
+			position = HEALTH_STORAGE_COUNT_POSITION;
+			amt_in_storage = spaceship_home_info.health_storage;
+			break;
+	}
+
+	// Remove old count
+	registry.remove_all_components_of(old_count);
+
+	// Create new count
+	Entity new_count = createText(
+		renderer, 
+		position, 
+		createStorageCountTextString(amt_in_storage), 
+		STORAGE_COUNT_TEXT_SCALE,
+		amt_in_storage > 0 ? STORAGE_FULL_TEXT_COLOR : STORAGE_EMPTY_TEXT_COLOR
+	);
+
+	return new_count;
 };
 
 Entity SpaceshipHomeSystem::createSpaceshipHome(vec2 position, int health_storage, int food_storage, int ammo_storage) {
@@ -169,13 +266,13 @@ Entity SpaceshipHomeSystem::createSpaceshipHomeItem(vec2 position, TEXTURE_ASSET
 
 	switch(texture) {
 		case TEXTURE_ASSET_ID::SPACESHIP_HOME_HEALTH:
-			motion.scale = { target_resolution.x / tile_size_px * 0.1875, target_resolution.y / tile_size_px * 0.28125 };
+			motion.scale = HEALTH_ITEM_SCALE;
 			break;
 		case TEXTURE_ASSET_ID::SPACESHIP_HOME_FOOD:
-			motion.scale = { target_resolution.x / tile_size_px * 0.125, target_resolution.y / tile_size_px * 0.1875 };
+			motion.scale = FOOD_ITEM_SCALE;
 			break;
 		case TEXTURE_ASSET_ID::SPACESHIP_HOME_AMMO:
-			motion.scale = { target_resolution.x / tile_size_px * 0.3, target_resolution.y / tile_size_px * 0.3 };
+			motion.scale = AMMO_ITEM_SCALE;
 			break;
 	}
 
@@ -192,7 +289,7 @@ Entity SpaceshipHomeSystem::createSpaceshipHomeItem(vec2 position, TEXTURE_ASSET
 	return entity;
 };
 
-void SpaceshipHomeSystem::regenerateStat(int& stat, int& storage, int max_stat_value) {
+void SpaceshipHomeSystem::updateStat(int& stat, int& storage, int max_stat_value) {
 	int missing = max_stat_value - stat;
 	
 	if (missing <= storage) {
@@ -212,6 +309,6 @@ void SpaceshipHomeSystem::updateStorageBar(int new_val, Motion& bar, int max_bar
 	bar.scale = vec2(scale_factor.x, ((float) new_val / (float) max_bar_value) * scale_factor.y);
 };
 
-std::string SpaceshipHomeSystem::createStorageCountText(int storage) {
+std::string SpaceshipHomeSystem::createStorageCountTextString(int storage) {
 	return "x " + std::to_string(storage);
 };

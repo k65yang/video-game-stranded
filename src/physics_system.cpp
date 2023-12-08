@@ -405,13 +405,14 @@ std::tuple <bool, float, vec2> SATcollides(const Collider& collider1, const Coll
 /// </summary>
 /// <param name="entity1"></param>
 /// <param name="entity2"></param>
-void PhysicsSystem::collides(Entity entity1, Entity entity2) {
+bool PhysicsSystem::collides(Entity entity1, Entity entity2) {
 	auto& c1 = registry.colliders.get(entity1);
 	auto& c2 = registry.colliders.get(entity2);
+	bool isCollide = false; 
 	if (distance(c1.position, c2.position) < detectRange) {
 		if (AABBCollides(c1, c2)) {
 			auto result = SATcollides(c1, c2);
-			bool isCollide;
+			
 			float overlap;
 			vec2 MTV;
 			std::tie(isCollide, overlap, MTV) = result;
@@ -428,7 +429,7 @@ void PhysicsSystem::collides(Entity entity1, Entity entity2) {
 
 		}
 	}
-
+	return isCollide;
 }
 
 #pragma endregion
@@ -657,6 +658,10 @@ void PhysicsSystem::step(float elapsed_ms)
 		intersectBVH(projectile_entity_container[i], rootNodeIndex);
 	}
 
+	auto& mob_entity_container = registry.mobs.entities;
+
+	
+
 	// player against item - brute force for now since BVH is not dynamic...
 	auto& item_entity_container = registry.items.entities;
 
@@ -665,17 +670,25 @@ void PhysicsSystem::step(float elapsed_ms)
 	}
 
 	// player against mob - brute force...
-	auto& mob_entity_container = registry.mobs.entities;
 
-	for (int i = 0; i < mob_entity_container.size(); i++) {
-		collides(player_entity, mob_entity_container[i]);
+	// ignore check against mob if player is invincible. The bool is updated by iframe timer
+	if (!isPlayerInvincible) {
+		for (int i = 0; i < mob_entity_container.size(); i++) {
+			bool c = collides(player_entity, mob_entity_container[i]);
+
+
+		}
 	}
+	
 
 	// projectile against mob - brute force...
 	for (int i = 0; i < projectile_entity_container.size(); i++) {
 		for (int j = 0; j < mob_entity_container.size(); j++) {
+			
 			collides(projectile_entity_container[i], mob_entity_container[j]);
+			
 		}
 	}
+
 }
 

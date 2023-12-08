@@ -139,13 +139,16 @@ class WeaponsSystem
             {ITEM_TYPE::WEAPON_MACHINEGUN, 5},
         };
 
+        
+
         // Weapon ammo capacity
-        std::map<ITEM_TYPE, int> weapon_ammo_capacity_map{
+        std::map<ITEM_TYPE, int> weapon_ammo_capacity_map {
             {ITEM_TYPE::WEAPON_NONE, 0},
             {ITEM_TYPE::WEAPON_SHURIKEN, 15},
             {ITEM_TYPE::WEAPON_CROSSBOW, 15},
             {ITEM_TYPE::WEAPON_SHOTGUN, 8},
             {ITEM_TYPE::WEAPON_MACHINEGUN, 30},
+
         };
 
         // Weapon projectile textures
@@ -185,6 +188,11 @@ class WeaponsSystem
         /// @param player_y The y coordinate of the player
         /// @param angle The angle of the projectile
         void fireMachineGun(float player_x, float player_y, float angle);
+
+        /// @brief Applies a knoback to the mob
+        /// @param mob Entity to apply the knockback to
+        /// @param knockback_force How much position to push it 
+        void applyKnockback(Entity proj, Entity mob, float knockback_force);
 
         /// @brief Applies a slow to the mob
         /// @param mob Entity to apply the slow to

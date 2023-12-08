@@ -21,18 +21,18 @@ void PathfindingSystem::step(float elapsed_ms)
     for (Entity mob : registry.mobs.entities) {
         Mob& mob_mob = registry.mobs.get(mob);
 
-        // Stop mob from tracking the player if mob is tracking the player and has reached the next cell in their path and:
+        // Stop mob from tracking the player if mob is tracking the player and:
         // 1) player is not in the aggro range of the mob, or
         // 2) mob is in the same cell as the player
-        if (mob_mob.is_tracking_player && reached_next_cell(mob) && (!is_player_in_mob_aggro_range(player, mob) || same_cell(player, mob))) {
+        if (mob_mob.is_tracking_player && (!is_player_in_mob_aggro_range(player, mob) || same_cell(player, mob))) {
             stop_tracking_player(mob);
         }
 
         // Find new path from mob to player if:
         // 1) mob is not tracking the player and player is within aggro range of mob and mob is not in the same cell as the player already, or
-        // 2) mob is tracking the player and has reached the next cell in their path and the player has moved
+        // 2) mob is tracking the player and the player has moved
         if ((!mob_mob.is_tracking_player && is_player_in_mob_aggro_range(player, mob) && !same_cell(player, mob)) ||
-            (mob_mob.is_tracking_player && reached_next_cell(mob) && has_player_moved(player, mob))
+            (mob_mob.is_tracking_player && has_player_moved(player, mob))
         ) {
             if (!mob_mob.is_tracking_player) {
                 mob_mob.is_tracking_player = true;
@@ -336,15 +336,12 @@ bool PathfindingSystem::reached_next_cell(Entity mob)
 {
     // Get the next cell in the path and the cell the mob is in
     Motion& mob_motion = registry.motions.get(mob);
+    Entity curr_cell = terrain->get_cell(mob_motion.position);
     Path& mob_path = registry.paths.get(mob);
     Entity next_cell = mob_path.path.front();
 
-    // Calculate the distance between the mob and the center of the next cell
-    Motion& next_cell_motion = registry.motions.get(next_cell);
-    float dist = distance(mob_motion.position, next_cell_motion.position);
-
-    // Check if mob is close to the center of the next cell
-    return dist < 0.1;
+    // Check if mob's current cell is the next cell
+    return curr_cell == next_cell;
 };
 
 bool PathfindingSystem::has_player_moved(Entity player, Entity mob) 
@@ -365,11 +362,8 @@ void PathfindingSystem::stop_tracking_player(Entity mob)
     Motion& mob_motion = registry.motions.get(mob);
     Mob& mob_mob = registry.mobs.get(mob);
     Path& mob_path = registry.paths.get(mob);
-    Entity mob_curr_cell = terrain->get_cell(mob_motion.position);
-    Motion& mob_curr_cell_motion = registry.motions.get(mob_curr_cell);
 
-    // Set mob's position to the center of their current cell, velocity to 0, tracking player flag to false, and clear the path 
-    mob_motion.position = mob_curr_cell_motion.position;
+    // Set mob's velocity to 0, tracking player flag to false, and clear the path 
     mob_motion.velocity = {0.f, 0.f};
     mob_mob.is_tracking_player = false;
     mob_path.path.clear();

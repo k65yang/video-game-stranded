@@ -34,9 +34,7 @@ class SpaceshipHomeSystem
         void resetSpaceshipHomeSystem(int health_storage, int food_storage, int ammo_storage);
 
         /// @brief Executes various actions when player enters the spaceship
-        /// @param player_health_bar The entity for the player's health bar
-        /// @param player_food_bar The entity for the player's food bar
-        void enterSpaceship(Entity player_health_bar, Entity player_food_bar);
+        void enterSpaceship();
 
         /// @brief Executes various actions when player exits the spaceship
         void exitSpaceship();
@@ -45,13 +43,33 @@ class SpaceshipHomeSystem
         /// @return Returns true if the player is in the spaceship home, false otherwise
         bool isHome();
 
+        /// @brief Checks if the mouse is hovering over any storage item
+        /// @param mouse_pos The position of the mouse in clip coordinates
+        /// @return Returns true if the mouse is hovering over any storage item, false otherwise
+        bool isMouseOverAnyStorageItem(vec2 mouse_pos);
+
+        /// @brief Checks if the mouse is hovering over a storage item
+        /// @param mouse_pos The position of the mouse in clip coordinates
+        /// @param type The storage item to check
+        /// @return Returns true if the mouse is hovering over the storage item, false otherwise
+        bool isMouseOverStorageItem(vec2 mouse_pos, TEXTURE_ASSET_ID type);
+
+        /// @brief Regenerates a stat of the player (ex. health, food, ammo) using a resource stored in the spaceship 
+        /// @param type The type of the resource to use to regenerate the stat
+        /// @param player_health_bar The entity for the player's health bar
+        /// @param player_food_bar The entity for the player's food bar
+        void regenerateStat(RESOURCE_TYPE type, Entity player_food_bar, Entity player_health_bar);
+
     private:
         const vec2 SPACESHIP_HOME_POSITION = { 0.f, 0.f };
         const vec2 FOOD_ITEM_POSITION = { -6.2f, -0.5f };
+        const vec2 FOOD_ITEM_SCALE = { target_resolution.x / tile_size_px * 0.11, target_resolution.y / tile_size_px * 0.09 };
         const vec2 FOOD_STORAGE_COUNT_POSITION = { -4.7f, -0.3f };
         const vec2 AMMO_ITEM_POSITION = { 1.8f, -0.5f };
-        const vec2 AMMO_STORAGE_COUNT_POSITION = { 4.0f, -0.4f };
+        const vec2 AMMO_ITEM_SCALE = { target_resolution.x / tile_size_px * 0.15, target_resolution.y / tile_size_px * 0.1 };
+        const vec2 AMMO_STORAGE_COUNT_POSITION = { 3.9f, -0.3f };
         const vec2 HEALTH_ITEM_POSITION = { 2.2f, -3.5f };
+        const vec2 HEALTH_ITEM_SCALE = { target_resolution.x / tile_size_px * 0.1, target_resolution.y / tile_size_px * 0.13 };
         const vec2 HEALTH_STORAGE_COUNT_POSITION = { 3.6f, -3.2f };
         const vec3 STORAGE_FULL_TEXT_COLOR = { 0.f, 0.f, 0.f };
         const vec3 STORAGE_EMPTY_TEXT_COLOR = { 1.f, 0.f, 0.f };
@@ -82,11 +100,11 @@ class SpaceshipHomeSystem
         /// @return The created entity
         Entity createSpaceshipHomeItem(vec2 position, TEXTURE_ASSET_ID texture);
 
-        /// @brief Regenerates a stat of the player (ex. health, food, ammo) using resources stored in the spaceship
+        /// @brief Updates a stat of the player (ex. health, food, ammo) using resources stored in the spaceship
         /// @param stat The current value of the stat
         /// @param storage The current value of the resoure in the spaceship
         /// @param max_stat_value The max value the player can have for the stat
-        void regenerateStat(int& stat, int& storage, int max_stat_value);
+        void updateStat(int& stat, int& storage, int max_stat_value);
 
         /// @brief Updates the scale of a player stat bar
         /// @param new_val The new value for the bar
@@ -102,8 +120,13 @@ class SpaceshipHomeSystem
         /// @param scale_factor The scale factor for the bar
         void updateStorageBar(int new_val, Motion& bar, int max_bar_value, vec2 scale_factor);
 
+        /// @brief Updates the text count for a resource in storage
+        /// @param type The type of the resource to update the text count for
+        /// @return The updated text count
+        Entity updateStorageCountText(RESOURCE_TYPE type);
+
         /// @brief Creates a string that reflects the remaining amount of a resource in a storage
         /// @param storage The remaining amount of the resource in the storage
         /// @return A string that reflects the remaining amount of a resource in a storage
-        std::string createStorageCountText(int storage);
+        std::string createStorageCountTextString(int storage);
 };

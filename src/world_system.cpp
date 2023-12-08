@@ -93,6 +93,8 @@ GLFWwindow* WorldSystem::create_window() {
 	return window;
 }
 
+
+
 void WorldSystem::init(
 	RenderSystem* renderer_arg, 
 	TerrainSystem* terrain_arg, 
@@ -101,8 +103,11 @@ void WorldSystem::init(
 	MobSystem* mob_system_arg, 
 	AudioSystem* audio_system_arg,
 	SpaceshipHomeSystem* spaceship_home_system_arg,
-	QuestSystem* quest_system_arg
+	QuestSystem* quest_system_arg,
+	TutorialSystem* tutorial_system_arg,
+	ParticleSystem* particle_system_arg
 ) {
+
 	this->renderer = renderer_arg;
 	this->terrain = terrain_arg;
 	this->weapons_system = weapons_system_arg;
@@ -111,6 +116,8 @@ void WorldSystem::init(
 	this->audio_system = audio_system_arg;
 	this->spaceship_home_system = spaceship_home_system_arg;
 	this->quest_system = quest_system_arg;
+	this->tutorial_system = tutorial_system_arg;
+	this->particle_system = particle_system_arg;
 
 	// Setting callbacks to member functions (that's why the redirect is needed)
 	// Input is handled using GLFW, for more info see
@@ -164,25 +171,6 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		}
 	}
 
-	// TODO: CLEAN UP THESE LOOPS they are surely not optimized
-	// Tick down tooltip timer
-	for (Entity entity : registry.tips.entities) {
-		ToolTip& tip = registry.tips.get(entity);
-		tip.timer -= elapsed_ms_since_last_update;
-		
-		// TODO: Make the tooltip fade after it has been a certain period of time (when we have opacity)
-
-		if (tip.timer < 0) {
-			registry.renderRequests.remove(entity);
-			registry.tips.remove(entity);
-		}
-	}
-
-	if (current_tooltip < tooltips.size() && registry.tips.size() == 0 && tooltips_on) {
-		help_bar = createHelp(renderer, { 0.f, -7.f }, tooltips[current_tooltip]);
-		current_tooltip++;
-	}
-
 	// Tick down iframes timer and health decrease timer
 	for (Entity entity : registry.players.entities) {
 		Player& player = registry.players.get(entity);
@@ -190,6 +178,9 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 		if (player.iframes_timer < 0) {
 			player.iframes_timer = 0;
+			physics_system->isPlayerInvincible = false;
+			//std::cout << "player is normalll..." << std::endl; //DELETE LATER
+
 		}
 		
 		if (player.health_decrease_time < 0) {
@@ -259,6 +250,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	screen.screen_darken_factor = 1 - min_timer_ms / 3000;
 
 	Motion& m = registry.motions.get(player_salmon);
+	vec2 player_p = m.position;
 	//Motion& f = registry.motions.get(fow);
 	//f.position = m.position;
 
@@ -293,9 +285,38 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		}
 	}
 
-	// TODO: deal with the help component when designing tutorial
-	Motion& help = registry.motions.get(help_bar);
-	help.position = { camera_motion.position.x, -7.f + camera_motion.position.y };
+	// Update pointing arrows
+	for (int i = 0; i < registry.pointingArrows.size(); i++) {
+		Entity e = registry.pointingArrows.entities[i];
+		PointingArrow& arrow = registry.pointingArrows.components[i];
+
+		Motion& arrow_m = registry.motions.get(e);
+		vec2 local_space = arrow.radius_offset;
+		Motion& target_m = registry.motions.get(arrow.target);
+		vec2 target_p = target_m.position;
+		vec2 delta_p = target_p - player_p;
+
+		// Check if the target is nearby
+		if (length(delta_p) > length(arrow.radius_offset)) {
+			// We need to make a custom transform matrix
+			float angle = atan2f(delta_p.y, delta_p.x);	// Angle that points towards the target
+
+			Transform transform;
+			transform.translate(player_p);	// Translate by player position
+			transform.rotate(angle);		// Rotate the position of the arrow depending on where the ship is
+			transform.scale({ 1, 1 });		// Constant scale to retain radius_offset distancing
+
+			vec3 offset = vec3(arrow.radius_offset, 1.0f);
+
+			arrow_m.position = vec2(transform.mat * offset);
+			arrow_m.angle = angle + (M_PI / 2); // offset added because arrow points up initially 
+												// instead of 90 degrees to the right
+		}
+		else {
+			arrow_m.position = target_p;	// Hover over target
+			arrow_m.angle = M_PI;			// Point down
+		}		
+	}
 
 	if (user_has_powerup) {
 		Motion& powerup_ui = registry.motions.get(powerup_indicator);
@@ -320,6 +341,12 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			Motion& health = registry.motions.get(health_bar);
 			hp.remaining_time_for_next_heal = hp.heal_interval_ms;
 			player.health = std::min(PLAYER_MAX_HEALTH, player.health + hp.heal_amount);
+
+			// creating particles effects for healing
+			
+			particle_system->createFloatingHeart(player_salmon, TEXTURE_ASSET_ID::HEART_PARTICLE, 6);
+			
+
 
 			// light up the health bar
 			if (registry.colors.has(health_bar)) {
@@ -403,6 +430,14 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 				printf("INACCURACY REMOVED\n");
 			}
 		}
+
+		// creating particles effects for character upgrades
+		if (registry.speedPowerup.has(entity)) {
+			particle_system->createParticleTrail(entity, TEXTURE_ASSET_ID::PLAYER_PARTICLE, 2, vec2{0.7f, 1.0f});
+		}
+
+		
+
 	}
 
 	// Lets the editor drag
@@ -575,6 +610,9 @@ void WorldSystem::restart_game() {
 	// Create the main camera
 	main_camera = createCamera({ 0,0 });
 
+	// Create arrow pointing back to the ship
+	ship_arrow = createPointingArrow(renderer, player_salmon, spaceship);
+
 	// Reset the spaceship home system
 	spaceship_home_system->resetSpaceshipHomeSystem(SPACESHIP_MAX_HEALTH_STORAGE, SPACESHIP_MAX_FOOD_STORAGE, SPACESHIP_MAX_AMMO_STORAGE);
 
@@ -597,13 +635,13 @@ void WorldSystem::restart_game() {
 	// Reset the power ups
 	user_has_powerup = false;
 
-	// A function that handles the help/tutorial (some tool tips at the top of the screen)
-	help_bar = createHelp(renderer, { 0.f, -7.f }, tooltips[0]);
-	current_tooltip = 1;
-
 	// Reset quest system
 	std::vector<QUEST_ITEM_STATUS> statuses(4, QUEST_ITEM_STATUS::NOT_FOUND);
 	quest_system->resetQuestSystem(statuses);
+
+	// Reset tutorial system
+	tutorial_system->resetTutorialSystem();
+	tutorial_system->openHelpDialog();
 
 	// clear all used spawn locations
 	used_spawn_locations.clear();
@@ -631,6 +669,7 @@ void WorldSystem::handle_collisions() {
 	// Loop over all collisions detected by the physics system
 	auto& collisionsRegistry = registry.collisions;
 	vec2 hasCorrectedDirection = {0,0};
+	int correctionCount = 0;
 
 	for (uint i = 0; i < collisionsRegistry.components.size(); i++) {
 		// The entity and its collider
@@ -669,18 +708,23 @@ void WorldSystem::handle_collisions() {
 
 			// Checking Player - Mobs
 			if (registry.mobs.has(entity_other)) {
-
-				// prevent player stack on top of mob upon colliding
-				/* TODO for m4
-				Motion& player_motion = registry.motions.get(entity);
-				vec2 correctionVec = registry.collisions.components[i].MTV * registry.collisions.components[i].overlap;
-				player_motion.position = player_motion.position + correctionVec;
-				*/
-
+				
+				
 				if (player.iframes_timer > 0 || registry.deathTimers.has(entity)) {
-					// Don't damage and discard all other collisions for a bit
-					collisionsRegistry.clear();
-					return;
+					// discard all player vs mob collision
+					for (int i = 0; i < collisionsRegistry.size(); i++) {
+						if (registry.players.has(collisionsRegistry.entities[i]) && registry.mobs.has(collisionsRegistry.components[i].other_entity))
+							collisionsRegistry.remove(collisionsRegistry.entities[i]);
+						//std::cout << "removed one colliisions." << std::endl;
+
+					}
+
+					// set player to ignore mob collision
+					physics_system->isPlayerInvincible = true;
+					//std::cout << "player is invincible......" << std::endl;
+
+					// skip damage
+					break;
 				}
 
 				Mob& mob = registry.mobs.get(entity_other);
@@ -741,27 +785,23 @@ void WorldSystem::handle_collisions() {
 				// Handle the item based on its function
 				switch (item.data) {
 					case ITEM_TYPE::QUEST_ONE:
-						quest_system->processQuestItem(item.data, QUEST_ITEM_STATUS::FOUND);
-						audio_system->play_one_shot(AudioSystem::QUEST_PICKUP);
-						break;
 					case ITEM_TYPE::QUEST_TWO:
-						quest_system->processQuestItem(item.data, QUEST_ITEM_STATUS::FOUND);
-						audio_system->play_one_shot(AudioSystem::QUEST_PICKUP);
-						break;
 					case ITEM_TYPE::QUEST_THREE:
-						quest_system->processQuestItem(item.data, QUEST_ITEM_STATUS::FOUND);
-						audio_system->play_one_shot(AudioSystem::QUEST_PICKUP);
-						break;
 					case ITEM_TYPE::QUEST_FOUR:
 						quest_system->processQuestItem(item.data, QUEST_ITEM_STATUS::FOUND);
 						audio_system->play_one_shot(AudioSystem::QUEST_PICKUP);
-						break;
+						
+						if (!player.has_collected_quest_item) {
+							tutorial_system->createTutorialDialog(TUTORIAL_TYPE::QUEST_ITEM_TUTORIAL);
+							player.has_collected_quest_item = true;
+						}
 					case ITEM_TYPE::FOOD:
 						// Add to food bar
 						player.food += FOOD_PICKUP_AMOUNT;
 						if (player.food > PLAYER_MAX_FOOD) {
 							player.food = PLAYER_MAX_FOOD;
 						}
+
 						break;
 					case ITEM_TYPE::WEAPON_NONE:
 						// Do nothing
@@ -802,11 +842,7 @@ void WorldSystem::handle_collisions() {
 						speedPowerup.old_speed = current_speed;
 						current_speed *= 2;
 
-						// Give a particle trail to the player
-						ParticleTrail& pt = registry.particleTrails.emplace(player_salmon);
-						pt.is_alive = true;
-						pt.texture = TEXTURE_ASSET_ID::PLAYER_PARTICLE;
-						pt.motion_component_ptr = &registry.motions.get(player_salmon);
+		
 
 						// Add the powerup indicator
 						if (user_has_powerup)
@@ -814,6 +850,7 @@ void WorldSystem::handle_collisions() {
 						powerup_indicator = createPowerupIndicator(renderer, {-9.5f, 5.f}, TEXTURE_ASSET_ID::ICON_POWERUP_SPEED);
 						user_has_powerup = true;
 						break;
+
 					}
 					case ITEM_TYPE::POWERUP_HEALTH:
 						// remove the speed power up if already equipped
@@ -822,8 +859,6 @@ void WorldSystem::handle_collisions() {
 							current_speed = registry.speedPowerup.get(player_salmon).old_speed;
 							registry.speedPowerup.remove(player_salmon);
 
-							// Set the particle trail to dead
-							registry.particleTrails.get(player_salmon).is_alive = false;
 						}
 
 						// Give health powerup to player. Use default values in struct definition.
@@ -842,6 +877,8 @@ void WorldSystem::handle_collisions() {
 			}
 		}
 
+		
+
 		// Collisions involving projectiles. 
 		// For now, the projectile will be removed upon any collisions with mobs/terrain
 		// In the future, an idea could be "pass-through weapons", weapons that can collateral?
@@ -850,6 +887,10 @@ void WorldSystem::handle_collisions() {
 
 			// Checking Projectile - Mobs
 			if (registry.mobs.has(entity_other)) {
+
+				// blood splash particle effects
+				particle_system->createParticleSplash(entity, entity_other, 10, collisionsRegistry.components[i].MTV);
+
 				Mob& mob = registry.mobs.get(entity_other);
 
 				// Mob takes damage. Kill if no hp left.
@@ -1014,9 +1055,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		
 		SaveGame(player, player_motion, active_weapon, weapons, mobs, items, quest_item_statuses, spaceship_home_info, p_type);
 
-		tooltips_on = false;
-		help_bar = createHelp(renderer, { 0.f, -7.f }, TEXTURE_ASSET_ID::SAVING);
-		current_tooltip = tooltips.size();
+		tutorial_system->createTutorialText(TUTORIAL_TYPE::GAME_SAVED);
 	}
 
 	// Resetting game
@@ -1025,23 +1064,26 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	}
 
 	if (action == GLFW_PRESS && key == GLFW_KEY_ESCAPE) {
-		if (player.is_home) {
-			// Exit spaceship
+		if (tutorial_system->isHelpDialogOpen()) {
+			tutorial_system->closeHelpDialog();
+		} else if (player.is_home) {
 			spaceship_home_system->exitSpaceship();
 			audio_system->play_one_shot(AudioSystem::SHIP_LEAVE);
 		} else {
-			// Close the window if not in home screen
 			glfwSetWindowShouldClose(window, true);
 		}
 	}
 
-	// Enter ship if player is near
-	if (length(player_motion.position - registry.motions.get(spaceship).position) < 1.0f && !player.is_home) {
-		printf("Near entrance, press E to enter\n");
-
-		if (action == GLFW_PRESS && key == GLFW_KEY_E ) {
-			spaceship_home_system->enterSpaceship(health_bar, food_bar);
+	if (action == GLFW_PRESS && key == GLFW_KEY_E ) {
+		// Enter ship if player is near
+		if (tutorial_system->isPlayerNearSpaceship(player_motion.position, registry.motions.get(spaceship).position) && !player.is_home) {
+			spaceship_home_system->enterSpaceship();
 			audio_system->play_one_shot(AudioSystem::SHIP_ENTER);
+
+			if (!player.has_entered_spaceship) {
+				tutorial_system->createTutorialDialog(TUTORIAL_TYPE::SPACESHIP_HOME_TUTORIAL);
+				player.has_entered_spaceship = true;
+			}
 		}
 	}
 
@@ -1109,7 +1151,6 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	if (equipped_weapon_key_pressed && !user_has_first_weapon) {
 		// Has just equipped up the first weapon
 		user_has_first_weapon = true;
-		help_bar = createHelp(renderer, { 0.f, -7.f }, TEXTURE_ASSET_ID::HELP_WEAPON);
 	}
 	equipped_weapon_key_pressed = false;
 
@@ -1198,6 +1239,8 @@ void WorldSystem::process_editor_controls(int action, int key)
 /// </summary>
 /// <param name="mouse_position"> Location of mouse on game screen</param>
 void WorldSystem::on_mouse_move(vec2 mouse_position) {
+	vec2 mouse_pos_clip = screen_to_clip_coords(mouse_position);
+
 	// Disable rotation when the player dies
 	if (!registry.deathTimers.has(player_salmon)) {
 		// The player is always in the middle of the screen so we need to compute the 
@@ -1209,7 +1252,16 @@ void WorldSystem::on_mouse_move(vec2 mouse_position) {
 
 		Motion& motion = registry.motions.get(player_salmon);
 		CURSOR_ANGLE = atan2(mouse_position.y - screen_centre_y, mouse_position.x - screen_centre_x);
-		//printf("View direction: %f \n", cursor_angle);
+	}
+
+	// Change mouse cursor type if hovering over help button or storage item
+	if (tutorial_system->isMouseOverHelpButton(mouse_pos_clip) || 
+		spaceship_home_system->isHome() && !tutorial_system->isHelpDialogOpen() && spaceship_home_system->isMouseOverAnyStorageItem(mouse_pos_clip)
+	) {
+		GLFWcursor* cursor = glfwCreateStandardCursor(GLFW_HAND_CURSOR);
+		glfwSetCursor(window, cursor);
+	} else {
+		glfwSetCursor(window, NULL);
 	}
 }
 
@@ -1218,8 +1270,32 @@ void WorldSystem::on_mouse_move(vec2 mouse_position) {
 /// Function to handle mouse click (weapon fire)
 /// </summary>
 void WorldSystem::on_mouse_click(int button, int action, int mods) {
+	double xpos, ypos;
+	glfwGetCursorPos(window, &xpos, &ypos);
+	vec2 mouse_pos_clip = screen_to_clip_coords({ xpos, ypos });
+
 	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
-		if (!registry.deathTimers.has(player_salmon) && !spaceship_home_system->isHome()) {
+		// Open/close help dialog when help button is clicked
+		if (!tutorial_system->isHelpDialogOpen() && tutorial_system->isMouseOverHelpButton(mouse_pos_clip)) {
+			tutorial_system->openHelpDialog();
+			return;
+		} else if (tutorial_system->isHelpDialogOpen() && tutorial_system->isMouseOverHelpButton(mouse_pos_clip)) {
+			tutorial_system->closeHelpDialog();
+			return;
+		}
+
+		// Regenerate stat if spaceship storage item is clicked
+		if (spaceship_home_system->isHome() && !tutorial_system->isHelpDialogOpen()) {
+			if (spaceship_home_system->isMouseOverStorageItem(mouse_pos_clip, TEXTURE_ASSET_ID::SPACESHIP_HOME_AMMO)) {
+				spaceship_home_system->regenerateStat(RESOURCE_TYPE::AMMO, food_bar, health_bar);
+			} else if (spaceship_home_system->isMouseOverStorageItem(mouse_pos_clip, TEXTURE_ASSET_ID::SPACESHIP_HOME_FOOD)) {
+				spaceship_home_system->regenerateStat(RESOURCE_TYPE::FOOD, food_bar, health_bar);
+			} else if (spaceship_home_system->isMouseOverStorageItem(mouse_pos_clip, TEXTURE_ASSET_ID::SPACESHIP_HOME_HEALTH)) {
+				spaceship_home_system->regenerateStat(RESOURCE_TYPE::HEALTH, food_bar, health_bar);
+			}
+		}
+
+		if (!registry.deathTimers.has(player_salmon) && !spaceship_home_system->isHome() && !tutorial_system->isHelpDialogOpen()) {
 			// if theres ammo in current weapon 
 			Motion& player_motion = registry.motions.get(player_salmon);
 
@@ -1273,23 +1349,9 @@ void WorldSystem::on_mouse_click(int button, int action, int mods) {
 }
 
 void WorldSystem::map_editor_routine() {
-	mat3 view_ = renderer->createModelMatrix(main_camera);
-
-	// You can cache this to save performance.
-	mat3 proj_ = inverse(renderer->createScaledProjectionMatrix());
-
 	double xpos, ypos;
-	glfwGetCursorPos(window, &xpos, &ypos);	// For some reason it only supports doubles!
-	ivec2 screen = renderer->window_resolution;
-
-	// Recall that valid clip coordinates are between [-1, 1]. 
-	// First, we need to turn screen (pixel) coordinates into clip coordinates:
-	vec3 mouse_pos = {
-		(xpos / screen.x) * 2 - 1,		// Get the fraction of the x pos in the screen, multiply 2 to map range to [0, 2], 
-												// then offset so the range is now [-1, 1].
-		-(ypos / screen.y) * 2 + 1,		// Same thing, but recall that the y direction is opposite in glfw.
-		1.0 };									// Denote that this is a point.
-	mouse_pos = view_ * proj_ * mouse_pos;
+	glfwGetCursorPos(window, &xpos, &ypos);	// For some reason it only supports doubles!	
+	vec2 mouse_pos = screen_to_clip_coords({ xpos, ypos });
 
 	Entity tile = terrain->get_cell(mouse_pos);
 	TerrainCell& cell = registry.terrainCells.get(tile);
@@ -1314,6 +1376,26 @@ void WorldSystem::map_editor_routine() {
 
 		terrain->update_tile(tile, cell, true);	// true because we need to update adjacent cells too
 	}
+}
+
+vec2 WorldSystem::screen_to_clip_coords(vec2 point) {
+	mat3 view_ = renderer->createModelMatrix(main_camera);
+
+	// You can cache this to save performance.
+	mat3 proj_ = inverse(renderer->createScaledProjectionMatrix());
+
+	ivec2 screen = renderer->window_resolution;
+
+	// Recall that valid clip coordinates are between [-1, 1]. 
+	// First, we need to turn screen (pixel) coordinates into clip coordinates:
+	vec3 clip_coords = {
+		(point.x / screen.x) * 2 - 1,		// Get the fraction of the x pos in the screen, multiply 2 to map range to [0, 2], 
+												// then offset so the range is now [-1, 1].
+		-(point.y / screen.y) * 2 + 1,		// Same thing, but recall that the y direction is opposite in glfw.
+		1.0 };									// Denote that this is a point.
+	clip_coords = view_ * proj_ * clip_coords;
+
+	return {clip_coords.x, clip_coords.y};
 }
 
 void WorldSystem::spawn_items() {
@@ -1420,14 +1502,21 @@ void WorldSystem::load_game(json j) {
 	int p_health = j["player"]["health"];
 	int p_food = j["player"]["food"];
 	bool p_is_home = j["player"]["is_home"];
+	bool p_has_collected_quest_item = j["player"]["has_collected_quest_item"];
+	bool p_has_entered_spaceship = j["player"]["has_entered_spaceship"];
 	player.health = p_health;
 	player.food = p_food;
 	player.is_home = p_is_home;
+	player.has_collected_quest_item = p_has_collected_quest_item;
+	player.has_entered_spaceship = p_has_entered_spaceship;
 	registry.colors.insert(player_salmon, { 1, 0.8f, 0.8f, 1.0f});
 
 	// Create the main camera
 	main_camera = createCamera(player_location);
 	Motion& camera_motion = registry.motions.get(main_camera);
+
+	// Create arrow pointing back to the ship
+	ship_arrow = createPointingArrow(renderer, player_salmon, spaceship);
 
 	// Create player health bar
 	health_bar = createBar(renderer, HEALTH_BAR_FRAME_POS, PLAYER_MAX_HEALTH, BAR_TYPE::HEALTH_BAR);
@@ -1442,12 +1531,7 @@ void WorldSystem::load_game(json j) {
 	int sh_food_storage = j["spaceshipHome"]["food_storage"];
 	int sh_ammo_storage = j["spaceshipHome"]["ammo_storage"];
 	spaceship_home_system->resetSpaceshipHomeSystem(sh_health_storage, sh_food_storage, sh_ammo_storage);
-	if (p_is_home) spaceship_home_system->enterSpaceship(health_bar, food_bar);
-
-	// Tool tips and help bar
-	tooltips_on = false;
-	help_bar = createHelp(renderer, { camera_motion.position.x, -7.f + camera_motion.position.y }, TEXTURE_ASSET_ID::LOADED);
-	current_tooltip = tooltips.size();
+	if (p_is_home) spaceship_home_system->enterSpaceship();
 
 	// Load all weapons data
 	for (auto& weapon : j["weapons"]) {
@@ -1483,11 +1567,6 @@ void WorldSystem::load_game(json j) {
 				speedPowerup.old_speed = current_speed;
 				current_speed *= 2;
 
-				// Give a particle trail to the player
-				ParticleTrail& pt = registry.particleTrails.emplace(player_salmon);
-				pt.is_alive = true;
-				pt.texture = TEXTURE_ASSET_ID::PLAYER_PARTICLE;
-				pt.motion_component_ptr = &registry.motions.get(player_salmon);
 
 				// UI Indicator
 				powerup_indicator = createPowerupIndicator(renderer, { -9.5f + camera_motion.position.x, 5.f + camera_motion.position.y }, TEXTURE_ASSET_ID::ICON_POWERUP_SPEED);
@@ -1506,6 +1585,9 @@ void WorldSystem::load_game(json j) {
 	// Quest items
 	quest_system->resetQuestSystem(j["quest_item_statuses"]);
 
+	// Reset tutorial system
+	tutorial_system->resetTutorialSystem();
+
 	// clear all used spawn locations
 	used_spawn_locations.clear();
 
@@ -1515,9 +1597,8 @@ void WorldSystem::load_game(json j) {
 	for (int i = 0; i < KEYS; i++)
 		keyDown[i] = false;
 
-	// create muzzle flash entity
-	createMuzzleFlash(renderer, vec2{ 0,0 });
-	
+
+	tutorial_system->createTutorialText(TUTORIAL_TYPE::GAME_LOADED);
 
 }
 
