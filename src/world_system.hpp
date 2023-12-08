@@ -134,6 +134,8 @@ private:
 	Entity help_bar;
 	Entity ship_arrow;
 
+	Entity spaceship_depart; 
+	Entity pop_up_text; 
 	bool tooltips_on = true;
 
 	bool user_has_first_weapon = false;
@@ -201,4 +203,12 @@ private:
 	/// <param name="point">The screen coordinates of the point</param>
 	/// <returns>The clip coordinates of the point</returns>
 	vec2 screen_to_clip_coords(vec2 point);
+
+	/// <summary>
+	/// updates spaceship depart sprite 
+	/// </summary>
+	/// <param name="elapsed_ms_since_last_update"></param>
+	void update_spaceship_frame(float elapsed_ms_since_last_update);
+	// Handles the victory scene 
+	void update_spaceship_depart();
 };
