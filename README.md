@@ -53,24 +53,23 @@ For our submission for milestone 1, we were able to successfully complete all fe
 
 The following table lists some changes that we made in response to cross play comments in effort to better balance the game.
 
-| Comment | Game Change |
-| --------------- | --------------- |
-| "Only other thing I would maybe change is making the game slightly more difficult. I think there is food everywhere and the monsters don't do too much damage"    | - Increased mob spawn rate </br> -Slightly increased damage from all mobs.  |
-| "more clarity with the quest would be nice, it was pretty hard to find the quest items"    | - Added a screen in the beginning of the game to explain what the player needs to do </br>- Updated quest item sprites so they are more easily seen </br> - Updated tutorial system to tell player what they need to do once they get a quest item |
-| "I think if there were other reasons to return to the ship that could be cool too"    | - Added the condition where the player must return to the ship to hand in their quest items </br> - To beat the game, the player must return to the ship (once they have all quest items) and they can see their ship blast off    |
-| "I think it's a bit too easy to run around enemies, since they can't catch up to you"    | - Increased enemy speed </br> - Increase aggro range of enemies (they start tracking you from further away so there is a bigger mob!) </br> - Updated a mob type to be terrain agnostic (will not be slowed by terrain effects and can go through walls!)    |
-| "Food drains quite fast so you have to keep an eye on it"    | - Greatly increased food spawns    |
-| "It would be more fun to be able to understand the map and fighting capabilities a little better"    | - Updated the player UI to be more explicit on the weapons the player has </br> - Added additional tutorial popups for controls    |
+| Comment | Game Change | Type |
+| --------------- | --------------- | ------ |
+| "Only other thing I would maybe change is making the game slightly more difficult. I think there is food everywhere and the monsters don't do too much damage"    | - Increased mob spawn rate </br> -Slightly increased damage from all mobs.  | Game Balance |
+| "more clarity with the quest would be nice, it was pretty hard to find the quest items"    | - Added a screen in the beginning of the game to explain what the player needs to do </br>- Updated quest item sprites so they are more easily seen </br> - Updated tutorial system to tell player what they need to do once they get a quest item | User Interaction |
+| "I think if there were other reasons to return to the ship that could be cool too"    | - Added the condition where the player must return to the ship to hand in their quest items </br> - To beat the game, the player must return to the ship (once they have all quest items) and they can see their ship blast off    | Game Balance / User Interaction |
+| "I think it's a bit too easy to run around enemies, since they can't catch up to you"    | - Increased enemy speed </br> - Increase aggro range of enemies (they start tracking you from further away so there is a bigger mob!) </br> - Updated a mob type to be terrain agnostic (will not be slowed by terrain effects and can go through walls!)    | Game Balance |
+| "Food drains quite fast so you have to keep an eye on it"    | - Greatly increased food spawns    | Game Balance |
+| "It would be more fun to be able to understand the map and fighting capabilities a little better"    | - Updated the player UI to be more explicit on the weapons the player has </br> - Added additional tutorial popups for controls    | User Interaction |
 
 The following table lists some of the balance issues the developers ran into during testing and how it was fixed.
 
-| Issue | Game Change |
-| --------------- | --------------- |
-| Ever since we made the map 196x196, it is very easy to get lost and run out of food and die    | - Added blue arrow pointing back to the spaceship, so player always knows the way "home"    |
-| The shotgun is too OP; there is no incentive to use any other gun    | - Reduced shotgun ammo and damage </br> - Increase machine gun damage   |
-| The player would spawn with no weapons and must pick them up before using it. This causes them to be defenseless from attacking mobs while looking for a weapon.    | - Revamped the entire weapons system so that the player actually starts with all weapons. </br> - There was additional balance issues where the player is too strong early game, so we only gave the player ammo for one weapon (the other weapons have no ammo)   |
-| It may be very overwhelming for the player to worry about both health and food.    | - Added two powerups: a speed powerup (doubles speed without consuming more food) and health powerup (out of combat healing) so players can worry less about either their health or food.    |
-| Row 3, Col 1    | Row 3, Col 2    |
+| Issue | Game Change | Type | 
+| --------------- | --------------- | -------- |
+| Ever since we made the map 196x196, it is very easy to get lost and run out of food and die    | - Added blue arrow pointing back to the spaceship, so player always knows the way "home"    | User Interaction |
+| The shotgun is too OP; there is no incentive to use any other gun    | - Reduced shotgun ammo and damage </br> - Increase machine gun damage   | Game Balance |
+| The player would spawn with no weapons and must pick them up before using it. This causes them to be defenseless from attacking mobs while looking for a weapon.    | - Revamped the entire weapons system so that the player actually starts with all weapons. </br> - There was additional balance issues where the player is too strong early game, so we only gave the player ammo for one weapon (the other weapons have no ammo)   | Game Balance |
+| It may be very overwhelming for the player to worry about both health and food.    | - Added two powerups: a speed powerup (doubles speed without consuming more food) and health powerup (out of combat healing) so players can worry less about either their health or food.    | Game Balance |
 
 <b></b> <br>
 ## How to start
