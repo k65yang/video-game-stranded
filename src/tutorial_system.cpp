@@ -22,9 +22,9 @@ void TutorialSystem::step(float elapsed_ms) {
     Player& player_info = registry.players.get(player);
     Motion& spaceship_motion = registry.motions.get(spaceship);
     
-    if (isPlayerNearSpaceship(player_motion.position, spaceship_motion.position) && !player_info.is_home && !isEnterSpaceshipTextShown()) {
+    if (isPlayerNearSpaceship(player_motion.position, spaceship_motion.position) && !player_info.is_home && !registry.deathTimers.has(player) && !isEnterSpaceshipTextShown()) {
         showEnterSpaceshipText();
-    } else if (!isPlayerNearSpaceship(player_motion.position, spaceship_motion.position) && isEnterSpaceshipTextShown() || player_info.is_home) {
+    } else if (isEnterSpaceshipTextShown() && (!isPlayerNearSpaceship(player_motion.position, spaceship_motion.position) || player_info.is_home || registry.deathTimers.has(player))) {
         hideEnterSpaceshipText();
     }
 };

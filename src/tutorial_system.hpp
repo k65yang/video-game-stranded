@@ -26,7 +26,7 @@ class TutorialSystem
 
         /// @brief Resets the tutorial system
         void resetTutorialSystem();
-
+        
         /// @brief Opens the help dialog
         void openHelpDialog();
 

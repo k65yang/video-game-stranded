@@ -72,12 +72,11 @@ void QuestSystem::processQuestItem(ITEM_TYPE type, QUEST_ITEM_STATUS new_status)
 bool QuestSystem::submitQuestItems() {
     Entity player = registry.players.entities[0];
     Inventory& inventory = registry.inventories.get(player);
-    
+
     int num_submitted = 0;
     for (auto it = inventory.quest_items.begin(); it != inventory.quest_items.end(); it++) {
         if (it->second != QUEST_ITEM_STATUS::NOT_FOUND) {
             num_submitted++;
-
             if (it->second == QUEST_ITEM_STATUS::FOUND) {
                 processQuestItem(it->first, QUEST_ITEM_STATUS::SUBMITTED);
                 createSpaceshipPart(it->first);
@@ -147,6 +146,9 @@ Entity QuestSystem::createSpaceshipPart(ITEM_TYPE type) {
     motion.velocity = { 0.f, 0.f };
     motion.position = { 0, -2.5 };
     motion.scale = vec2({ target_resolution.x / tile_size_px * 0.20833333, target_resolution.y / tile_size_px * 0.3125 });
+
+    // Add spaceship to the spaceship_parts registry
+    registry.spaceships.emplace(entity);
 
     TEXTURE_ASSET_ID texture = TEXTURE_ASSET_ID::PLAYER;
     switch (type) {

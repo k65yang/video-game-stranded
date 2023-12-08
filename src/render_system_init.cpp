@@ -14,7 +14,7 @@
 #include <sstream>
 
 // World initialization
-bool RenderSystem::init(GLFWwindow* window_arg)
+bool RenderSystem::init(GLFWwindow* window_arg, const ivec2 window_size)
 {
 	this->window = window_arg;
 
@@ -22,12 +22,14 @@ bool RenderSystem::init(GLFWwindow* window_arg)
 	glfwSwapInterval(1); // vsync
 
 	// Get window resolution
-	if (windowed_mode) {
-		window_resolution = target_resolution;
+	window_resolution = window_size;
+	if (!windowed_mode) {
+		auto mode = glfwGetVideoMode(glfwGetPrimaryMonitor());
+		vec2 screen_resolution = { mode->width, mode->height };
+		screen_to_window_correction = vec2(window_resolution) / screen_resolution;
 	}
 	else {
-		const GLFWvidmode* mode = glfwGetVideoMode(glfwGetPrimaryMonitor());
-		window_resolution = { mode->width, mode->height };
+		screen_to_window_correction = { 1, 1 };
 	}
 
 	// Load OpenGL function pointers
@@ -526,7 +528,7 @@ void RenderSystem::initializeGlGeometryBuffers()
 // The position corresponds to the center of the texture.
 	// This is hardcoded dimensions of the texture/ num of frame in texture 
 	player_frame_w = 0.25f; 
-	player_frame_h = (float)1/9;
+	player_frame_h = (float)1/5;
 	std::vector<TexturedVertex> player_vertices(4);
 	player_vertices[0].position = { -1.f / 2, +1.f / 2, 0.f };
 	player_vertices[1].position = { +1.f / 2, +1.f / 2, 0.f };
@@ -561,6 +563,25 @@ void RenderSystem::initializeGlGeometryBuffers()
 	const std::vector<uint16_t> mob_indices = { 0, 3, 1, 1, 3, 2 };
 
 	bindVBOandIBO(GEOMETRY_BUFFER_ID::MOB_SPRITE, mob_vertices, mob_indices);
+
+	// Initialize mob sprite
+// The position corresponds to the center of the texture.
+	// This is hardcoded dimensions of the texture/ num of frame in texture 
+	s_frame_w = 1/6.f;
+	std::vector<TexturedVertex> spaceship_depart_vertices(4);
+	spaceship_depart_vertices[0].position = { -1.f / 2, +1.f / 2, 0.f };
+	spaceship_depart_vertices[1].position = { +1.f / 2, +1.f / 2, 0.f };
+	spaceship_depart_vertices[2].position = { +1.f / 2, -1.f / 2, 0.f };
+	spaceship_depart_vertices[3].position = { -1.f / 2, -1.f / 2, 0.f };
+	spaceship_depart_vertices[3].texcoord = { 0.f, 0.f };
+	spaceship_depart_vertices[2].texcoord = { s_frame_w, 0.f };
+	spaceship_depart_vertices[1].texcoord = { s_frame_w, 1 };
+	spaceship_depart_vertices[0].texcoord = { 0.f, 1 };
+
+	// Counterclockwise as it's the default opengl front winding direction.
+	const std::vector<uint16_t> spaceship_depart_indices = { 0, 3, 1, 1, 3, 2 };
+
+	bindVBOandIBO(GEOMETRY_BUFFER_ID::SPACESHIP_DEPART_SPRITE, spaceship_depart_vertices, spaceship_depart_indices);
 
 }
 

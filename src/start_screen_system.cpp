@@ -45,7 +45,8 @@ void StartScreenSystem::init(GLFWwindow* window_arg, RenderSystem* renderer_arg,
     was_hovering = false;
 
     // Get window size
-	glfwGetFramebufferSize(window, &window_w, &window_h);
+    window_w = renderer->window_resolution.x;
+    window_h = renderer->window_resolution.y;
 
     // Set callbacks
     glfwSetWindowUserPointer(window, this);
@@ -343,6 +344,7 @@ void StartScreenSystem::setupScreenTwoObjects() {
 }
 
 void StartScreenSystem::on_mouse_move(vec2 mouse_position) {
+    mouse_position *= renderer->screen_to_window_correction;
     if (screen_idx == 0) { // On first screen
         // There is a race condition where we check if we are hovering before
         // we actually know the location of the button
