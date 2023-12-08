@@ -48,7 +48,7 @@ public:
 	};
 
 	// Creates a window
-	GLFWwindow* create_window();
+	GLFWwindow* create_window(ivec2& window_size);
 
 	// starts the game
 	void init(

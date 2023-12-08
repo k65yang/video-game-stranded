@@ -42,7 +42,8 @@ int main()
 	TutorialSystem tutorial_system;
 
 	// Initializing window
-	GLFWwindow* window = world_system.create_window();
+	ivec2 window_size = {};
+	GLFWwindow* window = world_system.create_window(window_size);
 
 	if (!window) {
 		// Time to read the error message
@@ -53,7 +54,7 @@ int main()
 
 	// Initialize systems needed to display the start screen
 	audio_system.init();		
-	render_system.init(window);
+	render_system.init(window, window_size);
 	start_screen_system.init(window, &render_system, &terrain_system);
 
 	// Load terrain mesh into the GPU
