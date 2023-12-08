@@ -107,9 +107,14 @@ int WeaponsSystem::increaseAmmo(ITEM_TYPE weapon_type, int amount) {
 
 			// adjust sidebar ammo for previous weapon
 			bool hasAmmo = updateSideBars(weapon_type);
+			bool turnOnSideIndicator = true;
 
+			// picking ammo used by current selected weapon
+			if (active_weapon_type == weapon_type) {
+				turnOnSideIndicator = false;
+			}
 			// set previous weapon indicator to be visible
-			setIndicatorAlpha(weapon_type, true, hasAmmo);
+			setIndicatorAlpha(weapon_type, turnOnSideIndicator, hasAmmo);
 
 			return amount_increased;
 		}

@@ -449,6 +449,9 @@ Entity createMuzzleFlash(RenderSystem* renderer, vec2 position) {
 	auto& color = registry.colors.emplace(entity);
 	color = vec4(1.f);
 
+	// set alpha to 0
+	color.a = 0.0f;
+
 
 	registry.renderRequests.insert(
 		entity,
