@@ -74,29 +74,26 @@ class MobSystem
         // Harcoded mob data
         // Damage for each mob
         const std::unordered_map<MOB_TYPE, int> mob_damage_map = {
-            {MOB_TYPE::GHOST, 10},
+            {MOB_TYPE::GHOST, 12},
             {MOB_TYPE::SLIME, 15},
             {MOB_TYPE::BRUTE, 50},
-            {MOB_TYPE::DISRUPTOR, 5},
-            {MOB_TYPE::TURRET, 5}
+            {MOB_TYPE::DISRUPTOR, 15},
         };
 
         // Aggro range for each mob
         const std::unordered_map<MOB_TYPE, int> mob_aggro_range_map = {
-            {MOB_TYPE::GHOST, 10},
-            {MOB_TYPE::SLIME, 10},
-            {MOB_TYPE::BRUTE, 10},
-            {MOB_TYPE::DISRUPTOR, 10},
-            {MOB_TYPE::TURRET, 5}
+            {MOB_TYPE::GHOST, 13},
+            {MOB_TYPE::SLIME, 13},
+            {MOB_TYPE::BRUTE, 13},
+            {MOB_TYPE::DISRUPTOR, 13},
         };
 
         // Speed for each mob
         const std::unordered_map<MOB_TYPE, float> mob_speed_ratio_map = {
             {MOB_TYPE::GHOST, 2.5f},
-            {MOB_TYPE::SLIME, 2.f},
-            {MOB_TYPE::BRUTE, 0.5f},
-            {MOB_TYPE::DISRUPTOR, 1.5f},
-            {MOB_TYPE::TURRET, 0.f}
+            {MOB_TYPE::SLIME, 2.5f},
+            {MOB_TYPE::BRUTE, 1.5f},
+            {MOB_TYPE::DISRUPTOR, 2.f},
         };
 
         // Texture for each mob
@@ -105,7 +102,6 @@ class MobSystem
             {MOB_TYPE::SLIME, TEXTURE_ASSET_ID::SLIME},
             {MOB_TYPE::BRUTE, TEXTURE_ASSET_ID::BRUTE},
             {MOB_TYPE::DISRUPTOR, TEXTURE_ASSET_ID::DISRUPTOR},
-            {MOB_TYPE::TURRET, TEXTURE_ASSET_ID::TURRET}
         };
 
         /// @brief Applies knockback effect to the player

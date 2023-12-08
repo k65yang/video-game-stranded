@@ -11,6 +11,9 @@
 #include <gl3w.h>
 #include <GLFW/glfw3.h>
 
+// allows vec3.xy, vec3.zy, rtc.
+#define GLM_FORCE_SWIZZLE
+
 // The glm library provides vector and matrix operations as in GLSL
 #include <glm/vec2.hpp>				// vec2
 #include <glm/ext/vector_int2.hpp>  // ivec2

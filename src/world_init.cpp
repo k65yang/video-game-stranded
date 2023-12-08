@@ -129,6 +129,9 @@ Entity createSpaceship(RenderSystem* renderer, vec2 position) {
 	motion.position = position;
 	motion.scale = vec2({ target_resolution.x / tile_size_px * 0.20833333, target_resolution.y / tile_size_px * 0.3125});
 
+	// Add entity to spaceship registry
+	registry.spaceships.emplace(entity);
+
 	registry.renderRequests.insert(
 		entity,
 		{ TEXTURE_ASSET_ID::SPACESHIP,
@@ -270,7 +273,7 @@ Entity createHelp(RenderSystem* renderer, vec2 position, TEXTURE_ASSET_ID textur
 	motion.position = position;
 	motion.scale = vec2({ 20.f, 6.f });
 
-	registry.tips.emplace(entity);
+	registry.tutorials.emplace(entity);
 
 	registry.renderRequests.insert(
 		entity,
@@ -349,6 +352,27 @@ Entity createPowerupIndicator(RenderSystem* renderer, vec2 position, TEXTURE_ASS
 			RENDER_LAYER_ID::LAYER_4 });
 
 	return entity;
+}
+
+Entity createPointingArrow(RenderSystem* renderer, Entity player, Entity target)
+{
+	auto arrow = Entity();
+	PointingArrow& pa = registry.pointingArrows.emplace(arrow, target);
+	Motion& motion = registry.motions.emplace(arrow);
+
+	motion.angle = 0.0f;
+	motion.velocity = { 0.f, 0.f };
+	motion.position = vec2(renderer->createModelMatrix(player) * vec3( pa.radius_offset, 1.0f));
+	motion.scale = { 1.f, 1.f };
+
+	registry.renderRequests.insert(
+		arrow,
+		{	TEXTURE_ASSET_ID::POINTING_ARROW,
+			EFFECT_ASSET_ID::TEXTURED,
+			GEOMETRY_BUFFER_ID::SPRITE,
+			RENDER_LAYER_ID::LAYER_4 });
+
+	return arrow;
 }
 
 Entity createCamera(vec2 pos)

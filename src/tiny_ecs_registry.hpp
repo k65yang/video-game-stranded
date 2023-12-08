@@ -12,7 +12,7 @@ class ECSRegistry
 public:
 	// Manually created list of all components this game has
 	ComponentContainer<DeathTimer> deathTimers;
-	ComponentContainer<ToolTip> tips;
+	ComponentContainer<Tutorial> tutorials;
 	ComponentContainer<Motion> motions;
 	ComponentContainer<Collision> collisions;
 
@@ -29,20 +29,24 @@ public:
 
 	ComponentContainer<Mob> mobs;
 	ComponentContainer<SpaceshipHome> spaceshipHomes; 
+	ComponentContainer<Spaceship> spaceships; 
 	ComponentContainer<MobSlowEffect> mobSlowEffects;
 	ComponentContainer<Path> paths;
 	ComponentContainer<Item> items;
 
-	ComponentContainer<ParticleTrail> particleTrails;
 	ComponentContainer<Particle> particles;
 
 	ComponentContainer<vec2> screenUI;
 	ComponentContainer<QuestItemIndicator> questItemIndicators;
+	ComponentContainer<PointingArrow> pointingArrows;
 
 	// Rendering related
 	ComponentContainer<Mesh*> meshPtrs;
 	ComponentContainer<RenderRequest> renderRequests;
+	ComponentContainer<InstancedRenderRequest> instancedRenderRequests;
+
 	ComponentContainer<Text> texts;
+
 	ComponentContainer<Camera> cameras;
 
 	ComponentContainer<ScreenState> screenStates;
@@ -59,6 +63,7 @@ public:
 	ECSRegistry()
 	{
 		registry_list.push_back(&deathTimers);
+		registry_list.push_back(&tutorials);
 		registry_list.push_back(&motions);
 		registry_list.push_back(&collisions);
 
@@ -73,19 +78,23 @@ public:
 
 		registry_list.push_back(&mobs);
 		registry_list.push_back(&spaceshipHomes);
+		registry_list.push_back(&spaceships);
 		registry_list.push_back(&mobSlowEffects);
 		registry_list.push_back(&paths);
 		registry_list.push_back(&items);
 		registry_list.push_back(&questItemIndicators);
+		registry_list.push_back(&pointingArrows);
 
-		registry_list.push_back(&particleTrails);
 		registry_list.push_back(&particles);
 
 		registry_list.push_back(&screenUI);
 
 		registry_list.push_back(&meshPtrs);
 		registry_list.push_back(&renderRequests);
+    
+		registry_list.push_back(&instancedRenderRequests);
 		registry_list.push_back(&texts);
+
 		registry_list.push_back(&screenStates);
 		
 		registry_list.push_back(&debugComponents);
