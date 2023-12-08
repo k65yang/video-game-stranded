@@ -380,7 +380,7 @@ void TerrainSystem::generate_orientation_map(std::unordered_map<unsigned int, Re
 	}
 }
 
-std::vector<vec2> TerrainSystem::get_mob_spawn_locations(std::map<ZONE_NUMBER,int> num_per_zone) {
+std::vector<vec2> TerrainSystem::get_mob_spawn_locations(std::unordered_map<ZONE_NUMBER,int> num_per_zone) {
     std::vector<vec2> result;
     std::default_random_engine rng;
 

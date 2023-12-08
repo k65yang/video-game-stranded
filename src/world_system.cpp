@@ -1433,19 +1433,33 @@ vec2 WorldSystem::screen_to_clip_coords(vec2 point) {
 
 void WorldSystem::spawn_items() {
 	// lookup table for weapon upgrades per zone
-	std::map<ZONE_NUMBER,int> zone_weapon_upgrades = {
+	std::unordered_map<ZONE_NUMBER,int> zone_weapon_upgrades = {
 		{ZONE_0, 0},
 		{ZONE_1, 0},    
 		{ZONE_2, 2},	
-		{ZONE_3, 4},
+		{ZONE_3, 8},
+		{ZONE_4, 12},
+		{ZONE_5, 12},
 	};
 
 	// lookup table for food per zone
-	std::map<ZONE_NUMBER,int> zone_food = {
+	std::unordered_map<ZONE_NUMBER,int> zone_food = {
 		{ZONE_0, 3},
 		{ZONE_1, 10},    
 		{ZONE_2, 20},	
 		{ZONE_3, 40},
+		{ZONE_4, 40},
+		{ZONE_5, 40},
+	};
+
+	// lookup table for ammo
+	std::unordered_map<ZONE_NUMBER,int> zone_ammo = {
+		{ZONE_0, 0},
+		{ZONE_1, 2},    
+		{ZONE_2, 3},	
+		{ZONE_3, 7},
+		{ZONE_4, 8},
+		{ZONE_5, 16},
 	};
 
 	for (int zone_num = ZONE_0; zone_num != ZONE_COUNT; zone_num++) {
@@ -1460,18 +1474,17 @@ void WorldSystem::spawn_items() {
 		for (int i = 0; i < zone_food[zone]; i++) {
 			createItem(renderer, physics_system, terrain->get_random_terrain_location(zone), ITEM_TYPE::FOOD);
 		}
+
+		// spawn ammo
+		std::vector<ITEM_TYPE> weapons = {ITEM_TYPE::WEAPON_SHURIKEN, ITEM_TYPE::WEAPON_CROSSBOW, ITEM_TYPE::WEAPON_SHOTGUN, ITEM_TYPE::WEAPON_MACHINEGUN};
+		for (auto& weapon : weapons) {
+			for (int i = 0; i < zone_ammo[zone]; i++) {
+				createItem(renderer, physics_system, terrain->get_random_terrain_location(zone), weapon);
+			}
+		}
 	}
 
-	// TESTING: Force one spawn of each weapon in zone 1
-	 createItem(renderer, physics_system, terrain->get_random_terrain_location(ZONE_1), ITEM_TYPE::WEAPON_SHURIKEN);
-	 createItem(renderer, physics_system, terrain->get_random_terrain_location(ZONE_1), ITEM_TYPE::WEAPON_CROSSBOW);
-	 createItem(renderer, physics_system, terrain->get_random_terrain_location(ZONE_1), ITEM_TYPE::WEAPON_SHOTGUN);
-	 createItem(renderer, physics_system, terrain->get_random_terrain_location(ZONE_1), ITEM_TYPE::WEAPON_MACHINEGUN);
-
-	 // TESTING: Force spawn quest items in zone 2
-	//  createItem(renderer, physics_system, terrain->get_random_terrain_location(ZONE_2), ITEM_TYPE::QUEST_ONE);
-	//  createItem(renderer, physics_system, terrain->get_random_terrain_location(ZONE_2), ITEM_TYPE::QUEST_TWO);
-
+  // Hardcoded quest items
 	createItem(renderer, physics_system, {-78.f, -84.f}, ITEM_TYPE::QUEST_ONE);
 	createItem(renderer, physics_system, { 55.f, -52.f}, ITEM_TYPE::QUEST_TWO);	
 	createItem(renderer, physics_system, { 78.f, 48.f }, ITEM_TYPE::QUEST_THREE);

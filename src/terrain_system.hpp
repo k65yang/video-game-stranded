@@ -62,7 +62,7 @@ public:
 	}	
 
 	// Look-up table for terrain type slow ratios
-	std::map<TERRAIN_TYPE, float> terrain_type_to_speed_ratio = {
+	std::unordered_map<TERRAIN_TYPE, float> terrain_type_to_speed_ratio = {
 		{TERRAIN_TYPE::AIR, 1.f},
 		{TERRAIN_TYPE::GRASS, 1.f},
 		{TERRAIN_TYPE::ROCK, 1.f},
@@ -74,17 +74,21 @@ public:
 
 	// Look-up table for zone boundaries. Zones are circular.
 	// Key is zone number. Value is the radius from the spaceship
-	std::map<ZONE_NUMBER, int> zone_radius_map = {
+	std::unordered_map<ZONE_NUMBER, int> zone_radius_map = {
 		{ZONE_0, 10},
 		{ZONE_1, 17},
 		{ZONE_2, 40},
-		{ZONE_3, 64}
+		{ZONE_3, 64},
+		{ZONE_4, 85},
+		// Make the radius be the hypoteneuse of the map to encapsulate the entire map as a circle
+		{ZONE_5, ceil(sqrt((size_x * size_x / 4) + (size_y * size_y / 4)))},
+		
 	};
 
 	/// @brief Function to get randomized spawn locations per zone
 	/// @param num_per_zone Map specifying how many mobs to spawn per zone
 	/// @return List of spawn locations
-	std::vector<vec2> get_mob_spawn_locations(std::map<ZONE_NUMBER,int> num_per_zone);
+	std::vector<vec2> get_mob_spawn_locations(std::unordered_map<ZONE_NUMBER,int> num_per_zone);
 
 	/// <summary>
 	/// Initializes the world grid with the given size. Each axis should preferably be odd.
@@ -197,6 +201,8 @@ public:
 	/// <param name="x">An x position in world space</param>
 	/// <param name="y">An y position in world space</param>
 	bool is_invalid_spawn(int x, int y) {
+		if (abs(x) > size_x / 2 || abs(x) > size_y / 2)
+			return true;
 		uint32_t flag = terraincell_grid[to_array_index(x, y)] & (COLLIDABLE | ALLOW_SPAWNS);
 		if (flag & TERRAIN_FLAGS::COLLIDABLE)
 			return true;

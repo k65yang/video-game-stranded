@@ -284,7 +284,9 @@ enum ZONE_NUMBER {
 	ZONE_1 = 1,
 	ZONE_2 = 2,
 	ZONE_3 = 3,
-	ZONE_COUNT = ZONE_3 + 1,
+	ZONE_4 = 4,
+	ZONE_5 = 5,
+	ZONE_COUNT = ZONE_5 + 1,
 };
 
 
