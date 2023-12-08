@@ -1004,9 +1004,10 @@ void WorldSystem::update_camera_follow() {
 }
 
 void WorldSystem::update_spaceship_frame(float elapsed_ms_since_last_update) {
-	if (ELAPSED_TIME > 300) {
+	auto& a = registry.animations.get(spaceship_depart);
+
+	if (ELAPSED_TIME > 300 || a.framex == 5) {
 		// Update walking animation
-		auto& a = registry.animations.get(spaceship_depart);
 		if (a.framex != 5) {
 
 			a.framex = (a.framex + 1) % 6;
@@ -1017,9 +1018,10 @@ void WorldSystem::update_spaceship_frame(float elapsed_ms_since_last_update) {
 			Motion& spaceship_motion = registry.motions.get(spaceship_depart);
 			spaceship_motion.velocity += vec2{ 0,-0.5 };
 			debugging.in_debug_mode = !debugging.in_debug_mode;
-			renderer->enableFow = 0;
-
-			//renderer->fow_radius += 1; 
+			//renderer->enableFow = 0;
+			if (renderer->fow_radius <= 17)
+				renderer->fow_radius += 0.1;
+			ELAPSED_TIME = 0.0f;
 		}
 	}
 }
@@ -1672,6 +1674,9 @@ void WorldSystem::load_game(json j) {
 	for (int i = 0; i < KEYS; i++)
 		keyDown[i] = false;
 
+	muzzleFlash = createMuzzleFlash(renderer, vec2(0.f));
+
+	weapons_system->createNonselectedWeaponIndicators();
 
 	tutorial_system->createTutorialText(TUTORIAL_TYPE::GAME_LOADED);
 

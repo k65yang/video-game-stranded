@@ -592,21 +592,33 @@ void WeaponsSystem::setIndicatorAlpha(ITEM_TYPE weapon_type, bool turnOn, bool h
 	// change the selected side indicator to transparent
 	switch (weapon_type) {
 	case ITEM_TYPE::WEAPON_SHURIKEN:
-		registry.colors.get(shuriken_weapon_indicator).a = value;
-		registry.colors.get(shuriken_ammo_indicator).a = value;
+		if (registry.colors.has(shuriken_weapon_indicator)) {
+			registry.colors.get(shuriken_weapon_indicator).a = value;
+			registry.colors.get(shuriken_ammo_indicator).a = value;
+		}
 		break;
 	case ITEM_TYPE::WEAPON_CROSSBOW:
-		registry.colors.get(crossbow_weapon_indicator).a = value;
-		registry.colors.get(crossbow_ammo_indicator).a = value;
+
+		if (registry.colors.has(crossbow_weapon_indicator)) {
+			registry.colors.get(crossbow_weapon_indicator).a = value;
+			registry.colors.get(crossbow_ammo_indicator).a = value;
+
+		}
 		break;
 	case ITEM_TYPE::WEAPON_SHOTGUN:
-		registry.colors.get(shot_gun_weapon_indicator).a = value;
-		registry.colors.get(shot_gun_ammo_indicator).a = value;
-		break;
+
+		if (registry.colors.has(shot_gun_weapon_indicator)) {
+			registry.colors.get(shot_gun_weapon_indicator).a = value;
+			registry.colors.get(shot_gun_ammo_indicator).a = value;
+			break;
+		}
 	case ITEM_TYPE::WEAPON_MACHINEGUN:
-		registry.colors.get(machine_gun_weapon_indicator).a = value;
-		registry.colors.get(machine_gun_ammo_indicator).a = value;
-		break;
+
+		if (registry.colors.has(machine_gun_weapon_indicator)) {
+			registry.colors.get(machine_gun_weapon_indicator).a = value;
+			registry.colors.get(machine_gun_ammo_indicator).a = value;
+			break;
+		}
 
 	default:
 		break;
