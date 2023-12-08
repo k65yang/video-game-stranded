@@ -165,6 +165,14 @@ class WeaponsSystem
             {ITEM_TYPE::WEAPON_MACHINEGUN, TEXTURE_ASSET_ID::ICON_MACHINE_GUN},
         };
 
+        // Weapon textures for side bar
+        std::map<ITEM_TYPE, TEXTURE_ASSET_ID> side_weapon_indicator_textures_map{
+            {ITEM_TYPE::WEAPON_SHURIKEN, TEXTURE_ASSET_ID::SIDEICON_SHURIKEN},
+            {ITEM_TYPE::WEAPON_CROSSBOW, TEXTURE_ASSET_ID::SIDEICON_CROSSBOW},
+            {ITEM_TYPE::WEAPON_SHOTGUN, TEXTURE_ASSET_ID::SIDEICON_SHOTGUN},
+            {ITEM_TYPE::WEAPON_MACHINEGUN, TEXTURE_ASSET_ID::SIDEICON_MACHINEGUN},
+        };
+
         /// @brief Fires the shuriken based on upgrade level
         /// @param player_x The x coordinate of the player
         /// @param player_y The y coordinate of the player

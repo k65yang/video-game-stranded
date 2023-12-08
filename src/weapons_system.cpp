@@ -551,22 +551,22 @@ void WeaponsSystem::createNonselectedWeaponIndicators() {
 	float spaceBetweenIndicators = 1.5f;
 
 	// NON SELECTED WEAPON INDICATORS
-	shuriken_weapon_indicator = createWeaponIndicator(renderer, weapon_indicator_textures_map[ITEM_TYPE::WEAPON_SHURIKEN],
+	shuriken_weapon_indicator = createWeaponIndicator(renderer, side_weapon_indicator_textures_map[ITEM_TYPE::WEAPON_SHURIKEN],
 		shuriken_indicator_pos, shuriken_indicator_size);
 	shuriken_ammo_indicator = createAmmoBar(renderer, shuriken_ammo_pos, shuriken_ammo_size);
 	
 
-	crossbow_weapon_indicator = createWeaponIndicator(renderer, weapon_indicator_textures_map[ITEM_TYPE::WEAPON_CROSSBOW], 
+	crossbow_weapon_indicator = createWeaponIndicator(renderer, side_weapon_indicator_textures_map[ITEM_TYPE::WEAPON_CROSSBOW],
 		{ shuriken_indicator_pos.x, shuriken_indicator_pos.y + spaceBetweenIndicators * 1 } , shuriken_indicator_size);
 	crossbow_ammo_indicator = createAmmoBar(renderer, { shuriken_ammo_pos.x , shuriken_ammo_pos.y + spaceBetweenIndicators * 1 }, shuriken_ammo_size);
 	
 
-	shot_gun_weapon_indicator = createWeaponIndicator(renderer, weapon_indicator_textures_map[ITEM_TYPE::WEAPON_SHOTGUN],
+	shot_gun_weapon_indicator = createWeaponIndicator(renderer, side_weapon_indicator_textures_map[ITEM_TYPE::WEAPON_SHOTGUN],
 		{ shuriken_indicator_pos.x, shuriken_indicator_pos.y + spaceBetweenIndicators * 2 }, shuriken_indicator_size);
 	shot_gun_ammo_indicator = createAmmoBar(renderer, { shuriken_ammo_pos.x , shuriken_ammo_pos.y + spaceBetweenIndicators * 2 }, shuriken_ammo_size);
 	
 
-	machine_gun_weapon_indicator = createWeaponIndicator(renderer, weapon_indicator_textures_map[ITEM_TYPE::WEAPON_MACHINEGUN],
+	machine_gun_weapon_indicator = createWeaponIndicator(renderer, side_weapon_indicator_textures_map[ITEM_TYPE::WEAPON_MACHINEGUN],
 		{ shuriken_indicator_pos.x, shuriken_indicator_pos.y + spaceBetweenIndicators * 3 }, shuriken_indicator_size);
 	machine_gun_ammo_indicator = createAmmoBar(renderer, { shuriken_ammo_pos.x , shuriken_ammo_pos.y + spaceBetweenIndicators * 3 }, shuriken_ammo_size);
 	

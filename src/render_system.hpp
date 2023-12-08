@@ -120,10 +120,10 @@ private:
 			textures_path("q2_built.png"),
 			textures_path("q3_built.png"),
 			textures_path("q4_built.png"),
-			textures_path("help_button.png"),					
-			textures_path("help_dialog.png"),		
-			textures_path("quest_item_tutorial_dialog.png"),					
-			textures_path("spaceship_home_tutorial_dialog.png"),	
+			textures_path("help_button.png"),
+			textures_path("help_dialog.png"),
+			textures_path("quest_item_tutorial_dialog.png"),
+			textures_path("spaceship_home_tutorial_dialog.png"),
 			textures_path("ghost.png"),
 			textures_path("spaceship_depart.png"),
 			textures_path("brute.png"),
@@ -139,6 +139,11 @@ private:
 			textures_path("start_button_hover.png"),
 			textures_path("muzzle_flash_sheet.png"),
 			textures_path("ship_arrow.png"),
+
+			textures_path("shuriken_side_icon.png"),
+			textures_path("crossbow_side_icon.png"),
+			textures_path("shotgun_side_icon.png"),
+			textures_path("machinegun_side_icon.png"),
 
 
 	};
