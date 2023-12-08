@@ -17,6 +17,7 @@
 #include "mob_system.hpp"
 #include "spaceship_home_system.hpp"
 #include "quest_system.hpp"
+#include "tutorial_system.hpp"
 #include "start_screen_system.hpp"
 #include "common.hpp"
 
@@ -38,6 +39,7 @@ int main()
 	SpaceshipHomeSystem spaceship_home_system;
 	StartScreenSystem start_screen_system;
 	QuestSystem quest_system;
+	TutorialSystem tutorial_system;
 
 	// Initializing window
 	GLFWwindow* window = world_system.create_window();
@@ -52,14 +54,7 @@ int main()
 	// Initialize systems needed to display the start screen
 	audio_system.init();		
 	render_system.init(window);
-	particle_system.init(&render_system);
-	weapons_system.init(&render_system, &physics_system);
-	mob_system.init(&render_system, &terrain_system, &physics_system);
-	quest_system.init(&render_system);
-	spaceship_home_system.init(&render_system, &weapons_system, &quest_system);
-	world_system.init(&render_system, &terrain_system, &weapons_system, &physics_system, &mob_system, &audio_system, &spaceship_home_system, &quest_system, &particle_system);
 	start_screen_system.init(window, &render_system, &terrain_system);
-
 
 	// Load terrain mesh into the GPU
 	std::unordered_map<unsigned int, RenderSystem::ORIENTATIONS> orientation_map;
@@ -87,11 +82,21 @@ int main()
 	mob_system.init(&render_system, &terrain_system, &physics_system);
 	quest_system.init(&render_system);
 	spaceship_home_system.init(&render_system, &weapons_system, &quest_system);
-	world_system.init(&render_system, &terrain_system, &weapons_system, &physics_system, &mob_system, &audio_system, &spaceship_home_system, &quest_system, &particle_system);
-
+	tutorial_system.init(&render_system);
+	world_system.init(
+		&render_system, 
+		&terrain_system, 
+		&weapons_system, 
+		&physics_system, 
+		&mob_system, 
+		&audio_system, 
+		&spaceship_home_system, 
+		&quest_system,
+		&tutorial_system,
+		&particle_system
+	);
 	pathfinding_system.init(&terrain_system);
 	
-
 	// variable timestep loop
 	while (!world_system.is_over()) {
 		// Processes system messages, if this wasn't present the window would become unresponsive
@@ -103,8 +108,10 @@ int main()
 			(float)(std::chrono::duration_cast<std::chrono::microseconds>(now - t)).count() / 1000;
 		t = now;
 
-		// Pause game when player is in spaceship home  
-		if (!spaceship_home_system.isHome()) {
+		// Pause game when player is in spaceship home or help dialog is open  
+		if (spaceship_home_system.isHome() || tutorial_system.isHelpDialogOpen()) {
+			spaceship_home_system.step(elapsed_ms);
+		} else {
 			world_system.step(elapsed_ms);
 			physics_system.step(elapsed_ms);
 			terrain_system.step(elapsed_ms);
@@ -114,10 +121,9 @@ int main()
 			quest_system.step(elapsed_ms);
 			world_system.handle_collisions();
 			particle_system.step(elapsed_ms);
-		} else {
-			spaceship_home_system.step(elapsed_ms);
 		}
 
+		tutorial_system.step(elapsed_ms);
 		render_system.draw();
 	}
 

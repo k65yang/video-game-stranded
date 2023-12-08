@@ -20,6 +20,13 @@ enum class QUEST_ITEM_STATUS {
 	SUBMITTED = FOUND + 1
 };
 
+enum class TUTORIAL_TYPE {
+	QUEST_ITEM_TUTORIAL = 0,
+	SPACESHIP_HOME_TUTORIAL = QUEST_ITEM_TUTORIAL + 1,
+	GAME_SAVED = SPACESHIP_HOME_TUTORIAL + 1,
+	GAME_LOADED = GAME_SAVED + 1
+};
+
 enum class ITEM_TYPE {
 	QUEST_ONE = 0,
 	QUEST_TWO = QUEST_ONE + 1,
@@ -66,6 +73,8 @@ struct Player
 	int framex = 0; 
 	int framey = 4; 
 	bool is_home = false;
+	bool has_collected_quest_item = false;
+	bool has_entered_spaceship = false;
 };
 
 struct SpeedPowerup {
@@ -118,16 +127,15 @@ struct Weapon {
 	int level;							 // Weapon level
 };
 
-// The spaceship 
 struct SpaceshipHome {
 	int health_storage;
 	int food_storage;
 	int ammo_storage;
 };
 
-// The spaceship parts 
-struct SpaceshipParts {
+struct Spaceship {
 	int framex = 0;
+
 };
 
 // The projectile
@@ -232,8 +240,8 @@ struct DeathTimer
 	float timer_ms = 5000.f;
 };
 
-struct ToolTip {
-	float timer = 3000.f;
+struct Tutorial {
+	float timer_ms = 5000.f;
 };
 
 // Single Vertex Buffer element for non-textured meshes (coloured.vs.glsl & salmon.vs.glsl)
@@ -399,12 +407,7 @@ enum class TEXTURE_ASSET_ID {
 	SPACESHIP_HOME_HEALTH = FOOD_FRAME + 1,
 	SPACESHIP_HOME_AMMO = SPACESHIP_HOME_HEALTH + 1,
 	SPACESHIP_HOME_FOOD = SPACESHIP_HOME_AMMO + 1,
-	HELP_ONE = SPACESHIP_HOME_FOOD + 1,
-	HELP_TWO = HELP_ONE + 1,
-	HELP_THREE = HELP_TWO + 1,
-	HELP_FOUR = HELP_THREE + 1,
-	HELP_WEAPON = HELP_FOUR + 1,
-	QUEST_1_NOT_FOUND = HELP_WEAPON + 1,
+	QUEST_1_NOT_FOUND = SPACESHIP_HOME_FOOD + 1,
 	QUEST_1_FOUND = QUEST_1_NOT_FOUND + 1,
 	QUEST_1_SUBMITTED = QUEST_1_FOUND + 1,
 	QUEST_2_NOT_FOUND = QUEST_1_SUBMITTED + 1,
@@ -424,22 +427,25 @@ enum class TEXTURE_ASSET_ID {
 	QUEST_2_BUILT = QUEST_1_BUILT + 1,
 	QUEST_3_BUILT = QUEST_2_BUILT + 1,
 	QUEST_4_BUILT = QUEST_3_BUILT + 1,
-	SPACESHIP_DEPART = QUEST_4_BUILT + 1,
-	GHOST = SPACESHIP_DEPART + 1,
-	BRUTE = GHOST + 1,
+	HELP_BUTTON = QUEST_4_BUILT + 1,
+	HELP_DIALOG = HELP_BUTTON + 1,
+	QUEST_ITEM_TUTORIAL_DIALOG = HELP_DIALOG + 1,
+	SPACESHIP_HOME_TUTORIAL_DIALOG = QUEST_ITEM_TUTORIAL_DIALOG + 1,
+	GHOST = SPACESHIP_HOME_TUTORIAL_DIALOG + 1,
+	SPACESHIP_DEPART = GHOST + 1, 
+	BRUTE = SPACESHIP_DEPART + 1,
 	DISRUPTOR = BRUTE + 1,
 	TURRET = DISRUPTOR + 1,
-	DEATH_TEXT_F = TURRET + 1, 
+	DEATH_TEXT_F = TURRET + 1,
 	DEATH_TEXT_H = DEATH_TEXT_F + 1,
 	VICTORY_TEXT = DEATH_TEXT_H + 1,
-	LOADED = VICTORY_TEXT + 1,
-	SAVING = LOADED + 1,
-	HEART_PARTICLE = SAVING + 1,
+	HEART_PARTICLE = VICTORY_TEXT + 1,
 	START_SCREEN_ONE = HEART_PARTICLE + 1,
 	START_SCREEN_TWO = START_SCREEN_ONE + 1,
 	START_BUTTON = START_SCREEN_TWO + 1,
 	START_BUTTON_HOVER = START_BUTTON + 1,
-	TEXTURE_COUNT = START_BUTTON_HOVER + 1,
+	POINTING_ARROW = START_BUTTON_HOVER + 1,
+	TEXTURE_COUNT = POINTING_ARROW + 1,
 
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
@@ -483,7 +489,8 @@ enum class RENDER_LAYER_ID {
 	LAYER_2 = LAYER_1 + 1,
 	LAYER_3 = LAYER_2 + 1,      
 	LAYER_4 = LAYER_3 + 1,      // UI elements
-	LAYER_COUNT = LAYER_4 + 1,
+	LAYER_5 = LAYER_4 + 1,      
+	LAYER_COUNT = LAYER_5 + 1
 };
 const int geometry_count = (int)GEOMETRY_BUFFER_ID::GEOMETRY_COUNT;
 
@@ -526,4 +533,14 @@ struct ParticleTemplate {
 	vec2 velocity = { 0.f, 0.f };
 	vec4 color = vec4{ 1.0f };
 
+};
+
+struct PointingArrow {
+
+	PointingArrow(Entity target) {
+		this->target = target;
+	}
+
+	Entity target;
+	vec2 radius_offset = { 5, 0 };
 };
