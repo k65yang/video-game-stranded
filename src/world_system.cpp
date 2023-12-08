@@ -1385,6 +1385,8 @@ void WorldSystem::map_editor_routine() {
 	bool from_collidable = (cell.flag & COLLIDABLE);
 	uint32_t data = ((uint32_t)editor_terrain << 16) | editor_flag;
 
+	// DEBUG: print out the tile coordinates
+	// printf("x: %f, y: %f\n", mouse_pos.x, mouse_pos.y);
 
 	if (cell != data) {
 		cell.from_uint32(data);
@@ -1465,10 +1467,10 @@ void WorldSystem::spawn_items() {
 	//  createItem(renderer, physics_system, terrain->get_random_terrain_location(ZONE_2), ITEM_TYPE::QUEST_ONE);
 	//  createItem(renderer, physics_system, terrain->get_random_terrain_location(ZONE_2), ITEM_TYPE::QUEST_TWO);
 
-	createItem(renderer, physics_system, {1.f, 1.f}, ITEM_TYPE::QUEST_ONE);
-	createItem(renderer, physics_system, {-1.f, -1.f}, ITEM_TYPE::QUEST_TWO);	
-	createItem(renderer, physics_system, { 2.f, 1.f }, ITEM_TYPE::QUEST_THREE);
-	createItem(renderer, physics_system, { -2.f, -1.f }, ITEM_TYPE::QUEST_FOUR);
+	createItem(renderer, physics_system, {-78.f, -84.f}, ITEM_TYPE::QUEST_ONE);
+	createItem(renderer, physics_system, { 55.f, -52.f}, ITEM_TYPE::QUEST_TWO);	
+	createItem(renderer, physics_system, { 78.f, 48.f }, ITEM_TYPE::QUEST_THREE);
+	createItem(renderer, physics_system, { -73.f, 62.f }, ITEM_TYPE::QUEST_FOUR);
 }
 
 // Adapted from restart_game, BASICALLY a lot of optional arguments to change small things :D
