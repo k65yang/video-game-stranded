@@ -365,10 +365,11 @@ void RenderSystem::drawToScreen()
 																	 // indices to the bound GL_ARRAY_BUFFER
 	gl_has_errors();
 	const GLuint fog_program = effects[(GLuint)EFFECT_ASSET_ID::FOG];
+	float scaled_fow_radius = fow_radius / 18.0f;
 
 	// set fog of war radius uniform
-	GLuint fowRadius_uloc = glGetUniformLocation(fog_program, "fowRadius");
-	glUniform1fv(fowRadius_uloc,1, (float*) &fow_radius);
+	GLuint fowRadius_uloc = glGetUniformLocation(fog_program, "scaled_down_fowRadius");
+	glUniform1fv(fowRadius_uloc,1, (float*) &scaled_fow_radius);
 
 	// set fow darken factor uniforms
 	GLuint fow_Darken_factor_uloc = glGetUniformLocation(fog_program, "fow_darken_factor");
@@ -377,6 +378,10 @@ void RenderSystem::drawToScreen()
 	// set enableFow uniforms
 	GLuint enable_fow_uloc = glGetUniformLocation(fog_program, "enableFow");
 	glUniform1iv(enable_fow_uloc, 1, (int*)&enableFow);
+
+	// Aspect ratio uniform
+	GLuint aspect_ratio_uloc = glGetUniformLocation(fog_program, "aspect_ratio");
+	glUniform2iv(aspect_ratio_uloc, 1, (int*)&aspect_ratio);
 
 	gl_has_errors();
 	// Set the vertex position and vertex texture coordinates (both stored in the
