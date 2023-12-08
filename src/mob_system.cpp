@@ -40,7 +40,7 @@ void MobSystem::spawn_mobs() {
 		{ZONE_2, 5},	
 		{ZONE_3, 12},
 		{ZONE_4, 28},
-		{ZONE_5, 35},
+		{ZONE_5, 30},
 	};
 	std::vector<vec2> zone_brute_locations = terrain->get_mob_spawn_locations(zone_mob_brute);
 
