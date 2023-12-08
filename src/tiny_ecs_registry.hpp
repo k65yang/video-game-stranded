@@ -38,6 +38,7 @@ public:
 
 	ComponentContainer<vec2> screenUI;
 	ComponentContainer<QuestItemIndicator> questItemIndicators;
+	ComponentContainer<PointingArrow> pointingArrows;
 
 	// Rendering related
 	ComponentContainer<Mesh*> meshPtrs;
@@ -82,6 +83,7 @@ public:
 		registry_list.push_back(&paths);
 		registry_list.push_back(&items);
 		registry_list.push_back(&questItemIndicators);
+		registry_list.push_back(&pointingArrows);
 
 		registry_list.push_back(&particles);
 

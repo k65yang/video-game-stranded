@@ -250,6 +250,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	screen.screen_darken_factor = 1 - min_timer_ms / 3000;
 
 	Motion& m = registry.motions.get(player_salmon);
+	vec2 player_p = m.position;
 	//Motion& f = registry.motions.get(fow);
 	//f.position = m.position;
 
@@ -282,6 +283,39 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			Motion& ui_motion = registry.motions.get(e);
 			ui_motion.position = ui_inital_position + camera_motion.position;
 		}
+	}
+
+	// Update pointing arrows
+	for (int i = 0; i < registry.pointingArrows.size(); i++) {
+		Entity e = registry.pointingArrows.entities[i];
+		PointingArrow& arrow = registry.pointingArrows.components[i];
+
+		Motion& arrow_m = registry.motions.get(e);
+		vec2 local_space = arrow.radius_offset;
+		Motion& target_m = registry.motions.get(arrow.target);
+		vec2 target_p = target_m.position;
+		vec2 delta_p = target_p - player_p;
+
+		// Check if the target is nearby
+		if (length(delta_p) > length(arrow.radius_offset)) {
+			// We need to make a custom transform matrix
+			float angle = atan2f(delta_p.y, delta_p.x);	// Angle that points towards the target
+
+			Transform transform;
+			transform.translate(player_p);	// Translate by player position
+			transform.rotate(angle);		// Rotate the position of the arrow depending on where the ship is
+			transform.scale({ 1, 1 });		// Constant scale to retain radius_offset distancing
+
+			vec3 offset = vec3(arrow.radius_offset, 1.0f);
+
+			arrow_m.position = vec2(transform.mat * offset);
+			arrow_m.angle = angle + (M_PI / 2); // offset added because arrow points up initially 
+												// instead of 90 degrees to the right
+		}
+		else {
+			arrow_m.position = target_p;	// Hover over target
+			arrow_m.angle = M_PI;			// Point down
+		}		
 	}
 
 	if (user_has_powerup) {
@@ -561,6 +595,9 @@ void WorldSystem::restart_game() {
 
 	// Create the main camera
 	main_camera = createCamera({ 0,0 });
+
+	// Create arrow pointing back to the ship
+	ship_arrow = createPointingArrow(renderer, player_salmon, spaceship);
 
 	// Reset the spaceship home system
 	spaceship_home_system->resetSpaceshipHomeSystem(SPACESHIP_MAX_HEALTH_STORAGE, SPACESHIP_MAX_FOOD_STORAGE, SPACESHIP_MAX_AMMO_STORAGE);
@@ -1437,6 +1474,9 @@ void WorldSystem::load_game(json j) {
 	// Create the main camera
 	main_camera = createCamera(player_location);
 	Motion& camera_motion = registry.motions.get(main_camera);
+
+	// Create arrow pointing back to the ship
+	ship_arrow = createPointingArrow(renderer, player_salmon, spaceship);
 
 	// Create player health bar
 	health_bar = createBar(renderer, HEALTH_BAR_FRAME_POS, PLAYER_MAX_HEALTH, BAR_TYPE::HEALTH_BAR);

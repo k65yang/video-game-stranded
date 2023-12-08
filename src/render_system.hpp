@@ -134,6 +134,8 @@ private:
 			textures_path("intro_screen.png"),
 			textures_path("start_button.png"),
 			textures_path("start_button_hover.png"),
+			textures_path("ship_arrow.png"),
+
 	};
 
 	// How big one terrain spritesheet is

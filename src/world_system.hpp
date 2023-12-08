@@ -131,6 +131,10 @@ private:
 	Entity ammo_indicator; 
 	Entity spaceship;
 	Entity spaceship_home; 
+	Entity help_bar;
+	Entity ship_arrow;
+
+	bool tooltips_on = true;
 
 	bool user_has_first_weapon = false;
 	bool user_has_powerup = false;
