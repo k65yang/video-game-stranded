@@ -66,8 +66,8 @@ The following table lists some of the balance issues the developers ran into dur
 
 | Issue | Game Change |
 | --------------- | --------------- |
-| Row 1, Col 1    | Row 1, Col 2    |
-| Row 2, Col 1    | Row 2, Col 2    |
+| Ever since we made the map 196x196, it is very easy to get lost and run out of food and die    | - Added blue arrow pointing back to the spaceship, so player always knows the way "home"    |
+| The shotgun is too OP; there is no incentive to use any other gun    | - Reduced weapon ammo and damage     |
 | Row 3, Col 1    | Row 3, Col 2    |
 
 <b></b> <br>
