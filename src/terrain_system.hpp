@@ -81,7 +81,7 @@ public:
 		{ZONE_3, 64},
 		{ZONE_4, 85},
 		// Make the radius be the hypoteneuse of the map to encapsulate the entire map as a circle
-		{ZONE_5, ceil(sqrt((size_x * size_x / 4) + (size_y * size_y / 4)))},
+		{ZONE_5, 138},
 		
 	};
 
