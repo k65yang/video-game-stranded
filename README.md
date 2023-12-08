@@ -48,6 +48,9 @@ For our submission for milestone 1, we were able to successfully complete all fe
 
 <b>Consistent game resolution</b> "aspect_ratio" , "targetResolution" in common.hpp, "RenderSystem::createProjectionMatrix()", "WorldSystem::create_window()"
 
+<br/>
+<br/>
+
 #### Milestone 4
 
 <b>Comprehensive tutorial</b>"PhysicsSystem::buildBVH()"<br>
