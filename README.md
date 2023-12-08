@@ -67,7 +67,9 @@ The following table lists some of the balance issues the developers ran into dur
 | Issue | Game Change |
 | --------------- | --------------- |
 | Ever since we made the map 196x196, it is very easy to get lost and run out of food and die    | - Added blue arrow pointing back to the spaceship, so player always knows the way "home"    |
-| The shotgun is too OP; there is no incentive to use any other gun    | - Reduced weapon ammo and damage     |
+| The shotgun is too OP; there is no incentive to use any other gun    | - Reduced shotgun ammo and damage </br> - Increase machine gun damage   |
+| The player would spawn with no weapons and must pick them up before using it. This causes them to be defenseless from attacking mobs while looking for a weapon.    | - Revamped the entire weapons system so that the player actually starts with all weapons. </br> - There was additional balance issues where the player is too strong early game, so we only gave the player ammo for one weapon (the other weapons have no ammo)   |
+| It may be very overwhelming for the player to worry about both health and food.    | - Added two powerups: a speed powerup (doubles speed without consuming more food) and health powerup (out of combat healing) so players can worry less about either their health or food.    |
 | Row 3, Col 1    | Row 3, Col 2    |
 
 <b></b> <br>
