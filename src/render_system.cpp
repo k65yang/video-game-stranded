@@ -192,10 +192,11 @@ void RenderSystem::drawToScreen()
 																	 // indices to the bound GL_ARRAY_BUFFER
 	gl_has_errors();
 	const GLuint fog_program = effects[(GLuint)EFFECT_ASSET_ID::FOG];
+	float scaled_fow_radius = fow_radius / 18.0f;
 
 	// set fog of war radius uniform
-	GLuint fowRadius_uloc = glGetUniformLocation(fog_program, "fowRadius");
-	glUniform1fv(fowRadius_uloc,1, (float*) &fow_radius);
+	GLuint fowRadius_uloc = glGetUniformLocation(fog_program, "scaled_down_fowRadius");
+	glUniform1fv(fowRadius_uloc,1, (float*) &scaled_fow_radius);
 
 	// set fow darken factor uniforms
 	GLuint fow_Darken_factor_uloc = glGetUniformLocation(fog_program, "fow_darken_factor");

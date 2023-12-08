@@ -2,7 +2,7 @@
 
 uniform sampler2D screen_texture;
 uniform float fow_darken_factor;
-uniform float fowRadius;
+uniform float scaled_down_fowRadius;
 uniform int enableFow;
 uniform ivec2 aspect_ratio;
 
@@ -19,7 +19,7 @@ void main()
 
 	if (enableFow == 1) {
 		float magnifier = 3.f;
-		float distanceScaling = 18.f;
+
 		vec2 f_aspect_ratio = vec2(aspect_ratio);
 		vec2 scaling = f_aspect_ratio.xy / f_aspect_ratio.yx;
 
@@ -39,11 +39,11 @@ void main()
 		// referece: drawing circle with distance in glsl reference: https://www.youtube.com/watch?v=L-BA4nJJ8bQ
 
 		// For pixel within fow, adjust color based on the distance of pixel to center pixel. Else, apply a darken factor on top of current pixel color
-	
-		if (disToFOW < (fowRadius / distanceScaling)) {
-			color = (1 - magnifier * disToFOW ) * in_color;
-		} else {
-	// for pixel outside fog, darken but keep them still visible
+		if (disToFOW < scaled_down_fowRadius) {
+			
+			color =  clamp((1 - 0.754 * (disToFOW / scaled_down_fowRadius)), 0.0f , 1.0f) * in_color;
+		} else{
+		// for pixel outside fog, darken but keep them still visible
 			color = in_color * fow_darken_factor;
 		}
 	
