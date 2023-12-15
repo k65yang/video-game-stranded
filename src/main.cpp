@@ -128,6 +128,7 @@ int main()
 			quest_system.step(elapsed_ms);
 			world_system.handle_collisions();
 			particle_system.step(elapsed_ms);
+			powerup_system.step(elapsed_ms);
 		}
 
 		tutorial_system.step(elapsed_ms);

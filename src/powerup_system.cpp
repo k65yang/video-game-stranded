@@ -3,33 +3,45 @@
 void PowerupSystem::init(RenderSystem* renderer_arg, ParticleSystem* particle_system_arg) {
 	this->renderer = renderer_arg;
 	this->particles = particle_system_arg;
-	this->player_entity = registry.players.entities[0];
-
+	
 };
 
 void PowerupSystem::step(float elapsed_ms) {
 
 	auto& powerups_component_container = registry.powerups.components;
-	
+	auto& player_component = registry.players.get(player_entity);
 
-	for (Powerup powerup : powerups_component_container) {
+	for (int i = 0; i < powerups_component_container.size(); i++) {
+		auto& powerup = powerups_component_container[i];
+
 		powerup.duration_ms -= elapsed_ms;
 
 		if (powerup.duration_ms < 0) {
+
 			powerup.duration_ms = 0;
-
-			removePowerupEffect(powerup.type);
-		}
-
-		if (powerup.type == POWERUP_TYPE::HEALTH_REGEN) {
+			disablePowerupEffect(powerup.type);
 			
-		
+			
+		} else if (powerup.type == POWERUP_TYPE::HEALTH_REGEN) {
+			
+			remaining_time_for_next_heal -= elapsed_ms;
+
+			if (player_component.health < PLAYER_MAX_HEALTH && remaining_time_for_next_heal <= 0.0f) {
+				// heal player
+				remaining_time_for_next_heal = heal_interval_ms;
+				player_component.health = std::min(PLAYER_MAX_HEALTH, player_component.health + heal_amount);
+
+				// creating particles effects for healing
+				particles->createFloatingHeart(player_entity, TEXTURE_ASSET_ID::HEART_PARTICLE, 6);
+
+				
+			}
+		} else if (powerup.type == POWERUP_TYPE::SPEED) {
+			particles->createParticleTrail(player_entity, TEXTURE_ASSET_ID::PLAYER_PARTICLE, 2, vec2{ 0.7f, 1.0f });
 		}
-	
-	
+
+
 	}
-
-
 
 }
 
@@ -37,68 +49,99 @@ void PowerupSystem::step(float elapsed_ms) {
 void PowerupSystem::applyPowerup(POWERUP_TYPE powerup_type) {
 
 
-	switch (powerup_type) {
-
-		case POWERUP_TYPE::SPEED:
-			applySpeedPowerup();
-			break;
-	
+	switch (powerup_type)
+	{
+	case POWERUP_TYPE::SPEED:
+		applySpeedPowerup();
+		break;
+	case POWERUP_TYPE::HEALTH_REGEN:
+		applyHealthRegenPowerup();
+		break;
+	case POWERUP_TYPE::INVISIBLE:
+		break;
+	case POWERUP_TYPE::INFINITE_BULLET:
+		break;
+	default:
+		break;
 	}
 
 		
 }
 
-void PowerupSystem::removePowerupEffect(POWERUP_TYPE powerup_type) {
+void PowerupSystem::disablePowerupEffect(POWERUP_TYPE powerup_type) {
+	auto& player_component = registry.players.get(player_entity);
+	switch (powerup_type)
+	{
+	case POWERUP_TYPE::SPEED:
+		// reset speed
+		player_component.current_speed = old_speed;
 
+		break;
+	case POWERUP_TYPE::HEALTH_REGEN:
+		// nothing to reset
+
+		break;
+	case POWERUP_TYPE::INVISIBLE:
+		// set mob tracking back on
+
+		break;
+	case POWERUP_TYPE::INFINITE_BULLET:
+		// set infinite bullet ammo back on
+		break;
+
+	default:
+		break;
+	}
 
 
 }
 
+// reset speed powerup timer, increase speed if needed
 void PowerupSystem::applySpeedPowerup() {
 
-	auto& powerup = registry.powerups.emplace_with_duplicates(player_entity);
-	powerup.type = POWERUP_TYPE::SPEED;
+	// loop through powerups to get speed power up
+	for (auto& powerup : registry.powerups.components) {
+		if (powerup.type == POWERUP_TYPE::SPEED) {
 
-	auto& motion = registry.motions.get(player_entity);
+			// re-apply speed if timer was zero
+			if (powerup.duration_ms <= 0) {
+
+				auto& player_component = registry.players.get(player_entity);
+
+				old_speed = player_component.current_speed;
+				player_component.current_speed *= 2;
+			}
+
+			// extend timer
+			powerup.duration_ms = start_duration_ms;
+			std::cout << (int)powerup.type << "'s duration is EXTENED " << powerup.duration_ms << std::endl;
+
+		}
 	
-	auto& player_component = registry.players.get(player_entity);
-	
-
-
-	/*
-	
-	// remove health power up if already equipped
-						if (registry.healthPowerup.has(player_salmon)) {
-							// check if the health bar is lit up (i.e. the player just healed)
-							HealthPowerup& healthPowerUp = registry.healthPowerup.get(player_salmon);
-							if (healthPowerUp.light_up_timer_ms > 0 || registry.colors.has(health_bar) ) {
-								registry.colors.remove(health_bar);
-							}
-							registry.healthPowerup.remove(player_salmon);
-						}
-						
-						// Give the speed power up to the player
-						SpeedPowerup& speedPowerup = registry.speedPowerup.emplace(player_salmon);
-						speedPowerup.old_speed = current_speed;
-						current_speed *= 2;
-
-		
-
-						// Add the powerup indicator
-						if (user_has_powerup)
-							registry.remove_all_components_of(powerup_indicator);
-						powerup_indicator = createPowerupIndicator(renderer, {9.5f+0.5, 6.f}, TEXTURE_ASSET_ID::ICON_POWERUP_SPEED);
-						user_has_powerup = true;
-	
-
-	// creating particles effects for character upgrades
-	if (registry.speedPowerup.has(player_salmon)) {
-		particle_system->createParticleTrail(player_salmon, TEXTURE_ASSET_ID::PLAYER_PARTICLE, 2, vec2{ 0.7f, 1.0f });
 	}
-	*/
+
+	
 }
 
+// reset health regen timer
 void PowerupSystem::applyHealthRegenPowerup() {
+
+	// loop through powerups to get speed power up
+	for (auto& powerup : registry.powerups.components) {
+		if (powerup.type == POWERUP_TYPE::HEALTH_REGEN) {
+
+			// re-apply speed if timer was zero
+			if (powerup.duration_ms <= 0) {
+				remaining_time_for_next_heal = 0.0f;
+			}
+
+			// extend timer
+			powerup.duration_ms = start_duration_ms;
+			std::cout << (int)powerup.type << "'s duration is EXTENED " << powerup.duration_ms << std::endl;
+
+		}
+
+	}
 
 
 	/*
@@ -143,14 +186,7 @@ void PowerupSystem::applyHealthRegenPowerup() {
 		}
 
 		// check if we need and can heal
-		if (player.health < PLAYER_MAX_HEALTH && hp.remaining_time_for_next_heal < 0) {
-			Motion& health = registry.motions.get(health_bar);
-			hp.remaining_time_for_next_heal = hp.heal_interval_ms;
-			player.health = std::min(PLAYER_MAX_HEALTH, player.health + hp.heal_amount);
-
-			// creating particles effects for healing
-
-			particle_system->createFloatingHeart(player_salmon, TEXTURE_ASSET_ID::HEART_PARTICLE, 6);
+		
 
 
 
@@ -164,20 +200,56 @@ void PowerupSystem::applyHealthRegenPowerup() {
 			}
 			hp.light_up_timer_ms = hp.light_up_duration_ms;
 
-			vec2 new_health_scale = vec2(((float)player.health / (float)PLAYER_MAX_HEALTH) * HEALTH_BAR_SCALE[0], HEALTH_BAR_SCALE[1]);
-			health.scale = interpolate(health.scale, new_health_scale, 1);
 		}
 	}
 	
 	*/
 }
 
-void PowerupSystem::loadPowerup(std::vector<Powerup> powerups) {
 
+
+// reset powerup system on game restart
+void PowerupSystem::resetPowerupSystem(Entity player_entity_arg) {
+
+	registry.powerups.clear();
+
+	auto& player_component = registry.players.get(player_entity_arg);
+
+	// initialize old speed as current speed;
+	old_speed = player_component.current_speed;
+
+	// store player entity reference
+	player_entity = player_entity_arg;
+	
+	// initialize powerups for player by attaching all powerups 
+	// duration are intialized with 0.0f
+	// disables effect for each powerup
+	auto& powerup = registry.powerups.emplace_with_duplicates(player_entity);
+	powerup.type = POWERUP_TYPE::SPEED;
+	disablePowerupEffect(powerup.type);
+
+	auto& powerup1 = registry.powerups.emplace_with_duplicates(player_entity);
+	powerup1.type = POWERUP_TYPE::HEALTH_REGEN;
+	disablePowerupEffect(powerup1.type);
+
+	auto& powerup2 = registry.powerups.emplace_with_duplicates(player_entity);
+	powerup2.type = POWERUP_TYPE::INVISIBLE;
+	disablePowerupEffect(powerup2.type);
+
+	auto& powerup3 = registry.powerups.emplace_with_duplicates(player_entity);
+	powerup3.type = POWERUP_TYPE::INFINITE_BULLET;
+	disablePowerupEffect(powerup3.type);
 }
 
-void PowerupSystem::resetPowerupSystem() {
+void PowerupSystem::setPowerup(float duration_ms, POWERUP_TYPE type_arg) {
 
+	for (auto& powerup : registry.powerups.components) {
+		if (powerup.type == type_arg) {
+			powerup.duration_ms = duration_ms;
+			std::cout << powerup.duration_ms << " is loaded to type " << (int)powerup.type << std::endl;
+		}
+	
+	}
 
 }
 

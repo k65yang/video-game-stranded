@@ -116,7 +116,6 @@ private:
 	ParticleSystem* particle_system;
 	PowerupSystem* powerup_system;
   
-	float current_speed;
 	float next_turtle_spawn;
 	float next_fish_spawn;
 	Entity player_salmon;
