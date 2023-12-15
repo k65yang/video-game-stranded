@@ -87,6 +87,20 @@ void from_json(const json& j, SpaceshipHome& spaceshipHome) {
     j.at("ammo_storage").get_to(spaceshipHome.ammo_storage);
 }
 
+
+void to_json(json& j, const Powerup& powerup) {
+    j = json{
+            {"duration_ms", powerup.duration_ms},
+            {"powerup_type",powerup.type },
+    };
+}
+
+void from_json(const json& j, Powerup& powerup) {
+    j.at("duration_ms").get_to(powerup.duration_ms);
+    j.at("powerup_type").get_to(powerup.type);
+    
+}
+
 // NOTE: Currently saving every field of these structs - but this isn't necessary, just for cleanliness of code. If we need more space we can trim here :)
 void SaveGame(
     Player& player, 
@@ -97,7 +111,7 @@ void SaveGame(
     std::vector<std::pair<Item&, Motion&>> items, 
     std::vector<QUEST_ITEM_STATUS> quest_item_statuses, 
     SpaceshipHome& spaceshipHome, 
-    ITEM_TYPE powerup) {
+    std::vector<Powerup> powerups) {
     json data;
 
     data["player"] = player;
@@ -108,7 +122,7 @@ void SaveGame(
     data["items"] = items;
     data["quest_item_statuses"] = quest_item_statuses;
     data["spaceshipHome"] = spaceshipHome;
-    data["powerup"] = powerup;
+    data["powerup"] = powerups;
 
     // std::cout << data.dump(4);
 

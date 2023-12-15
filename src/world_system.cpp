@@ -108,8 +108,8 @@ void WorldSystem::init(
 	SpaceshipHomeSystem* spaceship_home_system_arg,
 	QuestSystem* quest_system_arg,
 	TutorialSystem* tutorial_system_arg,
-	ParticleSystem* particle_system_arg
-) {
+	ParticleSystem* particle_system_arg,
+	PowerupSystem* powerup_system_arg) {
 
 	this->renderer = renderer_arg;
 	this->terrain = terrain_arg;
@@ -121,6 +121,7 @@ void WorldSystem::init(
 	this->quest_system = quest_system_arg;
 	this->tutorial_system = tutorial_system_arg;
 	this->particle_system = particle_system_arg;
+	this->powerup_system = powerup_system_arg;
 
 	// Setting callbacks to member functions (that's why the redirect is needed)
 	// Input is handled using GLFW, for more info see
@@ -331,50 +332,8 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			}
 		}
 
-		if (user_has_powerup) {
-			Motion& powerup_ui = registry.motions.get(powerup_indicator);
-			powerup_ui.position = { 9.5f +0.5+ camera_motion.position.x, 6.f + camera_motion.position.y };
-		}
+	
 
-		// health updates
-		if (registry.healthPowerup.has(player_salmon)) {
-			HealthPowerup& hp = registry.healthPowerup.get(player_salmon);
-
-			// update the time since last heal and the light up duration
-			hp.remaining_time_for_next_heal -= elapsed_ms_since_last_update;
-			hp.light_up_timer_ms -= elapsed_ms_since_last_update;
-
-			// light up expired
-			if (hp.light_up_timer_ms < 0 && registry.colors.has(health_bar)) {
-				registry.colors.remove(health_bar);
-			}
-
-			// check if we need and can heal
-			if (player.health < PLAYER_MAX_HEALTH && hp.remaining_time_for_next_heal < 0) {
-				Motion& health = registry.motions.get(health_bar);
-				hp.remaining_time_for_next_heal = hp.heal_interval_ms;
-				player.health = std::min(PLAYER_MAX_HEALTH, player.health + hp.heal_amount);
-
-				// creating particles effects for healing
-
-				particle_system->createFloatingHeart(player_salmon, TEXTURE_ASSET_ID::HEART_PARTICLE, 6);
-
-
-
-				// light up the health bar
-				if (registry.colors.has(health_bar)) {
-					// can happen when the light up period is longer than the heal interval
-				}
-				else {
-					vec4& color = registry.colors.emplace(health_bar);
-					color = vec4(.5f, .5f, .5f, 1.f);
-				}
-				hp.light_up_timer_ms = hp.light_up_duration_ms;
-
-				vec2 new_health_scale = vec2(((float)player.health / (float)PLAYER_MAX_HEALTH) * HEALTH_BAR_SCALE[0], HEALTH_BAR_SCALE[1]);
-				health.scale = interpolate(health.scale, new_health_scale, 1);
-			}
-		}
 	}
 
 	// Mob updates
@@ -446,10 +405,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			}
 		}
 
-		// creating particles effects for character upgrades
-		if (registry.speedPowerup.has(entity)) {
-			particle_system->createParticleTrail(entity, TEXTURE_ASSET_ID::PLAYER_PARTICLE, 2, vec2{0.7f, 1.0f});
-		}
+		
 
 		
 
@@ -607,6 +563,9 @@ void WorldSystem::restart_game() {
 	// Reset the weapons system
 	weapons_system->resetWeaponsSystem();
 
+	// Reset powerups system
+	powerup_system->resetPowerupSystem();
+
 	// Reset the terrain system
 	terrain->resetTerrainSystem();
 
@@ -664,8 +623,7 @@ void WorldSystem::restart_game() {
 
 	weapons_system->createNonselectedWeaponIndicators();
 
-	// Reset the power ups
-	user_has_powerup = false;
+
 
 	// Reset quest system
 	std::vector<QUEST_ITEM_STATUS> statuses(4, QUEST_ITEM_STATUS::NOT_FOUND);
@@ -758,15 +716,7 @@ void WorldSystem::handle_collisions() {
 						audio_system->play_one_shot(AudioSystem::PLAYER_HIT);
 				}
 
-				// reset health powerup values
-				if (registry.healthPowerup.has(player_salmon)) {
-					HealthPowerup& hp = registry.healthPowerup.get(player_salmon);
-					hp.remaining_time_for_next_heal = 5000.f;
-					hp.light_up_timer_ms = 0.f;
-
-					if (registry.colors.has(health_bar))
-						registry.colors.remove(health_bar);
-				}
+				
 			}
 
 			// Checking Player - Terrain
@@ -833,50 +783,14 @@ void WorldSystem::handle_collisions() {
 					case ITEM_TYPE::WEAPON_UPGRADE:
 						weapons_system->upgradeWeapon();
 						break;
+
+					// POWER UP
 					case ITEM_TYPE::POWERUP_SPEED:
-					{
-						// remove health power up if already equipped
-						if (registry.healthPowerup.has(player_salmon)) {
-							// check if the health bar is lit up (i.e. the player just healed)
-							HealthPowerup& healthPowerUp = registry.healthPowerup.get(player_salmon);
-							if (healthPowerUp.light_up_timer_ms > 0 || registry.colors.has(health_bar) ) {
-								registry.colors.remove(health_bar);
-							}
-							registry.healthPowerup.remove(player_salmon);
-						}
-						
-						// Give the speed power up to the player
-						SpeedPowerup& speedPowerup = registry.speedPowerup.emplace(player_salmon);
-						speedPowerup.old_speed = current_speed;
-						current_speed *= 2;
-
-		
-
-						// Add the powerup indicator
-						if (user_has_powerup)
-							registry.remove_all_components_of(powerup_indicator);
-						powerup_indicator = createPowerupIndicator(renderer, {9.5f+0.5, 6.f}, TEXTURE_ASSET_ID::ICON_POWERUP_SPEED);
-						user_has_powerup = true;
+						powerup_system->applyPowerup(POWERUP_TYPE::SPEED);
 						break;
 
-					}
 					case ITEM_TYPE::POWERUP_HEALTH:
-						// remove the speed power up if already equipped
-						if (registry.speedPowerup.has(player_salmon)) {
-							// reset speed to original speed
-							current_speed = registry.speedPowerup.get(player_salmon).old_speed;
-							registry.speedPowerup.remove(player_salmon);
-
-						}
-
-						// Give health powerup to player. Use default values in struct definition.
-						registry.healthPowerup.emplace(player_salmon);
-
-						// Add the powerup indicator
-						if (user_has_powerup)
-							registry.remove_all_components_of(powerup_indicator);
-						powerup_indicator = createPowerupIndicator(renderer, {9.5f+0.5, 6.f}, TEXTURE_ASSET_ID::ICON_POWERUP_HEALTH);
-						user_has_powerup = true;
+						powerup_system->applyPowerup(POWERUP_TYPE::HEALTH_REGEN);
 						break;
 				}
 
@@ -1036,9 +950,9 @@ void WorldSystem::update_spaceship_depart() {
 		registry.renderRequests.remove(ship_arrow);
 		// create depart spaceship
 		spaceship_depart = createSpaceshipDepart(renderer); 
-		// Iterate through all particles
-		if (registry.speedPowerup.has(player_salmon)) 
-			registry.speedPowerup.remove(player_salmon);
+
+		// Clear powerups
+		registry.powerups.clear();
 		// remove player		
 		registry.renderRequests.remove(player_salmon);
 		// disable player movements 
@@ -1095,17 +1009,13 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 			inventory.quest_items[ITEM_TYPE::QUEST_FOUR],
 		};
 
-		ITEM_TYPE p_type = ITEM_TYPE::POWERUP_NONE;
-		if (user_has_powerup) {
-			if (registry.healthPowerup.has(player_salmon)) {
-				p_type = ITEM_TYPE::POWERUP_HEALTH;
-			}
-			else {
-				p_type = ITEM_TYPE::POWERUP_SPEED;
-			}
+		std::vector<Powerup> powerups;
+		for (auto& powerup_entity : registry.powerups.entities) {
+			powerups.push_back(registry.powerups.get(powerup_entity));
 		}
+		
 
-		SaveGame(player, player_motion, active_weapon, weapons, mobs, items, quest_item_statuses, spaceship_home_info, p_type);
+		SaveGame(player, player_motion, active_weapon, weapons, mobs, items, quest_item_statuses, spaceship_home_info, powerups);
 
 		tutorial_system->createTutorialText(TUTORIAL_TYPE::GAME_SAVED);
 	}
@@ -1272,8 +1182,7 @@ void WorldSystem::process_editor_controls(int action, int key)
 		// will break!!
 		assert(registry.mobs.entities.empty());
 		assert(registry.items.entities.empty());
-		assert(registry.healthPowerup.entities.empty());
-		assert(registry.speedPowerup.entities.empty());
+		
 
 		terrain->expand_map(world_size_x, world_size_y);
 		renderer->empty_terrain_buffer();
@@ -1542,6 +1451,8 @@ void WorldSystem::load_game(json j) {
 	while (registry.weapons.entities.size() > 0)
 		registry.remove_all_components_of(registry.weapons.entities.back());
 
+
+
 	// Reset the weapons system
 	weapons_system->resetWeaponsSystem();
 
@@ -1626,38 +1537,9 @@ void WorldSystem::load_game(json j) {
 	if (weapon_type == ITEM_TYPE::WEAPON_NONE) {
 		user_has_first_weapon = false;
 	}
-	
-	// Load powerups
-	ITEM_TYPE powerup_type = (ITEM_TYPE)j["powerup"];
-	if (powerup_type == ITEM_TYPE::POWERUP_NONE) {
-		printf("loaded no powerup\n");
-		user_has_powerup = false;
-	} else {
-		user_has_powerup = true;
-		printf("powerup type: %i\n", powerup_type);
 
-		switch (powerup_type) {
-			case ITEM_TYPE::POWERUP_SPEED:
-			{
-				// Give the speed power up to the player
-				SpeedPowerup& speedPowerup = registry.speedPowerup.emplace(player_salmon);
-				speedPowerup.old_speed = current_speed;
-				current_speed *= 2;
-
-
-				// UI Indicator
-				powerup_indicator = createPowerupIndicator(renderer, { 9.5f+0.5 + camera_motion.position.x, 6.f + camera_motion.position.y }, TEXTURE_ASSET_ID::ICON_POWERUP_SPEED);
-				break;
-			}
-			case ITEM_TYPE::POWERUP_HEALTH:
-			{
-				// Give health powerup to player. Use default values in struct definition.
-				registry.healthPowerup.emplace(player_salmon);
-				powerup_indicator = createPowerupIndicator(renderer, { 9.5f+0.5 + camera_motion.position.x, 6.f + camera_motion.position.y }, TEXTURE_ASSET_ID::ICON_POWERUP_HEALTH);
-				break;
-			}
-		}
-	}
+	// Load all powerup data
+	powerup_system->loadPowerup((std::vector<Powerup>) j["powerups"]);
 
 	// Quest items
 	quest_system->resetQuestSystem(j["quest_item_statuses"]);

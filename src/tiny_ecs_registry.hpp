@@ -17,8 +17,8 @@ public:
 	ComponentContainer<Collision> collisions;
 
 	ComponentContainer<Player> players;
-	ComponentContainer<SpeedPowerup> speedPowerup;
-	ComponentContainer<HealthPowerup> healthPowerup;
+	ComponentContainer<Powerup> powerups;
+
 
 
 	ComponentContainer<PlayerKnockbackEffect> playerKnockbackEffects;
@@ -69,8 +69,8 @@ public:
 		registry_list.push_back(&collisions);
 
 		registry_list.push_back(&players);
-		registry_list.push_back(&speedPowerup);
-		registry_list.push_back(&healthPowerup);
+		registry_list.push_back(&powerups);
+
 
 		registry_list.push_back(&playerKnockbackEffects);
 		registry_list.push_back(&playerInaccuracyEffects);

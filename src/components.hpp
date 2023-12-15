@@ -66,6 +66,16 @@ enum class FRAME_TYPE {
 	STORAGE_FRAME = FOOD_FRAME + 1,
 };
 
+enum class POWERUP_TYPE {
+	
+	SPEED = 0,
+	HEALTH_REGEN = SPEED + 1,
+	INVISIBLE = HEALTH_REGEN + 1,
+	INFINITE_BULLET = INVISIBLE + 1,
+
+};
+
+
 // TODO: cool idea for later is to have a customizable difficulty that adjusts food and health.
 struct Player
 {
@@ -81,9 +91,7 @@ struct Player
 	bool has_entered_spaceship = false;
 };
 
-struct SpeedPowerup {
-	float old_speed;
-};
+
 
 struct QuestItemIndicator {
 	ITEM_TYPE quest_item;
@@ -96,14 +104,12 @@ struct Inventory {
 	};
 };
 
-// Make sure that the heal interval is always larger than the light up interval
-struct HealthPowerup {
-	float heal_interval_ms = 5000.f;				// Player health will increase after this interval
-	float remaining_time_for_next_heal = 2500.f;	// Time since the player last healed
-	int heal_amount = 10;							// The amount healed
-	float light_up_duration_ms = 1000.f;			// The health bar will light up to indicate healing
-	float light_up_timer_ms = 0.f;					// The time remaining for health bar to be lit up
+struct Powerup {
+	POWERUP_TYPE type;
+	float duration_ms = 3000;
+
 };
+
 
 // Knockback effect for player from mobs
 struct PlayerKnockbackEffect {

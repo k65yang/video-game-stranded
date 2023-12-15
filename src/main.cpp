@@ -19,6 +19,7 @@
 #include "quest_system.hpp"
 #include "tutorial_system.hpp"
 #include "start_screen_system.hpp"
+
 #include "common.hpp"
 
 using Clock = std::chrono::high_resolution_clock;
@@ -40,6 +41,7 @@ int main()
 	StartScreenSystem start_screen_system;
 	QuestSystem quest_system;
 	TutorialSystem tutorial_system;
+	PowerupSystem powerup_system;
 
 	// Initializing window
 	ivec2 window_size = {};
@@ -80,10 +82,13 @@ int main()
 
 	// Initialize all other systems
 	weapons_system.init(&render_system, &physics_system);
+	powerup_system.init(&render_system, &particle_system);
+
 	mob_system.init(&render_system, &terrain_system, &physics_system);
 	quest_system.init(&render_system);
 	spaceship_home_system.init(&render_system, &weapons_system, &quest_system);
 	tutorial_system.init(&render_system);
+	
 	world_system.init(
 		&render_system, 
 		&terrain_system, 
@@ -94,7 +99,8 @@ int main()
 		&spaceship_home_system, 
 		&quest_system,
 		&tutorial_system,
-		&particle_system
+		&particle_system,
+		&powerup_system
 	);
 	pathfinding_system.init(&terrain_system);
 	

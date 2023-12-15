@@ -22,7 +22,7 @@
 #include "quest_system.hpp"
 #include "tutorial_system.hpp"
 #include "particle_system.hpp"
-
+#include "powerup_system.hpp"
 #include <nlohmann/json.hpp>
 
 using json = nlohmann::json;
@@ -61,8 +61,8 @@ public:
 		SpaceshipHomeSystem* spaceship_home_system_arg,
 		QuestSystem* quest_system_arg,
 		TutorialSystem* tutorial_system_arg,
-    	ParticleSystem* particle_system_arg
-	);
+    	ParticleSystem* particle_system_arg,
+		PowerupSystem* powerup_system_arg);
 
 
 	// Releases all associated resources
@@ -114,6 +114,7 @@ private:
 	QuestSystem* quest_system;
 	TutorialSystem* tutorial_system;
 	ParticleSystem* particle_system;
+	PowerupSystem* powerup_system;
   
 	float current_speed;
 	float next_turtle_spawn;
