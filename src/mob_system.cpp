@@ -7,10 +7,12 @@ void MobSystem::step(float elapsed_ms) {
 // NOTE: do not add more mobs than there are grid cells available in the zone!!!
 void MobSystem::spawn_mobs() {
 	// spawn slimes
-	std::map<ZONE_NUMBER,int> zone_mob_slime = {
+	std::unordered_map<ZONE_NUMBER,int> zone_mob_slime = {
 		{ZONE_1, 5},    
 		{ZONE_2, 10},	
-		{ZONE_3, 10},	
+		{ZONE_3, 20},
+		{ZONE_4, 20},
+		{ZONE_5, 20},
 	};
 	std::vector<vec2> zone_slime_locations = terrain->get_mob_spawn_locations(zone_mob_slime);
 
@@ -19,10 +21,12 @@ void MobSystem::spawn_mobs() {
 	}
 
 	// spawn ghosts
-	std::map<ZONE_NUMBER,int> zone_mob_ghost = {
+	std::unordered_map<ZONE_NUMBER,int> zone_mob_ghost = {
 		{ZONE_1, 0},    
 		{ZONE_2, 7},	
 		{ZONE_3, 10},
+		{ZONE_4, 10},
+		{ZONE_5, 10},
 	};
 	std::vector<vec2> zone_ghost_locations = terrain->get_mob_spawn_locations(zone_mob_ghost);
 
@@ -31,10 +35,12 @@ void MobSystem::spawn_mobs() {
 	}
 
 	// spawn brutes
-	std::map<ZONE_NUMBER,int> zone_mob_brute = {
+	std::unordered_map<ZONE_NUMBER,int> zone_mob_brute = {
 		{ZONE_1, 0},    
 		{ZONE_2, 5},	
-		{ZONE_3, 15},
+		{ZONE_3, 12},
+		{ZONE_4, 28},
+		{ZONE_5, 30},
 	};
 	std::vector<vec2> zone_brute_locations = terrain->get_mob_spawn_locations(zone_mob_brute);
 
@@ -43,30 +49,18 @@ void MobSystem::spawn_mobs() {
 	}
 
 	// spawn DISRUPTOR
-	std::map<ZONE_NUMBER,int> zone_mob_disruptor = {
+	std::unordered_map<ZONE_NUMBER,int> zone_mob_disruptor = {
 		{ZONE_1, 0},    
 		{ZONE_2, 0},	
 		{ZONE_3, 30},		// I'm in danger
+		{ZONE_4, 20},
+		{ZONE_5, 20},
 	};
 	std::vector<vec2> zone_disruptor_locations = terrain->get_mob_spawn_locations(zone_mob_disruptor);
 
 	for (const auto& spawn_location: zone_disruptor_locations) {
 		create_mob(spawn_location, MOB_TYPE::DISRUPTOR);
 	}
-
-	// TODO: for milestone 4
-	// // spawn turret
-	// std::map<ZONE_NUMBER,int> zone_mob_turret = {
-	// 	{ZONE_0, 5},
-	// 	{ZONE_1, 0},    
-	// 	{ZONE_2, 0},	
-	// 	{ZONE_3, 0},
-	// };
-	// std::vector<vec2> zone_turret_locations = terrain->get_mob_spawn_locations(zone_mob_turret);
-
-	// for (const auto& spawn_location: zone_turret_locations) {
-	// 	create_mob(spawn_location, MOB_TYPE::TURRET);
-	// }
 }
 
 void MobSystem::apply_mob_attack_effects(Entity player, Entity mob) {
@@ -100,7 +94,7 @@ Entity MobSystem::create_mob(vec2 mob_position, MOB_TYPE mob_type, int current_h
 	mob_info.damage = mob_damage_map.at(mob_type);
 	mob_info.aggro_range = mob_aggro_range_map.at(mob_type);
 	mob_info.is_tracking_player = false;
-	vec2 health_position = { mob_position.x, mob_position.y + 1 };
+	vec2 health_position = { mob_position.x, mob_position.y - 0.8};
 	if (current_health != 0) {
 		mob_info.health = current_health;
 		// Create a health bar for the mob
@@ -115,13 +109,20 @@ Entity MobSystem::create_mob(vec2 mob_position, MOB_TYPE mob_type, int current_h
 	mob_info.curr_cell = terrain->get_cell(motion.position);
 	mob_info.type = mob_type;
 
-
 	// Initialize the collider
 	physics->createMeshCollider(entity, GEOMETRY_BUFFER_ID::MOB001_MESH, renderer);
 
 	TEXTURE_ASSET_ID texture = mob_textures_map.at(mob_type);
 	switch (mob_type) {
 		case MOB_TYPE::SLIME:	// Handle slime differently because it has a sprite sheet animation
+		{
+			// Attach animation component
+			Animation& animation = registry.animations.emplace(entity);
+			animation.framex = 0;
+			animation.framey = 1;
+			animation.frame_dimension_w = (float)(1.0f / 7.0f);
+			animation.frame_dimension_h = (float)(1.0f / 4.0f);
+
 			registry.renderRequests.insert(
 				entity,
 				{	
@@ -132,6 +133,7 @@ Entity MobSystem::create_mob(vec2 mob_position, MOB_TYPE mob_type, int current_h
 				}
 			);
 			break;
+		}
 		default:
 			registry.renderRequests.insert(
 				entity,
@@ -159,7 +161,7 @@ Entity MobSystem::create_mob_health_bar(RenderSystem* renderer, vec2 position, i
 	motion.angle = 0.f;
 	motion.velocity = { 0.f, 0.f };
 	motion.position = position;
-	motion.scale = vec2(((float)amount / (float)mob_health_map.at(type)) * 5.5, 0.7);
+	motion.scale = vec2(((float)amount / (float)mob_health_map.at(type)) * 2.5, 0.3);
 
 	registry.renderRequests.insert(
 		entity,

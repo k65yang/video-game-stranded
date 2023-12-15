@@ -40,7 +40,10 @@ Entity createBar(RenderSystem* renderer, vec2 position, int amount, BAR_TYPE typ
 Entity createFrame(RenderSystem* renderer, vec2 position, FRAME_TYPE type);
 Entity createWeaponIndicator(RenderSystem* renderer, vec2 position, TEXTURE_ASSET_ID weapon_texture);
 Entity createPowerupIndicator(RenderSystem* renderer, vec2 position, TEXTURE_ASSET_ID powerup_texture);
+Entity createPointingArrow(RenderSystem* renderer, Entity player, Entity target);
 
+// the spaceship departing 
+Entity createSpaceshipDepart(RenderSystem* renderer); 
 // Tool tips for ease of use 
 Entity createHelp(RenderSystem* renderer, vec2 position, TEXTURE_ASSET_ID texture);
 
@@ -54,3 +57,12 @@ Entity createQuestItem(RenderSystem* renderer, vec2 position, TEXTURE_ASSET_ID t
 Entity createCamera(vec2 pos);
 
 Entity createText(RenderSystem* renderer, vec2 position, std::string str, float scale=1.f, vec3 color={1.f, 1.f, 1.f});
+
+
+// Muzzle flash 
+Entity createMuzzleFlash(RenderSystem* renderer, vec2 position);
+
+
+// the ending screen text 
+Entity createEndingTextPopUp(RenderSystem* renderer, vec2 position, TEXTURE_ASSET_ID texture);
+

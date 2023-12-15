@@ -69,6 +69,7 @@ private:
 	// Make sure these paths remain in sync with the associated enumerators.
 	const std::array<std::string, texture_count> texture_paths = {
 			textures_path("player_spritesheet.png"),
+			textures_path("player_standing.png"),
 			textures_path("player_particle.png"),
 			textures_path("mob_spritesheet.png"),
 			textures_path("red_block.png"),
@@ -88,7 +89,7 @@ private:
 			textures_path("icon_powerup_health.png"),
 			textures_path("powerup_health.png"),
 			textures_path("powerup_speed.png"),
-			textures_path("spaceship.png"), 
+			textures_path("spaceship.png"),
 			textures_path("spaceship_home.png"),
 			textures_path("blue_block.png"),
 			textures_path("brown_block.png"),
@@ -99,11 +100,6 @@ private:
 			textures_path("spaceship_home_health.png"),
 			textures_path("spaceship_home_ammo.png"),
 			textures_path("spaceship_home_food.png"),
-			textures_path("help1.png"),
-			textures_path("help2.png"),
-			textures_path("help3.png"),
-			textures_path("help4.png"),
-			textures_path("help_weapon.png"),
 			textures_path("q1_not_found.png"),
 			textures_path("q1_found.png"),
 			textures_path("q1_submitted.png"),
@@ -120,17 +116,36 @@ private:
 			textures_path("q2.png"),
 			textures_path("q3.png"),
 			textures_path("q4.png"),
-			//spaceship parts built
 			textures_path("q1_built.png"),
 			textures_path("q2_built.png"),
 			textures_path("q3_built.png"),
 			textures_path("q4_built.png"),
+			textures_path("help_button.png"),
+			textures_path("help_dialog.png"),
+			textures_path("quest_item_tutorial_dialog.png"),
+			textures_path("spaceship_home_tutorial_dialog.png"),
 			textures_path("ghost.png"),
+			textures_path("spaceship_depart.png"),
 			textures_path("brute.png"),
 			textures_path("disruptor.png"),
-			textures_path("mob_turret.png"),
-			textures_path("loaded.png"),
-			textures_path("saving.png"),
+			textures_path("death_text_f.png"),
+			textures_path("death_text_h.png"),
+			textures_path("victory_text.png"),
+			textures_path("heart_particle.png"),
+			// Starting screen textures
+			textures_path("start_screen.png"),
+			textures_path("intro_screen.png"),
+			textures_path("start_button.png"),
+			textures_path("start_button_hover.png"),
+			textures_path("muzzle_flash_sheet.png"),
+			textures_path("ship_arrow.png"),
+
+			textures_path("shuriken_side_icon.png"),
+			textures_path("crossbow_side_icon.png"),
+			textures_path("shotgun_side_icon.png"),
+			textures_path("machinegun_side_icon.png"),
+
+
 	};
 
 	// How big one terrain spritesheet is
@@ -207,7 +222,10 @@ private:
 		shader_path("textured"),
 		shader_path("fog"),
 		shader_path("terrain"),
+		shader_path("particle"),
+		shader_path("textureParticle"),
 		shader_path("text")};
+
 
 	std::array<GLuint, geometry_count> vertex_buffers;
 	std::array<GLuint, geometry_count> index_buffers;
@@ -215,7 +233,7 @@ private:
 
 public:
 	// Initialize the window
-	bool init(GLFWwindow* window);
+	bool init(GLFWwindow* window, const ivec2 window_size);
 
 	// fog of war related variable
 
@@ -232,6 +250,10 @@ public:
 	// Stores the current actual window resolution. You may use this instead of the slower
 	// glfwGetVideoMode(glfwGetPrimaryMonitor()) method.
 	ivec2 window_resolution;
+
+	// If there is a mismatch between the monitor resolution and the window resolution, multiply
+	// this after getting the raw position of the mouse.
+	vec2 screen_to_window_correction;
 
 	/// <summary>
 	/// Binds and allocates a given vertex and index buffer under the "index" that is gid in GPU memory.
@@ -260,11 +282,13 @@ public:
 
 	void initializeGlMeshes();
 	Mesh& getMesh(GEOMETRY_BUFFER_ID id) { return meshes[(int)id]; };
+	void initializeSpriteSheetQuad(GEOMETRY_BUFFER_ID gid, int numberOfRowSprites, float numberOfColumnSprites);
 
 	void initializeGlGeometryBuffers();
 	// Initialize the screen texture used as intermediate render target
 	// The draw loop first renders to this texture, then it is used for the water
 	// shader
+
 	bool initScreenTexture();
 
 	// Initialize text vertex buffers and text vao
@@ -273,11 +297,15 @@ public:
 	// Destroy resources associated to one or all entities created by the system
 	~RenderSystem();
 
-	// Draw all entities
+	// Draw all entities when in the world
 	void draw();
 
+	// Draw all entities when in the start screens
+	void drawStartScreens();
+
 	mat3 createModelMatrix(Entity entity);
-	mat3 createProjectionMatrix();
+	mat3 createScaledProjectionMatrix();
+	mat3 createUnscaledProjectionMatrix();
 
 	/// <summary>
 	/// Modifies the terrain vertex buffer to regenerate rendering values for a specific tile.
@@ -294,17 +322,13 @@ public:
 
 	// Render text to screen using freetype
 	// Code based off: https://learnopengl.com/In-Practice/Text-Rendering
-	void renderText(std::string text, float x, float y, float scale, glm::vec3 color, mat3& projection_matrix, mat3& view_matrix);
+	void renderText(std::string text, float x, float y, float scale, glm::vec3 color, const mat3& projection_matrix, const mat3& view_matrix);
 
 	// Do not modify this. READ ONLY!!
 	bool is_terrain_mesh_loaded = false;
 
-	// Initialize player sprite
-	float player_frame_w;
-	float player_frame_h;
-	// Initialize mob sprite
-	float mob_frame_w;
-	float mob_frame_h;
+	void drawParticles(Entity entity ,const mat3& view_matrix, const mat3& projection);
+
 
 private:
 	// Freetype stuff

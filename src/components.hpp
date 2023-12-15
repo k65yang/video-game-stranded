@@ -20,6 +20,19 @@ enum class QUEST_ITEM_STATUS {
 	SUBMITTED = FOUND + 1
 };
 
+enum class RESOURCE_TYPE {
+	AMMO = 0,
+	FOOD = AMMO + 1,
+	HEALTH = FOOD + 1
+};
+
+enum class TUTORIAL_TYPE {
+	QUEST_ITEM_TUTORIAL = 0,
+	SPACESHIP_HOME_TUTORIAL = QUEST_ITEM_TUTORIAL + 1,
+	GAME_SAVED = SPACESHIP_HOME_TUTORIAL + 1,
+	GAME_LOADED = GAME_SAVED + 1
+};
+
 enum class ITEM_TYPE {
 	QUEST_ONE = 0,
 	QUEST_TWO = QUEST_ONE + 1,
@@ -63,9 +76,9 @@ struct Player
 	int decrease_food_to = PLAYER_MAX_FOOD;
 	float iframes_timer = 0; // in ms
 	int food = PLAYER_MAX_FOOD;
-	int framex = 0; 
-	int framey = 4; 
 	bool is_home = false;
+	bool has_collected_quest_item = false;
+	bool has_entered_spaceship = false;
 };
 
 struct SpeedPowerup {
@@ -113,15 +126,18 @@ struct Weapon {
 	float elapsed_last_shot_time_ms;     // controls fire rate, the time that the weapon was fired last
 	float projectile_velocity;           // speed of projectiles of this weapon
 	int projectile_damage;               // weapon damage
+	float knockback_force;				 // magnitude of knockback on enemy
 	int ammo_count;						 // Ammo
 	int level;							 // Weapon level
 };
 
-// The spaceship 
 struct SpaceshipHome {
 	int health_storage;
 	int food_storage;
 	int ammo_storage;
+};
+
+struct Spaceship {
 };
 
 // The projectile
@@ -145,8 +161,6 @@ struct Mob {
 	int aggro_range;
 	int health;
 	float speed_ratio;
-	int mframex = 0;
-	int mframey = 1;
 	Entity curr_cell;
 	MOB_TYPE type;
 	Entity health_bar;
@@ -204,6 +218,7 @@ struct Text {
 struct Debug {
 	bool in_debug_mode = 0;
 	bool in_freeze_mode = 0;
+	bool hide_ui = 0;
 };
 extern Debug debugging;
 
@@ -225,8 +240,8 @@ struct DeathTimer
 	float timer_ms = 5000.f;
 };
 
-struct ToolTip {
-	float timer = 3000.f;
+struct Tutorial {
+	float timer_ms = 5000.f;
 };
 
 // Single Vertex Buffer element for non-textured meshes (coloured.vs.glsl & salmon.vs.glsl)
@@ -263,7 +278,9 @@ enum ZONE_NUMBER {
 	ZONE_1 = 1,
 	ZONE_2 = 2,
 	ZONE_3 = 3,
-	ZONE_COUNT = ZONE_3 + 1,
+	ZONE_4 = 4,
+	ZONE_5 = 5,
+	ZONE_COUNT = ZONE_5 + 1,
 };
 
 
@@ -334,6 +351,16 @@ struct Collider
 	int flag;  // for filtering 
 };
 
+// component for entity using sprite sheet animation
+struct Animation {
+	int framex = 0; // row index on the sprite from sprite sheet
+	int framey = 0; // column index 
+
+	float frame_dimension_w = 1.0f;
+	float frame_dimension_h = 1.0f;
+	// frame dimension on width and height are set up under initializeGlGeometryBuffers() from render_system_init.cpp
+};
+
 
 /**
  * The following enumerators represent global identifiers refering to graphic
@@ -361,7 +388,8 @@ struct Collider
 
 enum class TEXTURE_ASSET_ID {
 	PLAYER = 0,
-	PLAYER_PARTICLE = PLAYER + 1,
+	PLAYER_STANDING = PLAYER + 1,
+	PLAYER_PARTICLE = PLAYER_STANDING + 1,
 	SLIME = PLAYER_PARTICLE + 1,
 	RED_BLOCK = SLIME + 1,
 	WEAPON_UPGRADE = RED_BLOCK + 1,
@@ -391,12 +419,7 @@ enum class TEXTURE_ASSET_ID {
 	SPACESHIP_HOME_HEALTH = FOOD_FRAME + 1,
 	SPACESHIP_HOME_AMMO = SPACESHIP_HOME_HEALTH + 1,
 	SPACESHIP_HOME_FOOD = SPACESHIP_HOME_AMMO + 1,
-	HELP_ONE = SPACESHIP_HOME_FOOD + 1,
-	HELP_TWO = HELP_ONE + 1,
-	HELP_THREE = HELP_TWO + 1,
-	HELP_FOUR = HELP_THREE + 1,
-	HELP_WEAPON = HELP_FOUR + 1,
-	QUEST_1_NOT_FOUND = HELP_WEAPON + 1,
+	QUEST_1_NOT_FOUND = SPACESHIP_HOME_FOOD + 1,
 	QUEST_1_FOUND = QUEST_1_NOT_FOUND + 1,
 	QUEST_1_SUBMITTED = QUEST_1_FOUND + 1,
 	QUEST_2_NOT_FOUND = QUEST_1_SUBMITTED + 1,
@@ -416,13 +439,32 @@ enum class TEXTURE_ASSET_ID {
 	QUEST_2_BUILT = QUEST_1_BUILT + 1,
 	QUEST_3_BUILT = QUEST_2_BUILT + 1,
 	QUEST_4_BUILT = QUEST_3_BUILT + 1,
-	GHOST = QUEST_4_BUILT + 1,
-	BRUTE = GHOST + 1,
+	HELP_BUTTON = QUEST_4_BUILT + 1,
+	HELP_DIALOG = HELP_BUTTON + 1,
+	QUEST_ITEM_TUTORIAL_DIALOG = HELP_DIALOG + 1,
+	SPACESHIP_HOME_TUTORIAL_DIALOG = QUEST_ITEM_TUTORIAL_DIALOG + 1,
+	GHOST = SPACESHIP_HOME_TUTORIAL_DIALOG + 1,
+	SPACESHIP_DEPART = GHOST + 1, 
+	BRUTE = SPACESHIP_DEPART + 1,
 	DISRUPTOR = BRUTE + 1,
-	TURRET = DISRUPTOR + 1,
-	LOADED = TURRET + 1,
-	SAVING = LOADED + 1,
-	TEXTURE_COUNT = SAVING + 1,
+	DEATH_TEXT_F = DISRUPTOR + 1,
+	DEATH_TEXT_H = DEATH_TEXT_F + 1,
+	VICTORY_TEXT = DEATH_TEXT_H + 1,
+	HEART_PARTICLE = VICTORY_TEXT + 1,
+	START_SCREEN_ONE = HEART_PARTICLE + 1,
+	START_SCREEN_TWO = START_SCREEN_ONE + 1,
+	START_BUTTON = START_SCREEN_TWO + 1,
+	START_BUTTON_HOVER = START_BUTTON + 1,
+	MUZZLE_SHEET = START_BUTTON_HOVER + 1,
+	POINTING_ARROW = MUZZLE_SHEET + 1,
+	SIDEICON_SHURIKEN = POINTING_ARROW + 1,
+	SIDEICON_CROSSBOW = SIDEICON_SHURIKEN + 1,
+	SIDEICON_SHOTGUN = SIDEICON_CROSSBOW + 1,
+	SIDEICON_MACHINEGUN = SIDEICON_SHOTGUN + 1,
+	TEXTURE_COUNT = SIDEICON_MACHINEGUN + 1,
+
+
+
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 
@@ -434,8 +476,11 @@ enum class EFFECT_ASSET_ID {
 	TEXTURED = SALMON + 1,
 	FOG = TEXTURED + 1,
 	TERRAIN = FOG + 1,
-	TEXT = TERRAIN + 1,
+	PARTICLE = TERRAIN + 1,
+	TEXTUREPARTICLE = PARTICLE + 1,
+	TEXT = TEXTUREPARTICLE + 1,
 	EFFECT_COUNT = TEXT + 1
+
 };
 const int effect_count = (int)EFFECT_ASSET_ID::EFFECT_COUNT;
 
@@ -449,11 +494,14 @@ enum class GEOMETRY_BUFFER_ID {
 	PLAYER_SPRITE = SCREEN_TRIANGLE + 1,
 	// adding mobs geo_buffer_ID 
 	MOB_SPRITE = PLAYER_SPRITE + 1,
-	TERRAIN = MOB_SPRITE + 1,
+	SPACESHIP_DEPART_SPRITE = MOB_SPRITE + 1,
+	TERRAIN = SPACESHIP_DEPART_SPRITE + 1,
 	PLAYER_MESH = TERRAIN + 1,
 	MOB001_MESH = PLAYER_MESH + 1,
 	TEXT = MOB001_MESH + 1,
-	GEOMETRY_COUNT = TEXT + 1
+	MUZZLEFLASH_SPRITE = TEXT + 1,
+	GEOMETRY_COUNT = MUZZLEFLASH_SPRITE + 1
+
 };
 
 enum class RENDER_LAYER_ID {
@@ -461,12 +509,20 @@ enum class RENDER_LAYER_ID {
 	LAYER_2 = LAYER_1 + 1,
 	LAYER_3 = LAYER_2 + 1,      
 	LAYER_4 = LAYER_3 + 1,      // UI elements
-	LAYER_COUNT = LAYER_4 + 1
-
+	LAYER_5 = LAYER_4 + 1,      
+	LAYER_COUNT = LAYER_5 + 1
 };
 const int geometry_count = (int)GEOMETRY_BUFFER_ID::GEOMETRY_COUNT;
 
 struct RenderRequest {
+	TEXTURE_ASSET_ID used_texture = TEXTURE_ASSET_ID::TEXTURE_COUNT;
+	EFFECT_ASSET_ID used_effect = EFFECT_ASSET_ID::EFFECT_COUNT;
+	GEOMETRY_BUFFER_ID used_geometry = GEOMETRY_BUFFER_ID::GEOMETRY_COUNT;
+	RENDER_LAYER_ID layer_id = RENDER_LAYER_ID::LAYER_COUNT;
+};
+
+struct InstancedRenderRequest {
+	std::vector<Entity> entities;
 	TEXTURE_ASSET_ID used_texture = TEXTURE_ASSET_ID::TEXTURE_COUNT;
 	EFFECT_ASSET_ID used_effect = EFFECT_ASSET_ID::EFFECT_COUNT;
 	GEOMETRY_BUFFER_ID used_geometry = GEOMETRY_BUFFER_ID::GEOMETRY_COUNT;
@@ -478,13 +534,33 @@ const int NUM_PARTICLES = 200;
 
 // Struct describing particles 
 struct Particle {
-	
+	bool active = false;
+	TEXTURE_ASSET_ID texture = TEXTURE_ASSET_ID::TEXTURE_COUNT; //HARDCODED TEMPORARY TO THIS FOR NOW
+	float lifeTime = 1000.0f; // in ms
+	float lifeTimeRemaining = 0.0f;
+	float sizeBegin, sizeEnd;
+
 }; 
 
-// Each entity that has particle effects will have a vector to track individual particles
-struct ParticleTrail {
-	TEXTURE_ASSET_ID texture;
-	Motion* motion_component_ptr;
-	bool is_alive;
-	std::set<Entity> particles;
+struct ParticleTemplate {
+	TEXTURE_ASSET_ID texture = TEXTURE_ASSET_ID::TEXTURE_COUNT; //HARDCODED TEMPORARY TO THIS FOR NOW
+	bool active = false;
+	float lifeTime = 1000.0f; // in ms
+	float lifeTimeRemaining = 1000.0f;
+	float sizeBegin = 1.0f;
+	float sizeEnd = 0.0f;
+	vec2 position = {0.f, 0.f};
+	vec2 velocity = { 0.f, 0.f };
+	vec4 color = vec4{ 1.0f };
+
+};
+
+struct PointingArrow {
+
+	PointingArrow(Entity target) {
+		this->target = target;
+	}
+
+	Entity target;
+	vec2 radius_offset = { 5, 0 };
 };

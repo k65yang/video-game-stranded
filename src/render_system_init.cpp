@@ -14,7 +14,7 @@
 #include <sstream>
 
 // World initialization
-bool RenderSystem::init(GLFWwindow* window_arg)
+bool RenderSystem::init(GLFWwindow* window_arg, const ivec2 window_size)
 {
 	this->window = window_arg;
 
@@ -22,12 +22,14 @@ bool RenderSystem::init(GLFWwindow* window_arg)
 	glfwSwapInterval(1); // vsync
 
 	// Get window resolution
-	if (windowed_mode) {
-		window_resolution = target_resolution;
+	window_resolution = window_size;
+	if (!windowed_mode) {
+		auto mode = glfwGetVideoMode(glfwGetPrimaryMonitor());
+		vec2 screen_resolution = { mode->width, mode->height };
+		screen_to_window_correction = vec2(window_resolution) / screen_resolution;
 	}
 	else {
-		const GLFWvidmode* mode = glfwGetVideoMode(glfwGetPrimaryMonitor());
-		window_resolution = { mode->width, mode->height };
+		screen_to_window_correction = { 1, 1 };
 	}
 
 	// Load OpenGL function pointers
@@ -520,48 +522,47 @@ void RenderSystem::initializeGlGeometryBuffers()
 	const std::vector<uint16_t> screen_indices = { 0, 1, 2 };
 	bindVBOandIBO(GEOMETRY_BUFFER_ID::SCREEN_TRIANGLE, screen_vertices, screen_indices);
 
-
 	//////////////////////////
-// Initialize player sprite
-// The position corresponds to the center of the texture.
+	// Initialize player spritesheet. Spritesheet width and height in terms of frames is 4 by 9 
+	// The position corresponds to the center of the texture.
 	// This is hardcoded dimensions of the texture/ num of frame in texture 
-	player_frame_w = 0.25f; 
-	player_frame_h = (float)1/9;
-	std::vector<TexturedVertex> player_vertices(4);
-	player_vertices[0].position = { -1.f / 2, +1.f / 2, 0.f };
-	player_vertices[1].position = { +1.f / 2, +1.f / 2, 0.f };
-	player_vertices[2].position = { +1.f / 2, -1.f / 2, 0.f };
-	player_vertices[3].position = { -1.f / 2, -1.f / 2, 0.f };
-	player_vertices[3].texcoord = { 0.f, 0.f };
-	player_vertices[2].texcoord = { player_frame_w, 0.f };
-	player_vertices[1].texcoord = { player_frame_w, player_frame_h};
-	player_vertices[0].texcoord = { 0.f, player_frame_h};
+
+	initializeSpriteSheetQuad(GEOMETRY_BUFFER_ID::PLAYER_SPRITE, 4, 5);
+
+	// Initialize mob spritesheet
+	initializeSpriteSheetQuad(GEOMETRY_BUFFER_ID::MOB_SPRITE, 7, 4);
+
+	// Initialize muzzle flash 
+	initializeSpriteSheetQuad(GEOMETRY_BUFFER_ID::MUZZLEFLASH_SPRITE, 5, 1);
+
+	// initislize spaceship depart spritesheet
+	initializeSpriteSheetQuad(GEOMETRY_BUFFER_ID::SPACESHIP_DEPART_SPRITE, 6, 1);
+
+}
+
+// Helper function to initialize the geometry buffer for sprite sheet animation
+void RenderSystem::initializeSpriteSheetQuad(GEOMETRY_BUFFER_ID gid, int numberOfHorizontalFrame, float numberOfVerticalFrame) {
+
+	// This value is still need for animation component initialization but idk how i can pass it there at this point.
+	// For now it is manually calculated during animation component setup for each entity using it
+
+	float frame_w =(1 / (float)numberOfHorizontalFrame);
+	float frame_h = (1 / (float)numberOfVerticalFrame);
+
+	std::vector<TexturedVertex> quad_vertices(4);
+	quad_vertices[0].position = { -1.f / 2, +1.f / 2, 0.f };
+	quad_vertices[1].position = { +1.f / 2, +1.f / 2, 0.f };
+	quad_vertices[2].position = { +1.f / 2, -1.f / 2, 0.f };
+	quad_vertices[3].position = { -1.f / 2, -1.f / 2, 0.f };
+	quad_vertices[3].texcoord = { 0.f, 0.f };
+	quad_vertices[2].texcoord = { frame_w, 0.f };
+	quad_vertices[1].texcoord = { frame_w, frame_h };
+	quad_vertices[0].texcoord = { 0.f, frame_h };
 
 	// Counterclockwise as it's the default opengl front winding direction.
-	const std::vector<uint16_t> player_indices = { 0, 3, 1, 1, 3, 2 };
+	const std::vector<uint16_t> quad_indices = { 0, 3, 1, 1, 3, 2 };
 
-	bindVBOandIBO(GEOMETRY_BUFFER_ID::PLAYER_SPRITE, player_vertices, player_indices);
-
-	// Initialize mob sprite
-// The position corresponds to the center of the texture.
-	// This is hardcoded dimensions of the texture/ num of frame in texture 
-	mob_frame_w = 0.142857f;
-	mob_frame_h = 0.25;
-	std::vector<TexturedVertex> mob_vertices(4);
-	mob_vertices[0].position = { -1.f / 2, +1.f / 2, 0.f };
-	mob_vertices[1].position = { +1.f / 2, +1.f / 2, 0.f };
-	mob_vertices[2].position = { +1.f / 2, -1.f / 2, 0.f };
-	mob_vertices[3].position = { -1.f / 2, -1.f / 2, 0.f };
-	mob_vertices[3].texcoord = { 0.f, 0.f };
-	mob_vertices[2].texcoord = { mob_frame_w, 0.f };
-	mob_vertices[1].texcoord = { mob_frame_w, mob_frame_h };
-	mob_vertices[0].texcoord = { 0.f, mob_frame_h };
-
-	// Counterclockwise as it's the default opengl front winding direction.
-	const std::vector<uint16_t> mob_indices = { 0, 3, 1, 1, 3, 2 };
-
-	bindVBOandIBO(GEOMETRY_BUFFER_ID::MOB_SPRITE, mob_vertices, mob_indices);
-
+	bindVBOandIBO(gid, quad_vertices, quad_indices);
 }
 
 RenderSystem::~RenderSystem()

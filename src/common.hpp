@@ -11,6 +11,9 @@
 #include <gl3w.h>
 #include <GLFW/glfw3.h>
 
+// allows vec3.xy, vec3.zy, rtc.
+#define GLM_FORCE_SWIZZLE
+
 // The glm library provides vector and matrix operations as in GLSL
 #include <glm/vec2.hpp>				// vec2
 #include <glm/ext/vector_int2.hpp>  // ivec2
@@ -55,12 +58,12 @@ inline std::string map_path_builder(const std::string& name) {
 // Actual screen resolution stores iniside render_system as window_resolution
 const ivec2 target_resolution = { 1200, 800 };	// alternative: { 1620, 1080 }
 const ivec2 aspect_ratio = { 3, 2 };			// Remember to reduce this to lowest form!
-const bool windowed_mode = true;
+const bool windowed_mode = false;
 
 const int tile_size_px = 50;		// Represents how many pixels a tile occupies in a row and column
 
-const unsigned short world_size_x = 128;
-const unsigned short world_size_y = 128;
+const unsigned short world_size_x = 196;
+const unsigned short world_size_y = 196;
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846f
@@ -88,7 +91,7 @@ template <typename T>
 void write_to_file(std::ofstream& file, T& data);
 
 template <typename T>
-void read_from_file(std::ofstream& file, T& data);
+void read_from_file(std::ifstream& file, T& data);
 
 
 template<typename T>

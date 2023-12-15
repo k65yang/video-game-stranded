@@ -35,7 +35,7 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 
 	// Input data location as in the vertex buffer
 
-	if (render_request.used_effect == EFFECT_ASSET_ID::TEXTURED ||render_request.used_effect == EFFECT_ASSET_ID::SPRITESHEET)
+	if (render_request.used_effect == EFFECT_ASSET_ID::TEXTURED || render_request.used_effect == EFFECT_ASSET_ID::SPRITESHEET)
 	{
 
 		// Skip rendering spaceship home screen if player is at world 
@@ -76,36 +76,23 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 
 		glBindTexture(GL_TEXTURE_2D, texture_id);
 		gl_has_errors();
+		
+		if (registry.animations.has(entity)) {
+			// set the frame for shader
+			Animation& animation = registry.animations.get(entity);
 
-		if (render_request.used_texture == TEXTURE_ASSET_ID::PLAYER)
-		{
 
-			// set the frame for shader for player
+			GLint frame_uloc = glGetUniformLocation(program, "spriteFrame");
+			glUniform2f(frame_uloc, animation.framex, animation.framey);
 
-			GLint playerFrame_uloc = glGetUniformLocation(program, "spriteFrame");
-			glUniform2f(playerFrame_uloc, registry.players.components[0].framex, registry.players.components[0].framey);
+
 
 			// Set the frame dimensions for the player
 			GLint frameDimensions_uloc = glGetUniformLocation(program, "frameDimensions");
-			glUniform2f(frameDimensions_uloc, player_frame_w, player_frame_h);
+			glUniform2f(frameDimensions_uloc, animation.frame_dimension_w, animation.frame_dimension_h);
 			gl_has_errors();
 		}
-		else if (render_request.used_texture == TEXTURE_ASSET_ID::SLIME) {
-			// set the frame for shader for mob 
 
-			GLint mFrame_uloc = glGetUniformLocation(program, "spriteFrame");
-			glUniform2f(mFrame_uloc, registry.mobs.get(entity).mframex, registry.mobs.get(entity).mframey);
-			//printf("printing in mob i framey %d \n", registry.mobs.get(entity).mframey);
-
-			// Set the frame dimensions for the mob
-			GLint frameDimensions_uloc = glGetUniformLocation(program, "frameDimensions");
-			glUniform2f(frameDimensions_uloc, mob_frame_w, mob_frame_h);
-			gl_has_errors();
-
-		}
-		// else if (render_request.used_texture == TEXTURE_ASSET_ID::PLAYER_PARTICLE) {
-		// 	GLint isPlayer_uloc = glGetUniformLocation(program, "isPlayer");
-		// }
 
 	}
 	else if (render_request.used_effect == EFFECT_ASSET_ID::SALMON || render_request.used_effect == EFFECT_ASSET_ID::PEBBLE)
@@ -159,8 +146,171 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 
 }
 
-// draw the intermediate texture to the screen, with some distortion to simulate
-// water
+// refernece on instanced rendering: https://learnopengl.com/Advanced-OpenGL/Instancing
+// refernece on instanced rendering: https://ogldev.org/www/tutorial33/tutorial33.html
+// Basically first group the entities needed for the particle effect, compute the transform for each particle, setup the buffer for transforms and pass it to shader.
+// The way I did is by storing mat3 as 3 vector, each of them is a attribute in the vertex buffer.
+//  This way by calling 
+// drawElementsInstance, we reused the same geometry and do instanced rendering by drawing each instance with a different transform.
+void RenderSystem::drawParticles(Entity entity,const mat3& view_matrix,const mat3& projection)
+{
+	
+
+	assert(registry.instancedRenderRequests.has(entity));
+	const InstancedRenderRequest& render_request = registry.instancedRenderRequests.get(entity);
+
+	// CREATE MODEL MATRIX FOR ALL ENTITIES
+	std::vector<mat3> modelMatrixes;
+
+	auto& particle_entities = render_request.entities;
+
+	for (int i = 0; i < particle_entities.size(); i++) {
+		if (registry.motions.has(particle_entities[i])) {
+			mat3 transform = createModelMatrix(particle_entities[i]);	
+			modelMatrixes.push_back(transform);
+		}
+		
+	}
+
+	const GLuint used_effect_enum = (GLuint)render_request.used_effect;
+	assert(used_effect_enum != (GLuint)EFFECT_ASSET_ID::EFFECT_COUNT);
+	const GLuint program = (GLuint)effects[used_effect_enum];
+
+	// Setting shaders
+	glUseProgram(program);
+	gl_has_errors();
+
+
+	assert(render_request.used_geometry != GEOMETRY_BUFFER_ID::GEOMETRY_COUNT);
+	const GLuint vbo = vertex_buffers[(GLuint)render_request.used_geometry];
+	const GLuint ibo = index_buffers[(GLuint)render_request.used_geometry];
+
+	// Setting vertex and index buffers
+	glBindBuffer(GL_ARRAY_BUFFER, vbo);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
+	gl_has_errors();
+
+	// Input data location as in the vertex buffer
+	// USING SPRITE WITH A QUAD
+	if (render_request.used_effect == EFFECT_ASSET_ID::TEXTUREPARTICLE)
+	{
+
+		GLint in_position_loc = glGetAttribLocation(program, "in_position");
+		GLint in_texcoord_loc = glGetAttribLocation(program, "in_texcoord");
+		gl_has_errors();
+		assert(in_texcoord_loc >= 0);
+
+		glEnableVertexAttribArray(in_position_loc);
+		glVertexAttribPointer(in_position_loc, 3, GL_FLOAT, GL_FALSE,
+			sizeof(TexturedVertex), (void*)0);
+		gl_has_errors();
+
+		glEnableVertexAttribArray(in_texcoord_loc);
+		glVertexAttribPointer(
+			in_texcoord_loc, 2, GL_FLOAT, GL_FALSE, sizeof(TexturedVertex),
+			(void*)sizeof(
+				vec3)); // note the stride to skip the preceeding vertex position
+
+		// Enabling and binding texture to slot 0
+		glActiveTexture(GL_TEXTURE0);
+		gl_has_errors();
+		assert(registry.instancedRenderRequests.has(entity));
+		GLuint texture_id =
+			texture_gl_handles[(GLuint)render_request.used_texture];
+
+		glBindTexture(GL_TEXTURE_2D, texture_id);
+		gl_has_errors();
+
+		// else if (render_request.used_texture == TEXTURE_ASSET_ID::PLAYER_PARTICLE) {
+		// 	GLint isPlayer_uloc = glGetUniformLocation(program, "isPlayer");
+		// }
+
+	}
+	// USING CIRCLE GEOMETRY 
+	else if (render_request.used_effect == EFFECT_ASSET_ID::PARTICLE)
+	{
+		GLint in_position_loc = glGetAttribLocation(program, "in_position");
+		GLint in_color_loc = glGetAttribLocation(program, "in_color");
+		gl_has_errors();
+
+		glEnableVertexAttribArray(in_position_loc);
+		glVertexAttribPointer(in_position_loc, 3, GL_FLOAT, GL_FALSE,
+			sizeof(ColoredVertex), (void*)0);
+		gl_has_errors();
+
+		glEnableVertexAttribArray(in_color_loc);
+		glVertexAttribPointer(in_color_loc, 3, GL_FLOAT, GL_FALSE,
+			sizeof(ColoredVertex), (void*)sizeof(vec3));
+		gl_has_errors();
+	}
+	else
+	{
+		assert(false && "Type of render request not supported");
+	}
+
+	// create a buffer to store model matrixes for all particles
+	GLuint matrixBufferID;
+	GLuint Matrix_location = glGetAttribLocation(program, "modelMatrix");
+	
+	glGenBuffers(1, &matrixBufferID);
+
+	// tell gpu to operate on this buffer
+	glBindBuffer(GL_ARRAY_BUFFER, matrixBufferID);
+
+	// loading the data
+	glBufferData(GL_ARRAY_BUFFER,
+		sizeof(modelMatrixes[0]) * modelMatrixes.size(), modelMatrixes.data(), GL_DYNAMIC_DRAW);
+
+	// telling gpu how to read the data in the buffer, since attribute cant be bigger than vec4, we use a loop to enable and configure
+	// 3 consecutive vertex attributes. 5th parameter is the stride distance between each vertex and 
+	// 6th is the offset to get to the vertex attribute
+	for (unsigned int i = 0; i < 3; i++) {
+		glEnableVertexAttribArray(Matrix_location + i);
+		glVertexAttribPointer(Matrix_location + i, 3, GL_FLOAT, GL_FALSE,
+			sizeof(glm::mat3), (const GLvoid*)(sizeof(GLfloat) * i * 3));
+		glVertexAttribDivisor(Matrix_location + i, 1);
+	}
+	gl_has_errors();
+
+
+
+	// Getting uniform locations for glUniform* calls
+	GLint color_uloc = glGetUniformLocation(program, "fcolor");
+	const vec4 color = registry.colors.has(entity) ? registry.colors.get(entity) : vec4(1);
+	glUniform4fv(color_uloc, 1, (float*)&color);
+	gl_has_errors();
+
+	// Get number of indices from index buffer, which has elements uint16_t
+	GLint size = 0;
+	glGetBufferParameteriv(GL_ELEMENT_ARRAY_BUFFER, GL_BUFFER_SIZE, &size);
+	gl_has_errors();
+
+	GLsizei num_indices = size / sizeof(uint16_t);
+	// GLsizei num_triangles = num_indices / 3;
+
+	GLint currProgram;
+	glGetIntegerv(GL_CURRENT_PROGRAM, &currProgram);
+	// Setting uniform values to the currently bound program
+	//GLuint transform_loc = glGetUniformLocation(currProgram, "transform");
+	//glUniformMatrix3fv(transform_loc, 1, GL_FALSE, (float*)&modelMatrixes);
+	GLuint view_loc = glGetUniformLocation(currProgram, "view");
+	glUniformMatrix3fv(view_loc, 1, GL_FALSE, (float*)&view_matrix);
+	GLuint projection_loc = glGetUniformLocation(currProgram, "projection");
+	glUniformMatrix3fv(projection_loc, 1, GL_FALSE, (float*)&projection);
+	gl_has_errors();
+	// Drawing of num_indices/3 triangles specified in the index buffer and number of instance depending on number of particles
+	glDrawElementsInstanced(GL_TRIANGLES, num_indices, GL_UNSIGNED_SHORT, nullptr, particle_entities.size());
+	gl_has_errors();
+
+	// Free up the buffers
+	glDeleteBuffers(1, &matrixBufferID);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+}
+
+// draw the intermediate texture to the screen
+
 void RenderSystem::drawToScreen()
 {
 	
@@ -183,7 +333,6 @@ void RenderSystem::drawToScreen()
 	// glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glDisable(GL_DEPTH_TEST);
 
-
 	// Draw the screen texture on the quad geometry
 	glBindBuffer(GL_ARRAY_BUFFER, vertex_buffers[(GLuint)GEOMETRY_BUFFER_ID::SCREEN_TRIANGLE]);
 	glBindBuffer(
@@ -192,10 +341,11 @@ void RenderSystem::drawToScreen()
 																	 // indices to the bound GL_ARRAY_BUFFER
 	gl_has_errors();
 	const GLuint fog_program = effects[(GLuint)EFFECT_ASSET_ID::FOG];
+	float scaled_fow_radius = fow_radius / 18.0f;
 
 	// set fog of war radius uniform
-	GLuint fowRadius_uloc = glGetUniformLocation(fog_program, "fowRadius");
-	glUniform1fv(fowRadius_uloc,1, (float*) &fow_radius);
+	GLuint fowRadius_uloc = glGetUniformLocation(fog_program, "scaled_down_fowRadius");
+	glUniform1fv(fowRadius_uloc,1, (float*) &scaled_fow_radius);
 
 	// set fow darken factor uniforms
 	GLuint fow_Darken_factor_uloc = glGetUniformLocation(fog_program, "fow_darken_factor");
@@ -204,6 +354,10 @@ void RenderSystem::drawToScreen()
 	// set enableFow uniforms
 	GLuint enable_fow_uloc = glGetUniformLocation(fog_program, "enableFow");
 	glUniform1iv(enable_fow_uloc, 1, (int*)&enableFow);
+
+	// Aspect ratio uniform
+	GLuint aspect_ratio_uloc = glGetUniformLocation(fog_program, "aspect_ratio");
+	glUniform2iv(aspect_ratio_uloc, 1, (int*)&aspect_ratio);
 
 	gl_has_errors();
 	// Set the vertex position and vertex texture coordinates (both stored in the
@@ -361,10 +515,10 @@ void RenderSystem::draw()
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glDisable(GL_DEPTH_TEST); // native OpenGL does not work with a depth buffer
-							  // and alpha blending, one would have to sort
-							  // sprites back to front
+	// and alpha blending, one would have to sort
+	// sprites back to front
 	gl_has_errors();
-	
+
 	Entity main_camera = registry.get_main_camera();
 	//	Generate view matrix. This converts world space coordinates into camera-relative coords from its POV.
 	//	The reason why we inverse:
@@ -377,12 +531,13 @@ void RenderSystem::draw()
 	mat3 view_2D = inverse(createModelMatrix(main_camera));
 
 	// Generate projection matrix. This maps camera-relative coords to pixel/window coordinates.
-	mat3 projection_2D = createProjectionMatrix();
+	mat3 projection_2D = createScaledProjectionMatrix();
 
 	std::vector<Entity> layer_1_entities;
 	std::vector<Entity> layer_2_entities;
 	std::vector<Entity> layer_3_entities;
 	std::vector<Entity> layer_4_entities;
+	std::vector<Entity> layer_5_entities;
 	Entity player_entity = registry.players.entities[0];
 
 	for (Entity entity : registry.renderRequests.entities)
@@ -391,8 +546,7 @@ void RenderSystem::draw()
 			continue;
 		// Note, its not very efficient to access elements indirectly via the entity
 		// albeit iterating through all Sprites in sequence. A good point to optimize
-		
-		// resort them in different queue of render request based on layer they belong to
+		// re-sort them in different queue of render request based on layer they belong to
 		if (registry.renderRequests.get(entity).layer_id == RENDER_LAYER_ID::LAYER_1) {
 
 			// if entity is item or mob
@@ -404,7 +558,7 @@ void RenderSystem::draw()
 				}
 			}
 			else {
-			// draw everything else
+				// draw everything else
 				layer_1_entities.push_back(entity);
 			}
 		}
@@ -416,11 +570,29 @@ void RenderSystem::draw()
 		}
 		else if (registry.renderRequests.get(entity).layer_id == RENDER_LAYER_ID::LAYER_4) {
 			layer_4_entities.push_back(entity);
+		} 
+		else if (registry.renderRequests.get(entity).layer_id == RENDER_LAYER_ID::LAYER_5) {
+			layer_5_entities.push_back(entity);
 		}
 		else {
 			assert(registry.renderRequests.get(entity).layer_id != RENDER_LAYER_ID::LAYER_COUNT && "entity render request with incorrect layer ID (LAYER_COUNT)");
 		}
 	}
+
+	// Only two layer are supported for now
+	std::vector<Entity> instanced_layer_1_entities;
+	std::vector<Entity> instanced_layer_2_entities;
+
+	for (int i = 0; i < registry.instancedRenderRequests.size(); i++) {
+		if (registry.instancedRenderRequests.components[i].layer_id == RENDER_LAYER_ID::LAYER_1) {
+			instanced_layer_1_entities.push_back(registry.instancedRenderRequests.entities[i]);
+		}
+		else {
+			instanced_layer_2_entities.push_back(registry.instancedRenderRequests.entities[i]);
+
+		}
+	}
+	
 
 
 	// Draw all textured meshes that have a position and size component in corresponded order to achieve layering. Could be optimize later
@@ -428,17 +600,31 @@ void RenderSystem::draw()
 	// Render terrain first
 	drawTerrain(view_2D, projection_2D);
 
+	
+
 	for (Entity entity : layer_1_entities) {
 		drawTexturedMesh(entity, view_2D, projection_2D);
 	}
+
+	// DRAW all particle effects
+	for (Entity entity : instanced_layer_1_entities) {
+		drawParticles(entity, view_2D, projection_2D);
+	}
+	
 
 	for (Entity entity : layer_2_entities) {
 		drawTexturedMesh(entity, view_2D, projection_2D);
 	}
 
-	for (Entity entity : layer_3_entities) {
-		// added guard to turn off while in debug mode 
-		if (debugging.in_debug_mode == false) {
+	// DRAW all particle effects
+	for (Entity entity : instanced_layer_2_entities) {
+		drawParticles(entity, view_2D, projection_2D);
+	}
+
+	// added guard to turn off while in debug mode 
+	if (debugging.in_debug_mode == false) {
+		for (Entity entity : layer_3_entities) {
+
 			drawTexturedMesh(entity, view_2D, projection_2D);
 		}
 	}
@@ -452,9 +638,10 @@ void RenderSystem::draw()
 
 	// Draw for UI elements
 	
-	// TODO: for UI elements, have new projection matrices that use screen coordinates instead of map coordinates
-	for (Entity entity : layer_4_entities) {
-		drawTexturedMesh(entity, view_2D, projection_2D);
+	if (!debugging.hide_ui) {
+		for (Entity entity : layer_4_entities) {
+			drawTexturedMesh(entity, view_2D, projection_2D);
+		}
 	}
 
 	// TODO: Process text rendering here and ONLY here.
@@ -467,7 +654,88 @@ void RenderSystem::draw()
 		renderText(text.str, motion.position.x, motion.position.y, text.scale, text.color, projection_2D, view_2D);
 	}
 
+	// For tutorial dialogs 
+	for (Entity entity : layer_5_entities) {
+		drawTexturedMesh(entity, view_2D, projection_2D);
+	}
+
 	// Do not touch anything past this point.
+	// flicker-free display with a double buffer
+	glfwSwapBuffers(window);
+	gl_has_errors();
+}
+
+// Set up and teardown of this function is identical to draw()
+void RenderSystem::drawStartScreens() {
+	// Getting size of window
+	int w, h;
+	glfwGetFramebufferSize(window, &w, &h); // Note, this will be 2x the resolution given to glfwCreateWindow on retina displays
+
+	// First render to the custom framebuffer
+	glBindFramebuffer(GL_FRAMEBUFFER, frame_buffer);
+	gl_has_errors();
+	// Clearing backbuffer
+	glViewport(0, 0, w, h);
+	glDepthRange(0.00001, 10);
+	glClearColor(0, 0, 0, 1.0);
+	glClearDepth(10.f);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glDisable(GL_DEPTH_TEST); // native OpenGL does not work with a depth buffer
+							  // and alpha blending, one would have to sort
+							  // sprites back to front
+
+	// Generate projection matrix. This is unscaled (does not take into account tile width).
+	mat3 projection_2D = createUnscaledProjectionMatrix();
+
+	// Only track layer 1, 2, and 3 entities. There should not be any other layer active at this stage.
+	std::vector<Entity> layer_1_entities;
+	std::vector<Entity> layer_2_entities;
+	std::vector<Entity> layer_3_entities;
+	for (Entity entity : registry.renderRequests.entities) {
+		if (registry.renderRequests.get(entity).layer_id == RENDER_LAYER_ID::LAYER_1) {
+			layer_1_entities.push_back(entity);
+		} else if (registry.renderRequests.get(entity).layer_id == RENDER_LAYER_ID::LAYER_2) {
+			layer_2_entities.push_back(entity);
+		} else if (registry.renderRequests.get(entity).layer_id == RENDER_LAYER_ID::LAYER_3) {
+			layer_3_entities.push_back(entity);
+		}
+	}
+
+	// Render terrain first
+	Entity main_camera = registry.get_main_camera();
+	mat3 view_2D = inverse(createModelMatrix(main_camera));
+	drawTerrain(view_2D, createScaledProjectionMatrix());
+
+	// Truely render to the screen. Multipass rendering with fog program
+	drawToScreen();
+
+	// Re-enable blending
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+	// Draw the meshes
+	for (Entity entity : layer_1_entities) {
+		// pass identity matrix for view_matrix since main camera not exist
+		drawTexturedMesh(entity, mat3(1.f), projection_2D);
+	}
+	for (Entity entity : layer_2_entities) {
+		// pass identity matrix for view_matrix since main camera not exist
+		drawTexturedMesh(entity, mat3(1.f), projection_2D);
+	}
+	for (Entity entity : layer_3_entities) {
+		// pass identity matrix for view_matrix since main camera not exist
+		drawTexturedMesh(entity, mat3(1.f), projection_2D);
+	}
+
+	for (Entity entity : registry.texts.entities) {
+		Text& text = registry.texts.get(entity);
+		Motion& motion = registry.motions.get(entity);
+
+		renderText(text.str, motion.position.x, motion.position.y, text.scale, text.color, projection_2D, mat3(1.f));
+	}
+
 	// flicker-free display with a double buffer
 	glfwSwapBuffers(window);
 	gl_has_errors();
@@ -495,7 +763,7 @@ mat3 RenderSystem::createModelMatrix(Entity entity)
 /// Generates an orthogonal projection matrix. 
 /// </summary>
 /// <returns>An orthogonal projection matrix relative to the window size</returns>
-mat3 RenderSystem::createProjectionMatrix()
+mat3 RenderSystem::createScaledProjectionMatrix()
 {
 	// Othogonal projection matrix.
 	// Same code as the template since it scales with aspect ratio.
@@ -518,6 +786,23 @@ mat3 RenderSystem::createProjectionMatrix()
 	float tx = -(right + left) / (right - left) * tile_size_px_scaled;
 	float ty = -(top + bottom) / (top - bottom) * tile_size_px_scaled;
 
+	return {{sx, 0.f, 0.f}, {0.f, sy, 0.f}, {tx, ty, 1.f}};
+}
+
+mat3 RenderSystem::createUnscaledProjectionMatrix()
+{
+	// Code taken from salmon template
+	float left = 0.f;
+	float top = 0.f;
+
+	gl_has_errors();
+	float right = (float) window_resolution.x;
+	float bottom = (float) window_resolution.y;
+
+	float sx = 2.f / (right - left);
+	float sy = 2.f / (top - bottom);
+	float tx = -(right + left) / (right - left);
+	float ty = -(top + bottom) / (top - bottom);
 	return {{sx, 0.f, 0.f}, {0.f, sy, 0.f}, {tx, ty, 1.f}};
 }
 
@@ -557,7 +842,14 @@ void RenderSystem::empty_terrain_buffer()
 /// <param name="color">Text colour</param>
 /// <param name="projection_matrix">The projection matrix</param>
 /// <param name="view_matrix">The camera view matrix</param>
-void RenderSystem::renderText(std::string text, float x, float y, float scale, glm::vec3 color, mat3& projection_matrix, mat3& view_matrix) {
+void RenderSystem::renderText(
+	std::string text, 
+	float x, 
+	float y, 
+	float scale, 
+	glm::vec3 color, 
+	const mat3& projection_matrix, 
+	const mat3& view_matrix) {
 	// Switch to text vao
 	glBindVertexArray(text_vao);
 	// Load the vertex buffer allocated for "TEXT"

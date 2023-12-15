@@ -76,6 +76,9 @@ class WeaponsSystem
         /// @brief Sets the specified weapon to the active weapon type
         void setActiveWeapon(ITEM_TYPE weapon_type);
 
+        /// @brief create non selected indicators
+        void createNonselectedWeaponIndicators();
+
         /// @brief Gets the ammo count for the active weapon
         /// @return The ammo count (0 if not weapon equipped)
         int getActiveWeaponAmmoCount();
@@ -86,9 +89,21 @@ class WeaponsSystem
         Entity active_weapon_entity;                // technically not needed, but track it anyways
         Weapon* active_weapon_component = nullptr;  // starts off by pointing to nothing
 
-        // Tracking the weapon and ammo indicator
+   
         Entity weapon_indicator;
         Entity ammo_indicator;
+
+        // Tracking the weapon and ammo indicator
+        Entity shuriken_weapon_indicator;
+        Entity crossbow_weapon_indicator;
+        Entity shot_gun_weapon_indicator;
+        Entity machine_gun_weapon_indicator;
+
+        Entity shuriken_ammo_indicator;
+        Entity crossbow_ammo_indicator;
+        Entity shot_gun_ammo_indicator;
+        Entity machine_gun_ammo_indicator;
+
 
         // Pointer to rendering system for projectiles
         RenderSystem* renderer;
@@ -124,13 +139,16 @@ class WeaponsSystem
             {ITEM_TYPE::WEAPON_MACHINEGUN, 5},
         };
 
+        
+
         // Weapon ammo capacity
-        std::map<ITEM_TYPE, int> weapon_ammo_capacity_map{
+        std::map<ITEM_TYPE, int> weapon_ammo_capacity_map {
             {ITEM_TYPE::WEAPON_NONE, 0},
             {ITEM_TYPE::WEAPON_SHURIKEN, 15},
             {ITEM_TYPE::WEAPON_CROSSBOW, 15},
             {ITEM_TYPE::WEAPON_SHOTGUN, 8},
             {ITEM_TYPE::WEAPON_MACHINEGUN, 30},
+
         };
 
         // Weapon projectile textures
@@ -145,6 +163,14 @@ class WeaponsSystem
             {ITEM_TYPE::WEAPON_CROSSBOW, TEXTURE_ASSET_ID::ICON_CROSSBOW},
             {ITEM_TYPE::WEAPON_SHOTGUN, TEXTURE_ASSET_ID::ICON_SHOTGUN},
             {ITEM_TYPE::WEAPON_MACHINEGUN, TEXTURE_ASSET_ID::ICON_MACHINE_GUN},
+        };
+
+        // Weapon textures for side bar
+        std::map<ITEM_TYPE, TEXTURE_ASSET_ID> side_weapon_indicator_textures_map{
+            {ITEM_TYPE::WEAPON_SHURIKEN, TEXTURE_ASSET_ID::SIDEICON_SHURIKEN},
+            {ITEM_TYPE::WEAPON_CROSSBOW, TEXTURE_ASSET_ID::SIDEICON_CROSSBOW},
+            {ITEM_TYPE::WEAPON_SHOTGUN, TEXTURE_ASSET_ID::SIDEICON_SHOTGUN},
+            {ITEM_TYPE::WEAPON_MACHINEGUN, TEXTURE_ASSET_ID::SIDEICON_MACHINEGUN},
         };
 
         /// @brief Fires the shuriken based on upgrade level
@@ -171,6 +197,11 @@ class WeaponsSystem
         /// @param angle The angle of the projectile
         void fireMachineGun(float player_x, float player_y, float angle);
 
+        /// @brief Applies a knoback to the mob
+        /// @param mob Entity to apply the knockback to
+        /// @param knockback_force How much position to push it 
+        void applyKnockback(Entity proj, Entity mob, float knockback_force);
+
         /// @brief Applies a slow to the mob
         /// @param mob Entity to apply the slow to
         /// @param duration_ms How long in ms the slow lasts
@@ -189,12 +220,13 @@ class WeaponsSystem
         /// @param position The position of the weapon indicator (unused)
         /// @param weapon_texture The texture of the weapon
         /// @return The entity of the weapon indicator
-        Entity createWeaponIndicator(RenderSystem* renderer, TEXTURE_ASSET_ID weapon_texture);
+        Entity createWeaponIndicator(RenderSystem* renderer, TEXTURE_ASSET_ID weapon_texture, vec2 position, vec2 scale);
+
 
         /// @brief Create the ammo bar
         /// @param renderer The rendering system
         /// @return The entity of the ammo bar
-        Entity createAmmoBar(RenderSystem* renderer);
+        Entity createAmmoBar(RenderSystem* renderer, vec2 position, vec2 scale);
 
         /// @brief Checks if the given ITEM_TYPE is a weapon
         /// @param test the ITEM_TYPE to be tested
@@ -211,4 +243,13 @@ class WeaponsSystem
 
         /// @brief Helper to update the scale of the ammo bar
         void updateAmmoBar();
+
+        bool updateSideIndicatorHelper(Entity weapon_indicator, Entity ammo_indicator, Weapon& weapon);
+
+        void setIndicatorAlpha(ITEM_TYPE weapon_type, bool turnOn, bool hasAmmo);
+
+        bool updateSideBars(ITEM_TYPE targetWeaponToUpdate);
+
+        
+
 };

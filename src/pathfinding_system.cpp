@@ -21,18 +21,18 @@ void PathfindingSystem::step(float elapsed_ms)
     for (Entity mob : registry.mobs.entities) {
         Mob& mob_mob = registry.mobs.get(mob);
 
-        // Stop mob from tracking the player if mob is tracking the player and has reached the next cell in their path and:
+        // Stop mob from tracking the player if mob is tracking the player and:
         // 1) player is not in the aggro range of the mob, or
         // 2) mob is in the same cell as the player
-        if (mob_mob.is_tracking_player && reached_next_cell(mob) && (!is_player_in_mob_aggro_range(player, mob) || same_cell(player, mob))) {
+        if (mob_mob.is_tracking_player && (!is_player_in_mob_aggro_range(player, mob) || same_cell(player, mob))) {
             stop_tracking_player(mob);
         }
 
         // Find new path from mob to player if:
         // 1) mob is not tracking the player and player is within aggro range of mob and mob is not in the same cell as the player already, or
-        // 2) mob is tracking the player and has reached the next cell in their path and the player has moved
+        // 2) mob is tracking the player and the player has moved
         if ((!mob_mob.is_tracking_player && is_player_in_mob_aggro_range(player, mob) && !same_cell(player, mob)) ||
-            (mob_mob.is_tracking_player && reached_next_cell(mob) && has_player_moved(player, mob))
+            (mob_mob.is_tracking_player && has_player_moved(player, mob))
         ) {
             if (!mob_mob.is_tracking_player) {
                 mob_mob.is_tracking_player = true;
@@ -48,11 +48,8 @@ void PathfindingSystem::step(float elapsed_ms)
         // Get the previous location of the mob 
         float prev_loc_x = registry.motions.get(mob).position[0];
         float prev_loc_y = registry.motions.get(mob).position[1];
-        // Update prev_mframex for the next step
-        int prev_mframex = DIRECTION_CHANGE;
 
-        // Adjust this for mob animation speed
-        ELAPSED += elapsed_ms;
+        
 
         // Apply new terrain speed effect if the mob enters a new cell
         if (entered_new_cell(mob) && mob_mob.type != MOB_TYPE::GHOST) {
@@ -72,59 +69,73 @@ void PathfindingSystem::step(float elapsed_ms)
             update_velocity_to_next_cell(mob, elapsed_ms);
         }
 
-        // Get the current location of the mob
-        float curr_loc_x = registry.motions.get(mob).position[0];
-        float curr_loc_y = registry.motions.get(mob).position[1];
+        
 
-        float dx = curr_loc_x - prev_loc_x;
-        float dy = curr_loc_y - prev_loc_y;
+        if (registry.animations.has(mob)) {
+            auto& animation = registry.animations.get(mob);
 
-        // Check Mobs movement and update mob direction 
-        if (dx > 0 && dy == 0) 
-            MOB_DIRECTION = RIGHT; // Mob is moving to the right
-        else if (dx < 0 && dy == 0) 
-            MOB_DIRECTION = LEFT;// Mob is moving to the left
-        else if (dy > 0 && dx == 0) 
-            MOB_DIRECTION = DOWN;// Mob is moving down
-        else if (dy < 0 && dx == 0) 
-            MOB_DIRECTION = UP; // Mob is moving up
+            // Update prev_mframex for the next step
+            int prev_mframex = DIRECTION_CHANGE;
 
-        if (dx > 0 && dy > 0) 
-            MOB_DIRECTION = RIGHT;// Mob is moving down and to the right
-        else if (dx > 0 && dy < 0) 
-            MOB_DIRECTION = UP;// Mob is moving up and to the right
-        else if (dx < 0 && dy > 0) 
-            MOB_DIRECTION = LEFT;// Mob is moving down and to the left
-        else if (dx < 0 && dy < 0) 
-            MOB_DIRECTION = UP;// Mob is moving up and to the left
+            // Adjust this for mob animation speed
+            ELAPSED += elapsed_ms;
 
-        // Calculate the direction based on the change in positions
-        if (prev_loc_x < curr_loc_x) 
-            DIRECTION_CHANGE = 1;// Mob moved right
-        else if (prev_loc_x > curr_loc_x) 
-            DIRECTION_CHANGE = 2; // Mob moved left
-        else if (prev_loc_y < curr_loc_y) 
-            DIRECTION_CHANGE = 3;// Mob moved down
-        else if (prev_loc_y > curr_loc_y) 
-            DIRECTION_CHANGE = 4;// Mob moved up
-            
+            // Get the current location of the mob
+            float curr_loc_x = registry.motions.get(mob).position[0];
+            float curr_loc_y = registry.motions.get(mob).position[1];
 
-        // Check for a change in direction
-        if (DIRECTION_CHANGE != prev_mframex) {
-            // Direction changed, so reset frame x
-            DIRECTION_CHANGE = 0;
-            mob_mob.mframex = 0;
+            float dx = curr_loc_x - prev_loc_x;
+            float dy = curr_loc_y - prev_loc_y;
+
+            // Check Mobs movement and update mob direction 
+            if (dx > 0 && dy == 0)
+                MOB_DIRECTION = RIGHT; // Mob is moving to the right
+            else if (dx < 0 && dy == 0)
+                MOB_DIRECTION = LEFT;// Mob is moving to the left
+            else if (dy > 0 && dx == 0)
+                MOB_DIRECTION = DOWN;// Mob is moving down
+            else if (dy < 0 && dx == 0)
+                MOB_DIRECTION = UP; // Mob is moving up
+
+            if (dx > 0 && dy > 0)
+                MOB_DIRECTION = RIGHT;// Mob is moving down and to the right
+            else if (dx > 0 && dy < 0)
+                MOB_DIRECTION = UP;// Mob is moving up and to the right
+            else if (dx < 0 && dy > 0)
+                MOB_DIRECTION = LEFT;// Mob is moving down and to the left
+            else if (dx < 0 && dy < 0)
+                MOB_DIRECTION = UP;// Mob is moving up and to the left
+
+            // Calculate the direction based on the change in positions
+            if (prev_loc_x < curr_loc_x)
+                DIRECTION_CHANGE = 1;// Mob moved right
+            else if (prev_loc_x > curr_loc_x)
+                DIRECTION_CHANGE = 2; // Mob moved left
+            else if (prev_loc_y < curr_loc_y)
+                DIRECTION_CHANGE = 3;// Mob moved down
+            else if (prev_loc_y > curr_loc_y)
+                DIRECTION_CHANGE = 4;// Mob moved up
+
+
+            // Check for a change in direction
+            if (DIRECTION_CHANGE != prev_mframex) {
+                // Direction changed, so reset frame x
+                DIRECTION_CHANGE = 0;
+                animation.framex = 0;
             }
 
 
-        // Update mobs's direction
-        mob_mob.mframey = MOB_DIRECTION;
+            // Update mobs's direction
+            animation.framey = MOB_DIRECTION;
 
-        if (ELAPSED > 50) {
-            // Update walking animation
-            mob_mob.mframex = (mob_mob.mframex + 1) % 7;
-            ELAPSED = 0.0f; // Reset the timer
+            if (ELAPSED > 50) {
+                // Update walking animation
+                animation.framex = (animation.framex + 1) % 7;
+                ELAPSED = 0.0f; // Reset the timer
             }
+        }
+
+        
 
     }
 };
@@ -325,15 +336,12 @@ bool PathfindingSystem::reached_next_cell(Entity mob)
 {
     // Get the next cell in the path and the cell the mob is in
     Motion& mob_motion = registry.motions.get(mob);
+    Entity curr_cell = terrain->get_cell(mob_motion.position);
     Path& mob_path = registry.paths.get(mob);
     Entity next_cell = mob_path.path.front();
 
-    // Calculate the distance between the mob and the center of the next cell
-    Motion& next_cell_motion = registry.motions.get(next_cell);
-    float dist = distance(mob_motion.position, next_cell_motion.position);
-
-    // Check if mob is close to the center of the next cell
-    return dist < 0.1;
+    // Check if mob's current cell is the next cell
+    return curr_cell == next_cell;
 };
 
 bool PathfindingSystem::has_player_moved(Entity player, Entity mob) 
@@ -354,11 +362,8 @@ void PathfindingSystem::stop_tracking_player(Entity mob)
     Motion& mob_motion = registry.motions.get(mob);
     Mob& mob_mob = registry.mobs.get(mob);
     Path& mob_path = registry.paths.get(mob);
-    Entity mob_curr_cell = terrain->get_cell(mob_motion.position);
-    Motion& mob_curr_cell_motion = registry.motions.get(mob_curr_cell);
 
-    // Set mob's position to the center of their current cell, velocity to 0, tracking player flag to false, and clear the path 
-    mob_motion.position = mob_curr_cell_motion.position;
+    // Set mob's velocity to 0, tracking player flag to false, and clear the path 
     mob_motion.velocity = {0.f, 0.f};
     mob_mob.is_tracking_player = false;
     mob_path.path.clear();

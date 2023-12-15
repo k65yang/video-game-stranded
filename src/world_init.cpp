@@ -20,10 +20,9 @@ Entity createPlayer(RenderSystem* renderer, PhysicsSystem* physics, vec2 pos)
 	motion.angle = 0.f;
 	motion.velocity = { 0.f, 0.f };
 	//motion.scale = vec2({ 100/49, 1 });
-	motion.scale = vec2({ target_resolution.x / tile_size_px * 0.08503401, target_resolution.y / tile_size_px * 0.0625 });
+	motion.scale = vec2({ target_resolution.x / tile_size_px * 2.85714286/24, target_resolution.y / tile_size_px * 0.0625 });
 
 	// Initialize the collider
-	
 	physics->createMeshCollider(entity, GEOMETRY_BUFFER_ID::PLAYER_MESH, renderer);
 
 	// Add the player to the players registry
@@ -32,6 +31,14 @@ Entity createPlayer(RenderSystem* renderer, PhysicsSystem* physics, vec2 pos)
 	// Add player to inventory registry
 	Inventory& inventory = registry.inventories.emplace(entity);
 
+	// Attach animation component
+	Animation& animation = registry.animations.emplace(entity);
+	animation.framex = 0;
+	animation.framey = 4;
+
+	// make sure the division does not get round down using int
+	animation.frame_dimension_w = (float)(1.0f / 4.0f);
+	animation.frame_dimension_h = (float)(1.0f / 5.0f);
 	registry.renderRequests.insert(
 		entity,
 		{ TEXTURE_ASSET_ID::PLAYER,
@@ -56,7 +63,7 @@ Entity createItem(RenderSystem* renderer, PhysicsSystem* physics, vec2 position,
 	motion.angle = 0.f;
 	motion.velocity = { 0.f, 0.f };
 	motion.position = position;
-
+	
 	// Initialise the item data field
 	auto& item = registry.items.emplace(entity);
 	item.data = type;
@@ -128,6 +135,10 @@ Entity createSpaceship(RenderSystem* renderer, vec2 position) {
 	motion.velocity = { 0.f, 0.f };
 	motion.position = position;
 	motion.scale = vec2({ target_resolution.x / tile_size_px * 0.20833333, target_resolution.y / tile_size_px * 0.3125});
+
+	// Add entity to spaceship registry
+	registry.spaceships.emplace(entity);
+
 
 	registry.renderRequests.insert(
 		entity,
@@ -270,7 +281,7 @@ Entity createHelp(RenderSystem* renderer, vec2 position, TEXTURE_ASSET_ID textur
 	motion.position = position;
 	motion.scale = vec2({ 20.f, 6.f });
 
-	registry.tips.emplace(entity);
+	registry.tutorials.emplace(entity);
 
 	registry.renderRequests.insert(
 		entity,
@@ -339,7 +350,7 @@ Entity createPowerupIndicator(RenderSystem* renderer, vec2 position, TEXTURE_ASS
 	motion.angle = 0.f;
 	motion.velocity = { 0.f, 0.f };
 	motion.position = position;
-	motion.scale = vec2({ 2.f, 2.f });
+	motion.scale = vec2({ 1.5f, 1.5f });
 
 	registry.renderRequests.insert(
 		entity,
@@ -349,6 +360,27 @@ Entity createPowerupIndicator(RenderSystem* renderer, vec2 position, TEXTURE_ASS
 			RENDER_LAYER_ID::LAYER_4 });
 
 	return entity;
+}
+
+Entity createPointingArrow(RenderSystem* renderer, Entity player, Entity target)
+{
+	auto arrow = Entity();
+	PointingArrow& pa = registry.pointingArrows.emplace(arrow, target);
+	Motion& motion = registry.motions.emplace(arrow);
+
+	motion.angle = 0.0f;
+	motion.velocity = { 0.f, 0.f };
+	motion.position = vec2(renderer->createModelMatrix(player) * vec3( pa.radius_offset, 1.0f));
+	motion.scale = { 1.f, 1.f };
+
+	registry.renderRequests.insert(
+		arrow,
+		{	TEXTURE_ASSET_ID::POINTING_ARROW,
+			EFFECT_ASSET_ID::TEXTURED,
+			GEOMETRY_BUFFER_ID::SPRITE,
+			RENDER_LAYER_ID::LAYER_4 });
+
+	return arrow;
 }
 
 Entity createCamera(vec2 pos)
@@ -392,3 +424,103 @@ Entity createText(RenderSystem* renderer, vec2 position, std::string str, float 
 
 	return entity;
 }
+
+
+Entity createMuzzleFlash(RenderSystem* renderer, vec2 position) {
+	auto entity = Entity();
+
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::MUZZLEFLASH_SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Initialize the position, scale, and physics components
+	auto& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.position = position;
+	motion.scale = { 1.f, 1.f };
+	
+	// Attach animation component
+	Animation& animation = registry.animations.emplace(entity);
+	animation.framex = 0;
+	animation.framey = 0;
+	animation.frame_dimension_w = (float)(1.0f / 5.0f);
+	animation.frame_dimension_h = (float)(1.0f / 1.0f);
+
+	// Attach color and set to transparent
+	auto& color = registry.colors.emplace(entity);
+	color = vec4(1.f);
+
+	// set alpha to 0
+	color.a = 0.0f;
+
+
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::MUZZLE_SHEET,
+			EFFECT_ASSET_ID::SPRITESHEET,
+			GEOMETRY_BUFFER_ID::MUZZLEFLASH_SPRITE,
+			RENDER_LAYER_ID::LAYER_2 });
+	
+	return entity;
+}
+
+Entity createSpaceshipDepart(RenderSystem* renderer) {
+	auto entity = Entity();
+
+	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Initialize the motion
+	auto& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.velocity = { 0.f, 0.f };
+	motion.position = { 0, -1.5f };
+	motion.scale = vec2({ target_resolution.x / tile_size_px * 0.20833333*1.2, target_resolution.y / tile_size_px * 0.3125*1.4 });
+
+
+	// attach animation
+	auto& animation = registry.animations.emplace(entity);
+	animation.framex = 0;
+	animation.framey = 1;
+	animation.frame_dimension_w = (float)(1.0f / 6.0f);
+	animation.frame_dimension_h = (float)(1.0f / 1.0f);
+
+
+
+
+	// Add entity to spaceship registry
+	registry.spaceships.emplace(entity);
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::SPACESHIP_DEPART,
+		 EFFECT_ASSET_ID::SPRITESHEET,
+		 GEOMETRY_BUFFER_ID::SPACESHIP_DEPART_SPRITE,
+		 RENDER_LAYER_ID::LAYER_1 });
+
+	return entity;
+}
+
+
+Entity createEndingTextPopUp(RenderSystem * renderer, vec2 position, TEXTURE_ASSET_ID texture) {
+	auto entity = Entity();
+
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Initialize the position, scale, and physics components
+	auto& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.velocity = { 0.f, 0.f };
+	motion.position = position;
+	motion.scale = vec2({ target_resolution.x / tile_size_px * 14/24, target_resolution.y / tile_size_px * 7/16});
+
+	registry.renderRequests.insert(
+		entity,
+		{ texture,
+			EFFECT_ASSET_ID::TEXTURED,
+			GEOMETRY_BUFFER_ID::SPRITE,
+			RENDER_LAYER_ID::LAYER_4 });
+
+	return entity;
+	}
+
