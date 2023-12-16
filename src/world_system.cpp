@@ -242,6 +242,14 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 	ELAPSED_TIME += elapsed_ms_since_last_update;
 
+
+			// Reset the total movement distance
+			PLAYER_TOTAL_DISTANCE = 0;
+
+			if (player.food < PLAYER_MAX_FOOD / 4) {
+				audio_system->play_one_shot(AudioSystem::PLAYER_LOW_HUNGER);
+			}
+
 	
 	
 	Motion& m = registry.motions.get(player_salmon);
@@ -256,6 +264,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 			// Reset the total movement distance
 			PLAYER_TOTAL_DISTANCE = 0;
+
 		}
 	}
 	// else the food is below 0, player dies
