@@ -118,6 +118,8 @@ private:
   
 	float next_turtle_spawn;
 	float next_fish_spawn;
+	float low_hunger_sound_interval = 300.f;
+	float remaing_time_for_next_hunger_sound = 0;
 	Entity player_salmon;
 	Entity player_equipped_weapon;
 	Entity main_camera;
