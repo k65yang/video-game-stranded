@@ -22,7 +22,7 @@
 #include "quest_system.hpp"
 #include "tutorial_system.hpp"
 #include "particle_system.hpp"
-
+#include "powerup_system.hpp"
 #include <nlohmann/json.hpp>
 
 using json = nlohmann::json;
@@ -61,8 +61,8 @@ public:
 		SpaceshipHomeSystem* spaceship_home_system_arg,
 		QuestSystem* quest_system_arg,
 		TutorialSystem* tutorial_system_arg,
-    	ParticleSystem* particle_system_arg
-	);
+    	ParticleSystem* particle_system_arg,
+		PowerupSystem* powerup_system_arg);
 
 
 	// Releases all associated resources
@@ -114,8 +114,8 @@ private:
 	QuestSystem* quest_system;
 	TutorialSystem* tutorial_system;
 	ParticleSystem* particle_system;
+	PowerupSystem* powerup_system;
   
-	float current_speed;
 	float next_turtle_spawn;
 	float next_fish_spawn;
 	Entity player_salmon;
@@ -163,6 +163,7 @@ private:
 	/// Spawns ITEM_LIMIT items randomly across the map
 	///	</summary>
 	void spawn_items();
+	void powerup_spawn_helper(vec2 position);
 
 	void load_spawned_items_mobs(json& j);
 

@@ -14,7 +14,7 @@ const float IFRAMES = 1500;
 const int FOOD_PICKUP_AMOUNT = 20;
 float PLAYER_TOTAL_DISTANCE = 0;
 const float FOOD_DECREASE_THRESHOLD  = 5.0f; // Adjust this value as needed
-const float FOOD_DECREASE_RATE = 10.f;	// Decreases by 10 units per second (when moving)
+const float FOOD_DECREASE_RATE = 5.f;	// Decreases by 10 units per second (when moving)
 float CURSOR_ANGLE = 0;
 int PLAYER_DIRECTION = 2;  // Default to facing up
 float ELAPSED_TIME = 0;
@@ -108,8 +108,8 @@ void WorldSystem::init(
 	SpaceshipHomeSystem* spaceship_home_system_arg,
 	QuestSystem* quest_system_arg,
 	TutorialSystem* tutorial_system_arg,
-	ParticleSystem* particle_system_arg
-) {
+	ParticleSystem* particle_system_arg,
+	PowerupSystem* powerup_system_arg) {
 
 	this->renderer = renderer_arg;
 	this->terrain = terrain_arg;
@@ -121,6 +121,7 @@ void WorldSystem::init(
 	this->quest_system = quest_system_arg;
 	this->tutorial_system = tutorial_system_arg;
 	this->particle_system = particle_system_arg;
+	this->powerup_system = powerup_system_arg;
 
 	// Setting callbacks to member functions (that's why the redirect is needed)
 	// Input is handled using GLFW, for more info see
@@ -151,6 +152,8 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	// Processing the player state
 	assert(registry.screenStates.components.size() <= 1);
 	ScreenState& screen = registry.screenStates.components[0];
+
+	auto& player_component = registry.players.get(player_salmon);
 
 	float min_timer_ms = 3000.f;
 	// Handles when player dies or won the game 
@@ -183,199 +186,164 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	}
 
 	// Tick down iframes timer and health decrease timer
-	for (Entity entity : registry.players.entities) {
-		Player& player = registry.players.get(entity);
-		player.iframes_timer -= elapsed_ms_since_last_update;
+	
+	
+	player_component.iframes_timer -= elapsed_ms_since_last_update;
 
-		if (player.iframes_timer < 0) {
-			player.iframes_timer = 0;
-			physics_system->isPlayerInvincible = false;
-			//std::cout << "player is normalll..." << std::endl; //DELETE LATER
+	if (player_component.iframes_timer < 0) {
+		player_component.iframes_timer = 0;
+		physics_system->isPlayerInvincible = false;
+		//std::cout << "player is normalll..." << std::endl; //DELETE LATER
 
-		}
+	}
 		
-		if (player.health_decrease_time < 0) {
-			player.health_decrease_time = 0;
-			camera_motion.angle = 0.f;
-			camera_motion.scale = vec2(1.0, 1.0);
-		} 
+	if (player_component.health_decrease_time < 0) {
+		player_component.health_decrease_time = 0;
+		camera_motion.angle = 0.f;
+		camera_motion.scale = vec2(1.0, 1.0);
+	} 
 		
-		if (player.food_decrease_time < 0) {
-			player.food_decrease_time = 0;
-		}
+	if (player_component.food_decrease_time < 0) {
+		player_component.food_decrease_time = 0;
+	}
 
-		if (player.health_decrease_time > 0) {
-			player.health_decrease_time -= elapsed_ms_since_last_update;
+	if (player_component.health_decrease_time > 0) {
+		player_component.health_decrease_time -= elapsed_ms_since_last_update;
 
-			Motion& health = registry.motions.get(health_bar);
-			vec2 new_health_scale = vec2(((float)player.health / (float)PLAYER_MAX_HEALTH) * HEALTH_BAR_SCALE[0], HEALTH_BAR_SCALE[1]);
-			health.scale = interpolate(health.scale, new_health_scale, 1 - (player.health_decrease_time / IFRAMES));
-
-			// Screen shake, for feedback to the player that they have been hit.
-			int direction = rand() % 8;
-			Motion& camera_motion = registry.motions.get(main_camera);
-			switch (direction) {
-				case 0:
-					camera_motion.angle += 0.01;
-					break;
-				case 1:
-					camera_motion.angle -= 0.01;
-					break;
-				case 2:
-					camera_motion.scale += vec2(0.004, 0.004);
-					break;
-				case 3:
-					camera_motion.scale -= vec2(0.004, 0.004);
-					break;
-			}
-		}
-		
-		if (player.food_decrease_time > 0) {
-			player.food_decrease_time -= elapsed_ms_since_last_update;
-
-			Motion& food = registry.motions.get(food_bar);
-			vec2 new_food_scale = vec2(((float)player.food / (float)PLAYER_MAX_FOOD) * FOOD_BAR_SCALE[0], FOOD_BAR_SCALE[1]);
-			food.scale = interpolate(food.scale, new_food_scale, 1 - (player.food_decrease_time / IFRAMES));
+			
+		// Screen shake, for feedback to the player that they have been hit.
+		int direction = rand() % 8;
+		Motion& camera_motion = registry.motions.get(main_camera);
+		switch (direction) {
+			case 0:
+				camera_motion.angle += 0.01;
+				break;
+			case 1:
+				camera_motion.angle -= 0.01;
+				break;
+			case 2:
+				camera_motion.scale += vec2(0.004, 0.004);
+				break;
+			case 3:
+				camera_motion.scale -= vec2(0.004, 0.004);
+				break;
 		}
 	}
+		
+	if (player_component.food_decrease_time > 0) {
+		player_component.food_decrease_time -= elapsed_ms_since_last_update;
+
+		Motion& food = registry.motions.get(food_bar);
+		vec2 new_food_scale = vec2(((float)player_component.food / (float)PLAYER_MAX_FOOD) * FOOD_BAR_SCALE[0], FOOD_BAR_SCALE[1]);
+		food.scale = interpolate(food.scale, new_food_scale, 1 - (player_component.food_decrease_time / IFRAMES));
+	}
+	
+
+
 	ELAPSED_TIME += elapsed_ms_since_last_update;
 
-	if (registry.players.has(player_salmon)) {
-		Player& player = registry.players.get(player_salmon);
-		Motion& m = registry.motions.get(player_salmon);
+	
+	
+	Motion& m = registry.motions.get(player_salmon);
 
-		// Apply food decreasing the more you travel. 
-		if (player.food > 0) {
-			if (PLAYER_TOTAL_DISTANCE >= FOOD_DECREASE_THRESHOLD && !debugging.in_debug_mode) {
-				// Decrease player's food by 1
-				player.food -= 1;
-				// Shrink the food bar
-				player.food_decrease_time = IFRAMES;
+	// Apply food decreasing the more you travel. 
+	if (player_component.food > 0) {
+		if (PLAYER_TOTAL_DISTANCE >= FOOD_DECREASE_THRESHOLD && !debugging.in_debug_mode) {
+			// Decrease player's food by 1
+			player_component.food -= 1;
+			// Shrink the food bar
+			player_component.food_decrease_time = IFRAMES;
 
-				// Reset the total movement distance
-				PLAYER_TOTAL_DISTANCE = 0;
-			}
-		}
-		// else the food is below 0, player dies
-		else if (!registry.deathTimers.has(player_salmon)) {
-			registry.deathTimers.emplace(player_salmon);
-			PLAYER_DEATH_FROM_FOOD = true;
-		}
-
-		// reduce window brightness if any of the present players is dying
-		screen.screen_darken_factor = 1 - min_timer_ms / 3000;
-
-		vec2 player_p = m.position;
-		//Motion& f = registry.motions.get(fow);
-		//f.position = m.position;
-
-
-		// update spritesheet with aiming direction 
-		updatePlayerDirection();
-
-		// Player Movement code, build the velocity resulting from player movement
-		handlePlayerMovement(elapsed_ms_since_last_update);
-
-		// Camera movement mode
-		Camera& c = registry.cameras.get(main_camera);
-		if (c.mode_follow) {
-			/*
-			if (debugging.in_debug_mode)
-				camera_motion.velocity = { 0,0 };
-			else
-			*/
-			camera_motion.position = m.position;
-		}
-		else {
-			handle_movement(camera_motion, CAMERA_LEFT);
-		}
-		// UI Movement
-		for (Entity e : registry.screenUI.entities) {
-			if (registry.motions.has(e)) {
-				vec2& ui_inital_position = registry.screenUI.get(e);
-				Motion& ui_motion = registry.motions.get(e);
-				ui_motion.position = ui_inital_position + camera_motion.position;
-			}
-		}
-
-		// Update pointing arrows
-		for (int i = 0; i < registry.pointingArrows.size(); i++) {
-			Entity e = registry.pointingArrows.entities[i];
-			PointingArrow& arrow = registry.pointingArrows.components[i];
-
-			Motion& arrow_m = registry.motions.get(e);
-			vec2 local_space = arrow.radius_offset;
-			Motion& target_m = registry.motions.get(arrow.target);
-			vec2 target_p = target_m.position;
-			vec2 delta_p = target_p - player_p;
-
-			// Check if the target is nearby
-			if (length(delta_p) > length(arrow.radius_offset)) {
-				// We need to make a custom transform matrix
-				float angle = atan2f(delta_p.y, delta_p.x);	// Angle that points towards the target
-
-				Transform transform;
-				transform.translate(player_p);	// Translate by player position
-				transform.rotate(angle);		// Rotate the position of the arrow depending on where the ship is
-				transform.scale({ 1, 1 });		// Constant scale to retain radius_offset distancing
-
-				vec3 offset = vec3(arrow.radius_offset, 1.0f);
-
-				arrow_m.position = vec2(transform.mat * offset);
-				arrow_m.angle = angle + (M_PI / 2); // offset added because arrow points up initially 
-				// instead of 90 degrees to the right
-			}
-			else {
-				arrow_m.position = target_p;	// Hover over target
-				arrow_m.angle = M_PI;			// Point down
-			}
-		}
-
-		if (user_has_powerup) {
-			Motion& powerup_ui = registry.motions.get(powerup_indicator);
-			powerup_ui.position = { 9.5f +0.5+ camera_motion.position.x, 6.f + camera_motion.position.y };
-		}
-
-		// health updates
-		if (registry.healthPowerup.has(player_salmon)) {
-			HealthPowerup& hp = registry.healthPowerup.get(player_salmon);
-
-			// update the time since last heal and the light up duration
-			hp.remaining_time_for_next_heal -= elapsed_ms_since_last_update;
-			hp.light_up_timer_ms -= elapsed_ms_since_last_update;
-
-			// light up expired
-			if (hp.light_up_timer_ms < 0 && registry.colors.has(health_bar)) {
-				registry.colors.remove(health_bar);
-			}
-
-			// check if we need and can heal
-			if (player.health < PLAYER_MAX_HEALTH && hp.remaining_time_for_next_heal < 0) {
-				Motion& health = registry.motions.get(health_bar);
-				hp.remaining_time_for_next_heal = hp.heal_interval_ms;
-				player.health = std::min(PLAYER_MAX_HEALTH, player.health + hp.heal_amount);
-
-				// creating particles effects for healing
-
-				particle_system->createFloatingHeart(player_salmon, TEXTURE_ASSET_ID::HEART_PARTICLE, 6);
-
-
-
-				// light up the health bar
-				if (registry.colors.has(health_bar)) {
-					// can happen when the light up period is longer than the heal interval
-				}
-				else {
-					vec4& color = registry.colors.emplace(health_bar);
-					color = vec4(.5f, .5f, .5f, 1.f);
-				}
-				hp.light_up_timer_ms = hp.light_up_duration_ms;
-
-				vec2 new_health_scale = vec2(((float)player.health / (float)PLAYER_MAX_HEALTH) * HEALTH_BAR_SCALE[0], HEALTH_BAR_SCALE[1]);
-				health.scale = interpolate(health.scale, new_health_scale, 1);
-			}
+			// Reset the total movement distance
+			PLAYER_TOTAL_DISTANCE = 0;
 		}
 	}
+	// else the food is below 0, player dies
+	else if (!registry.deathTimers.has(player_salmon)) {
+		registry.deathTimers.emplace(player_salmon);
+		PLAYER_DEATH_FROM_FOOD = true;
+	}
+
+
+	// HEALTH BAR UI UPDATES
+	Motion& health = registry.motions.get(health_bar);
+	vec2 new_health_scale = vec2(((float)player_component.health / (float)PLAYER_MAX_HEALTH) * HEALTH_BAR_SCALE[0], HEALTH_BAR_SCALE[1]);
+	health.scale = interpolate(health.scale, new_health_scale, 1 - (player_component.health_decrease_time / IFRAMES));
+		
+	
+
+	// reduce window brightness if any of the present players is dying
+	screen.screen_darken_factor = 1 - min_timer_ms / 3000;
+
+	vec2 player_p = m.position;
+	//Motion& f = registry.motions.get(fow);
+	//f.position = m.position;
+
+
+	// update spritesheet with aiming direction 
+	updatePlayerDirection();
+
+	// Player Movement code, build the velocity resulting from player movement
+	handlePlayerMovement(elapsed_ms_since_last_update);
+
+	// Camera movement mode
+	Camera& c = registry.cameras.get(main_camera);
+	if (c.mode_follow) {
+		/*
+		if (debugging.in_debug_mode)
+			camera_motion.velocity = { 0,0 };
+		else
+		*/
+		camera_motion.position = m.position;
+	}
+	else {
+		handle_movement(camera_motion, CAMERA_LEFT);
+	}
+	// UI Movement
+	for (Entity e : registry.screenUI.entities) {
+		if (registry.motions.has(e)) {
+			vec2& ui_inital_position = registry.screenUI.get(e);
+			Motion& ui_motion = registry.motions.get(e);
+			ui_motion.position = ui_inital_position + camera_motion.position;
+		}
+	}
+
+	// Update pointing arrows
+	for (int i = 0; i < registry.pointingArrows.size(); i++) {
+		Entity e = registry.pointingArrows.entities[i];
+		PointingArrow& arrow = registry.pointingArrows.components[i];
+
+		Motion& arrow_m = registry.motions.get(e);
+		vec2 local_space = arrow.radius_offset;
+		Motion& target_m = registry.motions.get(arrow.target);
+		vec2 target_p = target_m.position;
+		vec2 delta_p = target_p - player_p;
+
+		// Check if the target is nearby
+		if (length(delta_p) > length(arrow.radius_offset)) {
+			// We need to make a custom transform matrix
+			float angle = atan2f(delta_p.y, delta_p.x);	// Angle that points towards the target
+
+			Transform transform;
+			transform.translate(player_p);	// Translate by player position
+			transform.rotate(angle);		// Rotate the position of the arrow depending on where the ship is
+			transform.scale({ 1, 1 });		// Constant scale to retain radius_offset distancing
+
+			vec3 offset = vec3(arrow.radius_offset, 1.0f);
+
+			arrow_m.position = vec2(transform.mat * offset);
+			arrow_m.angle = angle + (M_PI / 2); // offset added because arrow points up initially 
+			// instead of 90 degrees to the right
+		}
+		else {
+			arrow_m.position = target_p;	// Hover over target
+			arrow_m.angle = M_PI;			// Point down
+		}
+	}
+
+	
+
+	
 
 	// Mob updates
 	for (Entity entity : registry.mobs.entities) {
@@ -412,50 +380,45 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	}
 
 	// Player updates
-	for (Entity entity : registry.players.entities) {
-		Motion& motion = registry.motions.get(entity);
+	
+	Motion& motion = registry.motions.get(player_salmon);
 
-		// Knockback updates
-		if (registry.playerKnockbackEffects.has(entity)) {
-			PlayerKnockbackEffect& playerKnockbackEffect = registry.playerKnockbackEffects.get(entity);
+	// Knockback updates
+	if (registry.playerKnockbackEffects.has(player_salmon)) {
+		PlayerKnockbackEffect& playerKnockbackEffect = registry.playerKnockbackEffects.get(player_salmon);
 			
-			// Increment duration
-			playerKnockbackEffect.elapsed_knockback_time_ms += elapsed_ms_since_last_update;
+		// Increment duration
+		playerKnockbackEffect.elapsed_knockback_time_ms += elapsed_ms_since_last_update;
 			
-			// Set player velocity to zero and remove the PlayerKnockbackEffect component if knockback effect is over
-			if (playerKnockbackEffect.duration_ms < playerKnockbackEffect.elapsed_knockback_time_ms) {
-				motion.velocity = {0.f, 0.f};
-				registry.playerKnockbackEffects.remove(entity);
+		// Set player velocity to zero and remove the PlayerKnockbackEffect component if knockback effect is over
+		if (playerKnockbackEffect.duration_ms < playerKnockbackEffect.elapsed_knockback_time_ms) {
+			motion.velocity = {0.f, 0.f};
+			registry.playerKnockbackEffects.remove(player_salmon);
 
-				printf("KNOCKBACK REMOVED\n");
-			}
+			printf("KNOCKBACK REMOVED\n");
 		}
+	}
 
-		// Inaccuracy updates
-		if (registry.playerInaccuracyEffects.has(entity)) {
-			PlayerInaccuracyEffect& playerInaccuracyEffect = registry.playerInaccuracyEffects.get(entity);
+	// Inaccuracy updates
+	if (registry.playerInaccuracyEffects.has(player_salmon)) {
+		PlayerInaccuracyEffect& playerInaccuracyEffect = registry.playerInaccuracyEffects.get(player_salmon);
 			
-			// Increment duration
-			playerInaccuracyEffect.elapsed_inaccuracy_time_ms += elapsed_ms_since_last_update;
+		// Increment duration
+		playerInaccuracyEffect.elapsed_inaccuracy_time_ms += elapsed_ms_since_last_update;
 			
-			// Remove the PlayerInaccuracyEffect component if knockback effect is over
-			if (playerInaccuracyEffect.duration_ms < playerInaccuracyEffect.elapsed_inaccuracy_time_ms) {
-				registry.playerInaccuracyEffects.remove(entity);
+		// Remove the PlayerInaccuracyEffect component if knockback effect is over
+		if (playerInaccuracyEffect.duration_ms < playerInaccuracyEffect.elapsed_inaccuracy_time_ms) {
+			registry.playerInaccuracyEffects.remove(player_salmon);
 
-				printf("INACCURACY REMOVED\n");
-			}
+			printf("INACCURACY REMOVED\n");
 		}
-
-		// creating particles effects for character upgrades
-		if (registry.speedPowerup.has(entity)) {
-			particle_system->createParticleTrail(entity, TEXTURE_ASSET_ID::PLAYER_PARTICLE, 2, vec2{0.7f, 1.0f});
-		}
+	}
 
 		
 
-	}
+		
 
-
+	
 	
 	if (registry.spaceships.has(spaceship_depart)) {
 		update_spaceship_frame(elapsed_ms_since_last_update);
@@ -510,8 +473,15 @@ void WorldSystem::handlePlayerMovement(float elapsed_ms_since_last_update) {
 		handle_movement(m, LEFT);
 
 		if (length(m.velocity) > 0) {
-			m.velocity *= terrain->get_terrain_speed_ratio(terrain->get_cell(m.position));
+
+			float speedRatio = terrain->get_terrain_speed_ratio(terrain->get_cell(m.position));
+
+			if (speedRatio == 0.25f || speedRatio == 0.40f) {
+				particle_system->createWaterSpalsh(player_salmon,1, speedRatio);
 			}
+
+			m.velocity *= speedRatio;
+		}
 
 		if (anyMovementKeysPressed) {
 			PLAYER_TOTAL_DISTANCE += FOOD_DECREASE_RATE * elapsed_ms_since_last_update / 1000.f;
@@ -572,7 +542,9 @@ void WorldSystem::handle_movement(Motion& motion, InputKeyIndex indexStart, bool
 			moveVelocity = (rotate * moveVelocity);
 		}
 
-		motion.velocity = moveVelocity * current_speed * invert;
+		auto& player = registry.players.get(player_salmon);
+
+		motion.velocity = moveVelocity * player.current_speed * invert;
 	}
 }
 
@@ -585,8 +557,7 @@ void WorldSystem::restart_game() {
 	// Reset the items submmited 
 	spaceship_home_system->ALL_ITEMS_SUBMITTED = false; 
 
-	// Reset the game speed
-	current_speed = 5.f;
+	
 	bool PLAYER_DEATH_FROM_FOOD = false;
 	renderer->enableFow = 1;
 
@@ -606,6 +577,8 @@ void WorldSystem::restart_game() {
 
 	// Reset the weapons system
 	weapons_system->resetWeaponsSystem();
+
+	
 
 	// Reset the terrain system
 	terrain->resetTerrainSystem();
@@ -653,6 +626,9 @@ void WorldSystem::restart_game() {
 
 	// Create player health bar
 	health_bar = createBar(renderer, HEALTH_BAR_FRAME_POS, PLAYER_MAX_HEALTH, BAR_TYPE::HEALTH_BAR);
+
+
+
 	health_frame = createFrame(renderer, HEALTH_BAR_FRAME_POS, FRAME_TYPE::HEALTH_FRAME);
 
 	// Create player food bar
@@ -664,8 +640,7 @@ void WorldSystem::restart_game() {
 
 	weapons_system->createNonselectedWeaponIndicators();
 
-	// Reset the power ups
-	user_has_powerup = false;
+
 
 	// Reset quest system
 	std::vector<QUEST_ITEM_STATUS> statuses(4, QUEST_ITEM_STATUS::NOT_FOUND);
@@ -683,14 +658,17 @@ void WorldSystem::restart_game() {
 	// TODO: uncomment these after messing w/ map editor
 	spawn_items();
 	mob_system->spawn_mobs();
-	createItem(renderer, physics_system, {5.f, 3.f}, ITEM_TYPE::POWERUP_SPEED);
-	createItem(renderer, physics_system, {5.f, 5.f}, ITEM_TYPE::POWERUP_HEALTH);
+	//createItem(renderer, physics_system, {5.f, 3.f}, ITEM_TYPE::POWERUP_SPEED);
+	//createItem(renderer, physics_system, {5.f, 5.f}, ITEM_TYPE::POWERUP_HEALTH);
 
 	// for movement velocity
 	for (int i = 0; i < KEYS; i++)
 	  keyDown[i] = false;
 
 	muzzleFlash = createMuzzleFlash(renderer, vec2(0.f));
+
+	// Reset powerups system. Must call this after creating player since player entity is stored as a cached in powerup system
+	powerup_system->resetPowerupSystem(player_salmon);
 
 	// Debugging for memory/component leaks
 	registry.list_all_components();
@@ -758,15 +736,7 @@ void WorldSystem::handle_collisions() {
 						audio_system->play_one_shot(AudioSystem::PLAYER_HIT);
 				}
 
-				// reset health powerup values
-				if (registry.healthPowerup.has(player_salmon)) {
-					HealthPowerup& hp = registry.healthPowerup.get(player_salmon);
-					hp.remaining_time_for_next_heal = 5000.f;
-					hp.light_up_timer_ms = 0.f;
-
-					if (registry.colors.has(health_bar))
-						registry.colors.remove(health_bar);
-				}
+				
 			}
 
 			// Checking Player - Terrain
@@ -833,51 +803,24 @@ void WorldSystem::handle_collisions() {
 					case ITEM_TYPE::WEAPON_UPGRADE:
 						weapons_system->upgradeWeapon();
 						break;
+
+					// POWER UP
 					case ITEM_TYPE::POWERUP_SPEED:
-					{
-						// remove health power up if already equipped
-						if (registry.healthPowerup.has(player_salmon)) {
-							// check if the health bar is lit up (i.e. the player just healed)
-							HealthPowerup& healthPowerUp = registry.healthPowerup.get(player_salmon);
-							if (healthPowerUp.light_up_timer_ms > 0 || registry.colors.has(health_bar) ) {
-								registry.colors.remove(health_bar);
-							}
-							registry.healthPowerup.remove(player_salmon);
-						}
-						
-						// Give the speed power up to the player
-						SpeedPowerup& speedPowerup = registry.speedPowerup.emplace(player_salmon);
-						speedPowerup.old_speed = current_speed;
-						current_speed *= 2;
-
-		
-
-						// Add the powerup indicator
-						if (user_has_powerup)
-							registry.remove_all_components_of(powerup_indicator);
-						powerup_indicator = createPowerupIndicator(renderer, {9.5f+0.5, 6.f}, TEXTURE_ASSET_ID::ICON_POWERUP_SPEED);
-						user_has_powerup = true;
+						powerup_system->applyPowerup(POWERUP_TYPE::SPEED);
 						break;
 
-					}
 					case ITEM_TYPE::POWERUP_HEALTH:
-						// remove the speed power up if already equipped
-						if (registry.speedPowerup.has(player_salmon)) {
-							// reset speed to original speed
-							current_speed = registry.speedPowerup.get(player_salmon).old_speed;
-							registry.speedPowerup.remove(player_salmon);
-
-						}
-
-						// Give health powerup to player. Use default values in struct definition.
-						registry.healthPowerup.emplace(player_salmon);
-
-						// Add the powerup indicator
-						if (user_has_powerup)
-							registry.remove_all_components_of(powerup_indicator);
-						powerup_indicator = createPowerupIndicator(renderer, {9.5f+0.5, 6.f}, TEXTURE_ASSET_ID::ICON_POWERUP_HEALTH);
-						user_has_powerup = true;
+						powerup_system->applyPowerup(POWERUP_TYPE::HEALTH_REGEN);
 						break;
+
+					case ITEM_TYPE::POWERUP_INVISIBLE:
+						powerup_system->applyPowerup(POWERUP_TYPE::INVISIBLE);
+						break;
+
+					case ITEM_TYPE::POWERUP_INFINITE_BULLET:
+						powerup_system->applyPowerup(POWERUP_TYPE::INFINITE_BULLET);
+						break;
+
 				}
 
 				// remove item from map
@@ -1036,9 +979,9 @@ void WorldSystem::update_spaceship_depart() {
 		registry.renderRequests.remove(ship_arrow);
 		// create depart spaceship
 		spaceship_depart = createSpaceshipDepart(renderer); 
-		// Iterate through all particles
-		if (registry.speedPowerup.has(player_salmon)) 
-			registry.speedPowerup.remove(player_salmon);
+
+		// Clear powerups
+		registry.powerups.clear();
 		// remove player		
 		registry.renderRequests.remove(player_salmon);
 		// disable player movements 
@@ -1095,17 +1038,13 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 			inventory.quest_items[ITEM_TYPE::QUEST_FOUR],
 		};
 
-		ITEM_TYPE p_type = ITEM_TYPE::POWERUP_NONE;
-		if (user_has_powerup) {
-			if (registry.healthPowerup.has(player_salmon)) {
-				p_type = ITEM_TYPE::POWERUP_HEALTH;
-			}
-			else {
-				p_type = ITEM_TYPE::POWERUP_SPEED;
-			}
+		std::vector<Powerup> powerups;
+		for (auto& powerup_component : registry.powerups.components) {
+			powerups.push_back(powerup_component);
 		}
+		
 
-		SaveGame(player, player_motion, active_weapon, weapons, mobs, items, quest_item_statuses, spaceship_home_info, p_type);
+		SaveGame(player, player_motion, active_weapon, weapons, mobs, items, quest_item_statuses, spaceship_home_info, powerups);
 
 		tutorial_system->createTutorialText(TUTORIAL_TYPE::GAME_SAVED);
 	}
@@ -1167,10 +1106,16 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		
 	}
 
+	// Press B to toggle debug mode
+	if (key == GLFW_KEY_C && action == GLFW_PRESS) {
+		std::cout << "player at x: " << registry.motions.get(player_salmon).position.x << ", y: " << registry.motions.get(player_salmon).position.y << std::endl;
+
+	}
+
 	// Control the current speed with `<` `>` as well as fow radius
 	if (action == GLFW_RELEASE && (mod & GLFW_MOD_SHIFT) && key == GLFW_KEY_COMMA) {
-		current_speed -= 0.1f;
-		printf("Current speed = %f\n", current_speed);
+		player.current_speed -= 0.1f;
+		printf("Current speed = %f\n", player.current_speed);
 
 		renderer->fow_radius -= 0.3f;
 		if (renderer->fow_radius < 0)
@@ -1179,14 +1124,14 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 
 	}
 	if (action == GLFW_RELEASE && (mod & GLFW_MOD_SHIFT) && key == GLFW_KEY_PERIOD) {
-		current_speed += 0.1f;
-		printf("Current speed = %f\n", current_speed);
+		player.current_speed += 0.1f;
+		printf("Current speed = %f\n", player.current_speed);
 
 		renderer->fow_radius += 0.3f;
 		std::cout << "current fog radius " << renderer->fow_radius << std::endl;
 
 	}
-	current_speed = fmax(0.f, current_speed);
+	player.current_speed = fmax(0.f, player.current_speed);
 
 	// Hotkeys to equip weapons
 	bool equipped_weapon_key_pressed = false;
@@ -1272,8 +1217,7 @@ void WorldSystem::process_editor_controls(int action, int key)
 		// will break!!
 		assert(registry.mobs.entities.empty());
 		assert(registry.items.entities.empty());
-		assert(registry.healthPowerup.entities.empty());
-		assert(registry.speedPowerup.entities.empty());
+		
 
 		terrain->expand_map(world_size_x, world_size_y);
 		renderer->empty_terrain_buffer();
@@ -1383,7 +1327,7 @@ void WorldSystem::on_mouse_click(int button, int action, int mods) {
 			
 			}
 			// We didn't shoot successfully since we ran out of ammo
-			else if (weapons_system->getActiveWeaponAmmoCount() <= 0 && player_equipped_weapon) {
+			else if (weapons_system->getActiveWeaponAmmoCount() <= 0 && player_equipped_weapon && !powerup_system->disable_bullet_consumption) {
 				fired_weapon = weapons_system->getActiveWeapon();
 
 				if (fired_weapon == ITEM_TYPE::WEAPON_NONE)
@@ -1493,6 +1437,17 @@ void WorldSystem::spawn_items() {
 		{ZONE_5, 16},
 	};
 
+	// lookup table for powerup
+	std::unordered_map<ZONE_NUMBER, int> zone_powerup = {
+		{ZONE_0, 0},
+		{ZONE_1, 2},
+		{ZONE_2, 3},
+		{ZONE_3, 5},
+		{ZONE_4, 7},
+		{ZONE_5, 10},
+	};
+
+
 	for (int zone_num = ZONE_0; zone_num != ZONE_COUNT; zone_num++) {
 		ZONE_NUMBER zone = static_cast<ZONE_NUMBER>(zone_num);
 
@@ -1513,13 +1468,79 @@ void WorldSystem::spawn_items() {
 				createItem(renderer, physics_system, terrain->get_random_terrain_location(zone), weapon);
 			}
 		}
+
+		// spawn powerup
+		std::vector<ITEM_TYPE> powerups = { ITEM_TYPE::POWERUP_SPEED, ITEM_TYPE::POWERUP_HEALTH, ITEM_TYPE::POWERUP_INVISIBLE, ITEM_TYPE::POWERUP_INFINITE_BULLET};
+		for (auto& powerup : powerups) {
+			for (int i = 0; i < zone_powerup[zone]; i++) {
+				createItem(renderer, physics_system, terrain->get_random_terrain_location(zone), powerup);
+			}
+		}
+
 	}
 
-  // Hardcoded quest items
-	createItem(renderer, physics_system, {-78.f, -84.f}, ITEM_TYPE::QUEST_ONE);
-	createItem(renderer, physics_system, { 55.f, -52.f}, ITEM_TYPE::QUEST_TWO);	
+ 
+	//Hardcoded powerup spawns
+	
+	// TOP LEFT REGION
+	powerup_spawn_helper(vec2{ -5.00f, -92.0f });
+	powerup_spawn_helper(vec2{ -30.0f, -50.0f }); // water
+	powerup_spawn_helper(vec2{ -34.0f, -88.0f });
+	powerup_spawn_helper(vec2{ -39.0f, -55.0f });
+	powerup_spawn_helper(vec2{ -49.0f, -74.0f });
+	powerup_spawn_helper(vec2{ -52.0f, -34.0f });
+	powerup_spawn_helper(vec2{ -56.0f, -81.0f });
+	powerup_spawn_helper(vec2{ -57.0f, -58.0f });
+	powerup_spawn_helper(vec2{ -60.0f, -45.0f });
+	powerup_spawn_helper(vec2{ -60.0f, -69.0f });
+	powerup_spawn_helper(vec2{ -64.0f, -94.0f });
+	powerup_spawn_helper(vec2{ -65.0f, -94.0f });
+	powerup_spawn_helper(vec2{ -80.0f, -93.0f });
+	powerup_spawn_helper(vec2{ -82.0f, -43.0f });
+	powerup_spawn_helper(vec2{ -84.0f, -62.0f });
+	powerup_spawn_helper(vec2{ -91.0f, -69.0f });
+	powerup_spawn_helper(vec2{ -91.0f, -69.0f });
+	powerup_spawn_helper(vec2{ -93.0f, -78.0f });
+	powerup_spawn_helper(vec2{ -96.0f, -24.0f }); // water
+
+
+	// BOTTOM LEFT REGION
+
+
+	powerup_spawn_helper(vec2{ -15.0f, 35.0f }); // center ground
+	powerup_spawn_helper(vec2{ -37.0f, 72.0f });
+	powerup_spawn_helper(vec2{ -72.0f, 33.0f });
+	powerup_spawn_helper(vec2{ -83.0f, 39.0f }); // bottom left cave
+	powerup_spawn_helper(vec2{ -90.0f, 61.0f });
+
+	// BOTTOM RIGHT REGION
+	powerup_spawn_helper(vec2{ 3.00f, 20.0f });
+	powerup_spawn_helper(vec2{ 21.0f, 28.0f });
+	powerup_spawn_helper(vec2{ 69.0f, 42.0f });
+	powerup_spawn_helper(vec2{ 83.0f, 30.0f });
+	powerup_spawn_helper(vec2{ 96.0f, 2.00f });
+
+
+	// TOP RIGHT REGION
+	powerup_spawn_helper(vec2{ 8.00f, -81.0f });
+	powerup_spawn_helper(vec2{ 33.0f, -38.0f });
+	powerup_spawn_helper(vec2{ 43.0f, -92.0f });
+	powerup_spawn_helper(vec2{ 54.0f, -92.0f });
+	powerup_spawn_helper(vec2{ 75.0f, -12.0f });
+	powerup_spawn_helper(vec2{ 91.0f, -90.0f });
+	powerup_spawn_helper(vec2{ 96.0f, -18.0f });
+
+
+
+
+	// Hardcoded quest items
+	createItem(renderer, physics_system, { -78.f, -84.f }, ITEM_TYPE::QUEST_ONE);
+	createItem(renderer, physics_system, { 55.f, -52.f }, ITEM_TYPE::QUEST_TWO);
 	createItem(renderer, physics_system, { 78.f, 48.f }, ITEM_TYPE::QUEST_THREE);
 	createItem(renderer, physics_system, { -73.f, 62.f }, ITEM_TYPE::QUEST_FOUR);
+
+
+	
 }
 
 // Adapted from restart_game, BASICALLY a lot of optional arguments to change small things :D
@@ -1528,10 +1549,7 @@ void WorldSystem::load_game(json j) {
 
 	// Debugging for memory/component leaks
 	registry.list_all_components();
-	printf("Restarting\n");
-
-	// Reset the game speed
-	current_speed = 5.f;
+	printf("START LOADING\n");
 
 	// Remove all entities that we created
 	// All that have a motion, we could also iterate over all fish, turtles, ... but that would be more cumbersome
@@ -1542,14 +1560,15 @@ void WorldSystem::load_game(json j) {
 	while (registry.weapons.entities.size() > 0)
 		registry.remove_all_components_of(registry.weapons.entities.back());
 
+
+
 	// Reset the weapons system
 	weapons_system->resetWeaponsSystem();
 
 	// Reset the terrain system
 	terrain->resetTerrainSystem();
 
-	// Debugging for memory/component leaks
-	registry.list_all_components();
+	
 
 	// Re-initialize the terrain
 	terrain->init(loaded_map_name, renderer);
@@ -1581,11 +1600,13 @@ void WorldSystem::load_game(json j) {
 	bool p_is_home = j["player"]["is_home"];
 	bool p_has_collected_quest_item = j["player"]["has_collected_quest_item"];
 	bool p_has_entered_spaceship = j["player"]["has_entered_spaceship"];
+	float p_current_speed = j["player"]["current_speed"];
 	player.health = p_health;
 	player.food = p_food;
 	player.is_home = p_is_home;
 	player.has_collected_quest_item = p_has_collected_quest_item;
 	player.has_entered_spaceship = p_has_entered_spaceship;
+	player.current_speed = p_current_speed;
 	registry.colors.insert(player_salmon, { 1, 0.8f, 0.8f, 1.0f});
 
 	// Create the main camera
@@ -1611,7 +1632,7 @@ void WorldSystem::load_game(json j) {
 	if (p_is_home) spaceship_home_system->enterSpaceship();
 
 	// Load all weapons data
-	for (auto& weapon : j["weapons"]) {
+	for (auto weapon : j["weapons"]) {
 		weapons_system->setWeaponAttributes(
 			static_cast<ITEM_TYPE>(weapon["weapon_type"]),
 			static_cast<bool>(weapon["can_fire"]),
@@ -1626,38 +1647,14 @@ void WorldSystem::load_game(json j) {
 	if (weapon_type == ITEM_TYPE::WEAPON_NONE) {
 		user_has_first_weapon = false;
 	}
-	
-	// Load powerups
-	ITEM_TYPE powerup_type = (ITEM_TYPE)j["powerup"];
-	if (powerup_type == ITEM_TYPE::POWERUP_NONE) {
-		printf("loaded no powerup\n");
-		user_has_powerup = false;
-	} else {
-		user_has_powerup = true;
-		printf("powerup type: %i\n", powerup_type);
 
-		switch (powerup_type) {
-			case ITEM_TYPE::POWERUP_SPEED:
-			{
-				// Give the speed power up to the player
-				SpeedPowerup& speedPowerup = registry.speedPowerup.emplace(player_salmon);
-				speedPowerup.old_speed = current_speed;
-				current_speed *= 2;
+	powerup_system->resetPowerupSystem(player_salmon);
 
-
-				// UI Indicator
-				powerup_indicator = createPowerupIndicator(renderer, { 9.5f+0.5 + camera_motion.position.x, 6.f + camera_motion.position.y }, TEXTURE_ASSET_ID::ICON_POWERUP_SPEED);
-				break;
-			}
-			case ITEM_TYPE::POWERUP_HEALTH:
-			{
-				// Give health powerup to player. Use default values in struct definition.
-				registry.healthPowerup.emplace(player_salmon);
-				powerup_indicator = createPowerupIndicator(renderer, { 9.5f+0.5 + camera_motion.position.x, 6.f + camera_motion.position.y }, TEXTURE_ASSET_ID::ICON_POWERUP_HEALTH);
-				break;
-			}
-		}
+	// Load all powerup data
+	for (auto& powerup : j["powerups"]) {
+		powerup_system->setPowerup(static_cast<float > (powerup["duration_ms"]), static_cast<POWERUP_TYPE>(powerup["powerup_type"]));
 	}
+
 
 	// Quest items
 	quest_system->resetQuestSystem(j["quest_item_statuses"]);
@@ -1679,6 +1676,10 @@ void WorldSystem::load_game(json j) {
 	weapons_system->createNonselectedWeaponIndicators();
 
 	tutorial_system->createTutorialText(TUTORIAL_TYPE::GAME_LOADED);
+
+	// Debugging for memory/component leaks
+	registry.list_all_components();
+	printf("FINISHED LOADING \n");
 
 }
 
@@ -1736,5 +1737,29 @@ void WorldSystem::emitMuzzleFlash(vec2 position, int PLAYER_DIRECTION) {
 	 registry.colors.get(muzzleFlash).a = 1.0f;
 
 
+
+}
+
+void WorldSystem::powerup_spawn_helper(vec2 position){ 
+
+	// set up the random number generator
+	std::random_device rng;
+	std::mt19937 generator(rng());  // Seed the generator
+	std::uniform_int_distribution<> distribution_powerup_type(0, 3);
+
+	switch (distribution_powerup_type(rng)) {
+	case 0:
+		createItem(renderer, physics_system, position, ITEM_TYPE::POWERUP_SPEED);
+		break;
+	case 1:
+		createItem(renderer, physics_system, position, ITEM_TYPE::POWERUP_HEALTH);
+		break;
+	case 2:
+		createItem(renderer, physics_system, position, ITEM_TYPE::POWERUP_INVISIBLE);
+		break;
+	case 3:
+		createItem(renderer, physics_system, position, ITEM_TYPE::POWERUP_INFINITE_BULLET);
+		break;
+	}
 
 }

@@ -9,9 +9,10 @@ int RIGHT = 3;
 int DIRECTION_CHANGE = 0;
 const int MAX_NUM_CELLS_TO_SEARCH = 200;
 
-void PathfindingSystem::init(TerrainSystem* terrain_arg)
+void PathfindingSystem::init(TerrainSystem* terrain_arg, PowerupSystem* powerup_system_arg)
 {
     this->terrain = terrain_arg;
+    this->powerup_system = powerup_system_arg;
 };
     
 void PathfindingSystem::step(float elapsed_ms) 
@@ -20,30 +21,36 @@ void PathfindingSystem::step(float elapsed_ms)
 
     for (Entity mob : registry.mobs.entities) {
         Mob& mob_mob = registry.mobs.get(mob);
+      
+       
 
         // Stop mob from tracking the player if mob is tracking the player and:
         // 1) player is not in the aggro range of the mob, or
         // 2) mob is in the same cell as the player
-        if (mob_mob.is_tracking_player && (!is_player_in_mob_aggro_range(player, mob) || same_cell(player, mob))) {
+        // 3) invisible powerup is activate
+        if (powerup_system->disable_pathfinding_invisible_powerup || (mob_mob.is_tracking_player && (!is_player_in_mob_aggro_range(player, mob) || same_cell(player, mob)))) {
             stop_tracking_player(mob);
         }
 
         // Find new path from mob to player if:
         // 1) mob is not tracking the player and player is within aggro range of mob and mob is not in the same cell as the player already, or
         // 2) mob is tracking the player and the player has moved
-        if ((!mob_mob.is_tracking_player && is_player_in_mob_aggro_range(player, mob) && !same_cell(player, mob)) ||
+        // 3) and invisible powerup is not activated
+        if (!powerup_system->disable_pathfinding_invisible_powerup && ((!mob_mob.is_tracking_player && is_player_in_mob_aggro_range(player, mob) && !same_cell(player, mob)) ||
             (mob_mob.is_tracking_player && has_player_moved(player, mob))
-        ) {
+            )) {
             if (!mob_mob.is_tracking_player) {
                 mob_mob.is_tracking_player = true;
             }
-            
+
             std::deque<Entity> new_path = find_shortest_path(player, mob);
             Path& mob_path = registry.paths.get(mob);
             mob_path.path = new_path;
 
             update_velocity_to_next_cell(mob, elapsed_ms);
         }
+        
+        
 
         // Get the previous location of the mob 
         float prev_loc_x = registry.motions.get(mob).position[0];
