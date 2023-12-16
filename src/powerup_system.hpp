@@ -1,4 +1,4 @@
-
+#pragma once
 #include "components.hpp"
 #include "tiny_ecs.hpp"
 #include "tiny_ecs_registry.hpp"
@@ -27,8 +27,8 @@ class PowerupSystem
 		
 		float old_speed;
 		float start_duration_ms = 3000.0f;
-
-
+		bool disable_pathfinding_invisible_powerup = false;
+		bool disable_bullet_consumption = false;
 		void init(RenderSystem* renderer_arg, ParticleSystem* particle_system_arg);
 
 
@@ -38,7 +38,7 @@ class PowerupSystem
 
 		// apply a powerup to the target entity
 		void applyPowerup(POWERUP_TYPE powerup_type);
-		void loadPowerup(std::vector<Powerup> powerups);
+		//void loadPowerup(std::vector<Powerup> powerups);
 		void resetPowerupSystem(Entity player_entity_arg);
 		void setPowerup(float duration_ms, POWERUP_TYPE type_arg);
 
@@ -70,5 +70,9 @@ class PowerupSystem
 		void disablePowerupEffect(POWERUP_TYPE powerup_type);
 		void applySpeedPowerup();
 		void applyHealthRegenPowerup();
+		void applyInvisiblePowerup();
+		void applyInfiniteBulletPowerup();
+
+
 
 };

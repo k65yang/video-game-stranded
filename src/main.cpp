@@ -14,12 +14,12 @@
 #include "pathfinding_system.hpp"
 #include "weapons_system.hpp"
 #include "particle_system.hpp"
+#include "powerup_system.hpp"
 #include "mob_system.hpp"
 #include "spaceship_home_system.hpp"
 #include "quest_system.hpp"
 #include "tutorial_system.hpp"
 #include "start_screen_system.hpp"
-
 #include "common.hpp"
 
 using Clock = std::chrono::high_resolution_clock;
@@ -81,7 +81,7 @@ int main()
 	// start_screen_system.~StartScreenSystem(); // destructor not working properly, segfaulting...
 
 	// Initialize all other systems
-	weapons_system.init(&render_system, &physics_system);
+	weapons_system.init(&render_system, &physics_system, &powerup_system);
 	powerup_system.init(&render_system, &particle_system);
 
 	mob_system.init(&render_system, &terrain_system, &physics_system);
@@ -102,7 +102,7 @@ int main()
 		&particle_system,
 		&powerup_system
 	);
-	pathfinding_system.init(&terrain_system);
+	pathfinding_system.init(&terrain_system, &powerup_system);
 	
 	// variable timestep loop
 	while (!world_system.is_over()) {

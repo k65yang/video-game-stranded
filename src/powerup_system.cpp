@@ -39,6 +39,9 @@ void PowerupSystem::step(float elapsed_ms) {
 		} else if (powerup.type == POWERUP_TYPE::SPEED) {
 			particles->createParticleTrail(player_entity, TEXTURE_ASSET_ID::PLAYER_PARTICLE, 2, vec2{ 0.7f, 1.0f });
 		}
+		else if (powerup.type == POWERUP_TYPE::INFINITE_BULLET) {
+			particles->createFloatingBullet(player_entity, 1);
+		}
 
 
 	}
@@ -58,8 +61,10 @@ void PowerupSystem::applyPowerup(POWERUP_TYPE powerup_type) {
 		applyHealthRegenPowerup();
 		break;
 	case POWERUP_TYPE::INVISIBLE:
+		applyInvisiblePowerup();
 		break;
 	case POWERUP_TYPE::INFINITE_BULLET:
+		applyInfiniteBulletPowerup();
 		break;
 	default:
 		break;
@@ -82,11 +87,18 @@ void PowerupSystem::disablePowerupEffect(POWERUP_TYPE powerup_type) {
 
 		break;
 	case POWERUP_TYPE::INVISIBLE:
+
+		// set color back to normal
+		registry.colors.get(player_entity).a = 1.0f;
+
 		// set mob tracking back on
+		disable_pathfinding_invisible_powerup = false;
 
 		break;
 	case POWERUP_TYPE::INFINITE_BULLET:
+
 		// set infinite bullet ammo back on
+		disable_bullet_consumption = false;
 		break;
 
 	default:
@@ -103,7 +115,7 @@ void PowerupSystem::applySpeedPowerup() {
 	for (auto& powerup : registry.powerups.components) {
 		if (powerup.type == POWERUP_TYPE::SPEED) {
 
-			// re-apply speed if timer was zero
+			// re-apply powerup effect if timer was zero
 			if (powerup.duration_ms <= 0) {
 
 				auto& player_component = registry.players.get(player_entity);
@@ -114,7 +126,7 @@ void PowerupSystem::applySpeedPowerup() {
 
 			// extend timer
 			powerup.duration_ms = start_duration_ms;
-			std::cout << (int)powerup.type << "'s duration is EXTENED " << powerup.duration_ms << std::endl;
+			std::cout << "SPEED UP duration is EXTENDED TO " << powerup.duration_ms << std::endl; // DELETE LATER
 
 		}
 	
@@ -130,14 +142,14 @@ void PowerupSystem::applyHealthRegenPowerup() {
 	for (auto& powerup : registry.powerups.components) {
 		if (powerup.type == POWERUP_TYPE::HEALTH_REGEN) {
 
-			// re-apply speed if timer was zero
+			// re-apply powerup effect if timer was zero
 			if (powerup.duration_ms <= 0) {
 				remaining_time_for_next_heal = 0.0f;
 			}
 
 			// extend timer
 			powerup.duration_ms = start_duration_ms;
-			std::cout << (int)powerup.type << "'s duration is EXTENED " << powerup.duration_ms << std::endl;
+			std::cout << "HEALTH REGEN duration is EXTENDED TO " << powerup.duration_ms << std::endl; // DELETE LATER
 
 		}
 
@@ -206,6 +218,57 @@ void PowerupSystem::applyHealthRegenPowerup() {
 	*/
 }
 
+void PowerupSystem::applyInvisiblePowerup() {
+
+	for (auto& powerup : registry.powerups.components) {
+		if (powerup.type == POWERUP_TYPE::INVISIBLE) {
+
+			// re-apply powerup effect if timer was zero
+			if (powerup.duration_ms <= 0) {
+
+				// adjust player sprite alpha
+				if (registry.colors.has(player_entity)) {
+					registry.colors.get(player_entity).a -= 0.5;
+				}
+				else
+				{
+					auto& color = registry.colors.emplace(player_entity);
+					color = { 1.0f, 1.0f, 1.0f, 0.5f };
+				}
+
+				// disable pathfinding for mob
+				disable_pathfinding_invisible_powerup = true;
+			}
+
+			// reset duration
+			powerup.duration_ms = start_duration_ms + 5000.f;
+
+		}
+	}
+
+}
+
+void PowerupSystem::applyInfiniteBulletPowerup() {
+
+	for (auto& powerup : registry.powerups.components) {
+		if (powerup.type == POWERUP_TYPE::INFINITE_BULLET) {
+
+			// re-apply powerup effect if timer was zero
+			if (powerup.duration_ms <= 0) {
+
+				
+
+				// disable pathfinding for mob
+				 disable_bullet_consumption = true;
+			}
+
+			// reset duration
+			powerup.duration_ms = start_duration_ms;
+
+		}
+	}
+
+}
 
 
 // reset powerup system on game restart

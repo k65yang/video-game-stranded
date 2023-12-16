@@ -805,6 +805,15 @@ void WorldSystem::handle_collisions() {
 					case ITEM_TYPE::POWERUP_HEALTH:
 						powerup_system->applyPowerup(POWERUP_TYPE::HEALTH_REGEN);
 						break;
+
+					case ITEM_TYPE::POWERUP_INVISIBLE:
+						powerup_system->applyPowerup(POWERUP_TYPE::INVISIBLE);
+						break;
+
+					case ITEM_TYPE::POWERUP_INFINITE_BULLET:
+						powerup_system->applyPowerup(POWERUP_TYPE::INFINITE_BULLET);
+						break;
+
 				}
 
 				// remove item from map
@@ -1305,7 +1314,7 @@ void WorldSystem::on_mouse_click(int button, int action, int mods) {
 			
 			}
 			// We didn't shoot successfully since we ran out of ammo
-			else if (weapons_system->getActiveWeaponAmmoCount() <= 0 && player_equipped_weapon) {
+			else if (weapons_system->getActiveWeaponAmmoCount() <= 0 && player_equipped_weapon && !powerup_system->disable_bullet_consumption) {
 				fired_weapon = weapons_system->getActiveWeapon();
 
 				if (fired_weapon == ITEM_TYPE::WEAPON_NONE)

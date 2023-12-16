@@ -89,8 +89,8 @@ private:
 			textures_path("icon_powerup_health.png"),
 			textures_path("powerup_health.png"),
 			textures_path("powerup_speed.png"),
-			textures_path("powerup_speed.png"), //  for invisibile
-			textures_path("powerup_speed.png"), // for infinite bullet
+			textures_path("powerup_invisible.png"), 
+			textures_path("powerup_infinite_ammo.png"),
 			textures_path("spaceship.png"),
 			textures_path("spaceship_home.png"),
 			textures_path("blue_block.png"),

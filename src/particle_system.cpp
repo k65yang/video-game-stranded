@@ -193,6 +193,79 @@ void ParticleSystem::createFloatingHeart(Entity targetEntity, TEXTURE_ASSET_ID t
 }
 
 
+// Create floating heart particle effect for the health power up
+void ParticleSystem::createFloatingBullet(Entity targetEntity, int numberOfParticles) {
+
+
+    // create the template particle
+    ParticleTemplate temp;
+
+    temp.active = true;
+    temp.lifeTime = 2000.f;
+    temp.lifeTimeRemaining = 2000.f;
+    temp.sizeBegin = 0.5f;
+    temp.sizeEnd = 0.0f;
+    temp.position = registry.motions.get(targetEntity).position;
+    temp.velocity = { 0.0f, -3.0f };
+    temp.color = registry.colors.get(targetEntity);
+
+
+    std::random_device rd;
+    std::default_random_engine gen(rd());
+    std::uniform_real_distribution<float> dist(-0.1, 0.1);
+    std::vector<Entity> entities;
+
+    // Create particles based on template
+    for (int i = 0; i < numberOfParticles; i++) {
+        ParticleTemplate sample = temp;
+
+        // randomize the x, y position and scale of hearts
+        sample.sizeBegin = temp.sizeBegin += dist(gen);
+        sample.position.x = temp.position.x + 4 * dist(gen);
+        sample.position.y = temp.position.y + 4 * dist(gen);
+        sample.velocity.y = temp.velocity.y + 10 * dist(gen);
+
+        
+
+        std::uniform_int_distribution<int> dist(0, 3);
+
+        switch (dist(gen)) {
+            case 0:
+                sample.texture = TEXTURE_ASSET_ID::WEAPON_SHURIKEN;
+                break;
+            case 1:
+                sample.texture = TEXTURE_ASSET_ID::WEAPON_CROSSBOW;
+                break;
+            case 2:
+                sample.texture = TEXTURE_ASSET_ID::WEAPON_SHOTGUN;
+                break;
+            case 3:
+                sample.texture = TEXTURE_ASSET_ID::WEAPON_MACHINEGUN;
+                break;
+            default:
+                sample.texture = TEXTURE_ASSET_ID::WEAPON_SHURIKEN;
+                break;
+        
+        }
+       
+       
+        entities.push_back(emit(sample));
+
+    }
+
+    // Ccreate one instanced render request 
+    registry.instancedRenderRequests.insert(
+        entities[0],
+        { entities,
+            registry.particles.get(entities[0]).texture,
+            EFFECT_ASSET_ID::TEXTUREPARTICLE,
+            GEOMETRY_BUFFER_ID::SPRITE,
+            RENDER_LAYER_ID::LAYER_2
+        });
+
+}
+
+
 
 // create particles effects that start from contact point, and 
 // spreads in a specified direction with a cone angle spread, with specified particle amounts and color
