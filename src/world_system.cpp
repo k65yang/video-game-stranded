@@ -1584,7 +1584,7 @@ void WorldSystem::load_game(json j) {
 
 	// PRESSURE TESTING FOR BVH, can remove later
 	//terrain->init(512, 512, renderer);
-
+	
 	// Add wall of stone around the map
 	for (unsigned int i = 0; i < registry.terrainCells.entities.size(); i++) {
 		Entity e = registry.terrainCells.entities[i];
@@ -1592,7 +1592,7 @@ void WorldSystem::load_game(json j) {
 
 		if (cell.flag & TERRAIN_FLAGS::COLLIDABLE)
 			physics_system->createDefaultCollider(e);
-	}
+		}
 
 	// THIS MUST BE CALL AFTER TERRAIN COLLIDER CREATION AND BEFORE ALL OTHER ENTITY CREATION
 	// build the static BVH with all terrain colliders.
