@@ -26,7 +26,7 @@ class PowerupSystem
 		}
 		
 		float old_speed;
-		float start_duration_ms = 3000.0f;
+		float start_duration_ms = 10000.0f;
 		bool disable_pathfinding_invisible_powerup = false;
 		bool disable_bullet_consumption = false;
 		void init(RenderSystem* renderer_arg, ParticleSystem* particle_system_arg);
@@ -61,6 +61,9 @@ class PowerupSystem
 		float heal_interval_ms = 1000.f;				// Player health will increase after this interval
 		float remaining_time_for_next_heal = 1000.f;	// Time since the player last healed
 		int	heal_amount = 5;							// The amount healed
+
+		float remaining_time_for_next_particle = 0.f; // used for delaying particle effects
+		float particle_spawn_interval = 100.0f;
 
 		/*
 		float light_up_duration_ms = 1000.f;			// The health bar will light up to indicate healing

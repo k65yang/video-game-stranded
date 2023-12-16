@@ -8,7 +8,7 @@
 
 // Player component
 
-const int PLAYER_MAX_FOOD = 100;
+const int PLAYER_MAX_FOOD = 100; // change to 100 later
 const int PLAYER_MAX_HEALTH = 100;
 const int SPACESHIP_MAX_HEALTH_STORAGE = 100;
 const int SPACESHIP_MAX_FOOD_STORAGE = 200;
@@ -90,7 +90,7 @@ struct Player
 	bool is_home = false;
 	bool has_collected_quest_item = false;
 	bool has_entered_spaceship = false;
-	float current_speed = 5.0f;
+	float current_speed = 5.0f; // change to 5 later
 };
 
 

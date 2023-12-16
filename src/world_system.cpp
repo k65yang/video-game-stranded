@@ -14,7 +14,7 @@ const float IFRAMES = 1500;
 const int FOOD_PICKUP_AMOUNT = 20;
 float PLAYER_TOTAL_DISTANCE = 0;
 const float FOOD_DECREASE_THRESHOLD  = 5.0f; // Adjust this value as needed
-const float FOOD_DECREASE_RATE = 10.f;	// Decreases by 10 units per second (when moving)
+const float FOOD_DECREASE_RATE = 5.f;	// Decreases by 10 units per second (when moving)
 float CURSOR_ANGLE = 0;
 int PLAYER_DIRECTION = 2;  // Default to facing up
 float ELAPSED_TIME = 0;
@@ -473,8 +473,15 @@ void WorldSystem::handlePlayerMovement(float elapsed_ms_since_last_update) {
 		handle_movement(m, LEFT);
 
 		if (length(m.velocity) > 0) {
-			m.velocity *= terrain->get_terrain_speed_ratio(terrain->get_cell(m.position));
+
+			float speedRatio = terrain->get_terrain_speed_ratio(terrain->get_cell(m.position));
+
+			if (speedRatio == 0.25f || speedRatio == 0.40f) {
+				particle_system->createWaterSpalsh(player_salmon,1, speedRatio);
 			}
+
+			m.velocity *= speedRatio;
+		}
 
 		if (anyMovementKeysPressed) {
 			PLAYER_TOTAL_DISTANCE += FOOD_DECREASE_RATE * elapsed_ms_since_last_update / 1000.f;
@@ -1099,6 +1106,12 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		
 	}
 
+	// Press B to toggle debug mode
+	if (key == GLFW_KEY_C && action == GLFW_PRESS) {
+		std::cout << "player at x: " << registry.motions.get(player_salmon).position.x << ", y: " << registry.motions.get(player_salmon).position.y << std::endl;
+
+	}
+
 	// Control the current speed with `<` `>` as well as fow radius
 	if (action == GLFW_RELEASE && (mod & GLFW_MOD_SHIFT) && key == GLFW_KEY_COMMA) {
 		player.current_speed -= 0.1f;
@@ -1426,11 +1439,11 @@ void WorldSystem::spawn_items() {
 
 	// lookup table for powerup
 	std::unordered_map<ZONE_NUMBER, int> zone_powerup = {
-		{ZONE_0, 3},
-		{ZONE_1, 4},
-		{ZONE_2, 5},
-		{ZONE_3, 7},
-		{ZONE_4, 8},
+		{ZONE_0, 0},
+		{ZONE_1, 2},
+		{ZONE_2, 3},
+		{ZONE_3, 5},
+		{ZONE_4, 7},
 		{ZONE_5, 10},
 	};
 
@@ -1466,11 +1479,68 @@ void WorldSystem::spawn_items() {
 
 	}
 
-  // Hardcoded quest items
-	createItem(renderer, physics_system, {-78.f, -84.f}, ITEM_TYPE::QUEST_ONE);
-	createItem(renderer, physics_system, { 55.f, -52.f}, ITEM_TYPE::QUEST_TWO);	
+ 
+	//Hardcoded powerup spawns
+	
+	// TOP LEFT REGION
+	powerup_spawn_helper(vec2{ -5.00f, -92.0f });
+	powerup_spawn_helper(vec2{ -30.0f, -50.0f }); // water
+	powerup_spawn_helper(vec2{ -34.0f, -88.0f });
+	powerup_spawn_helper(vec2{ -39.0f, -55.0f });
+	powerup_spawn_helper(vec2{ -49.0f, -74.0f });
+	powerup_spawn_helper(vec2{ -52.0f, -34.0f });
+	powerup_spawn_helper(vec2{ -56.0f, -81.0f });
+	powerup_spawn_helper(vec2{ -57.0f, -58.0f });
+	powerup_spawn_helper(vec2{ -60.0f, -45.0f });
+	powerup_spawn_helper(vec2{ -60.0f, -69.0f });
+	powerup_spawn_helper(vec2{ -64.0f, -94.0f });
+	powerup_spawn_helper(vec2{ -65.0f, -94.0f });
+	powerup_spawn_helper(vec2{ -80.0f, -93.0f });
+	powerup_spawn_helper(vec2{ -82.0f, -43.0f });
+	powerup_spawn_helper(vec2{ -84.0f, -62.0f });
+	powerup_spawn_helper(vec2{ -91.0f, -69.0f });
+	powerup_spawn_helper(vec2{ -91.0f, -69.0f });
+	powerup_spawn_helper(vec2{ -93.0f, -78.0f });
+	powerup_spawn_helper(vec2{ -96.0f, -24.0f }); // water
+
+
+	// BOTTOM LEFT REGION
+
+
+	powerup_spawn_helper(vec2{ -15.0f, 35.0f }); // center ground
+	powerup_spawn_helper(vec2{ -37.0f, 72.0f });
+	powerup_spawn_helper(vec2{ -72.0f, 33.0f });
+	powerup_spawn_helper(vec2{ -83.0f, 39.0f }); // bottom left cave
+	powerup_spawn_helper(vec2{ -90.0f, 61.0f });
+
+	// BOTTOM RIGHT REGION
+	powerup_spawn_helper(vec2{ 3.00f, 20.0f });
+	powerup_spawn_helper(vec2{ 21.0f, 28.0f });
+	powerup_spawn_helper(vec2{ 69.0f, 42.0f });
+	powerup_spawn_helper(vec2{ 83.0f, 30.0f });
+	powerup_spawn_helper(vec2{ 96.0f, 2.00f });
+
+
+	// TOP RIGHT REGION
+	powerup_spawn_helper(vec2{ 8.00f, -81.0f });
+	powerup_spawn_helper(vec2{ 33.0f, -38.0f });
+	powerup_spawn_helper(vec2{ 43.0f, -92.0f });
+	powerup_spawn_helper(vec2{ 54.0f, -92.0f });
+	powerup_spawn_helper(vec2{ 75.0f, -12.0f });
+	powerup_spawn_helper(vec2{ 91.0f, -90.0f });
+	powerup_spawn_helper(vec2{ 96.0f, -18.0f });
+
+
+
+
+	// Hardcoded quest items
+	createItem(renderer, physics_system, { -78.f, -84.f }, ITEM_TYPE::QUEST_ONE);
+	createItem(renderer, physics_system, { 55.f, -52.f }, ITEM_TYPE::QUEST_TWO);
 	createItem(renderer, physics_system, { 78.f, 48.f }, ITEM_TYPE::QUEST_THREE);
 	createItem(renderer, physics_system, { -73.f, 62.f }, ITEM_TYPE::QUEST_FOUR);
+
+
+	
 }
 
 // Adapted from restart_game, BASICALLY a lot of optional arguments to change small things :D
@@ -1667,5 +1737,29 @@ void WorldSystem::emitMuzzleFlash(vec2 position, int PLAYER_DIRECTION) {
 	 registry.colors.get(muzzleFlash).a = 1.0f;
 
 
+
+}
+
+void WorldSystem::powerup_spawn_helper(vec2 position){ 
+
+	// set up the random number generator
+	std::random_device rng;
+	std::mt19937 generator(rng());  // Seed the generator
+	std::uniform_int_distribution<> distribution_powerup_type(0, 3);
+
+	switch (distribution_powerup_type(rng)) {
+	case 0:
+		createItem(renderer, physics_system, position, ITEM_TYPE::POWERUP_SPEED);
+		break;
+	case 1:
+		createItem(renderer, physics_system, position, ITEM_TYPE::POWERUP_HEALTH);
+		break;
+	case 2:
+		createItem(renderer, physics_system, position, ITEM_TYPE::POWERUP_INVISIBLE);
+		break;
+	case 3:
+		createItem(renderer, physics_system, position, ITEM_TYPE::POWERUP_INFINITE_BULLET);
+		break;
+	}
 
 }

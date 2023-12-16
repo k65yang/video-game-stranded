@@ -163,6 +163,7 @@ private:
 	/// Spawns ITEM_LIMIT items randomly across the map
 	///	</summary>
 	void spawn_items();
+	void powerup_spawn_helper(vec2 position);
 
 	void load_spawned_items_mobs(json& j);
 

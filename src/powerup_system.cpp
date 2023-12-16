@@ -10,6 +10,7 @@ void PowerupSystem::step(float elapsed_ms) {
 
 	auto& powerups_component_container = registry.powerups.components;
 	auto& player_component = registry.players.get(player_entity);
+	remaining_time_for_next_particle -= elapsed_ms;
 
 	for (int i = 0; i < powerups_component_container.size(); i++) {
 		auto& powerup = powerups_component_container[i];
@@ -39,8 +40,10 @@ void PowerupSystem::step(float elapsed_ms) {
 		} else if (powerup.type == POWERUP_TYPE::SPEED) {
 			particles->createParticleTrail(player_entity, TEXTURE_ASSET_ID::PLAYER_PARTICLE, 2, vec2{ 0.7f, 1.0f });
 		}
-		else if (powerup.type == POWERUP_TYPE::INFINITE_BULLET) {
+		else if (powerup.type == POWERUP_TYPE::INFINITE_BULLET && remaining_time_for_next_particle < 0.0f) {
 			particles->createFloatingBullet(player_entity, 1);
+
+			remaining_time_for_next_particle = particle_spawn_interval;
 		}
 
 
@@ -126,7 +129,7 @@ void PowerupSystem::applySpeedPowerup() {
 
 			// extend timer
 			powerup.duration_ms = start_duration_ms;
-			std::cout << "SPEED UP duration is EXTENDED TO " << powerup.duration_ms << std::endl; // DELETE LATER
+			//std::cout << "SPEED UP duration is EXTENDED TO " << powerup.duration_ms << std::endl; // DELETE LATER
 
 		}
 	
@@ -149,7 +152,7 @@ void PowerupSystem::applyHealthRegenPowerup() {
 
 			// extend timer
 			powerup.duration_ms = start_duration_ms;
-			std::cout << "HEALTH REGEN duration is EXTENDED TO " << powerup.duration_ms << std::endl; // DELETE LATER
+			//std::cout << "HEALTH REGEN duration is EXTENDED TO " << powerup.duration_ms << std::endl; // DELETE LATER
 
 		}
 
@@ -241,7 +244,7 @@ void PowerupSystem::applyInvisiblePowerup() {
 			}
 
 			// reset duration
-			powerup.duration_ms = start_duration_ms + 5000.f;
+			powerup.duration_ms = start_duration_ms;
 
 		}
 	}
@@ -309,7 +312,7 @@ void PowerupSystem::setPowerup(float duration_ms, POWERUP_TYPE type_arg) {
 	for (auto& powerup : registry.powerups.components) {
 		if (powerup.type == type_arg) {
 			powerup.duration_ms = duration_ms;
-			std::cout << powerup.duration_ms << " is loaded to type " << (int)powerup.type << std::endl;
+			//std::cout << powerup.duration_ms << " is loaded to type " << (int)powerup.type << std::endl;
 		}
 	
 	}
