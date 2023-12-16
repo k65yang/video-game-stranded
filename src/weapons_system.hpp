@@ -7,6 +7,7 @@
 #include "tiny_ecs_registry.hpp"
 #include "render_system.hpp"
 #include "physics_system.hpp"
+#include "powerup_system.hpp"
 
 //  A weapons system class that handles everything weapons related
 class WeaponsSystem
@@ -23,7 +24,7 @@ class WeaponsSystem
 
         /// @brief  Initializes the render system
         /// @param renderer_arg Pointer to the render system
-        void init(RenderSystem* renderer_arg, PhysicsSystem* physics_arg);
+        void init(RenderSystem* renderer_arg, PhysicsSystem* physics_arg, PowerupSystem* powerup_system_arg);
 
         /// @brief Function to update weapon systems in world time.
         ///        Currently controls the fire rate of the equipped weapon only.
@@ -110,6 +111,9 @@ class WeaponsSystem
 
         // Pointer to physics system for projectiles
         PhysicsSystem* physics;
+
+        // Pointer to powerup system for projectiles
+        PowerupSystem* powerup_system;
 
         // Hardcoded weapons data
         // Fire rates for each weapon

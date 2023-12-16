@@ -10,6 +10,10 @@
 #include "components.hpp"
 #include "tiny_ecs_registry.hpp"
 #include "terrain_system.hpp"
+#include "powerup_system.hpp"
+
+
+
 
 // A pathfinding system for mobs
 class PathfindingSystem
@@ -21,7 +25,7 @@ public:
 	/// Initializes path finding system
 	/// </summary>
 	/// <param name="terrain_arg">Pointer to the terrain system</param>
-	void init(TerrainSystem* terrain_arg);
+	void init(TerrainSystem* terrain_arg, PowerupSystem* powerup_system_arg);
 
 	/// <summary>
 	/// Steps pathfinding ahead by elapsed_ms milliseconds
@@ -32,6 +36,8 @@ public:
 private:
 	/// Terrain system pointer
 	TerrainSystem* terrain;
+	PowerupSystem* powerup_system;
+
 
     /// <summary>
 	/// Finds the shortest path between a mob and the player

@@ -11,4 +11,4 @@ void SaveGame(
     std::vector<std::pair<Item&, Motion&>> items, 
     std::vector<QUEST_ITEM_STATUS> quest_item_statuses,
     SpaceshipHome& spaceshipHome,
-    ITEM_TYPE powerup);
+    std::vector<Powerup> powerups);
