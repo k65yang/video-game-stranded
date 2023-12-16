@@ -14,7 +14,7 @@ const float IFRAMES = 1500;
 const int FOOD_PICKUP_AMOUNT = 20;
 float PLAYER_TOTAL_DISTANCE = 0;
 const float FOOD_DECREASE_THRESHOLD  = 5.0f; // Adjust this value as needed
-const float FOOD_DECREASE_RATE = 5.f;	// Decreases by 10 units per second (when moving)
+const float FOOD_DECREASE_RATE = 7.f;	// Decreases by 10 units per second (when moving)
 float CURSOR_ANGLE = 0;
 int PLAYER_DIRECTION = 2;  // Default to facing up
 float ELAPSED_TIME = 0;
@@ -242,13 +242,13 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 	ELAPSED_TIME += elapsed_ms_since_last_update;
 
+	remaing_time_for_next_hunger_sound -= elapsed_ms_since_last_update;
+	
 
-			// Reset the total movement distance
-			PLAYER_TOTAL_DISTANCE = 0;
-
-			if (player.food < PLAYER_MAX_FOOD / 4) {
-				audio_system->play_one_shot(AudioSystem::PLAYER_LOW_HUNGER);
-			}
+	if (player_component.food < PLAYER_MAX_FOOD / 4 && remaing_time_for_next_hunger_sound <= 0) {
+		audio_system->play_one_shot(AudioSystem::PLAYER_LOW_HUNGER);
+		remaing_time_for_next_hunger_sound = low_hunger_sound_interval;
+	}
 
 	
 	
