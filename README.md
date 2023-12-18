@@ -61,19 +61,11 @@ Player upgrade - Healing Icon: https://www.flaticon.com/free-icon/regeneration_4
 
 Player upgrade - Speed Icon: https://www.flaticon.com/free-icon/speed_1409012?related_id=1409083&origin=search
 
-Shuriken Weapon Icon: ???
-
-Crossbow Weapon Icon: https://www.flaticon.com/free-icon/crossbow_486976
-
-Shotgun Weapon Icon: https://simon-develop.itch.io/shotgun 
-
-Machine Gun Weapon Icon: https://pixabay.com/vectors/kalashnikov-rifle-russian-weapon-155147/
-
 Start Button: https://www.flaticon.com/free-icon/start-button_5261929?related_id=5261874&origin=search 
 
 Muzzle flash: https://opengameart.org/content/16-toon-muzzle-flash
 
-## Sound effect Credits
+## Sound Credits
 
 Almost all sound effects are used as is or composites from PixaBay with CC0 license (internet police friendly build): https://pixabay.com/sound-effects
 
