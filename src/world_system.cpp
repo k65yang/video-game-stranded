@@ -1051,7 +1051,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		}
 		
 
-		SaveGame(player, player_motion, active_weapon, weapons, mobs, items, quest_item_statuses, spaceship_home_info, powerups);
+		SaveGame(player, player_motion, active_weapon, weapons, mobs, items, quest_item_statuses, spaceship_home_info, powerups, powerup_system->old_speed, player.current_speed);
 
 		tutorial_system->createTutorialText(TUTORIAL_TYPE::GAME_SAVED);
 	}
@@ -1573,8 +1573,10 @@ void WorldSystem::load_game(json j) {
 	while (registry.weapons.entities.size() > 0)
 		registry.remove_all_components_of(registry.weapons.entities.back());
 
+
 	renderer->enableFow = 1;
 	renderer->fow_radius = 4.5f;
+
 
 	// Reset the weapons system
 	weapons_system->resetWeaponsSystem();
@@ -1605,6 +1607,9 @@ void WorldSystem::load_game(json j) {
 
 	// Create a Spaceship 
 	spaceship = createSpaceship(renderer, { 0, -2.5 });
+
+
+
 
 	// Create a new salmon
 	player_salmon = createPlayer(renderer, physics_system, player_location);
@@ -1662,13 +1667,25 @@ void WorldSystem::load_game(json j) {
 		user_has_first_weapon = false;
 	}
 
+
+	// Reset powerup system. 
+
+	// restore speed before power up
+	float o_speed = j["old_speed"];
+	powerup_system->old_speed = o_speed;
+
+	// Reset all the durations. 
 	powerup_system->resetPowerupSystem(player_salmon);
 
-	// Load all powerup data
-	for (auto& powerup : j["powerups"]) {
-		powerup_system->setPowerup(static_cast<float > (powerup["duration_ms"]), static_cast<POWERUP_TYPE>(powerup["powerup_type"]));
-	}
+	// restore player current speed
+	player.current_speed = j["current_speed"];
 
+
+	// Load all powerup durations
+	for (auto& powerup : j["powerups"]) {
+		powerup_system->setPowerup(static_cast<float> (powerup["duration_ms"]), static_cast<POWERUP_TYPE>(powerup["powerup_type"]));
+	}
+	
 
 	// Quest items
 	quest_system->resetQuestSystem(j["quest_item_statuses"]);

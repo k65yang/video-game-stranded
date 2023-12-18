@@ -282,7 +282,7 @@ void PowerupSystem::resetPowerupSystem(Entity player_entity_arg) {
 	auto& player_component = registry.players.get(player_entity_arg);
 
 	// initialize old speed as current speed;
-	old_speed = player_component.current_speed;
+	//old_speed = 5.0f;
 
 	// store player entity reference
 	player_entity = player_entity_arg;
