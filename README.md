@@ -67,7 +67,7 @@ Muzzle flash: https://opengameart.org/content/16-toon-muzzle-flash
 
 ## Sound Credits
 
-Almost all sound effects are used as is or composites from PixaBay with CC0 license (internet police friendly build): https://pixabay.com/sound-effects
+Almost all sound effects are used as is or composites from PixaBay (internet police friendly build): https://pixabay.com/sound-effects
 
 Some were made with Steinberg's Retrologue and Padshop Pro synthesizers, but composed in-house.
 
