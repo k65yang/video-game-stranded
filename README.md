@@ -73,4 +73,10 @@ Start Button: https://www.flaticon.com/free-icon/start-button_5261929?related_id
 
 Muzzle flash: https://opengameart.org/content/16-toon-muzzle-flash
 
+## Sound effect Credits
 
+Almost all sound effects are used as is or composites from PixaBay with CC0 license (internet police friendly build): https://pixabay.com/sound-effects
+
+Some were made with Steinberg's Retrologue and Padshop Pro synthesizers, but composed in-house.
+
+"Dark Forest" used as Background Game Music by "McFunkypants": https://www.chosic.com/download-audio/27010/
