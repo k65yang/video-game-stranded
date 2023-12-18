@@ -1351,12 +1351,17 @@ void WorldSystem::on_mouse_click(int button, int action, int mods) {
 			}
 		}
 	}
-
-	if (debugging.in_debug_mode && button == GLFW_MOUSE_BUTTON_RIGHT) {
-		if (action == GLFW_PRESS)
-			editor_place_tile = true;
-		else if (action == GLFW_RELEASE)
-			editor_place_tile = false;
+	if (debugging.in_debug_mode) {
+		if (button == GLFW_MOUSE_BUTTON_RIGHT) {
+			if (action == GLFW_PRESS)
+				editor_place_tile = true;
+			else if (action == GLFW_RELEASE)
+				editor_place_tile = false;
+		}
+		if (button == GLFW_MOUSE_BUTTON_LEFT) {
+			ivec2 pos = terrain->quantize_vec2(mouse_pos_clip);
+			std::cout << "Clicked tile: (" << pos.x << ", " << pos.y << ')' << std::endl;
+		}
 	}
 }
 
@@ -1447,8 +1452,8 @@ void WorldSystem::spawn_items() {
 	// lookup table for powerup
 	std::unordered_map<ZONE_NUMBER, int> zone_powerup = {
 		{ZONE_0, 0},
-		{ZONE_1, 2},
-		{ZONE_2, 3},
+		{ZONE_1, 0},
+		{ZONE_2, 2},
 		{ZONE_3, 5},
 		{ZONE_4, 7},
 		{ZONE_5, 10},
@@ -1522,7 +1527,8 @@ void WorldSystem::spawn_items() {
 
 	// BOTTOM RIGHT REGION
 	powerup_spawn_helper(vec2{ 3.00f, 20.0f });
-	powerup_spawn_helper(vec2{ 21.0f, 28.0f });
+	powerup_spawn_helper(vec2{ 76.0f, 6.0f });
+	powerup_spawn_helper(vec2{ 23.0f, 13.0f });
 	powerup_spawn_helper(vec2{ 69.0f, 42.0f });
 	powerup_spawn_helper(vec2{ 83.0f, 30.0f });
 	powerup_spawn_helper(vec2{ 96.0f, 2.00f });
