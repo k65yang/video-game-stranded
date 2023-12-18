@@ -103,6 +103,7 @@ void from_json(const json& j, Powerup& powerup) {
     
 }
 
+
 // NOTE: Currently saving every field of these structs - but this isn't necessary, just for cleanliness of code. If we need more space we can trim here :)
 void SaveGame(
     Player& player, 
@@ -113,7 +114,8 @@ void SaveGame(
     std::vector<std::pair<Item&, Motion&>> items, 
     std::vector<QUEST_ITEM_STATUS> quest_item_statuses, 
     SpaceshipHome& spaceshipHome, 
-    std::vector<Powerup> powerups) {
+    std::vector<Powerup> powerups,
+    float old_speed, float current_speed) {
     json data;
 
     data["player"] = player;
@@ -125,7 +127,8 @@ void SaveGame(
     data["quest_item_statuses"] = quest_item_statuses;
     data["spaceshipHome"] = spaceshipHome;
     data["powerups"] = powerups;
-
+    data["old_speed"] = old_speed;
+    data["current_speed"] = current_speed;
     // std::cout << data.dump(4);
 
     // Save/create into a file

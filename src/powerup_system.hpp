@@ -25,7 +25,7 @@ class PowerupSystem
 			registry.powerups.clear();
 		}
 		
-		float old_speed;
+		float old_speed = 5.0f;
 		float start_duration_ms = 10000.0f;
 		bool disable_pathfinding_invisible_powerup = false;
 		bool disable_bullet_consumption = false;
