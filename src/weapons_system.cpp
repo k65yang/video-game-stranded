@@ -4,11 +4,11 @@
 
 #include "weapons_system.hpp"
 
-void WeaponsSystem::init(RenderSystem* renderer_arg, PhysicsSystem* physics_arg) {
+void WeaponsSystem::init(RenderSystem* renderer_arg, PhysicsSystem* physics_arg, PowerupSystem* powerup_system_arg) {
 	// Set the render and physics system
 	this->renderer = renderer_arg;
 	this->physics = physics_arg;
-
+	this->powerup_system = powerup_system_arg;
 	// Create all weapons
 	createAllWeapons();
 }
@@ -23,7 +23,7 @@ void WeaponsSystem::step(float elapsed_ms) {
 			continue;
 
 		// Continue if there is no ammo (weapon should already be in a cannot fire state)
-		if (weapon.ammo_count <= 0)
+		if (weapon.ammo_count <= 0 && !powerup_system->disable_bullet_consumption)
 			continue;
 
 		// Update the the last shot time to see if the weapon is able to fire
@@ -193,12 +193,18 @@ int WeaponsSystem::getActiveWeaponAmmoCount() {
 }
 
 ITEM_TYPE WeaponsSystem::fireWeapon(float player_x, float player_y, float player_angle) {
-	if (active_weapon_type == ITEM_TYPE::WEAPON_NONE || !active_weapon_component)
+
+
+	if (active_weapon_type == ITEM_TYPE::WEAPON_NONE || !active_weapon_component) {
 		return ITEM_TYPE::WEAPON_NONE;
-	if (!active_weapon_component || !
-		active_weapon_component->can_fire || 
-		active_weapon_component->ammo_count <= 0)
+	}
+
+	
+	if ((!active_weapon_component || !active_weapon_component->can_fire || (active_weapon_component->ammo_count <= 0) && !powerup_system->disable_bullet_consumption)) {
 		return ITEM_TYPE::WEAPON_NONE;
+	}
+	
+
 
 	Entity player = registry.players.entities[0];
 	if (registry.playerInaccuracyEffects.has(player)) {
@@ -209,21 +215,39 @@ ITEM_TYPE WeaponsSystem::fireWeapon(float player_x, float player_y, float player
 	// TODO: offset projectile location a little so it doesn't get created on top of player
 	switch(active_weapon_type){
 		case ITEM_TYPE::WEAPON_SHURIKEN:
-			active_weapon_component->ammo_count--;
+			if (!powerup_system->disable_bullet_consumption) {
+				active_weapon_component->ammo_count--;
+			}
+			
+			
 			fireShuriken(player_x, player_y, player_angle);
+			
 			break;
 		case ITEM_TYPE::WEAPON_CROSSBOW:
-			active_weapon_component->ammo_count--;
+			if (!powerup_system->disable_bullet_consumption) {
+				active_weapon_component->ammo_count--;
+			}
+
+			
 			fireCrossbow(player_x, player_y, player_angle);
+			
 			break;
 		case ITEM_TYPE::WEAPON_SHOTGUN:
 			// decrement ammunition count
-			active_weapon_component->ammo_count -= 1;
+			if (!powerup_system->disable_bullet_consumption) {
+				active_weapon_component->ammo_count -= 1;
+			}
+
 			fireShotgun(player_x, player_y, player_angle);
+			
 			break;
 		case ITEM_TYPE::WEAPON_MACHINEGUN:
-			active_weapon_component->ammo_count--;
+			if (!powerup_system->disable_bullet_consumption) {
+				active_weapon_component->ammo_count--;
+			}
+
 			fireMachineGun(player_x, player_y, player_angle);
+			
 			break;
 		default:
 			throw(std::runtime_error("Error: Failed to fire weapon because unknown weapon equipped"));

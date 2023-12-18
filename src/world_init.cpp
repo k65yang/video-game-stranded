@@ -109,6 +109,12 @@ Entity createItem(RenderSystem* renderer, PhysicsSystem* physics, vec2 position,
 	case ITEM_TYPE::POWERUP_HEALTH:
 		texture = TEXTURE_ASSET_ID::POWERUP_HEALTH;
 		break;
+	case ITEM_TYPE::POWERUP_INVISIBLE:
+		texture = TEXTURE_ASSET_ID::POWERUP_INVISIBLE; 
+		break;
+	case ITEM_TYPE::POWERUP_INFINITE_BULLET:
+		texture = TEXTURE_ASSET_ID::POWERUP_INFINITE_BULLET;
+		break;
 	}
 
 	registry.renderRequests.insert(

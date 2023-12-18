@@ -8,7 +8,7 @@
 
 // Player component
 
-const int PLAYER_MAX_FOOD = 100;
+const int PLAYER_MAX_FOOD = 100; // change to 100 later
 const int PLAYER_MAX_HEALTH = 100;
 const int SPACESHIP_MAX_HEALTH_STORAGE = 100;
 const int SPACESHIP_MAX_FOOD_STORAGE = 200;
@@ -45,10 +45,11 @@ enum class ITEM_TYPE {
 	WEAPON_MACHINEGUN = WEAPON_SHOTGUN + 1,
 	FOOD = WEAPON_MACHINEGUN + 1,
 	WEAPON_UPGRADE = FOOD + 1,
-	POWERUP_NONE = WEAPON_UPGRADE + 1,
-	POWERUP_SPEED = POWERUP_NONE + 1,
+	POWERUP_SPEED = WEAPON_UPGRADE + 1,
 	POWERUP_HEALTH = POWERUP_SPEED + 1,
-	UPGRADE = POWERUP_HEALTH + 1
+	POWERUP_INVISIBLE = POWERUP_HEALTH + 1,
+	POWERUP_INFINITE_BULLET = POWERUP_INVISIBLE + 1,
+	UPGRADE = POWERUP_INFINITE_BULLET + 1
 };
 
 enum class BAR_TYPE {
@@ -66,6 +67,16 @@ enum class FRAME_TYPE {
 	STORAGE_FRAME = FOOD_FRAME + 1,
 };
 
+enum class POWERUP_TYPE {
+	
+	SPEED = 0,
+	HEALTH_REGEN = SPEED + 1,
+	INVISIBLE = HEALTH_REGEN + 1,
+	INFINITE_BULLET = INVISIBLE + 1,
+
+};
+
+
 // TODO: cool idea for later is to have a customizable difficulty that adjusts food and health.
 struct Player
 {
@@ -79,11 +90,10 @@ struct Player
 	bool is_home = false;
 	bool has_collected_quest_item = false;
 	bool has_entered_spaceship = false;
+	float current_speed = 5.0f; // change to 5 later
 };
 
-struct SpeedPowerup {
-	float old_speed;
-};
+
 
 struct QuestItemIndicator {
 	ITEM_TYPE quest_item;
@@ -96,14 +106,11 @@ struct Inventory {
 	};
 };
 
-// Make sure that the heal interval is always larger than the light up interval
-struct HealthPowerup {
-	float heal_interval_ms = 5000.f;				// Player health will increase after this interval
-	float remaining_time_for_next_heal = 2500.f;	// Time since the player last healed
-	int heal_amount = 10;							// The amount healed
-	float light_up_duration_ms = 1000.f;			// The health bar will light up to indicate healing
-	float light_up_timer_ms = 0.f;					// The time remaining for health bar to be lit up
+struct Powerup {
+	POWERUP_TYPE type;
+	float duration_ms = 0.0f;
 };
+
 
 // Knockback effect for player from mobs
 struct PlayerKnockbackEffect {
@@ -408,7 +415,9 @@ enum class TEXTURE_ASSET_ID {
 	ICON_POWERUP_HEALTH = ICON_POWERUP_SPEED + 1,
 	POWERUP_HEALTH = ICON_POWERUP_HEALTH + 1,
 	POWERUP_SPEED = POWERUP_HEALTH + 1,
-	SPACESHIP = POWERUP_SPEED + 1,
+	POWERUP_INVISIBLE = POWERUP_SPEED + 1,
+	POWERUP_INFINITE_BULLET = POWERUP_INVISIBLE + 1,
+	SPACESHIP = POWERUP_INFINITE_BULLET + 1,
 	SPACESHIP_HOME = SPACESHIP + 1,
 	BLUE_BLOCK = SPACESHIP_HOME + 1,
 	BROWN_BLOCK = BLUE_BLOCK + 1,
