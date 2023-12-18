@@ -564,13 +564,11 @@ void WorldSystem::restart_game() {
 	printf("Restarting\n");
 
 	// Reset the items submmited 
-	spaceship_home_system->ALL_ITEMS_SUBMITTED = false; 
-
+	spaceship_home_system->ALL_ITEMS_SUBMITTED = false;
 	
 	bool PLAYER_DEATH_FROM_FOOD = false;
 	renderer->enableFow = 1;
-
-
+	renderer->fow_radius = 4.5f;
 
 	while (registry.deathTimers.entities.size() > 0)
 		registry.remove_all_components_of(registry.deathTimers.entities.back());
@@ -1569,7 +1567,8 @@ void WorldSystem::load_game(json j) {
 	while (registry.weapons.entities.size() > 0)
 		registry.remove_all_components_of(registry.weapons.entities.back());
 
-
+	renderer->enableFow = 1;
+	renderer->fow_radius = 4.5f;
 
 	// Reset the weapons system
 	weapons_system->resetWeaponsSystem();
