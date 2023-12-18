@@ -65,6 +65,8 @@ Start Button: https://www.flaticon.com/free-icon/start-button_5261929?related_id
 
 Muzzle flash: https://opengameart.org/content/16-toon-muzzle-flash
 
+Brute and disruptor mobs: https://www.craiyon.com/
+
 ## Sound Credits
 
 Almost all sound effects are used as is or composites from PixaBay (internet police friendly build): https://pixabay.com/sound-effects
