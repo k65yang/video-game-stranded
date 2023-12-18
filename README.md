@@ -61,6 +61,9 @@ Player upgrade - Healing Icon: https://www.flaticon.com/free-icon/regeneration_4
 
 Player upgrade - Speed Icon: https://www.flaticon.com/free-icon/speed_1409012?related_id=1409083&origin=search
 
+Player upgrade - Invisible Icon: https://www.flaticon.com/free-icon/speed_1409012?related_id=1409083&origin=search
+
+
 Start Button: https://www.flaticon.com/free-icon/start-button_5261929?related_id=5261874&origin=search 
 
 Muzzle flash: https://opengameart.org/content/16-toon-muzzle-flash
