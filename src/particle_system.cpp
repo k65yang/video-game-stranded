@@ -318,7 +318,7 @@ void ParticleSystem::createParticleSplash(Entity projectile_entity, Entity mob_e
 
 }
 
-void ParticleSystem::createWaterSpalsh(Entity targetEntity, int numberOfParticles, float speedRatio) {
+void ParticleSystem::createWaterSplash(Entity targetEntity, int numberOfParticles, float speedRatio) {
 
     // create the template particle
     ParticleTemplate temp;

@@ -486,7 +486,7 @@ void WorldSystem::handlePlayerMovement(float elapsed_ms_since_last_update) {
 			float speedRatio = terrain->get_terrain_speed_ratio(terrain->get_cell(m.position));
 
 			if (speedRatio == 0.25f || speedRatio == 0.40f) {
-				particle_system->createWaterSpalsh(player_salmon,1, speedRatio);
+				particle_system->createWaterSplash(player_salmon,1, speedRatio);
 			}
 
 			m.velocity *= speedRatio;

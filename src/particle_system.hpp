@@ -51,7 +51,7 @@ class ParticleSystem
     void createFloatingHeart(Entity targetEntity, TEXTURE_ASSET_ID texture, int numberOfParticles);
     void createFloatingBullet(Entity targetEntity, int numberOfParticles);
     void createParticleSplash(Entity projectile_entity, Entity mob_entity, int numberOfParticles, vec2 splashDirection);
-    void createWaterSpalsh(Entity targetEntity, int numberOfParticles, float speedRatio);
+    void createWaterSplash(Entity targetEntity, int numberOfParticles, float speedRatio);
 
 
     private:
