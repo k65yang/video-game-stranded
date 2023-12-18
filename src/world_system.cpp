@@ -486,7 +486,7 @@ void WorldSystem::handlePlayerMovement(float elapsed_ms_since_last_update) {
 			float speedRatio = terrain->get_terrain_speed_ratio(terrain->get_cell(m.position));
 
 			if (speedRatio == 0.25f || speedRatio == 0.40f) {
-				particle_system->createWaterSpalsh(player_salmon,1, speedRatio);
+				particle_system->createWaterSplash(player_salmon,1, speedRatio);
 			}
 
 			m.velocity *= speedRatio;
@@ -564,13 +564,11 @@ void WorldSystem::restart_game() {
 	printf("Restarting\n");
 
 	// Reset the items submmited 
-	spaceship_home_system->ALL_ITEMS_SUBMITTED = false; 
-
+	spaceship_home_system->ALL_ITEMS_SUBMITTED = false;
 	
 	bool PLAYER_DEATH_FROM_FOOD = false;
 	renderer->enableFow = 1;
-
-
+	renderer->fow_radius = 4.5f;
 
 	while (registry.deathTimers.entities.size() > 0)
 		registry.remove_all_components_of(registry.deathTimers.entities.back());
@@ -1353,12 +1351,17 @@ void WorldSystem::on_mouse_click(int button, int action, int mods) {
 			}
 		}
 	}
-
-	if (debugging.in_debug_mode && button == GLFW_MOUSE_BUTTON_RIGHT) {
-		if (action == GLFW_PRESS)
-			editor_place_tile = true;
-		else if (action == GLFW_RELEASE)
-			editor_place_tile = false;
+	if (debugging.in_debug_mode) {
+		if (button == GLFW_MOUSE_BUTTON_RIGHT) {
+			if (action == GLFW_PRESS)
+				editor_place_tile = true;
+			else if (action == GLFW_RELEASE)
+				editor_place_tile = false;
+		}
+		if (button == GLFW_MOUSE_BUTTON_LEFT) {
+			ivec2 pos = terrain->quantize_vec2(mouse_pos_clip);
+			std::cout << "Clicked tile: (" << pos.x << ", " << pos.y << ')' << std::endl;
+		}
 	}
 }
 
@@ -1449,8 +1452,8 @@ void WorldSystem::spawn_items() {
 	// lookup table for powerup
 	std::unordered_map<ZONE_NUMBER, int> zone_powerup = {
 		{ZONE_0, 0},
-		{ZONE_1, 2},
-		{ZONE_2, 3},
+		{ZONE_1, 0},
+		{ZONE_2, 2},
 		{ZONE_3, 5},
 		{ZONE_4, 7},
 		{ZONE_5, 10},
@@ -1524,7 +1527,8 @@ void WorldSystem::spawn_items() {
 
 	// BOTTOM RIGHT REGION
 	powerup_spawn_helper(vec2{ 3.00f, 20.0f });
-	powerup_spawn_helper(vec2{ 21.0f, 28.0f });
+	powerup_spawn_helper(vec2{ 76.0f, 6.0f });
+	powerup_spawn_helper(vec2{ 23.0f, 13.0f });
 	powerup_spawn_helper(vec2{ 69.0f, 42.0f });
 	powerup_spawn_helper(vec2{ 83.0f, 30.0f });
 	powerup_spawn_helper(vec2{ 96.0f, 2.00f });
@@ -1569,7 +1573,10 @@ void WorldSystem::load_game(json j) {
 	while (registry.weapons.entities.size() > 0)
 		registry.remove_all_components_of(registry.weapons.entities.back());
 
-	
+
+	renderer->enableFow = 1;
+	renderer->fow_radius = 4.5f;
+
 
 	// Reset the weapons system
 	weapons_system->resetWeaponsSystem();
