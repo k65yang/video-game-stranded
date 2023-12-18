@@ -275,14 +275,13 @@ void PowerupSystem::applyInfiniteBulletPowerup() {
 
 
 // reset powerup system on game restart
-void PowerupSystem::resetPowerupSystem(Entity player_entity_arg) {
+void PowerupSystem::resetPowerupSystem(Entity player_entity_arg, float old_speed_arg) {
 
 	registry.powerups.clear();
 
 	auto& player_component = registry.players.get(player_entity_arg);
 
-	// initialize old speed as current speed;
-	old_speed = player_component.current_speed;
+	old_speed = old_speed_arg;
 
 	// store player entity reference
 	player_entity = player_entity_arg;
@@ -305,6 +304,8 @@ void PowerupSystem::resetPowerupSystem(Entity player_entity_arg) {
 	auto& powerup3 = registry.powerups.emplace_with_duplicates(player_entity);
 	powerup3.type = POWERUP_TYPE::INFINITE_BULLET;
 	disablePowerupEffect(powerup3.type);
+
+
 }
 
 void PowerupSystem::setPowerup(float duration_ms, POWERUP_TYPE type_arg) {

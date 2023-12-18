@@ -1053,7 +1053,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		}
 		
 
-		SaveGame(player, player_motion, active_weapon, weapons, mobs, items, quest_item_statuses, spaceship_home_info, powerups);
+		SaveGame(player, player_motion, active_weapon, weapons, mobs, items, quest_item_statuses, spaceship_home_info, powerups, powerup_system->old_speed);
 
 		tutorial_system->createTutorialText(TUTORIAL_TYPE::GAME_SAVED);
 	}
@@ -1656,13 +1656,17 @@ void WorldSystem::load_game(json j) {
 	if (weapon_type == ITEM_TYPE::WEAPON_NONE) {
 		user_has_first_weapon = false;
 	}
+	float p_old_speed = j["old_speed"];
 
-	powerup_system->resetPowerupSystem(player_salmon);
+	powerup_system->resetPowerupSystem(player_salmon, p_old_speed);
 
 	// Load all powerup data
 	for (auto& powerup : j["powerups"]) {
 		powerup_system->setPowerup(static_cast<float > (powerup["duration_ms"]), static_cast<POWERUP_TYPE>(powerup["powerup_type"]));
 	}
+
+	
+
 
 
 	// Quest items

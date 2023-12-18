@@ -39,7 +39,7 @@ class PowerupSystem
 		// apply a powerup to the target entity
 		void applyPowerup(POWERUP_TYPE powerup_type);
 		//void loadPowerup(std::vector<Powerup> powerups);
-		void resetPowerupSystem(Entity player_entity_arg);
+		void resetPowerupSystem(Entity player_entity_arg, float old_speed_arg = 5.0f);
 		void setPowerup(float duration_ms, POWERUP_TYPE type_arg);
 
 		
