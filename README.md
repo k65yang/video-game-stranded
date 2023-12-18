@@ -61,6 +61,8 @@ Player upgrade - Healing Icon: https://www.flaticon.com/free-icon/regeneration_4
 
 Player upgrade - Speed Icon: https://www.flaticon.com/free-icon/speed_1409012?related_id=1409083&origin=search
 
+Player upgrade - Invisible Icon: https://www.flaticon.com/free-icon/speed_1409012?related_id=1409083&origin=search
+
 Shuriken Weapon Icon: ???
 
 Crossbow Weapon Icon: https://www.flaticon.com/free-icon/crossbow_486976
