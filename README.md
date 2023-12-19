@@ -100,3 +100,29 @@ The following table lists some of the balance and user experience issues the dev
 <b></b> <br>
 ## How to start
 Build instructions are exactly the same as A1/A2. The .exe is even named salmon.exe! Make sure to regenerate the CMake cache if you are having build errors.
+
+<b></b> <br>
+### Image Credits
+
+_Only assets taken from the web are credited here. If the image is not mentioned, then we made it ourselves._
+
+Player upgrade - Healing Icon: https://www.flaticon.com/free-icon/regeneration_4490839?term=healing&page=1&position=8&origin=search&related_id=4490839
+
+Player upgrade - Speed Icon: https://www.flaticon.com/free-icon/speed_1409012?related_id=1409083&origin=search
+
+Player upgrade - Invisible Icon: https://www.flaticon.com/free-icon/speed_1409012?related_id=1409083&origin=search
+
+
+Start Button: https://www.flaticon.com/free-icon/start-button_5261929?related_id=5261874&origin=search 
+
+Muzzle flash: https://opengameart.org/content/16-toon-muzzle-flash
+
+Brute and disruptor mobs: https://www.craiyon.com/
+
+## Sound Credits
+
+Almost all sound effects are used as is or composites from PixaBay (internet police friendly build): https://pixabay.com/sound-effects
+
+Some were made with Steinberg's Retrologue and Padshop Pro synthesizers, but composed in-house.
+
+"Dark Forest" used as Background Game Music by "McFunkypants": https://www.chosic.com/download-audio/27010/
